@@ -7,6 +7,7 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 
 from tripai.agents.explain import allowed_numbers, ungrounded_numbers
 from tripai.agents.fit import (
+    LABELS,
     NEUTRAL_PREFIX,
     FitDraft,
     clear_cache,
@@ -118,7 +119,9 @@ async def test_fit_cache(candidates, crowd_avoider):
     m = FunctionModel(model_fn)
     a = await fit(rec, crowd_avoider, model=m)
     b = await fit(rec, crowd_avoider, model=m)
-    assert a is b and len(calls) == 1
+    assert a == b and len(calls) == 1
+    b.concerns.append(FitPoint(text="mutated", dna=["q1"]))  # callers get their own copy
+    assert (await fit(rec, crowd_avoider, model=m)) == a
     other = crowd_avoider.model_copy(update={"traits": {"q11": 1}})
     await fit(rec, other, model=m)  # different profile hash -> new call
     assert len(calls) == 2
@@ -207,3 +210,45 @@ def test_api_recommendations_have_fit_on_top_n():
     assert f["model"] == "rules" and f["inputs_hash"] == recs[0]["inputs_hash"]
     assert f["label"] in {"great_fit", "good_fit", "mixed", "poor_fit"}
     assert c.post("/recommendations", json={"profile": prof, "fit_top": 11}).status_code == 422
+
+
+def test_card_ids_in_text_are_citations_not_numbers(candidates, crowd_avoider):
+    rec = _rec(candidates, crowd_avoider, 7)
+    a = dna_answers(crowd_avoider)
+    pt = FitPoint(text="Away from the crowds you avoid (q11, q8)", dna=["q11", "q8"])
+    assert point_problems(pt, rec, a) == []
+    assert point_problems(FitPoint(text="q11 says 42 things", dna=["q11"]), rec, a)
+    draft = FitDraft(**_draft(summary="Matches your q5 and Y1 answers.", matches=[pt.model_dump()]))
+    from tripai.agents.fit import verdict_problems
+
+    assert verdict_problems(draft, rec, crowd_avoider) == []
+
+
+def test_rules_rest_match_names_only_real_tags(candidates):
+    relax = TasteProfile(user_id="r", traits={"q6": 5})
+    nap = next(r for r in rank(candidates, relax, limit=50, one_per_city=False) if r.iata == "NAP")
+    assert "beach" not in nap.tags
+    texts = [m.text for m in rules_verdict(nap, relax).matches]
+    assert "Good for rest: nature" in texts and not any("beach" in t for t in texts)
+
+
+def test_rules_drop_uncited_points(candidates):
+    heat = TasteProfile(user_id="h", dislikes=["heat"], preferred_temp_c=(10, 15))
+    rec = _rec(candidates, heat, 7)
+    no_weather = rec.model_copy(update={"evidence": [e for e in rec.evidence
+                                                     if e.kind != "weather"]})  # fmt: skip
+    with_ev = rules_verdict(rec, heat)
+    without = rules_verdict(no_weather, heat)
+    assert any(c.text == "Hotter than you like" for c in with_ev.concerns)
+    assert not any(c.text == "Hotter than you like" for c in without.concerns)
+    for pt in [*without.matches, *without.concerns]:
+        assert pt.dna or pt.evidence
+    # the dropped hard concern no longer downgrades the label
+    assert LABELS.index(without.label) >= LABELS.index(with_ev.label)
+
+
+def test_rules_poor_fit_summary_wording(candidates):
+    budget = TasteProfile(user_id="b", budget_pln=300, traits={"q9": 5})
+    v = rules_verdict(_rec(candidates, budget, 7), budget)
+    assert v.label == "poor_fit" and v.summary.startswith("Probably not your style")
+    assert "style for you" not in v.summary

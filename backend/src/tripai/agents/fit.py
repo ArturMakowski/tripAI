@@ -8,6 +8,7 @@ Grounding is enforced by an output validator (ModelRetry), with a deterministic 
 import hashlib
 import json
 import logging
+import re
 from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -26,6 +27,13 @@ log = logging.getLogger(__name__)
 
 STATEMENTS = [f"q{i}" for i in range(1, 13)]
 DNA_IDS = [*STATEMENTS, "y1", "y2"]
+_CARD_ID = re.compile(r"\b[qQyY]\d{1,2}\b")  # "q11" is a citation, not a number
+
+
+def _without_card_ids(text: str) -> str:
+    return _CARD_ID.sub("", text)
+
+
 LABELS = ["poor_fit", "mixed", "good_fit", "great_fit"]  # worst -> best
 NEUTRAL_PREFIX = "Neutral check (personalisation off): "
 DNA_EN = {
@@ -139,7 +147,7 @@ def point_problems(pt: FitPoint, rec: RankedRecommendation, answers: dict[str, i
             for v in vals:
                 allowed |= {abs(v), abs(round(v)), abs(round(v, 1))}
     allowed |= {float(answers[d]) for d in pt.dna if d in answers}
-    bad = ungrounded_numbers(pt.text, allowed)
+    bad = ungrounded_numbers(_without_card_ids(pt.text), allowed)
     if bad:
         problems.append(f"'{pt.text}' uses numbers not in its cited evidence: {', '.join(bad)}")
     return problems
@@ -152,7 +160,7 @@ def verdict_problems(
     problems = []
     for pt in [*draft.matches, *draft.concerns]:
         problems += point_problems(pt, rec, answers)
-    bad = ungrounded_numbers(draft.summary, allowed_numbers(rec))
+    bad = ungrounded_numbers(_without_card_ids(draft.summary), allowed_numbers(rec))
     if bad:
         problems.append(f"summary uses numbers not in the evidence: {', '.join(bad)}")
     return problems
@@ -229,7 +237,7 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
     tags = set(rec.tags)
     matches: list[FitPoint] = []
     concerns: list[FitPoint] = []
-    hard = 0
+    hard_at: set[int] = set()  # indexes of hard concerns (each downgrades the label one step)
     crowd = rec.crowd if rec.crowd is not None else _ev_value(rec, "crowds")
     temp = rec.temp_c if rec.temp_c is not None else _ev_value(rec, "weather")
     ev_crowd, ev_weather = _ev_index(rec, "crowds"), _ev_index(rec, "weather")
@@ -240,7 +248,7 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
     avoids_crowds = bool(crowd_cards) or "crowds" in p.dislikes
     if avoids_crowds and crowd is not None:
         if crowd > 0.7:
-            hard += 1
+            hard_at.add(len(concerns))
             concerns.append(FitPoint(text="Peak tourist crowds, and you prefer to avoid them",
                                      dna=crowd_cards, evidence=ev_crowd))  # fmt: skip
         elif crowd <= 0.4:
@@ -249,16 +257,18 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
 
     if a["q6"] >= 4:
         if tags & NIGHTLIFE and not tags & RELAX:
-            hard += 1
-            concerns.append(FitPoint(text="A party/nightlife city, but you travel to rest",
+            hard_at.add(len(concerns))
+            party = ", ".join(sorted(tags & NIGHTLIFE))
+            concerns.append(FitPoint(text=f"Known for {party}, but you travel to rest",
                                      dna=["q6"]))  # fmt: skip
         elif tags & RELAX:
-            matches.append(FitPoint(text="Good for rest: beach and slow days", dna=["q6"]))
+            restful = ", ".join(sorted(tags & RELAX))  # only what the city's tags actually say
+            matches.append(FitPoint(text=f"Good for rest: {restful}", dna=["q6"]))
 
     lo, hi = p.preferred_temp_c
     if temp is not None:
         if "heat" in p.dislikes and temp > hi:
-            hard += 1
+            hard_at.add(len(concerns))
             concerns.append(FitPoint(text="Hotter than you like", evidence=ev_weather))
         elif temp < lo - 4 or temp > hi + 4:
             concerns.append(FitPoint(text="Weather well outside your comfort range",
@@ -272,7 +282,7 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
 
     if a["q9"] >= 4:
         if rec.score.price < 0.4:
-            hard += 1
+            hard_at.add(len(concerns))
             concerns.append(FitPoint(text="Expensive for someone price-driven", dna=["q9"],
                                      evidence=ev_price))  # fmt: skip
         elif rec.score.price >= 0.7:
@@ -295,12 +305,22 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
         matches.append(FitPoint(text="Enough sights for something new each day", dna=cards,
                                 evidence=ev_sights))  # fmt: skip
 
+    # Rule 1 applies to the fallback too: drop any point that cites nothing (e.g. a live provider
+    # without weather evidence) or fails the grounding checks; dropped hard concerns don't count.
+    def grounded(pt: FitPoint) -> bool:
+        return bool(pt.dna or pt.evidence) and not point_problems(pt, rec, a)
+
+    matches = [m for m in matches if grounded(m)]
+    kept = [(i, c) for i, c in enumerate(concerns) if grounded(c)]
+    concerns = [c for _, c in kept]
+    hard = sum(i in hard_at for i, _ in kept)
+
     label = label_from_score(rec.score.total)
     idx = max(0, LABELS.index(label) - hard)
     label = LABELS[idx]
-    phrase = {"great_fit": "A great fit", "good_fit": "A good fit", "mixed": "A mixed fit",
-              "poor_fit": "Probably not your style"}[label]  # fmt: skip
-    summary = f"{phrase} for you"
+    phrase = {"great_fit": "A great fit for you", "good_fit": "A good fit for you",
+              "mixed": "A mixed fit for you", "poor_fit": "Probably not your style"}[label]  # fmt: skip
+    summary = phrase
     if matches:
         summary += f": {matches[0].text[0].lower()}{matches[0].text[1:]}"
     if concerns:
@@ -343,7 +363,7 @@ async def fit(
     key = (model_key, rec.inputs_hash, profile_hash(profile), rec.id)
     if key in _CACHE:
         _CACHE.move_to_end(key)
-        return _CACHE[key]
+        return _CACHE[key].model_copy(deep=True)  # callers may mutate their copy
 
     verdict = None
     if use_llm:
@@ -360,7 +380,7 @@ async def fit(
         verdict = _finish(rules_verdict(rec, profile), "rules", rec, profile)
         if use_llm:
             return verdict  # don't cache a fallback under the LLM key: retry next request
-    _CACHE[key] = verdict
+    _CACHE[key] = verdict.model_copy(deep=True)
     while len(_CACHE) > CACHE_SIZE:
         _CACHE.popitem(last=False)
     return verdict
