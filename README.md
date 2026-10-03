@@ -3,12 +3,7 @@
 Proactive AI travel planner (HackYeah 2026): from your taste, budget and free days it recommends **where and when** to go, with a sourced, reproducible score.
 
 ## Hosted
-| | URL |
-|---|---|
-| App (frontend) | https://frontend-production-11c11.up.railway.app |
-| API (backend) | https://backend-production-f17bd.up.railway.app/docs |
-
-Both are Railway services in project `tripai`; the backend deploys automatically from `main`.
+The app and API run on Railway (project `tripai`). Ask the team for the URLs; they are intentionally not published here.
 
 ## Run locally (for devs)
 Prerequisites: [uv](https://docs.astral.sh/uv/), Node 20+, git.
@@ -23,7 +18,7 @@ cd backend && uv sync && uv run uvicorn tripai.main:app --reload
 # frontend (second terminal) → http://localhost:3000
 cd frontend && npm install
 NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
-#   or against the hosted API:  NEXT_PUBLIC_API_URL=https://backend-production-f17bd.up.railway.app npm run dev
+#   or against the hosted API:  NEXT_PUBLIC_API_URL=<backend-url> npm run dev
 #   or no backend at all (in-browser demo data):  npm run dev
 ```
 
@@ -226,7 +221,7 @@ ranking, long weekends, watched-pick prices, dedupe check, save, push, run recor
   (`TRIPAI_SCAN_CRON`, 6-field cron). It visits **active users only**, one after another, and stops early once the
   SerpApi daily budget is spent (see "Cost caps" below).
   Use the Supabase pooler in **session mode** (port 5432; `aws-0-eu-west-1` is the host that knows this project):
-  `postgresql://postgres.nvonqduyallbiggricdl:<url-encoded SUPABASE_PASSWORD>@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require`.
+  `postgresql://postgres.<project-ref>:<url-encoded SUPABASE_PASSWORD>@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require`.
   DBOS creates its own `dbos` schema (not exposed through PostgREST).
 - **unset** → the same body runs inline (tests, local dev). If DBOS fails to launch, the API logs it and stays inline.
 

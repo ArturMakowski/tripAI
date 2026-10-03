@@ -9,7 +9,7 @@ Agentic E2E tests for the TripAI web app, built on [TesterArmy e2e](https://gith
 cd e2e
 npm install && npx playwright install chromium
 npm run e2e          # whole suite except @live, against E2E_BASE_URL (default: the live Railway app)
-npm run e2e:prod     # whole suite incl. @live, against https://frontend-production-11c11.up.railway.app
+npm run e2e:prod     # whole suite incl. @live, against $E2E_PROD_URL (set in ../.env)
 npm run e2e:local    # against http://localhost:3000 (frontend from ../frontend), except @live
 npm run e2e:replay   # strict replay: fails (REPLAY_STALE) instead of paying for a model call when a recording went stale
 npx e2e run tests/05-receipt.e2e.ts --headed   # one file, watch it

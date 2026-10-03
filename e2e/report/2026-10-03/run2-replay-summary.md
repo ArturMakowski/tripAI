@@ -8,7 +8,7 @@
 
 > agent.act failed: The /windows screen has no visible language switch; the header only shows TripAI and Inbox, and no language control appears elsewhere in the screen. I did not navigate away or change the language.
 
-- Screen: `https://frontend-production-11c11.up.railway.app/windows`
+- Screen: `<frontend-url>/windows`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Free_20time-8bc9e802/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Free_20time-8bc9e802/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Free_20time-8bc9e802/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Free_time-89fc6c7d-f5a43507.md`
 
@@ -19,7 +19,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 
 - Expected: not text "Where & when, ranked."
 - Observed: text "Where & when, ranked." (1 match)
-- Screen: `https://frontend-production-11c11.up.railway.app/trips`
+- Screen: `<frontend-url>/trips`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Trips-1d3a7f3e/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Trips-1d3a7f3e/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Trips-1d3a7f3e/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Trips-e0c596e0-1bfe5085.md`
 
@@ -30,7 +30,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 
 - Expected: not text "Here's what we heard."
 - Observed: text "Here's what we heard." (1 match)
-- Screen: `https://frontend-production-11c11.up.railway.app/profile`
+- Screen: `<frontend-url>/profile`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Profile-5ff1d505/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Profile-5ff1d505/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Profile-5ff1d505/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Profile-3e4dc07d-f6f07f15.md`
 
@@ -41,7 +41,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 
 - Expected: not text "How was Barcelona?"
 - Observed: text "How was Barcelona?" (1 match)
-- Screen: `https://frontend-production-11c11.up.railway.app/survey`
+- Screen: `<frontend-url>/survey`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Feedback_20survey-40b64fcd/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Feedback_20survey-40b64fcd/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Feedback_20survey-40b64fcd/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Feedback_survey-3c125f7a-4cb7d231.md`
 
@@ -52,7 +52,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 
 > The screen’s headings and controls are mostly in Polish, but the language selector includes the English label “English” alongside Polish labels.
 
-- Screen: `https://frontend-production-11c11.up.railway.app/inbox`
+- Screen: `<frontend-url>/inbox`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Inbox-c41e7453/default/attempt-0/screenshots/002-failure.png`, screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Inbox-c41e7453/default/attempt-0/screenshots/001-assert.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Inbox-c41e7453/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Inbox-c41e7453/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Inbox-140c1205-55e6606c.md`
 

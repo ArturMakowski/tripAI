@@ -8,7 +8,7 @@
 
 - Expected: not text "When you could go."
 - Observed: text "When you could go." (1 match)
-- Screen: `https://frontend-production-11c11.up.railway.app/windows`
+- Screen: `<frontend-url>/windows`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Free_20time-8bc9e802/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Free_20time-8bc9e802/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Free_20time-8bc9e802/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Free_time-89fc6c7d-f5a43507.md`
 
@@ -19,7 +19,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 
 - Expected: not text "Where & when, ranked."
 - Observed: text "Where & when, ranked." (1 match)
-- Screen: `https://frontend-production-11c11.up.railway.app/trips`
+- Screen: `<frontend-url>/trips`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Trips-1d3a7f3e/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Trips-1d3a7f3e/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Trips-1d3a7f3e/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Trips-e0c596e0-1bfe5085.md`
 
@@ -31,7 +31,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 > agent.act failed: The current /profile screen has no language switch. The visible header only shows TripAI and Inbox, and the screenshot confirms there is no language control; I did not navigate away.
 
 - Turn 1: `screenshot({})` → \[screenshot\] Screen unchanged since revision b2 (re-observed as revision b4, path /profile); the ids you have stay valid.
-- Screen: `https://frontend-production-11c11.up.railway.app/profile`
+- Screen: `<frontend-url>/profile`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Profile-5ff1d505/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Profile-5ff1d505/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Profile-5ff1d505/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Profile-3e4dc07d-f6f07f15.md`
 
@@ -42,7 +42,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 
 - Expected: not text "How was Barcelona?"
 - Observed: text "How was Barcelona?" (1 match)
-- Screen: `https://frontend-production-11c11.up.railway.app/survey`
+- Screen: `<frontend-url>/survey`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Feedback_20survey-40b64fcd/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Feedback_20survey-40b64fcd/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Feedback_20survey-40b64fcd/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Feedback_survey-3c125f7a-4cb7d231.md`
 
@@ -53,7 +53,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 
 - Expected: not text "We watch. You decide."
 - Observed: text "We watch. You decide." (1 match)
-- Screen: `https://frontend-production-11c11.up.railway.app/inbox`
+- Screen: `<frontend-url>/inbox`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Inbox-c41e7453/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Inbox-c41e7453/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_20toggle_20switches_20the_20visible_20text_20on_20Inbox-c41e7453/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_02-language.e2e.ts-PL_EN_toggle_switches_the_visible_text_on_Inbox-140c1205-55e6606c.md`
 
@@ -64,7 +64,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_02-language.e2e.ts__PL_2FEN_
 
 > broken card photos: expected \["Nice, France","Málaga, Spain","Naples, Italy"\] to equal \[\]
 
-- Screen: `https://frontend-production-11c11.up.railway.app/trips`
+- Screen: `<frontend-url>/trips`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_04-trips-budget.e2e.ts__Trips_3A_20cards_20show_20photo_2C_20price_20and_20fit_20badge_3B_20with_20a_201_-651d72cd/default/attempt-0/screenshots/001-failure.png`, trace `.e2e/artifacts/iphone14/tests_04-trips-budget.e2e.ts__Trips_3A_20cards_20show_20photo_2C_20price_20and_20fit_20badge_3B_20with_20a_201_-651d72cd/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_04-trips-budget.e2e.ts__Trips_3A_20cards_20show_20photo_2C_20price_20and_20fit_20badge_3B_20with_20a_201_-651d72cd/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_04-trips-budget.e2e.ts-Trips__cards_show_photo__price_and_fit_badge__with_a_1_000_PLN_budget_no_over-budg-cd90b359-5ae45cb9.md`
 
@@ -75,7 +75,7 @@ Evidence: screenshot `.e2e/artifacts/iphone14/tests_04-trips-budget.e2e.ts__Trip
 
 > The scan is still marked “Scanning,” so its final inbox result is not yet shown. The status mentions one new notification, but no notification is listed yet.; the judge saw the semantic tree only; if the engine captures pixels, pass vision: true when the answer is in pixels
 
-- Screen: `https://frontend-production-11c11.up.railway.app/inbox`
+- Screen: `<frontend-url>/inbox`
 
 Evidence: screenshot `.e2e/artifacts/iphone14/tests_08-inbox.e2e.ts__Inbox_3A_20_22Run_20the_20scan_20now_22_20ends_20in_20a_20notification_20or_20a_20clear_-9c5bfb14/default/attempt-0/screenshots/002-failure.png`, screenshot `.e2e/artifacts/iphone14/tests_08-inbox.e2e.ts__Inbox_3A_20_22Run_20the_20scan_20now_22_20ends_20in_20a_20notification_20or_20a_20clear_-9c5bfb14/default/attempt-0/screenshots/001-assert.png`, trace `.e2e/artifacts/iphone14/tests_08-inbox.e2e.ts__Inbox_3A_20_22Run_20the_20scan_20now_22_20ends_20in_20a_20notification_20or_20a_20clear_-9c5bfb14/default/attempt-0/trace/trace.zip`, log `.e2e/artifacts/iphone14/tests_08-inbox.e2e.ts__Inbox_3A_20_22Run_20the_20scan_20now_22_20ends_20in_20a_20notification_20or_20a_20clear_-9c5bfb14/default/attempt-0/failure/screen.txt` · Details: `.e2e/failures/tests_08-inbox.e2e.ts-Inbox___Run_the_scan_now__ends_in_a_notification_or_a_clear__nothing_new__state-29eb53d9-ef44b4c3.md`
 

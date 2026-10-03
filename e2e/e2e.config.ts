@@ -9,7 +9,7 @@ const envFile = process.env.TRIPAI_ENV_FILE ?? '../.env';
 if (!process.env.OPENAI_API_KEY && existsSync(envFile)) process.loadEnvFile(envFile);
 
 /** Live Railway app by default; E2E_BASE_URL=http://localhost:3000 for a local frontend. */
-export const BASE_URL = process.env.E2E_BASE_URL ?? 'https://frontend-production-11c11.up.railway.app';
+export const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
 
 // iPhone 14 (Playwright's device descriptor): 390x844 CSS px, Mobile Safari user agent.
 const IPHONE_14 = {

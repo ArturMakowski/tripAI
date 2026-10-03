@@ -15,7 +15,7 @@ Wedges (from COMPETITORS.md), folded into tasks:
 - Długi weekend radar → T3 (holidays + ferie data) + T1 (bridge-day window finder)
 - Receipt card w/ counterfactuals + inputs hash → T1 (deltas, hash) + T4 (UI)
 - Live learning loop → T1 (/feedback adjusts weights) + T4 (survey → re-rank animation)
-- [x] Deploy: Railway project tripai, backend at https://backend-production-f17bd.up.railway.app (auto-deploy from main)
+- [x] Deploy: Railway project tripai, backend at <backend-url> (auto-deploy from main)
 - [ ] Deploy frontend service on Railway after T4 merges
 - [ ] T4f date-range calendar on Free time (select fitting dates → windows for /recommendations)
 - [ ] i18n PL/EN app-wide (frontend after #15) + backend lang
