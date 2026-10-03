@@ -6,10 +6,10 @@ import type { E2EConfig } from 'e2e';
 // OPENAI_API_KEY comes from the environment, or from an env file (never committed).
 // Default: the repo-root .env; override with TRIPAI_ENV_FILE=/path/to/.env.
 const envFile = process.env.TRIPAI_ENV_FILE ?? '../.env';
-if (!process.env.OPENAI_API_KEY && existsSync(envFile)) process.loadEnvFile(envFile);
+if (existsSync(envFile)) process.loadEnvFile(envFile); // never overrides variables already set
 
-/** Live Railway app by default; E2E_BASE_URL=http://localhost:3000 for a local frontend. */
-export const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
+/** E2E_BASE_URL wins; else the deployed app from E2E_PROD_URL (repo-root .env, not committed); else local. */
+export const BASE_URL = process.env.E2E_BASE_URL || process.env.E2E_PROD_URL || 'http://localhost:3000';
 
 // iPhone 14 (Playwright's device descriptor): 390x844 CSS px, Mobile Safari user agent.
 const IPHONE_14 = {
