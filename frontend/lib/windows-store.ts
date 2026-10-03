@@ -7,7 +7,7 @@
  */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { addRange, type DateRange, removeRange, toFreeWindows, toISO, usableRanges } from "./date-range";
+import { addRange, type DateRange, pickQuick, type QuickKind, removeRange, toFreeWindows, toISO, usableRanges } from "./date-range";
 import { useTrip } from "./store";
 import type { FreeWindow } from "./types";
 
@@ -20,6 +20,8 @@ interface DatesState {
   /** Windows the cached ranking was requested for (JSON); see datesChanged(). */
   sentKey: string | null;
   add: (r: DateRange) => void;
+  /** quick filter chip: mutually exclusive with the other chips (see pickQuick) */
+  pickQuick: (kind: QuickKind, r: DateRange) => void;
   remove: (r: Pick<DateRange, "start" | "end">) => void;
   clear: () => void;
   setFlex: (days: number) => void;
@@ -36,6 +38,10 @@ export const useDates = create<DatesState>()(
       sentKey: null,
       add: (r) => {
         set((s) => ({ ranges: addRange(s.ranges, r) }));
+        invalidateRecs();
+      },
+      pickQuick: (kind, r) => {
+        set((s) => ({ ranges: pickQuick(s.ranges, kind, r) }));
         invalidateRecs();
       },
       remove: (r) => {

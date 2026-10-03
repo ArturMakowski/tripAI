@@ -71,7 +71,8 @@ export const en = {
     now: "· now",
     dismiss: "Dismiss",
     title: (range: string, city: string) => `You’re free ${range} → ${city}`,
-    body: (total: string, flights: string, score: string) => `${total} all-in · flights ${flights} · ★ ${score}/5`,
+    /** score = the ring's plain 0–100 number */
+    body: (total: string, flights: string, score: number) => `${total} all-in · flights ${flights} · score ${score}`,
   },
 
   notYourStyle: "Not your style",
@@ -87,9 +88,6 @@ export const en = {
     allIn: "all-in",
     cachedEstimate: "estimate",
     overBudget: (amount: string) => `Over budget +${amount}`,
-    vsPeak: (pct: number) => `−${pct}% vs peak`,
-    peakNote: (month: string | null, peak: string, now: string, version: string) =>
-      `Same trip${month ? ` in ${month}` : ""} (the city's peak-crowd month): ${peak} vs ${now} now · TripAI scorer ${version}`,
     disagree: "Score and fit disagree:",
   },
 } as const;
@@ -163,8 +161,8 @@ export const pl: Shape<typeof en> = {
     now: "· teraz",
     dismiss: "Zamknij",
     title: (range: string, city: string) => `Masz wolne ${range} → ${city}`,
-    body: (total: string, flights: string, score: string) =>
-      `${total} łącznie · loty ${flights} · ★ ${score}/5`,
+    body: (total: string, flights: string, score: number) =>
+      `${total} łącznie · loty ${flights} · wynik ${score}`,
   },
 
   notYourStyle: "Nie w Twoim stylu",
@@ -181,9 +179,6 @@ export const pl: Shape<typeof en> = {
     allIn: "łącznie",
     cachedEstimate: "szacunek",
     overBudget: (amount: string) => `Ponad budżet +${amount}`,
-    vsPeak: (pct: number) => `−${pct}% wobec szczytu`,
-    peakNote: (month: string | null, peak: string, now: string, version: string) =>
-      `Ten sam wyjazd w szczycie sezonu w tym mieście${month ? ` (${month})` : ""}: ${peak} wobec ${now} teraz · algorytm TripAI ${version}`,
     disagree: "Wynik i dopasowanie się różnią:",
   },
 };

@@ -2,8 +2,9 @@ import { test } from '@e2e-dev/web';
 import { expect } from 'e2e';
 import { guard } from './support/tripai.ts';
 
-// Receipt after the declutter (PR #31): the money lines sit above the fold, each with a compact source chip
-// "Source · 3 Oct" whose tooltip carries the full fetch time; the inputs hash lives in the collapsed "Audit" row.
+// Receipt after the declutter (PR #31, round 3 #41): the money lines sit above the fold; their compact source
+// chips ("Source · 3 Oct", full fetch time in the tooltip) are behind one "ⓘ Sources / Źródła" toggle; the
+// inputs hash lives in the collapsed "Audit" row.
 test('Receipt: every price row shows its source and fetch time, and the inputs hash is one tap away', async ({ app, agent, screen, browser }) => {
   await guard(browser, app.baseUrl);
   await app.open('/trips');
@@ -14,9 +15,11 @@ test('Receipt: every price row shows its source and fetch time, and the inputs h
   // Deterministic: open the top-ranked trip (the whole card is one link).
   await browser.goto((await top.getAttribute('href')) ?? '/trips');
 
-  // Each priced line (flight, stay) carries "Source · 3 Oct" with the fetch time in its tooltip.
+  // Each priced line (flight, stay) carries "Source · 3 Oct" with the fetch time in its tooltip, once the
+  // section's "Sources / Źródła" toggle is open (the chips only render then).
   const rows = browser.locator('main [data-line]');
   await expect(rows.first()).toBeVisible({ timeout: 30_000 });
+  await screen.getByRole('button', /^(sources|źródła)$/i).tap();
   const lines = (await browser.evaluate(() =>
     [...document.querySelectorAll('main [data-line]')].map((r) => {
       const chip = r.querySelector('[title]');

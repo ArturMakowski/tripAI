@@ -33,7 +33,6 @@ export const en = {
   },
   art: {
     thatsMe: "That’s me",
-    notMe: "Not me",
     card: "I love discovering places I don’t know yet.",
     month: "May 2027",
     weekdays: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
@@ -47,6 +46,8 @@ export const en = {
     alertOnly: "Only when it’s worth it",
     cities: ["Rome", "Lisbon", "Athens"],
     example: "Example",
+    /** label on every illustration: a still preview, not something to tap */
+    preview: "Preview",
   },
   coach: {
     gotIt: "Got it",
@@ -68,7 +69,7 @@ export const en = {
       },
       source: {
         title: "Every number has a source",
-        body: "Where the price came from, and when.",
+        body: "Tap for where each price came from, and when.",
       },
       flip: {
         title: "What would flip it?",
@@ -117,7 +118,6 @@ export const pl: Shape<typeof en> = {
   },
   art: {
     thatsMe: "To ja",
-    notMe: "Nie ja",
     card: "Lubię odkrywać miejsca, których jeszcze nie znam.",
     month: "Maj 2027",
     weekdays: ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"],
@@ -131,6 +131,7 @@ export const pl: Shape<typeof en> = {
     alertOnly: "Tylko gdy warto",
     cities: ["Rzym", "Lizbona", "Ateny"],
     example: "Przykład",
+    preview: "Podgląd",
   },
   coach: {
     gotIt: "Rozumiem",
@@ -152,7 +153,7 @@ export const pl: Shape<typeof en> = {
       },
       source: {
         title: "Każda liczba ma źródło",
-        body: "Skąd jest cena i kiedy ją pobraliśmy.",
+        body: "Dotknij: skąd jest każda cena i kiedy ją pobraliśmy.",
       },
       flip: {
         title: "Co by to zmieniło?",

@@ -76,25 +76,17 @@ The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12
   - An over-budget #1 is never shown without a banner. Either "Nothing fits {budget} for these dates — closest options" (naming the
     cheapest trip), or "Your top pick is X over your budget · N trips fit · Show those first" (a stable within-budget-first sort).
 
-## Star ratings
-Cards and the receipt show the score as stars, so it reads at a glance. Every visible score uses the same 5-point scale: the
-overall rating is half stars with the exact value in small text (`★★★★½ 4.4`); each factor gets an icon and 1–5 stars
-(💰 price, ☀️ weather, 👥 crowds, ❤️ taste fit). The receipt shows one compact row (no numbers); the trips push says "★ 4.4/5".
-
-- **Mapping** (deterministic, `lib/stars.ts`, pinned by `lib/stars.test.ts`):
-  - overall stars = `round(total × 10) / 2`, i.e. half steps on 0–5
-  - the small number = `total × 5`, one decimal
-  - each factor = `clamp(round(score × 5), 1, 5)`
-- **Auditability is one tap away.** The receipt's collapsed rows hold the precise parts: "Compare", "What would flip it",
-  "Evidence · N sources" (every row with its source and timestamp) and "Audit" (factor score × weight bars, the total as
-  `NN.N / 100 = 4.4/5`, the formula, the inputs hash, the fit-check model). Evidence links in the fit section open the right row.
-- **Accessibility:** each rating has an `aria-label` such as "Pogoda: 4 z 5 gwiazdek" or "Weather: 4 out of 5 stars".
+## Score display
+As before #23 (the user found the star ratings noisy): the overall score is a **ring** with the plain 0–100 number
+(`components/score-ring.tsx`) on cards, the trip hero and the swipe deck, and **one contribution bar** shows how the four
+factors add up (`ContributionBar` in `components/factor-bars.tsx`, no numeric labels). The exact math (factor score ×
+weight, the total, the formula, the inputs hash) is one tap away in the receipt's "Audyt". No "%" on cards or above the fold.
 
 ## Declutter and money (docs/DECLUTTER.md, docs/BUDGET.md)
 - **Less text, same trust.** Every screen keeps its numbers, sources and one primary action visible, and moves explanations
   behind small primitives in `components/declutter.tsx`: `Disclosure` (a collapsed "Evidence · 8 sources ›" row that opens
   itself when a link targets something inside), `InfoTip` (ⓘ expands one line in place) and `Chip` (a compact source or fact).
-  The data-source pill moved to `/credits`. The receipt keeps the hero, a two-line AI "why" with More, the stars row, bold fit
+  The data-source pill moved to `/credits`. The receipt keeps the hero, a two-line AI "why" with More, the score ring and bar, bold fit
   claims and the money lines with one source chip each. Everything else is one tap away.
 - **Lines always add up.** Backend semantics: `flight_cost_pln` per traveller, `hotel_cost_pln` the whole stay for all rooms.
   The receipt and confirm show "Loty × n" = flight × n and the stay as-is, and **the total shown is always their sum**;
@@ -122,9 +114,10 @@ overall rating is half stars with the exact value in small text (`★★★★½
   (Travel Explore / "not your exact dates" / Aviasales month median / `estimate:*` sources). An API "exact" never hides an
   other-dates price; `lib/money.test.ts` pins the Nice 11–15 Nov case (358 + 1 292 zł → estimate). Estimates never enter a
   comparison: no "vs runner-up" money delta, no value badge against them, no push.
-- **Receipt order:** hero (price via `PriceInline`) → fit badge + AI chip → money lines with source chips (above the
-  fold) → stars + one fit claim ("+2 kolejne ›") → the two-line why → collapsed rows (flight, stay + map, compare, flip,
-  evidence, audit).
+- **Receipt order (round 3, ≤ 25 words above the fold):** hero (country, city, dates, score ring) → fit badge → money lines
+  with one "ⓘ Źródła" toggle for their source chips → contribution bar → collapsed rows: "Dlaczego teraz" (the AI why), "Dlaczego
+  pasuje · N" (fit claims), flight, stay + map, "Porównaj" (typical price, runner-up, counterfactuals: every % and "pkt"
+  lives here), "Co by to zmieniło", "Dowody", "Audyt". No percentages on cards or above the fold anywhere.
 - **Evidence values** go through `lib/evidence-display.ts`: crowds with peak data read "Tłum · 46% szczytu sezonu"; a
   relative scale (`unit: "0-1 rel"`, e.g. London) reads "76/100 (0 = najspokojniejszy miesiąc)", never a percentage.
 - **What would flip it** shows only the scorer's plain-language text (`rec.flip.text`, PR #32), e.g. "Jeśli cena będzie dla
@@ -136,6 +129,10 @@ overall rating is half stars with the exact value in small text (`★★★★½
   "vs peak" chip are real buttons beside it, never nested inside the link. Money carries `data-testid="trip-total"` /
   `data-line` + `data-amount` hooks for the e2e price invariant.
 - **Comparisons name the trip:** "Rzym: wynik wyższy o 3,6 pkt · drożej o 108 zł".
+
+## Quick date filters
+"Ten weekend · Najbliższy długi weekend · Dowolne 5 dni…" are radios (`pickQuick` in `lib/date-range.ts`): one quick
+filter at a time, tapping the selected one clears it; ranges drawn in the calendar are never touched.
 
 ## Pick your dates (`/windows`, T4f)
 A mobile-first month calendar at the top of Free time. The user taps a start day, then an end day, to pick a date range.
@@ -208,7 +205,10 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
 
 ## First-run tutorial (T11)
 A new user should get what TripAI does in under 30 seconds.
-- **Exactly once per device.** The intro opens on its own only on a first visit to `/` or `/onboarding` (never over a
+- **Welcome first.** `/` is a real welcome screen (one line, three icon chips, "Zaczynamy"); the intro follows on
+  `/onboarding`. Its illustrations are still frames in a dashed "Podgląd" frame that ignore taps (nothing looks like a
+  quiz button).
+- **Exactly once per device.** The intro opens on its own only on a first visit to `/onboarding` (never over a
   deep link such as `/trips` or a shared `/trips/<id>`), and is marked seen the moment it opens, so Skip, Esc, finishing
   or a reload mid-intro all count. Each screen's coach marks are marked seen as they start.
 - **Intro.** Four full-screen steps on the first visit, each with a small looping illustration built from app pieces
@@ -291,8 +291,7 @@ The photos are landscape Wikimedia Commons images (CC0, public domain, CC BY or 
 - **Lookup.** `lib/photos.ts` maps every city code and airport code (for example LHR/LGW/STN/LTN → London, PMI → Palma) to a photo
   and its credit (author, license, source URL).
 - **Credits.** No inline photo captions anywhere: cards, the receipt hero, the swipe deck, the landing collage and survey
-  thumbnails show only the photo. CC BY / BY-SA attribution lives on `/credits`, reached from one small footer link
-  ("Zdjęcia" / "Photo credits") on every screen built on `AppShell`, the landing page and the receipt. That page lists every city photo and Travel DNA card photo with its author, license link and source. The same list is in
+  thumbnails show only the photo. CC BY / BY-SA attribution lives on the `/credits` page (no credits link in the views, per the user). That page lists every city photo and Travel DNA card photo with its author, license link and source. The same list is in
   `public/cities/CREDITS.md`.
 - **Landing collage.** The photos are landscape but the frames are 3:4, so each image sets an `object-position` that keeps
   its landmark in frame.

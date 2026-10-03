@@ -48,7 +48,7 @@ export const currentPriced = (t: TripItem): TripPriced | null =>
 /**
  * The headline: the latest exact-date check, else what it cost when saved. Rendered through moneyOf() (party
  * semantics: per person, plus "2 480 zł razem" for a group). An estimate (docs/BUDGET.md price honesty) is
- * never a plain number: <PriceInline> renders it muted, "od ~X zł (inne daty)".
+ * never a plain number: <PriceInline> renders it muted, "~X zł · szacunek".
  */
 export function headline(t: TripItem): { rec: TripPriced; estimate: boolean } {
   const cur = currentPriced(t);

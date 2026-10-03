@@ -7,7 +7,9 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import {
   anyDaysNextMonth,
   type DateRange,
+  type QuickKind,
   holidaysBetween,
+  isQuickOn,
   localBridges,
   mergeSuggestions,
   monthEnd,
@@ -67,7 +69,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={done}
+      aria-pressed={!!done}
       className={cn(
         "flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors",
         done ? "border-pine bg-pine-soft text-pine-deep" : "border-line bg-card text-ink hover:border-pine/40",
@@ -80,38 +82,54 @@ function Chip({
 }
 
 /** "This weekend · Next long weekend · Any 5 days in May": one tap adds a range. */
-function QuickChips({ today, onPick, className }: { today: string; onPick: (r: DateRange) => void; className?: string }) {
+/**
+ * "Ten weekend · Najbliższy długi weekend · Dowolne 5 dni…": toggle buttons of which the store keeps at
+ * most one on (round 3; aria-pressed, since tapping the pressed one clears it, which a radio can't do).
+ * Ranges drawn in the calendar stay as they are.
+ */
+function QuickChips({
+  today,
+  onPicked,
+  className,
+}: {
+  today: string;
+  /** after a tap: `on` = the filter is now selected (false = it was cleared) */
+  onPicked?: (r: DateRange, on: boolean) => void;
+  className?: string;
+}) {
   const t = useDatePickerStrings();
   const ranges = useUsableRanges();
+  const pickQuick = useDates((s) => s.pickQuick);
   const { longWeekends } = useWindows();
   const horizonEnd = monthEnd(monthsAhead(today, 12)[11]);
   const suggestions = useMemo(
     () => mergeSuggestions(longWeekends, localBridges(today, horizonEnd)).filter((s) => s.end >= today),
     [longWeekends, today, horizonEnd],
   );
-  const has = (r: Pick<DateRange, "start" | "end">) => ranges.some((x) => x.start <= r.start && x.end >= r.end);
+  const on = (k: QuickKind, r: DateRange) => isQuickOn(ranges, k, r);
+  const pick = (k: QuickKind, r: DateRange) => {
+    const selecting = !on(k, r);
+    pickQuick(k, r);
+    onPicked?.(r, selecting);
+  };
   const weekend = thisWeekend(today);
   const nextLong = nextSuggestion(suggestions, today);
   const anyDays = anyDaysNextMonth(today, 5);
   return (
     <div role="group" aria-label={t.quickTitle} className={cn("no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1", className)}>
-      <Chip onClick={() => onPick(weekend)} icon={<Zap className="size-4 text-sun" aria-hidden />} done={has(weekend)}>
+      <Chip onClick={() => pick("weekend", weekend)} icon={<Zap className="size-4 text-sun" aria-hidden />} done={on("weekend", weekend)}>
         {weekendIsNext(today) ? t.chipNextWeekend : t.chipThisWeekend}
       </Chip>
       {nextLong && (
         <Chip
-          onClick={() => onPick({ start: nextLong.start, end: nextLong.end })}
+          onClick={() => pick("long", { start: nextLong.start, end: nextLong.end })}
           icon={<Plus className="size-4 text-clay" aria-hidden />}
-          done={has(nextLong)}
+          done={on("long", { start: nextLong.start, end: nextLong.end })}
         >
           {t.chipNextLongWeekend} · {formatDates(nextLong, t.locale)}
         </Chip>
       )}
-      <Chip
-        onClick={() => onPick(anyDays)}
-        icon={<Shuffle className="size-4 text-sky" aria-hidden />}
-        done={ranges.some((r) => r.anyDays && r.start === anyDays.start)}
-      >
+      <Chip onClick={() => pick("any", anyDays)} icon={<Shuffle className="size-4 text-sky" aria-hidden />} done={on("any", anyDays)}>
         {t.chipAnyDays(anyDays.anyDays ?? 5, Number(anyDays.start.slice(5, 7)) - 1)}
       </Chip>
     </div>
@@ -125,13 +143,13 @@ function QuickChips({ today, onPick, className }: { today: string; onPick: (r: D
 export function QuickDates() {
   const today = useClientToday();
   const hydrated = useDatesHydrated();
-  const { add, remove } = useDates();
+  const { remove } = useDates();
   const ranges = useUsableRanges();
   const t = useDatePickerStrings();
   if (!today || !hydrated) return <div aria-hidden className="h-11" />;
   return (
     <div>
-      <QuickChips today={today} onPick={add} />
+      <QuickChips today={today} />
       {ranges.length > 0 && (
         <ul className="mt-2 flex flex-wrap gap-1.5">
           {ranges.map((r) => (
@@ -197,7 +215,14 @@ function Planner({ today }: { today: string }) {
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">{t.sectionHint}</p>
 
-      <QuickChips today={today} onPick={pick} className="mt-3" />
+      <QuickChips
+        today={today}
+        onPicked={(r, selected) => {
+          setAnnounce((selected ? t.announceAdded : t.announceRemoved)(formatDates(r, t.locale)));
+          if (selected) setMonth(monthKey(r.start));
+        }}
+        className="mt-3"
+      />
 
       <div className="mt-3">
         <DateRangeCalendar

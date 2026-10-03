@@ -2,6 +2,7 @@
 
 import { ExternalLink } from "lucide-react";
 import { isSampleSource, sourceNameFor } from "@/lib/format";
+import { estimatedLeg } from "@/lib/money";
 import { useT } from "@/lib/i18n";
 import type { Evidence } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,12 +18,16 @@ export function SourceTag({
   variant = "caption",
   className,
 }: {
-  e: Pick<Evidence, "source" | "fetched_at" | "url">;
+  e: Pick<Evidence, "source" | "fetched_at" | "url"> & Partial<Pick<Evidence, "kind" | "label">>;
   variant?: "caption" | "chip";
   className?: string;
 }) {
   const { t, fmt } = useT();
-  const name = sourceNameFor(e.source, t.receipt.source);
+  // An estimated price leg keeps its source name and date, plus what kind of estimate it is:
+  // "Google Travel Explore · cena z innych terminów", "TripAI · średnia dla miasta, nie konkretny hotel".
+  const base = /^estimate:/.test(e.source) ? "TripAI" : sourceNameFor(e.source, t.receipt.source);
+  const est = e.kind === "flight" || e.kind === "hotel" ? estimatedLeg(e as Pick<Evidence, "kind" | "source" | "label">) : false;
+  const name = est ? `${base} · ${e.kind === "flight" ? t.money.fareOtherDates : t.money.cityAverageHotel}` : base;
   // sample data was never fetched, so no "fetched at" time
   const sample = isSampleSource(e.source);
   const chip = variant === "chip";
@@ -41,11 +46,11 @@ export function SourceTag({
     ? "inline-flex max-w-full items-center gap-1 rounded-full bg-paper-deep px-2 py-0.5 font-sans text-xs text-ink-soft"
     : "inline-flex items-center gap-1 font-sans text-xs text-muted-foreground";
   return e.url ? (
-    <a data-tour="source" href={e.url} target="_blank" rel="noreferrer" className={cn(cls, "underline-offset-2 hover:text-pine hover:underline", className)} title={title}>
+    <a href={e.url} target="_blank" rel="noreferrer" className={cn(cls, "underline-offset-2 hover:text-pine hover:underline", className)} title={title}>
       {inner}
     </a>
   ) : (
-    <span data-tour="source" className={cn(cls, className)} title={title}>
+    <span className={cn(cls, className)} title={title}>
       {inner}
     </span>
   );

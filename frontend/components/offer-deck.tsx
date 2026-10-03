@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { FLY, SPRING, Stamp, THRESHOLD, VELOCITY } from "@/components/dna-deck";
 import { FitBadge } from "@/components/fit-badge";
 import { CityPhoto } from "@/components/rec-card";
-import { OverallStars } from "@/components/stars";
+import { ScoreRing } from "@/components/score-ring";
 import type { Lang } from "@/lib/dna";
 import { PriceInline, priceText } from "@/components/money";
 import { localCountry } from "@/lib/country";
@@ -47,7 +47,7 @@ function OfferFace({ rec, lang, index, total }: { rec: RankedRecommendation; lan
               {moneyOf(rec).status !== "estimate" && moneyOf(rec).travelers === 1 && <> {t.total}</>}
             </p>
           </div>
-          <OverallStars total={rec.score.total} size={14} tone="light" className="shrink-0 rounded-full bg-black/40 px-2.5 py-1.5 backdrop-blur-md" />
+          <ScoreRing value={rec.score.total} size={52} stroke={4} tone="light" />
         </div>
         {!!rec.tags?.length && (
           <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="tags">

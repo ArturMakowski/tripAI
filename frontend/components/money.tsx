@@ -23,7 +23,7 @@ type Priced = Pick<
   Partial<Pick<Recommendation, "hotel">>;
 
 /**
- * The headline price. Exact: "1 442 zł" (+ party line). Estimate: muted "od ~1 718 zł (inne daty)",
+ * The headline price. Exact: "1 442 zł" (+ party line). Estimate: muted "~1 718 zł · szacunek" + "Brak jeszcze ceny na dokładnie te daty",
  * never styled like a real price. `data-testid="trip-total"` is what the consistency test reads.
  */
 export function TripPrice({
@@ -52,6 +52,7 @@ export function TripPrice({
         >
           {m.travelers > 1 ? t.money.fromEstimateParty(fmt.pln(m.partyTotal), fmt.pln(m.perPerson)) : t.money.fromEstimate(fmt.pln(m.perPerson))}
         </span>
+        <EstimateNote light={light} />
       </span>
     );
   }
@@ -75,7 +76,7 @@ export function TripPrice({
 
 /**
  * The headline price as plain text, for places that can't render <TripPrice> (aria labels, the
- * calendar file, push copy): "852 zł/os.", "1 442 zł", or "od ~1 718 zł (inne daty)".
+ * calendar file, push copy): "852 zł/os.", "1 442 zł", or "~1 718 zł · szacunek".
  */
 export function priceText(rec: Priced, t: Messages, fmt: Fmt): string {
   const m = moneyOf(rec);
@@ -99,6 +100,12 @@ export function PriceInline({ rec, tone = "default", className }: { rec: Priced;
       {priceText(rec, t, fmt)}
     </span>
   );
+}
+
+/** "Brak jeszcze ceny na dokładnie te daty": one short line under an estimate (card, trip hero). */
+export function EstimateNote({ light = false, className }: { light?: boolean; className?: string }) {
+  const { t } = useT();
+  return <span className={cn("mt-0.5 block text-xs", light ? "text-white/80" : "text-muted-foreground", className)}>{t.money.noLivePrice}</span>;
 }
 
 /** "label …… value" money row; `sub` is the source chip line under it. */
@@ -127,6 +134,7 @@ export function MoneyLines({
   flightLabel,
   icons,
   idFor,
+  collapseSources = false,
 }: {
   rec: Priced;
   /** "4 nights" */
@@ -136,8 +144,12 @@ export function MoneyLines({
   icons?: { flight: ReactNode; hotel: ReactNode };
   /** jump-target id for the line's evidence row (receipt only) */
   idFor?: (e: Evidence) => string;
+  /** receipt (round 3): the lines' source chips sit behind one "ⓘ Źródła" toggle; confirm keeps them visible */
+  collapseSources?: boolean;
 }) {
   const { t, fmt } = useT();
+  const [open, setShowSources] = useState(false);
+  const showSources = !collapseSources || open;
   const m = moneyOf(rec);
   const flightEv = rec.evidence.find((e) => e.kind === "flight");
   const hotelEv = rec.evidence.find((e) => e.kind === "hotel");
@@ -190,9 +202,9 @@ export function MoneyLines({
             label={l.label}
             value={amount(l.value, l.est)}
             sub={
-              (l.e || (l.est && !estimate)) && (
+              ((l.e && showSources) || (l.est && !estimate)) && (
                 <>
-                  {l.e && <SourceTag e={l.e} variant="chip" />}
+                  {l.e && showSources && <SourceTag e={l.e} variant="chip" />}
                   {l.est && !estimate && <InfoTip label={t.money.estimateTitle}>{t.money.partialTip(l.leg)}</InfoTip>}
                 </>
               )
@@ -209,7 +221,7 @@ export function MoneyLines({
         return m.travelers > 1 ? (
           <>
             <MoneyRow
-              label={estimate ? `${t.money.total(m.travelers)} · ${t.money.est}` : t.money.total(m.travelers)}
+              label={estimate ? `${t.money.total(m.travelers)} (${t.money.otherDates})` : t.money.total(m.travelers)}
               value={
                 <span data-testid="party-total" data-amount={m.partyTotal} className={cls}>
                   {amt(m.partyTotal)}
@@ -229,7 +241,7 @@ export function MoneyLines({
           </>
         ) : (
           <MoneyRow
-            label={estimate ? `${t.money.total(1)} · ${t.money.est}` : t.money.total(1)}
+            label={estimate ? `${t.money.total(1)} (${t.money.otherDates})` : t.money.total(1)}
             value={
               <span data-testid="trip-total" data-amount={m.perPerson} className={cls}>
                 {amt(m.perPerson)}
@@ -240,6 +252,18 @@ export function MoneyLines({
           />
         );
       })()}
+      {/* One "ⓘ Źródła" toggle for the section instead of a chip under every line (round 3). */}
+      {collapseSources && (flightEv || hotelEv) && (
+        <button
+          type="button"
+          onClick={() => setShowSources((v) => !v)}
+          aria-expanded={open}
+          data-tour="source"
+          className="mt-1 inline-flex min-h-11 items-center gap-1 font-sans text-xs text-muted-foreground hover:text-ink"
+        >
+          <Info className="size-3.5" aria-hidden /> {t.money.sources}
+        </button>
+      )}
     </div>
   );
 }

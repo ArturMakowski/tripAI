@@ -90,7 +90,7 @@ describe("presentation", () => {
   it("rule texts, labels and model names come back in Polish when asked", () => {
     const athens = recs.find((r) => r.city === "Athens")!;
     const fit = rulesFit(athens, DEMO_PROFILE, "rules", "pl");
-    expect(fit.concerns[0].text).toMatch(/^Tłum: 46% szczytu sezonu/);
+    expect(fit.concerns[0].text).toMatch(/^Umiarkowany tłum, a/);
     expect(modelLabel(fit, "pl")).toBe("Sprawdzenie regułami");
   });
 

@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { BedDouble, ChevronRight, Info, Plane, TrendingDown } from "lucide-react";
+import { BedDouble, ChevronRight, Plane } from "lucide-react";
 import { useState } from "react";
-import { FactorStars, OverallStars } from "@/components/stars";
+import { ContributionBar } from "@/components/factor-bars";
+import { ScoreRing } from "@/components/score-ring";
+import { DEFAULT_WEIGHTS } from "@/lib/scoring";
 import { dayCount } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
 import { flightLine, hotelLineParts, trustedDetails } from "@/lib/trip-details";
 import { cityPhoto, fallbackHue } from "@/lib/photos";
-import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/types";
-import { peakMonth } from "@/lib/counterfactual";
+import type { BridgeWindow, Recommendation, RankedRecommendation, Weights } from "@/lib/types";
 import { moneyOf } from "@/lib/money";
 import { priceText, TripPrice, ValueBadge } from "@/components/money";
 import { localCountry } from "@/lib/country";
@@ -85,6 +86,7 @@ export function RecCard({
   bridge,
   refining,
   overBudgetPln,
+  weights,
 }: {
   rec: RankedRecommendation;
   featured?: boolean;
@@ -93,18 +95,16 @@ export function RecCard({
   refining?: boolean;
   /** PLN over the user's budget (> 0 shows the badge) */
   overBudgetPln?: number | null;
+  /** the weights the ranking uses (slider), for the contribution bar */
+  weights?: Weights;
 }) {
-  const { t, fmt, lang } = useT();
+  const { t, fmt } = useT();
   const tc = t.trips.card;
   const rank = rec.rank;
   const money = moneyOf(rec);
   const split = disagreement(rec);
-  // no "−49% vs peak" on an estimate: it would compare against a price that isn't this trip's
-  const peak = moneyOf(rec).status === "estimate" ? undefined : rec.counterfactuals.find((c) => c.kind === "peak_season");
-  const peakM = peak ? peakMonth(peak.label) : null;
-  const peakMonthName = peakM ? fmt.monthName(peakM, lang === "pl" ? "long" : "short") : null;
-  const [showPeak, setShowPeak] = useState(false);
-  const peakNote = peak ? tc.peakNote(peakMonthName, fmt.pln(peak.total_cost_pln), fmt.pln(rec.total_cost_pln), rec.scoring_version) : "";
+  // No "−49% vs peak" chip on the card (round 3: no percentages on cards); peak season is a row
+  // in the receipt's "Porównaj".
   const nights = dayCount(rec.window) - 1;
   const td = t.tripDetails;
   const details = trustedDetails(rec);
@@ -142,12 +142,8 @@ export function RecCard({
           )}
         </div>
         <div className="absolute top-3 right-3">
-          <OverallStars
-            total={rec.score.total}
-            size={featured ? 15 : 13}
-            tone="light"
-            className="rounded-full bg-black/40 px-2.5 py-1.5 backdrop-blur-md"
-          />
+          {/* the overall score as before #23: a ring with the plain 0–100 number (no "%") */}
+          <ScoreRing value={rec.score.total} size={featured ? 58 : 48} stroke={4} tone="light" />
         </div>
         <div className="absolute right-4 bottom-5 left-4 text-white">
           <p className="text-xs font-medium tracking-wide text-white/80 uppercase">
@@ -206,32 +202,21 @@ export function RecCard({
               </>
             )}
           </span>
-          {peak && peak.cost_delta_pln > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowPeak((v) => !v)}
-              aria-expanded={showPeak}
-              title={peakNote}
-              className="relative z-[2] ml-auto flex items-center gap-1 rounded-full bg-pine-soft px-2 py-0.5 font-medium text-pine-deep hover:bg-pine/15"
-            >
-              <TrendingDown className="size-3.5" aria-hidden /> {tc.vsPeak(Math.round(peak.cost_delta_pct))}
-              <Info className="size-3 opacity-70" aria-hidden />
-            </button>
-          )}
         </div>
-        {peak && showPeak && <p className="mt-1.5 text-right text-xs text-muted-foreground">{peakNote}</p>}
 
-        <FactorStars score={rec.score} columns={2} className="mt-3.5" />
+        {/* how the factors add up, as before #23: one bar, no numeric labels (exact math is in the receipt's Audit) */}
+        <ContributionBar score={rec.score} weights={weights ?? DEFAULT_WEIGHTS} className="mt-3.5" />
 
         <div className="mt-3.5 flex items-center gap-2.5">
           {rec.fit && <FitBadge fit={rec.fit} />}
+          {/* one line of copy, never a percentage (round 3): a summary quoting a "%" stays in the receipt */}
           <p className="min-w-0 flex-1 truncate text-[13px] text-ink-soft">
             {rec.fit ? (
               <>
                 {split && <span className="font-semibold text-ink">{tc.disagree} </span>}
-                {rec.fit.summary}
+                {/\d\s?%/.test(rec.fit.summary) ? null : rec.fit.summary}
               </>
-            ) : (
+            ) : /\d\s?%/.test(rec.why) ? null : (
               rec.why
             )}
           </p>

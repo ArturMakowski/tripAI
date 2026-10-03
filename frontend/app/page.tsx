@@ -26,6 +26,11 @@ const PROMISES = [
   { icon: Hand, key: "noBooking" },
 ] as const;
 
+/**
+ * The welcome screen: the very first thing a new user sees (user testing round 3), before the
+ * tutorial: what TripAI does in one line, three icon chips, one CTA "Zaczynamy". The tutorial intro
+ * opens after it, on /onboarding.
+ */
 export default function Welcome() {
   const router = useRouter();
   const hydrated = useHydrated();
@@ -56,27 +61,12 @@ export default function Welcome() {
             <img src={p.src} alt={t.photos[p.key]} className="size-full object-cover" style={{ objectPosition: p.focus }} />
           </motion.div>
         ))}
-        <motion.div
-          className="absolute -bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium whitespace-nowrap text-paper shadow-lift"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          {t.example}
-        </motion.div>
       </div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.6 }}>
         <h1 className="mt-9 font-display text-[2.4rem] leading-[1.04] font-medium text-ink">
           {t.title}
         </h1>
-        <p className="mt-3 text-[17px] leading-relaxed text-ink-soft">
-          {t.lead.before}
-          <em className="font-display text-ink not-italic">{t.lead.where}</em>
-          {t.lead.and}
-          <em className="font-display text-ink not-italic">{t.lead.when}</em>
-          {t.lead.after}
-        </p>
       </motion.div>
 
       <ul className="mt-5 flex flex-wrap gap-2">

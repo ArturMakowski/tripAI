@@ -13,7 +13,28 @@ export interface DateRange {
   end: ISODate;
   /** "any N days in <month>": the whole month is the window, the scorer picks N days in it. */
   anyDays?: number;
+  /** set when the range came from a quick filter chip (they are mutually exclusive) */
+  quick?: QuickKind;
 }
+
+export type QuickKind = "weekend" | "long" | "any";
+
+/**
+ * Quick filters ("Ten weekend" / "Najbliższy długi weekend" / "Dowolne 5 dni…") work like radios:
+ * picking one replaces the previous quick pick, picking the selected one again clears it. Ranges the
+ * user drew in the calendar are never touched.
+ */
+export function pickQuick(ranges: DateRange[], kind: QuickKind, r: DateRange): DateRange[] {
+  const rest = ranges.filter((x) => !x.quick);
+  // Tapping the selected chip clears it; a stale pick of the same kind (last month's "any 5 days in
+  // November", review #41) is replaced by the chip's current range instead.
+  if (isQuickOn(ranges, kind, r)) return rest;
+  return addRange(rest, { ...r, quick: kind });
+}
+
+/** The chip is on only if its *current* range is the picked one. */
+export const isQuickOn = (ranges: DateRange[], kind: QuickKind, r: Pick<DateRange, "start">) =>
+  ranges.some((x) => x.quick === kind && x.start === r.start);
 
 const DAY = 86_400_000;
 const d = (iso: ISODate) => new Date(`${iso}T12:00:00Z`);
@@ -60,7 +81,9 @@ export function normalizeRanges(ranges: DateRange[]): DateRange[] {
   const out: DateRange[] = [];
   for (const r of sorted) {
     const last = out.at(-1);
-    if (last && !last.anyDays && !r.anyDays && r.start <= addDays(last.end, 1)) {
+    // Quick-filter ranges never merge with anything (review #41): a merged range would either take
+    // over the days the user drew (and lose them on the next quick pick) or lose its `quick` tag.
+    if (last && !last.anyDays && !r.anyDays && !last.quick && !r.quick && r.start <= addDays(last.end, 1)) {
       if (r.end > last.end) out[out.length - 1] = { ...last, end: r.end };
     } else if (!out.some((x) => x.start === r.start && x.end === r.end)) {
       out.push({ ...r });

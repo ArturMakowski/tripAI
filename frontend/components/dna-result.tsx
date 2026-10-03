@@ -190,7 +190,6 @@ export function DnaResult({
               <li key={f} className="flex items-center gap-2">
                 <span className="size-2.5 shrink-0 rounded-full" style={{ background: FACTOR_COLOR[f] }} aria-hidden />
                 <span className="flex-1 text-ink-soft">{all.trips.factorsShort[f]}</span>
-                <span className="tabular font-mono text-ink">{Math.round(weights[f] * 100)}%</span>
               </li>
             ))}
           </ul>
