@@ -1,4 +1,8 @@
-import type { Shape } from "../types";
+import { plural, type Lang, type Shape } from "../types";
+
+/** "a, b and c" / "a, b i c" */
+const list = (lang: Lang, xs: string[]) =>
+  xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} ${lang === "pl" ? "i" : "and"} ${xs[xs.length - 1]}`;
 
 export const en = {
   // --- swipe deck ---
@@ -28,12 +32,58 @@ export const en = {
   // --- result ---
   resultTitle: "Your travel DNA.",
   editAnswers: "Edit answers",
-  whyWeights: "Why these weights",
-  whyInterests: "Why these interests",
-  whyStyle: "Why this style",
-  weights: "What matters in the ranking",
-  interests: "What you like",
-  style: "Your style",
+  /** the one ⓘ on the result: every "because you swiped …" reason, in a bottom sheet */
+  whyResult: "Why this result",
+  close: "Close",
+  /** persona: "The unhurried foodie" (EN: adjective + noun) */
+  persona: {
+    title: (noun: string, mod: string | null) => `The ${mod ? `${mod} ` : ""}${noun}`,
+    nouns: {
+      explorer: "explorer",
+      foodie: "foodie",
+      adventurer: "adventurer",
+      rest: "rest seeker",
+      wanderer: "wanderer",
+      bargain: "bargain hunter",
+      experiences: "experience collector",
+      traveller: "traveller",
+    },
+    mods: {
+      curious: "curious",
+      unhurried: "unhurried",
+      organised: "organised",
+      spontaneous: "spontaneous",
+      savvy: "savvy",
+      crowdShy: "crowd-shy",
+    },
+    /** "Because you swiped “So me!” on local food and price." (parts grouped by answer) */
+    why: (parts: string[]) => `Because you swiped ${list("en", parts)}.`,
+    cards: (xs: string[]) => list("en", xs),
+    noWhy: "A bit of everything: nothing pulled far ahead.",
+    photos: "Photos you swiped right on",
+  },
+  priorities: {
+    title: "How we'll rank your trips",
+    most: (a: string, b: string) => `${a.charAt(0).toUpperCase() + a.slice(1)} matters most, then ${b}.`,
+    /** each factor as the subject of "… matters most" (crowds: "avoiding crowds", not "crowds matters") */
+    phrase: { price: "price", weather: "the weather", crowds: "avoiding crowds", taste: "taste" },
+  },
+  likes: {
+    title: "What you love",
+    more: (n: number) => `+${n} more`,
+    notForYou: "Not really you",
+  },
+  tiles: {
+    stay: "Stay",
+    pace: "Pace",
+    daily: "Every day",
+    dailyYes: "something new",
+    dailyNo: "familiar is fine",
+    avoid: "You avoid",
+    none: "nothing",
+  },
+  people: (n: number) => `${n} ${plural("en", n, { one: "person", other: "people" })}`,
+  change: "Change",
   continue: "Looks right, continue",
   chat: "Fine-tune by chat",
   restart: "Start over",
@@ -44,18 +94,6 @@ export const en = {
   because: (parts: string) => `because you swiped ${parts}`,
   becausePart: (answer: string, card: string) => `“${answer}” on ${card}`,
   pace: { structured: "structured", spontaneous: "spontaneous", balanced: "balanced" },
-  styleRows: {
-    luxury: "Stay",
-    pace: "Pace",
-    daily: "Something new every day",
-    avoid: "You avoid",
-    yes: "yes",
-    no: "no",
-    from: "Flying from",
-    change: "change",
-    none: "nothing in particular",
-    notForYou: "Not really for you",
-  },
   /** dislikes in the "You avoid …" form */
   avoid: { crowds: "crowds", heat: "heat", cold: "cold", nightlife: "nightlife", "long flights": "long flights" },
   // --- chat interview ---
@@ -95,12 +133,55 @@ export const pl: Shape<typeof en> = {
   resultMissing: "Nie mamy jeszcze Twojego wyniku.",
   resultTitle: "Twoje DNA podróżnika.",
   editAnswers: "Zmień odpowiedzi",
-  whyWeights: "Skąd te wagi",
-  whyInterests: "Skąd te zainteresowania",
-  whyStyle: "Skąd ten styl",
-  weights: "Co waży w rankingu",
-  interests: "Co lubisz",
-  style: "Twój styl",
+  whyResult: "Skąd ten wynik",
+  close: "Zamknij",
+  // PL: noun + phrase ("Smakosz bez pośpiechu"): no adjective that would guess the user's gender
+  persona: {
+    title: (noun, mod) => (mod ? `${noun} ${mod}` : noun),
+    nouns: {
+      explorer: "Odkrywca",
+      foodie: "Smakosz",
+      adventurer: "Poszukiwacz przygód",
+      rest: "Łowca spokoju",
+      wanderer: "Wędrowiec",
+      bargain: "Łowca okazji",
+      experiences: "Kolekcjoner przeżyć",
+      traveller: "Podróżnik",
+    },
+    mods: {
+      curious: "z ciekawością świata",
+      unhurried: "bez pośpiechu",
+      organised: "z planem na każdy dzień",
+      spontaneous: "bez sztywnego planu",
+      savvy: "z okiem na ceny",
+      crowdShy: "z dala od tłumów",
+    },
+    why: (parts) => `Bo zaznaczono ${list("pl", parts)}.`,
+    cards: (xs) => list("pl", xs),
+    noWhy: "Wszystkiego po trochu: nic nie wysunęło się na prowadzenie.",
+    photos: "Zdjęcia przesunięte w prawo",
+  },
+  priorities: {
+    title: "Jak ułożymy Twoje wyjazdy",
+    most: (a, b) => `Najbardziej liczy się ${a}, potem ${b}.`,
+    phrase: { price: "cena", weather: "pogoda", crowds: "unikanie tłumów", taste: "gust" },
+  },
+  likes: {
+    title: "Co kochasz",
+    more: (n) => `+${n} więcej`,
+    notForYou: "Raczej nie Twoje",
+  },
+  tiles: {
+    stay: "Nocleg",
+    pace: "Tempo",
+    daily: "Każdego dnia",
+    dailyYes: "coś nowego",
+    dailyNo: "znane też jest OK",
+    avoid: "Unikasz",
+    none: "niczego",
+  },
+  people: (n) => `${n} ${plural("pl", n, { one: "osoba", few: "osoby", many: "osób", other: "osoby" })}`,
+  change: "Zmień",
   continue: "Zgadza się, dalej",
   chat: "Dopracuj w rozmowie",
   restart: "Zacznij od nowa",
@@ -110,18 +191,6 @@ export const pl: Shape<typeof en> = {
   because: (parts) => `na podstawie: ${parts}`,
   becausePart: (answer, card) => `„${answer}” przy ${card}`,
   pace: { structured: "zaplanowane", spontaneous: "spontaniczne", balanced: "zrównoważone" },
-  styleRows: {
-    luxury: "Nocleg",
-    pace: "Tempo",
-    daily: "Codziennie coś nowego",
-    avoid: "Unikasz",
-    yes: "tak",
-    no: "nie",
-    from: "Wylot z",
-    change: "zmień",
-    none: "niczego szczególnego",
-    notForYou: "Raczej nie dla Ciebie",
-  },
   avoid: { crowds: "tłumów", heat: "upałów", cold: "zimna", nightlife: "nocnego życia", "long flights": "długich lotów" },
   chatTitle: "Rozmowa",
   progressDone: "Gotowe. Twoje odpowiedzi kształtują tylko Twój profil gustu.",

@@ -1,18 +1,21 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Ban, Compass, Footprints, Hotel, Pencil, Plane } from "lucide-react";
-import { Disclosure, InfoTip } from "@/components/declutter";
-import { FACTOR_COLOR } from "@/components/factor-bars";
-import { DNA_CARD, DNA_DECK, type CardId, type DnaAnswers, type Lang } from "@/lib/dna";
+import { useState } from "react";
+import { Ban, Compass, Footprints, Hotel, Plane } from "lucide-react";
+import { Disclosure } from "@/components/declutter";
+import { WhySheet } from "@/components/why-sheet";
+import { DNA_CARD, DNA_DECK, type CardId, type DnaAnswers, type DnaCard, type Lang } from "@/lib/dna";
+import { citedByAnswer, likedCards, persona, priorities } from "@/lib/dna-persona";
 import { messagesFor } from "@/lib/i18n";
 import { nameOf } from "@/lib/i18n/messages/profile";
-import { FACTORS } from "@/lib/scoring";
 import type { DnaResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { formatOrigins } from "@/lib/airports";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** likes shown up front; the rest fold behind "+N more" */
+export const TOP_LIKES = 5;
 
 /** Server reason -> "because you swiped “So me!” on price driving your choices, “Not me” on …" */
 export function becauseLine(because: string[], collected: DnaAnswers, lang: Lang): string {
@@ -35,35 +38,42 @@ export function becauseLine(because: string[], collected: DnaAnswers, lang: Lang
   return messagesFor(lang).onboarding.because(parts.join(", "));
 }
 
-/** "Label: because you swiped …" lines behind an ⓘ: the traceability stays one tap away. */
+/** "Label: because you swiped …" lines behind the one ⓘ: the traceability stays one tap away. */
 function Reasons({ rows }: { rows: { label: string; text: string }[] }) {
   const shown = rows.filter((r) => r.text);
   if (!shown.length) return null;
   return (
     <>
       {shown.map((r) => (
-        <span key={r.label} className="mt-1 block first:mt-0">
-          <span className="font-medium text-ink-soft">{r.label}:</span> {r.text}
+        <span key={r.label} className="mt-2 block first:mt-0">
+          <span className="font-medium text-ink">{r.label}:</span> {r.text}
         </span>
       ))}
     </>
   );
 }
 
-function Section({ title, info, infoLabel, children }: { title: string; info?: React.ReactNode; infoLabel?: string; children: React.ReactNode }) {
+const TILT = [-7, 4, -3, 6];
+
+/** The photos the user swiped right on, as a small fanned stack. */
+function Collage({ cards, label }: { cards: DnaCard[]; label: string }) {
+  if (!cards.length) return null;
   return (
-    <section className="mt-6">
-      <div className="mb-3">
-        <h2 className="inline text-xs font-semibold tracking-[0.14em] text-clay uppercase">{title}</h2>
-        {info && (
-          <>
-            {" "}
-            <InfoTip label={infoLabel}>{info}</InfoTip>
-          </>
-        )}
-      </div>
-      {children}
-    </section>
+    <div role="img" aria-label={label} className="mt-5 flex h-36 items-center justify-center">
+      {cards.map((c, i) => (
+        <motion.div
+          key={c.id}
+          initial={{ opacity: 0, y: 16, rotate: 0 }}
+          animate={{ opacity: 1, y: 0, rotate: TILT[i % TILT.length] }}
+          transition={{ delay: 0.08 * i, type: "spring", stiffness: 260, damping: 22 }}
+          className={cn("h-32 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card shadow-soft", i > 0 && "-ml-4")}
+          style={{ zIndex: cards.length - Math.abs(i - 1) }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={c.image} alt="" className="size-full object-cover" />
+        </motion.div>
+      ))}
+    </div>
   );
 }
 
@@ -115,42 +125,72 @@ export function DnaResult({
 }) {
   const all = messagesFor(lang);
   const t = all.onboarding;
+  const [showAll, setShowAll] = useState(false);
   const tagName = (tag: string) => nameOf(all.profile.tags, tag);
-  const s = t.styleRows;
   const because = (field: string) => {
     const r = result.reasons.find((x) => x.field === field);
     return r ? becauseLine(r.because, collected, lang) : "";
   };
   const { profile, weights } = result;
   const personalize = profile.personalize !== false;
+
+  // --- who you are: persona + the swipes behind it + the photos you liked
+  const who = persona(collected);
+  const title = t.persona.title(t.persona.nouns[who.noun], who.mod ? t.persona.mods[who.mod] : null);
+  // "“So me!” on local food and price": the cited swipes grouped by answer
+  const cited = citedByAnswer(collected, who.cited).map(([v, ids]) =>
+    t.becausePart(t.answers[v as 1], t.persona.cards(ids.map((id) => DNA_CARD[id].short[lang]))),
+  );
+  const photos = likedCards(collected, who.cited);
+
+  // --- what drives the ranking, as a sentence + ranked bars (no numbers)
+  const order = priorities(weights);
+  const max = Math.max(...order.map((f) => weights[f])) || 1;
+  const factor = (f: (typeof order)[number]) => t.priorities.phrase[f];
+
+  // --- likes: the strongest few, the rest folded
   const interests = Object.entries(profile.interests).sort((a, b) => b[1] - a[1]);
   const liked = interests.filter(([, v]) => v >= 0.25);
   const meh = interests.filter(([, v]) => v < 0.25);
-  const pace = profile.traits?.pace ?? 0;
-  const paceKey = pace > 0.25 ? "structured" : pace < -0.25 ? "spontaneous" : "balanced";
-  const total = FACTORS.reduce((a, f) => a + weights[f], 0) || 1;
+  const top = liked.slice(0, TOP_LIKES);
+  const rest = liked.slice(TOP_LIKES);
 
-  const styleRows = [
-    { icon: Hotel, label: s.luxury, value: all.profile.luxury[profile.luxury], field: "luxury" },
-    { icon: Footprints, label: s.pace, value: t.pace[paceKey], field: "traits.pace" },
+  const paceVal = profile.traits?.pace ?? 0;
+  const paceKey = paceVal > 0.25 ? "structured" : paceVal < -0.25 ? "spontaneous" : "balanced";
+  const tiles = [
+    { icon: Hotel, label: t.tiles.stay, value: all.profile.luxury[profile.luxury], field: "luxury" },
+    { icon: Footprints, label: t.tiles.pace, value: t.pace[paceKey], field: "traits.pace" },
     {
       icon: Compass,
-      label: s.daily,
-      value: profile.daily_discovery == null ? "–" : profile.daily_discovery ? s.yes : s.no,
+      label: t.tiles.daily,
+      value: profile.daily_discovery === false ? t.tiles.dailyNo : t.tiles.dailyYes,
       field: "daily_discovery",
     },
     {
       icon: Ban,
-      label: s.avoid,
-      value: profile.dislikes.length ? profile.dislikes.map((d) => nameOf(t.avoid, d)).join(", ") : s.none,
+      label: t.tiles.avoid,
+      value: profile.dislikes.length ? profile.dislikes.map((d) => nameOf(t.avoid, d)).join(", ") : t.tiles.none,
       field: "dislikes",
     },
+  ];
+  const people = (profile.adults ?? 1) + (profile.children ?? 0);
+
+  // every derived value with the swipes behind it, behind the one ⓘ
+  const reasons = [
+    ...order.map((f) => ({ label: all.trips.factors[f], text: because(`weights.${f}`) })),
+    ...liked.map(([tag]) => ({ label: cap(tagName(tag)), text: because(`interests.${tag}`) })),
+    ...tiles.map((r) => ({ label: r.label, text: because(r.field) })),
   ];
 
   return (
     <div className={cn("transition-opacity", busy && "opacity-70")}>
-      <p className="sr-only">{t.eyebrow}</p>
-      <h1 className="mt-1 font-display text-[2rem] leading-[1.08] font-medium text-ink">{t.resultTitle}</h1>
+      <p className="mt-1 text-sm font-medium text-clay">{t.resultTitle}</p>
+      <h1 className="mt-1 font-display text-[2.15rem] leading-[1.05] font-medium text-ink" data-testid="dna-persona">
+        {title}
+      </h1>
+      <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{cited.length ? t.persona.why(cited) : t.persona.noWhy}</p>
+
+      <Collage cards={photos} label={`${t.persona.photos}: ${photos.map((c) => c.short[lang]).join(", ")}`} />
 
       {!personalize && (
         <motion.div
@@ -167,87 +207,88 @@ export function DnaResult({
         </motion.div>
       )}
 
-      <Section
-        title={t.weights}
-        infoLabel={t.whyWeights}
-        info={<Reasons rows={FACTORS.map((f) => ({ label: all.trips.factors[f], text: because(`weights.${f}`) }))} />}
-      >
-        {/* One stacked bar: each factor's share of the ranking. */}
-        <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
-          <div className="flex h-3 overflow-hidden rounded-full bg-paper-deep" aria-hidden>
-            {FACTORS.map((f, i) => (
-              <motion.span
-                key={f}
-                className="h-full"
-                style={{ background: FACTOR_COLOR[f] }}
-                initial={{ width: 0 }}
-                animate={{ width: `${(weights[f] / total) * 100}%` }}
-                transition={{ delay: 0.05 * i, type: "spring", stiffness: 120, damping: 20 }}
-              />
-            ))}
-          </div>
-          <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-            {FACTORS.map((f) => (
-              <li key={f} className="flex items-center gap-2">
-                <span className="size-2.5 shrink-0 rounded-full" style={{ background: FACTOR_COLOR[f] }} aria-hidden />
-                <span className="flex-1 text-ink-soft">{all.trips.factorsShort[f]}</span>
+      <section className="mt-5 rounded-3xl border border-line bg-card p-4 shadow-soft">
+        <p className="text-xs text-muted-foreground">
+          {t.priorities.title}{" "}
+          <WhySheet label={t.whyResult} title={t.whyResult} close={t.close}>
+            <Reasons rows={reasons} />
+          </WhySheet>
+        </p>
+        <p className="mt-1 font-display text-xl leading-snug text-ink">{t.priorities.most(factor(order[0]), factor(order[1]))}</p>
+        <ol className="mt-3 space-y-1.5" aria-hidden>
+          {order.map((f, i) => (
+            <li key={f} className="flex items-center gap-3 text-sm">
+              <span className={cn("w-16 shrink-0", i === 0 ? "font-semibold text-ink" : "text-ink-soft")}>{all.trips.factorsShort[f]}</span>
+              <span className="h-2 flex-1 overflow-hidden rounded-full bg-paper-deep">
+                <motion.span
+                  className={cn("block h-full rounded-full", i === 0 ? "bg-pine" : "bg-pine/45")}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(weights[f] / max) * 100}%` }}
+                  transition={{ delay: 0.05 * i, type: "spring", stiffness: 120, damping: 20 }}
+                />
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {liked.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-sm font-semibold text-ink">{t.likes.title}</h2>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {top.map(([tag], i) => (
+              <li
+                key={tag}
+                className={cn(
+                  "rounded-full px-3.5 py-1.5 text-[15px]",
+                  i < 2 ? "bg-pine font-medium text-paper" : "border border-pine/30 bg-pine-soft text-pine-deep",
+                )}
+              >
+                {cap(tagName(tag))}
               </li>
             ))}
+            {showAll &&
+              rest.map(([tag]) => (
+                <li key={tag} className="rounded-full border border-line bg-card px-3 py-1 text-sm text-ink-soft">
+                  {cap(tagName(tag))}
+                </li>
+              ))}
+            {rest.length > 0 && !showAll && (
+              <li>
+                <button onClick={() => setShowAll(true)} className="rounded-full px-2 py-1.5 text-sm text-pine underline-offset-2 hover:underline">
+                  {t.likes.more(rest.length)}
+                </button>
+              </li>
+            )}
           </ul>
-        </div>
-      </Section>
+          {meh.length > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {t.likes.notForYou}: {meh.map(([tag]) => tagName(tag)).join(", ")}
+            </p>
+          )}
+        </section>
+      )}
 
-      <Section
-        title={t.interests}
-        infoLabel={t.whyInterests}
-        info={<Reasons rows={liked.map(([tag]) => ({ label: cap(tagName(tag)), text: because(`interests.${tag}`) }))} />}
-      >
-        {/* Chips without numbers: strength shows as fill. */}
-        <ul className="flex flex-wrap gap-2">
-          {liked.map(([tag, v]) => (
-            <li
-              key={tag}
-              className={cn(
-                "rounded-full border px-3.5 py-1.5 text-sm",
-                v >= 0.75 ? "border-pine bg-pine text-paper" : v >= 0.5 ? "border-pine/30 bg-pine-soft text-pine-deep" : "border-line bg-card text-ink-soft",
-              )}
-            >
-              {cap(tagName(tag))}
-            </li>
-          ))}
-        </ul>
-        {meh.length > 0 && (
-          <p className="mt-3 text-sm text-muted-foreground">
-            {s.notForYou}: {meh.map(([tag]) => tagName(tag)).join(", ")}
-          </p>
-        )}
-      </Section>
-
-      <Section
-        title={t.style}
-        infoLabel={t.whyStyle}
-        info={<Reasons rows={styleRows.map((r) => ({ label: r.label, text: because(r.field) }))} />}
-      >
-        <ul className="divide-y divide-line rounded-3xl border border-line bg-card px-4 shadow-soft">
-          {styleRows.map(({ icon: Icon, label, value }) => (
-            <li key={label} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-              <span className="flex items-center gap-2 text-ink-soft">
-                <Icon className="size-4 text-pine" /> {label}
-              </span>
-              <span className="font-medium text-ink">{cap(value)}</span>
-            </li>
-          ))}
-                    <li className="flex items-center justify-between py-2.5 text-sm">
-            <span className="flex items-center gap-2 text-ink-soft">
-              <Plane className="size-4 text-pine" /> {s.from}
-            </span>
-            <button onClick={() => onEditStep("trip")} className="flex items-center gap-1.5 text-right font-medium text-ink">
-              {formatOrigins(airports, lang)}
-              <Pencil className="size-3.5 text-muted-foreground" aria-label={s.change} />
-            </button>
+      <ul className="mt-6 grid grid-cols-2 gap-2">
+        {tiles.map(({ icon: Icon, label, value }) => (
+          <li key={label} className="rounded-2xl border border-line bg-card p-3">
+            <Icon className="size-4 text-pine" aria-hidden />
+            <p className="mt-1.5 text-xs text-muted-foreground">{label}</p>
+            <p className="text-[15px] leading-snug font-medium text-ink">{cap(value)}</p>
           </li>
-        </ul>
-      </Section>
+        ))}
+      </ul>
+
+      <p className="mt-3 flex flex-wrap items-center gap-x-1.5 text-sm text-ink-soft">
+        <Plane className="size-4 text-pine" aria-hidden />
+        <span>{formatOrigins(airports, lang)}</span>
+        <span aria-hidden>·</span>
+        <span>{t.people(people)}</span>
+        <span aria-hidden>·</span>
+        <button onClick={() => onEditStep("trip")} className="font-medium text-pine underline-offset-2 hover:underline">
+          {t.change}
+        </button>
+      </p>
 
       <Disclosure title={t.editAnswers} count={DNA_DECK.length} hint={t.editHint} className="mt-6">
         <ul className="space-y-2">
