@@ -58,11 +58,16 @@ def _non_price(r: RankedRecommendation, w: Weights) -> float:
     ) / total
 
 
+def basis(r: RankedRecommendation, lang: str | None = None) -> str:
+    """Label of `value_amount`: one traveller -> "flight + room" (the whole trip); a group ->
+    "per person" (flights x n + rooms, / n). Never "per person" for a solo trip."""
+    return i18n.t("value.basis.trip" if r.travelers == 1 else "value.basis.pp", lang)
+
+
 def value_amount(r: RankedRecommendation) -> float:
-    """The money basis every value text uses: the trip total (flight per person + hotel per room),
-    labelled "(flight + room)" so it never reads as per person. TODO(t5d party pricing): once
-    `party_total_pln` / `per_person_pln` are filled, switch both this and typical spend to the
-    same party figure and its label, in one place."""
+    """The money basis every value text uses: the per-person total (`total_cost_pln` ==
+    `per_person_pln`: flights x travellers + the rooms, / travellers), labelled "per person".
+    Typical spend is per person too, so the two are always comparable."""
     return r.total_cost_pln
 
 
@@ -136,6 +141,7 @@ def annotate_value(
                 if value_amount(r) < typical.pln:
                     r.value_reason = i18n.t(
                         "value.great_under",
+                        basis=basis(r),
                         city=r.city,
                         total=i18n.fmt_pln(value_amount(r)),
                         under=i18n.fmt_pln(typical.pln - value_amount(r)),
@@ -145,6 +151,7 @@ def annotate_value(
                 else:
                     r.value_reason = i18n.t(
                         "value.great",
+                        basis=basis(r),
                         city=r.city,
                         total=i18n.fmt_pln(value_amount(r)),
                         price=round(100 * r.score.price),
@@ -164,6 +171,7 @@ def annotate_value(
                 r.value_badge = "worth_splurge"
                 r.value_reason = i18n.t(
                     "value.splurge",
+                    basis=basis(r),
                     city=r.city,
                     amount=i18n.fmt_pln(value_amount(r) - value_amount(alt)),
                     alt=alt.city,

@@ -49,9 +49,14 @@ def pts(score: float) -> int:
 
 
 def cost_line(rec: RankedRecommendation) -> str:
+    """One traveller: total = flight + hotel. A group: per person, the group total, and how it
+    is built (flights x n + the rooms) - docs/BUDGET.md "Party pricing"."""
+    n = rec.travelers
     return i18n.t(
-        "n.cost",
+        "n.cost" if n == 1 else "n.cost.party",
         total=i18n.fmt_pln(rec.total_cost_pln),
+        group=i18n.fmt_pln(rec.party_total_pln or rec.total_cost_pln * n),
+        n=n,
         flight=i18n.fmt_int(rec.flight_cost_pln),
         hotel=i18n.fmt_int(rec.hotel_cost_pln),
         pts=pts(rec.score.total),
@@ -111,9 +116,10 @@ def draft_price_drop(
         rec,
         i18n.t("n.drop.title", city=rec.city, dates=when(rec), pct=round(drop * 100)),
         i18n.t(
-            "n.drop.body",
+            "n.drop.body" if rec.travelers == 1 else "n.drop.body.party",
             now=i18n.fmt_pln(now),
             was=i18n.fmt_pln(baseline_pln),
+            n=rec.travelers,
             flight=i18n.fmt_int(rec.flight_cost_pln),
             hotel=i18n.fmt_int(rec.hotel_cost_pln),
         ),

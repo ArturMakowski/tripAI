@@ -214,16 +214,20 @@ class FixtureProvider:
         typical_spend_pln: float | None = None,
     ) -> list[Candidate]:
         out = [self._candidate(c, origin, w, luxury) for c in self._cities for w in windows]
-        f = party.rooms(profile) / party.travelers(profile)  # per-person share of the rooms
-        if f == 1:
+        n, r = party.travelers(profile), party.rooms(profile)
+        if n == 1 and r == 1:
             return out
+        # docs/BUDGET.md party pricing: hotel = all rooms for the stay; the seasonal median
+        # (compared with the per-person total) becomes flight + this person's share of it
         return [
             c.model_copy(
                 update={
-                    "hotel_cost_pln": c.hotel_cost_pln * f,
+                    "travelers": n,
+                    "hotel_cost_pln": c.hotel_cost_pln * r,
                     "seasonal_median_cost_pln": c.seasonal_median_cost_pln
-                    - c.hotel_cost_pln * (1 - f),
-                    "peak": c.peak.model_copy(update={"hotel_cost_pln": c.peak.hotel_cost_pln * f})
+                    - c.hotel_cost_pln
+                    + c.hotel_cost_pln * r / n,
+                    "peak": c.peak.model_copy(update={"hotel_cost_pln": c.peak.hotel_cost_pln * r})
                     if c.peak
                     else None,
                 }

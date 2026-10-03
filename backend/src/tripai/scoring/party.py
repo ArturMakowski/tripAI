@@ -1,8 +1,11 @@
-"""Party pricing (docs/BUDGET.md): flights x travellers, hotel per room x rooms.
+"""Party pricing (docs/BUDGET.md "Party pricing"): the one money model for groups.
 
-Providers price a flight per person and a hotel per room (double) for the stay. A card's
-`flight_cost_pln + hotel_cost_pln` (= `total_cost_pln`) is **per person**: the flight plus this
-person's share of the rooms. The group total is per person x travellers."""
+- `flight_cost_pln`: per traveller (one return ticket).
+- `hotel_cost_pln`: the TOTAL for the room(s) for the stay (rooms x price per room).
+- `rooms`: `TasteProfile.rooms`, default ceil(travellers / 2).
+- `party_total_pln = flight_cost_pln x travellers + hotel_cost_pln`.
+- `per_person_pln = party_total_pln / travellers`; `total_cost_pln == per_person_pln`.
+With one traveller in one room everything reduces to total = flight + hotel."""
 
 import math
 
@@ -22,10 +25,14 @@ def rooms(profile: TasteProfile | None) -> int:
     return max(1, math.ceil(n / 2))
 
 
-def hotel_share(room_total: float, profile: TasteProfile | None) -> float:
-    """One person's share of the stay: rooms x price per room / travellers."""
-    return room_total * rooms(profile) / travelers(profile)
+def hotel_total(room_price: float, profile: TasteProfile | None) -> float:
+    """The stay for the whole party: price per room x rooms."""
+    return room_price * rooms(profile)
 
 
-def party_total(per_person: float, profile: TasteProfile | None) -> float:
-    return per_person * travelers(profile)
+def party_total(flight_pp: float, hotel_total_pln: float, n: int) -> float:
+    return flight_pp * n + hotel_total_pln
+
+
+def per_person(flight_pp: float, hotel_total_pln: float, n: int) -> float:
+    return party_total(flight_pp, hotel_total_pln, n) / max(1, n)

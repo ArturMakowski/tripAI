@@ -258,9 +258,15 @@ def _peak_candidate(c: Candidate) -> Candidate | None:
     )
 
 
-def shown_total(c: Candidate) -> int:
-    """The total every screen shows: the rounded flight + the rounded hotel (never off by 1)."""
-    return round(c.flight_cost_pln) + round(c.hotel_cost_pln)
+def shown_party_total(c: Candidate) -> int:
+    """The group total every screen shows, built from the rounded lines exactly:
+    rounded flight x travellers + rounded hotel total (never off by 1)."""
+    return round(c.flight_cost_pln) * c.travelers + round(c.hotel_cost_pln)
+
+
+def shown_total(c: Candidate) -> float:
+    """Per person, as shown: the shown group total / travellers (== flight + hotel for one)."""
+    return shown_party_total(c) / max(1, c.travelers)
 
 
 def _counterfactual(
@@ -268,7 +274,7 @@ def _counterfactual(
 ) -> Counterfactual:
     """Phrased from the *other* option's side, so it is never ambiguous which trip costs what:
     'Same trip in Jul (peak season): 1046 PLN more, 42 pts lower'."""
-    cost_delta = shown_total(other) - shown_total(this)
+    cost_delta = round(shown_total(other) - shown_total(this))  # per person
     pct = round(100 * cost_delta / shown_total(other)) if shown_total(other) else 0
     score_delta = round(this_score - other_score, 4)
     pts = round(100 * score_delta)
@@ -512,10 +518,14 @@ def _rank(
                 country=c.country,
                 iata=c.iata,
                 window=c.window,
-                # total == flight + hotel exactly, as shown (docs/BUDGET.md money consistency)
+                # docs/BUDGET.md party pricing: party_total == flight x n + hotel (shown lines),
+                # per person == party_total / n, total_cost_pln == per person
                 total_cost_pln=shown_total(c),
                 flight_cost_pln=round(c.flight_cost_pln),
                 hotel_cost_pln=round(c.hotel_cost_pln),
+                travelers=c.travelers,
+                party_total_pln=shown_party_total(c),
+                per_person_pln=shown_total(c),
                 score=sb,
                 evidence=c.evidence,
                 highlights=c.highlights,

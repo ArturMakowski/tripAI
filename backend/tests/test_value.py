@@ -218,8 +218,9 @@ def test_history_from_likes_sets_typical_spend():
     assert again[0]["typical_spend_source"] == "history"
     assert again[0]["typical_spend_pln"] == want
     with i18n.using("en"):
-        assert again[0]["typical_spend_label"] == i18n.t("value.typical_chip",
-                                                         amount=i18n.fmt_pln(want))  # fmt: skip
+        assert again[0]["typical_spend_label"] == i18n.t(
+            "value.typical_chip", amount=i18n.fmt_pln(want), basis=i18n.t("value.basis.trip")
+        )  # one traveller: "flight + room"
 
 
 # ---------------------------------------------------------------- review fixes (#27)

@@ -27,13 +27,11 @@ class TasteProfile(BaseModel):
     # Travel DNA (docs/TRAVEL_DNA.md): raw swipe answers q1..q12 -> 1..5, plus derived traits
     traits: dict[str, float] = Field(default_factory=dict)
     daily_discovery: bool | None = None
-    personalize: bool = True
+    personalize: bool = True  # False: neutral weights, feedback never changes the profile
     # Party (docs/BUDGET.md "Party pricing"): flights x travellers, hotel per room
     adults: int = 1
     children: int = 0
-    rooms: int | None = (
-        None  # None = ceil((adults + children) / 2)  # False: neutral weights, feedback never changes the profile
-    )
+    rooms: int | None = None  # None = ceil((adults + children) / 2)
 
 
 class FreeWindow(BaseModel):
@@ -153,17 +151,20 @@ class Recommendation(BaseModel):
     country: str
     iata: str
     window: FreeWindow
-    total_cost_pln: float
-    flight_cost_pln: float
-    hotel_cost_pln: float
+    # Money model (docs/BUDGET.md "Party pricing"); for one traveller total = flight + hotel:
+    total_cost_pln: float  # == per_person_pln (kept for backward compatibility)
+    flight_cost_pln: float  # per traveller (one return ticket)
+    hotel_cost_pln: float  # TOTAL for the room(s) for the whole stay, not per person
     score: ScoreBreakdown
     evidence: list[Evidence]
     highlights: list[str] = Field(default_factory=list)  # matching attractions
     why: str = ""  # LLM-written, grounded only in evidence
     fit: FitVerdict | None = None
-    travelers: int = 1
-    party_total_pln: float | None = None  # whole group: flights x travellers + hotel x rooms
-    per_person_pln: float | None = None  # party_total_pln / travelers
+    travelers: int = 1  # adults + children
+    party_total_pln: float | None = (
+        None  # whole group: flight_cost_pln x travelers + hotel_cost_pln
+    )
+    per_person_pln: float | None = None  # party_total_pln / travelers (== total_cost_pln)
     price_status: str = "exact"  # "exact" (these dates) | "partial" | "estimate" (other dates / city avg; not ranked on)
     value_badge: str | None = None  # "great_value" | "worth_splurge" (docs/BUDGET.md)
     value_reason: str | None = None  # deterministic, numbers from evidence
