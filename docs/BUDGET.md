@@ -23,3 +23,19 @@
 - "Per person" only if every line is per person. Hotel per room ÷ guests, or label "per room".
 - Comparisons always say which trip: "Málaga: 92 PLN more" / "7–11 Nov: 646 PLN more, +1.8 pts lower".
 - The deal baseline needs ≥ 3 fares, otherwise no "% vs typical" badge.
+
+# Party pricing (user request, 3 Oct)
+- `TasteProfile.adults/children/rooms` (rooms default ceil(people/2)). Onboarding + trips header: "Ile osób? 1 · 2 · 3 · 4+".
+- Flights priced for all travellers (SerpApi `adults=`/Travelpayouts per-pax × n); hotel per room × rooms for the
+  exact dates. `Recommendation.party_total_pln` (whole group) and `per_person_pln`; `total_cost_pln` stays the
+  per-person figure for backward compatibility. The UI shows "2 osoby · 2 480 zł razem · 1 240 zł/os.".
+
+# Price honesty (bug found from tester screenshots, 3 Oct)
+- A price from OTHER dates (Google Travel Explore cheapest-month, a city-average hotel) must NEVER be shown or
+  scored as this trip's price. Order: exact-date SerpApi → exact-date Travelpayouts (prices_for_dates with exact
+  departure_at/return_at) → no price.
+- `Recommendation.price_status`: `exact` | `partial` (one leg exact) | `estimate`. Estimates are shown muted as
+  "od ~X zł (inne daty)", excluded from the price factor and from budget/value badges, and never sorted above
+  exact prices without a label.
+- Real case: Nice 11–15 Nov showed 358 PLN (Wizz 22–29 Nov) + 1,292 PLN (city average). Real: from 588/826 zł
+  flights, 829–1,131 zł hotels. Regression test with these numbers.

@@ -27,7 +27,13 @@ class TasteProfile(BaseModel):
     # Travel DNA (docs/TRAVEL_DNA.md): raw swipe answers q1..q12 -> 1..5, plus derived traits
     traits: dict[str, float] = Field(default_factory=dict)
     daily_discovery: bool | None = None
-    personalize: bool = True  # False: neutral weights, feedback never changes the profile
+    personalize: bool = True
+    # Party (docs/BUDGET.md "Party pricing"): flights x travellers, hotel per room
+    adults: int = 1
+    children: int = 0
+    rooms: int | None = (
+        None  # None = ceil((adults + children) / 2)  # False: neutral weights, feedback never changes the profile
+    )
 
 
 class FreeWindow(BaseModel):
@@ -155,6 +161,10 @@ class Recommendation(BaseModel):
     highlights: list[str] = Field(default_factory=list)  # matching attractions
     why: str = ""  # LLM-written, grounded only in evidence
     fit: FitVerdict | None = None
+    travelers: int = 1
+    party_total_pln: float | None = None  # whole group: flights x travellers + hotel x rooms
+    per_person_pln: float | None = None  # party_total_pln / travelers
+    price_status: str = "exact"  # "exact" (these dates) | "partial" | "estimate" (other dates / city avg; not ranked on)
     value_badge: str | None = None  # "great_value" | "worth_splurge" (docs/BUDGET.md)
     value_reason: str | None = None  # deterministic, numbers from evidence
     flight: FlightDetails | None = None  # which flight (docs/TRIP_DETAILS.md)
