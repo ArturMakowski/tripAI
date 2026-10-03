@@ -55,15 +55,17 @@ export function sourceName(source: string): string {
     [/eurostat/, "Eurostat"],
     [/opentripmap/, "OpenTripMap"],
     [/nager/, "Nager.Date"],
-    [/liteapi/, "LiteAPI"],
+    [/liteapi/, "Hotel rates"],
     [/gcal/, "Google Calendar"],
     [/serper:places/, "Google Maps"],
-    [/tripai\.scoring/, "TripAI scorer"],
-    [/osrm/, "OSRM · OpenStreetMap"],
+    [/tripai\.scoring/, "TripAI"],
+    [/osrm/, "OpenStreetMap"],
+    [/^estimate:/, "TripAI"],
   ];
   // hand-curated sample numbers: never fetched, never recorded, say so plainly
   if (isSampleSource(source)) return "TripAI sample data";
-  return map.find(([re]) => re.test(source))?.[1] ?? source;
+  // an unknown id ("vendor:endpoint") is never shown raw: just the readable part, or TripAI
+  return map.find(([re]) => re.test(source))?.[1] ?? (/^[a-z0-9_-]+(:|$)/i.test(source) ? "TripAI" : source);
 }
 
 /** sourceName in the UI language: only the TripAI-owned names are translated; partner brands stay as they are. */

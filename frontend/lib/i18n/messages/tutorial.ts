@@ -61,7 +61,7 @@ export const en = {
       },
       fit: {
         title: "AI fit check",
-        body: "Does it suit your DNA? The scorer does the numbers.",
+        body: "Does it suit your DNA? The score does the numbers.",
       },
       "swipe-toggle": {
         title: "List or swipe",

@@ -4,7 +4,8 @@ import { AlertTriangle, ArrowDownRight, Check, ChevronRight, Fingerprint, Scale 
 import { useId, useState } from "react";
 import { InfoTip, reveal } from "@/components/declutter";
 import type { Lang } from "@/lib/dna";
-import { disagreement, dnaQuotes, fitMeta, modelLabel } from "@/lib/fit";
+import { disagreement, dnaQuotes, fitMeta } from "@/lib/fit";
+import { plainLabel } from "@/lib/evidence-display";
 import { useT } from "@/lib/i18n";
 import type { FitPoint, RankedRecommendation, TasteProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -79,7 +80,7 @@ function Claim({ p, rec, profile, lang, tone }: { p: FitPoint; rec: RankedRecomm
                     className="inline-flex max-w-full items-center gap-1 rounded-full bg-paper-deep px-2.5 py-1 text-xs text-ink-soft hover:bg-pine-soft hover:text-pine-deep"
                   >
                     <ArrowDownRight className="size-3 shrink-0" aria-hidden />
-                    <span className="truncate">{rec.evidence[i].label}</span>
+                    <span className="truncate">{plainLabel(rec.evidence[i].label)}</span>
                   </button>
                 ))}
               </div>
@@ -157,20 +158,5 @@ export function FitDisagreement({ rec, lang }: { rec: RankedRecommendation; lang
         <InfoTip>{c.disagreeTip}</InfoTip>
       </p>
     </div>
-  );
-}
-
-/** For the Audit sheet: which check produced the verdict, its confidence and time. */
-export function FitAudit({ rec, profile, lang }: { rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang }) {
-  const { t, fmt } = useT();
-  const fit = rec.fit;
-  if (!fit) return null;
-  const c = t.receipt.fit;
-  return (
-    <p className="text-xs text-ink-soft">
-      {modelLabel(fit, lang)} · {c.confidence(Math.round(fit.confidence * 100))}
-      {fit.created_at && ` · ${fmt.timestamp(fit.created_at)}`}
-      {profile?.personalize === false && ` · ${c.neutral}`}
-    </p>
   );
 }

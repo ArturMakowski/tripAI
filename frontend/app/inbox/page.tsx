@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { BellOff, BellRing, CalendarHeart, Crown, Eye, Fingerprint, Loader2, Settings2, Target, TrendingDown, TriangleAlert } from "lucide-react";
+import { BellOff, BellRing, CalendarHeart, Crown, Eye, Loader2, Settings2, Target, TrendingDown, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { InfoTip } from "@/components/declutter";
 import { AppShell, PageTitle } from "@/components/shell";
@@ -11,6 +11,7 @@ import { SourceTag } from "@/components/source-tag";
 import { Button } from "@/components/ui/button";
 import { errorText } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
+import { plainReason } from "@/lib/notify-reason";
 import { NOTIFY_AVAILABLE, notifyApi, openNotification, refreshUnread } from "@/lib/notify";
 import type { AppNotification, NotificationKind, ScanResult } from "@/lib/notify-types";
 import { useTrip } from "@/lib/store";
@@ -64,18 +65,12 @@ function NotificationCard({ n, onOpen, busy }: { n: AppNotification; onOpen: (n:
       </button>
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line pt-2.5">
         {flight && <SourceTag e={flight} />}
-        {n.interrupt_p != null && (
-          <span
-            className={cn("inline-flex items-center gap-1 text-[11px]", n.interrupt_ok ? "text-pine" : "text-muted-foreground")}
-            title={ib.gateTitle(n.interrupt_source ?? "?")}
-          >
+        {n.interrupt_ok != null && (
+          <span className={cn("inline-flex items-center gap-1 text-[11px]", n.interrupt_ok ? "text-pine" : "text-muted-foreground")}>
             {n.interrupt_ok ? <BellRing className="size-3" aria-hidden /> : <BellOff className="size-3" aria-hidden />}
-            {n.interrupt_ok ? ib.pushWorthy : ib.inboxOnly} · p {fmt.num(n.interrupt_p, 2)}
+            {n.interrupt_ok ? ib.pushWorthy : ib.inboxOnly}
           </span>
         )}
-        <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground" title={`inputs_hash ${n.inputs_hash}`}>
-          <Fingerprint className="size-3" aria-hidden /> {n.inputs_hash.slice(0, 10)}
-        </span>
         {n.kind !== "price_drop" && (
           <button
             disabled={watch === "busy" || watch === "done"}
@@ -102,7 +97,7 @@ function ScanSummary({ res }: { res: ScanResult }) {
   return (
     <div className="mt-3 rounded-xl bg-paper-deep p-3 text-[13px] text-ink-soft">
       <p>
-        {r.mode === "dbos" ? ib.scanDurable : ib.scan}: {ib.scanSummary(r.windows, r.candidates)}
+        {ib.scan}: {ib.scanSummary(r.windows, r.candidates)}
         {r.top_city ? ib.scanTop(r.top_city) : ""}. {ib.scanFresh(fresh)}
         {!r.personalized && ib.scanNeutral}
       </p>
@@ -113,8 +108,7 @@ function ScanSummary({ res }: { res: ScanResult }) {
             <li key={i} className="flex gap-1.5">
               <span className={d.notify ? "text-pine" : "text-muted-foreground"}>{d.notify ? "✓" : "–"}</span>
               <span>
-                <b className="font-medium text-ink">{ib.kinds[d.kind]}</b>
-                {d.recommendation_id ? ` ${d.recommendation_id}` : ""}: {d.reason}
+                <b className="font-medium text-ink">{ib.kinds[d.kind]}</b>: {plainReason(d.reason, d.notify, ib.reasons)}
               </span>
             </li>
           ))}
@@ -189,9 +183,7 @@ export default function InboxPage() {
 
       {!NOTIFY_AVAILABLE ? (
         <p className="rounded-xl bg-paper-deep p-4 text-sm text-ink-soft">
-          {ib.needsBackendA}
-          <code>NEXT_PUBLIC_MOCK=0</code>
-          {ib.needsBackendB}
+          {ib.needsLive}
         </p>
       ) : (
         <>

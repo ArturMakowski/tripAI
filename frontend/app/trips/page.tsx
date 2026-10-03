@@ -367,7 +367,6 @@ function Trips() {
           <p className="mt-6 text-center text-sm text-muted-foreground">{tt.empty}</p>
         </PickedDatesEmpty>
       )}
-      <p className="mt-6 text-center text-xs text-muted-foreground">{tt.neverPaid}</p>
     </AppShell>
   );
 }

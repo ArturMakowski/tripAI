@@ -25,7 +25,8 @@ import { useT, type Fmt, type Messages } from "@/lib/i18n";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { useTrip } from "@/lib/store";
 import type { Evidence, RankedRecommendation } from "@/lib/types";
-import { evidenceDisplay } from "@/lib/evidence-display";
+import { evidenceDisplay, plainLabel } from "@/lib/evidence-display";
+import { sourceNameFor } from "@/lib/format";
 import { moneyOf } from "@/lib/money";
 import { scoreGap } from "@/lib/compare";
 import { localCountry } from "@/lib/country";
@@ -227,7 +228,7 @@ export default function ReceiptPage() {
               {typical && baseline && (
                 <p className="mb-1">
                   <span id={ev(baseline)} className="rounded-full">
-                    <Chip title={`${baseline.label} · ${baseline.source}`}>{typical}</Chip>
+                    <Chip title={`${plainLabel(baseline.label)} · ${sourceNameFor(baseline.source, r.source)}`}>{typical}</Chip>
                   </span>
                 </p>
               )}
@@ -264,7 +265,7 @@ export default function ReceiptPage() {
           {flipText && (
             <Disclosure title={r.flipTitle} hint={flipText} tour="flip">
               <p className="text-sm text-ink">{flipText}</p>
-              {scorerFlipValid && <p className="mt-1 text-xs text-muted-foreground">{r.flipSource(rec.scoring_version)}</p>}
+              {scorerFlipValid && <p className="mt-1 text-xs text-muted-foreground">{r.flipSource}</p>}
             </Disclosure>
           )}
 

@@ -130,6 +130,18 @@ weight, the total, the formula, the inputs hash) is one tap away in the receipt'
   `data-line` + `data-amount` hooks for the e2e price invariant.
 - **Comparisons name the trip:** "Rzym: wynik wyższy o 3,6 pkt · drożej o 108 zł".
 
+## No implementation details in the UI
+The UI speaks product language only, in PL and EN: no engine, vendor, framework or model names (Jev, GPT/OpenAI, LLM,
+DBOS, workflow, Supabase, VAPID, SerpApi/Serper/Travelpayouts/LiteAPI), no hashes, internal ids, versions or model
+confidence numbers, no "backend"/"fixtures"/"cached". Real data-source citations stay (Google Flights/Hotels/Travel
+Explore, Aviasales, Open-Meteo, Eurostat, OpenStreetMap, Google Maps); a generic "AI" mention is fine.
+- `lib/i18n/denylist.ts` + `lib/i18n/no-internals.test.ts`: every PL/EN dictionary value (functions called with sample
+  arguments) fails the build on a denylisted term; it also pins `plainLabel` and `sourceName`.
+- Data-layer text is mapped before it reaches a screen: `sourceName()` cites the real source (unknown ids read
+  "TripAI", never raw), tooltips show the readable source + time, `plainLabel()` strips "[recorded fixture]",
+  "cached", "x1.0 for standard" from evidence labels, and `lib/notify-reason.ts` turns the scan's debug reasons into
+  plain phrases ("za słabo pasuje", "osiągnięto tygodniowy limit").
+
 ## Quick date filters
 "Ten weekend · Najbliższy długi weekend · Dowolne 5 dni…" are radios (`pickQuick` in `lib/date-range.ts`): one quick
 filter at a time, tapping the selected one clears it; ranges drawn in the calendar are never touched.

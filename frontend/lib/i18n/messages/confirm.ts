@@ -11,7 +11,7 @@ export const en = {
   /** tag next to a quoted amount */
   nothingBooked: "Nothing is booked yet",
   disclaimer: "You book on the partner site. Prices may change.",
-  cachedTip: "Prices are cached quotes, not bookable fares. They are re-checked before hand-off.",
+  cachedTip: "Prices are recent quotes, not bookable fares. They are checked again before we send you to the partner.",
   understand: "I’ll confirm the final price myself.",
   approve: "Approve this plan",
   notNow: "Not now",
@@ -33,7 +33,7 @@ export const pl: Shape<typeof en> = {
   hotelNights: (nights) => `Hotel, ${nights}`,
   nothingBooked: "Nic nie jest jeszcze zarezerwowane",
   disclaimer: "Rezerwujesz na stronie partnera. Ceny mogą się zmienić.",
-  cachedTip: "Ceny to zapisane oferty, nie bilety do kupienia. Sprawdzamy je ponownie przed przekierowaniem.",
+  cachedTip: "Ceny to ostatnie oferty, nie bilety do kupienia. Sprawdzamy je ponownie przed przekierowaniem do partnera.",
   understand: "Ostateczną cenę potwierdzę u partnera.",
   approve: "Zatwierdź ten plan",
   notNow: "Nie teraz",

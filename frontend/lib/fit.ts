@@ -1,8 +1,7 @@
 /** Presentation helpers for Recommendation.fit (docs/FIT_VERDICT.md). */
 import { ANSWER_LABEL, DNA_CARD, YESNO_LABEL, type CardId, type Lang } from "./dna";
 import * as copy from "./i18n/messages/receipt";
-import { CLIENT_PREVIEW_MODEL } from "./mock/fit";
-import type { FitVerdict, Recommendation, TasteProfile } from "./types";
+import type { Recommendation, TasteProfile } from "./types";
 
 const FIT_TONE: Record<string, { tone: string; dot: string }> = {
   great_fit: { tone: "bg-pine text-paper", dot: "bg-paper" },
@@ -18,13 +17,6 @@ export const fitMeta = (label: string, lang: Lang = "en") => {
   const tone = FIT_TONE[label] ?? { tone: "bg-paper-deep text-ink", dot: "bg-ink" };
   return { label: names[label] ?? label, ...tone };
 };
-
-export function modelLabel(fit: FitVerdict, lang: Lang = "en"): string {
-  const c = fitCopy(lang);
-  if (fit.model === CLIENT_PREVIEW_MODEL) return c.modelPreview;
-  if (fit.model === "rules" || fit.model.startsWith("rules")) return c.modelRules;
-  return c.modelAi(fit.model);
-}
 
 /** Score and verdict pointing in different directions: shown openly, never smoothed over. */
 export function disagreement(rec: Recommendation): "high_score_poor_fit" | "low_score_good_fit" | null {

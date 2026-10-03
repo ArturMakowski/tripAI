@@ -48,7 +48,7 @@ export const en = {
     scanning: (origin: string) => `Scanning destinations from ${origin}`,
     flightsHotels: "Checking flight and hotel prices",
     weatherRanking: "Weather, crowds and ranking for your Travel DNA",
-    cachedFlights: "Checking cached flight prices",
+    cachedFlights: "Checking recent flight prices",
     upNext: "live flight prices, hotels, weather, then ranking for your Travel DNA",
     next: "Next:",
   },
@@ -62,7 +62,7 @@ export const en = {
 
   announce: {
     loading: "Finding trips for you.",
-    refining: "Showing cached prices. Refining live prices.",
+    refining: "Showing recent prices. Updating live prices.",
     landedLive: "Live prices in. Ranking updated.",
     landedDemo: "Demo prices updated. Ranking updated.",
   },
@@ -80,7 +80,6 @@ export const en = {
   hide: "hide",
   showAnyway: "show anyway",
   empty: "No trips fit this window yet. We’ll keep watching.",
-  neverPaid: "No paid rankings.",
 
   card: {
     bridge: (off: number, total: number) => `${off}d off → ${total}d`,
@@ -138,7 +137,7 @@ export const pl: Shape<typeof en> = {
     scanning: (origin: string) => `Przeglądamy kierunki z ${origin}`,
     flightsHotels: "Sprawdzamy ceny lotów i hoteli",
     weatherRanking: "Pogoda, tłumy i ranking pod Twoje DNA podróżnika",
-    cachedFlights: "Sprawdzamy zapisane ceny lotów",
+    cachedFlights: "Sprawdzamy ostatnie ceny lotów",
     upNext: "ceny lotów na żywo, hotele, pogoda, a potem ranking pod Twoje DNA podróżnika",
     next: "Dalej:",
   },
@@ -152,7 +151,7 @@ export const pl: Shape<typeof en> = {
 
   announce: {
     loading: "Szukamy dla Ciebie wyjazdów.",
-    refining: "Pokazujemy zapisane ceny. Doprecyzowujemy ceny na żywo.",
+    refining: "Pokazujemy ostatnie ceny. Aktualizujemy ceny na żywo.",
     landedLive: "Ceny na żywo gotowe. Ranking zaktualizowany.",
     landedDemo: "Ceny demo zaktualizowane. Ranking zaktualizowany.",
   },
@@ -170,7 +169,6 @@ export const pl: Shape<typeof en> = {
   hide: "ukryj",
   showAnyway: "pokaż mimo to",
   empty: "Na ten termin nic jeszcze nie pasuje. Będziemy dalej szukać.",
-  neverPaid: "Bez płatnych miejsc w rankingu.",
 
   card: {
     bridge: (off: number, total: number) =>
