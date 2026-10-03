@@ -108,7 +108,8 @@ export function AppShell({
           <Logo />
         )}
         <div className="flex items-center gap-2">
-          {action ?? <LangSwitch />}
+          {action}
+          <LangSwitch />
           <InboxBell />
           <ModeBadge />
         </div>

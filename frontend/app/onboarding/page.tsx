@@ -11,7 +11,7 @@ import { AppShell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { api, USER_ID } from "@/lib/api";
-import { collectAnswers, DNA_DECK, STATEMENT_ANSWER, UI, YESNO_ANSWER, type DnaCard, type Gesture, type Lang } from "@/lib/dna";
+import { collectAnswers, DNA_DECK, STATEMENT_ANSWER, UI, YESNO_ANSWER, type DnaCard, type Gesture } from "@/lib/dna";
 import { useLang } from "@/lib/i18n";
 import { useHydrated, useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -29,23 +29,6 @@ const AIRPORTS: [string, string][] = [
 const BUDGET_MAX = 6000;
 const fmtPLN = (n: number) => `${new Intl.NumberFormat("pl-PL").format(n)} zł`;
 
-function LangToggle({ lang, onChange }: { lang: Lang; onChange: (l: Lang) => void }) {
-  return (
-    <div className="flex rounded-full border border-line bg-card p-0.5 text-xs font-semibold" role="radiogroup" aria-label="Language">
-      {(["pl", "en"] as const).map((l) => (
-        <button
-          key={l}
-          role="radio"
-          aria-checked={lang === l}
-          onClick={() => onChange(l)}
-          className={cn("rounded-full px-2.5 py-1 uppercase transition-colors", lang === l ? "bg-ink text-paper" : "text-muted-foreground")}
-        >
-          {l}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function Dots({ total, done }: { total: number; done: number }) {
   return (
@@ -82,7 +65,7 @@ const slide = {
 export default function SwipeOnboarding() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { deck, setDeck, setProfile, setWeights, setMode, setLang } = useTrip();
+  const { deck, setDeck, setProfile, setWeights, setMode } = useTrip();
   const { swipes, step, budget, airports, result } = deck;
   const lang = useLang();
   const t = UI[lang];
@@ -158,7 +141,7 @@ export default function SwipeOnboarding() {
   if (!hydrated) return <AppShell nav={false}>{null}</AppShell>;
 
   return (
-    <AppShell back="/" title={t.eyebrow} nav={false} action={<LangToggle lang={lang} onChange={setLang} />}>
+    <AppShell back="/" title={t.eyebrow} nav={false}>
       <AnimatePresence mode="wait">
         {step === "swipe" && (
           <motion.section key="swipe" {...slide} className="flex flex-col pt-1 pb-6">

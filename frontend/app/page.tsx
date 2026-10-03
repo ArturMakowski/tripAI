@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { ArrowRight, BadgeCheck, Hand, Receipt } from "lucide-react";
+import { LangSwitch } from "@/components/lang-switch";
 import { Logo, ModeBadge, PhotoCreditsLink } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
@@ -34,7 +35,10 @@ export default function Welcome() {
     <div className="flex min-h-dvh flex-col px-6 pt-5 pb-8 sm:min-h-0 sm:flex-1">
       <div className="flex items-center justify-between">
         <Logo />
-        <ModeBadge />
+        <div className="flex items-center gap-2">
+          <LangSwitch />
+          <ModeBadge />
+        </div>
       </div>
 
       <div className="relative mt-8 h-56">

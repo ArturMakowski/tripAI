@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FactorBars } from "@/components/factor-bars";
 import { CityPhoto } from "@/components/rec-card";
 import { ScoreRing } from "@/components/score-ring";
+import { LangSwitch } from "@/components/lang-switch";
 import { ModeBadge } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { dayCount, formatPLN, formatRange } from "@/lib/format";
@@ -168,7 +169,10 @@ export default function ReceiptPage() {
           >
             <ChevronLeft className="size-5" />
           </button>
-          <ModeBadge />
+          <div className="flex items-center gap-2">
+            <LangSwitch />
+            <ModeBadge />
+          </div>
         </div>
         <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 text-white">
           <div>
