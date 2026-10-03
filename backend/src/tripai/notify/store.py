@@ -4,6 +4,9 @@
 tables in supabase/migrations/0003_notifications.sql via PostgREST with the server-only
 SUPABASE_SECRET_KEY (RLS on, no anon policies). Reads go to Supabase first so several backend
 replicas agree; any Supabase error is logged and the in-memory copy answers instead.
+
+The store is synchronous (httpx.Client); the API calls it from FastAPI's threadpool (sync
+endpoints) and the scan from worker threads (`tripai.workflows.scan`), never on the event loop.
 """
 
 import logging
@@ -32,7 +35,7 @@ class NotifyStore(Protocol):
     def add_subscription(self, sub: PushSubscription) -> None: ...
     def remove_subscription(self, user_id: str, endpoint: str) -> bool: ...
     def subscriptions(self, user_id: str) -> list[PushSubscription]: ...
-    def add_notification(self, n: Notification) -> None: ...
+    def add_notification(self, n: Notification) -> bool: ...  # False: dedupe key already used
     def update_notification(self, n: Notification) -> None: ...
     def notifications(self, user_id: str, limit: int = 50) -> list[Notification]: ...
     def get_notification(self, notification_id: str) -> Notification | None: ...
@@ -43,7 +46,7 @@ class NotifyStore(Protocol):
     def save_pick(self, pick: SavedPick) -> None: ...
     def remove_pick(self, user_id: str, recommendation_id: str) -> bool: ...
     def picks(self, user_id: str) -> list[SavedPick]: ...
-    def user_ids(self) -> list[str]: ...
+    def active_user_ids(self, since: datetime, limit: int) -> list[str]: ...
 
 
 class MemoryNotifyStore:
@@ -69,8 +72,11 @@ class MemoryNotifyStore:
     def subscriptions(self, user_id: str) -> list[PushSubscription]:
         return [s for (u, _), s in self.subs.items() if u == user_id]
 
-    def add_notification(self, n: Notification) -> None:
+    def add_notification(self, n: Notification) -> bool:
+        if self.has_dedupe(n.user_id, n.dedupe_key):
+            return False
         self.items[n.id] = n
+        return True
 
     def update_notification(self, n: Notification) -> None:
         self.items[n.id] = n
@@ -104,10 +110,37 @@ class MemoryNotifyStore:
     def picks(self, user_id: str) -> list[SavedPick]:
         return [p for (u, _), p in self.saved.items() if u == user_id]
 
-    def user_ids(self) -> list[str]:
-        ids = set(self.prefs) | {u for u, _ in self.subs} | {u for u, _ in self.saved}
-        ids |= {r.user_id for r in self.runs}
-        return sorted(ids)
+    def active_user_ids(self, since: datetime, limit: int) -> list[str]:
+        """Users the daily scan visits, most recently active first, at most `limit`: push opt-ins
+        (they asked for it) plus anyone who changed prefs, watched a pick or ran a scan by hand
+        since `since`. Scheduled runs don't count as activity, so idle users drop out."""
+        return _rank_active(self._activity(since), limit)
+
+    def _activity(self, since: datetime) -> dict[str, datetime]:
+        seen: dict[str, datetime] = {}
+
+        def touch(uid: str, at: datetime) -> None:
+            if at >= since or uid in opted:
+                seen[uid] = max(seen.get(uid, at), at)
+
+        opted = {u for u, p in self.prefs.items() if p.push_opt_in} & {u for u, _ in self.subs}
+        for p in self.prefs.values():
+            touch(p.user_id, p.updated_at)
+        for (u, _), sub in self.subs.items():
+            touch(u, sub.created_at)
+        for (u, _), pick in self.saved.items():
+            touch(u, pick.saved_at)
+        for r in self.runs:
+            if r.trigger == "manual":
+                touch(r.user_id, r.started_at)
+        return seen
+
+
+def _rank_active(seen: dict[str, datetime], limit: int) -> list[str]:
+    return [u for u, _ in sorted(seen.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)][:limit]
+
+
+PAGE = 1000  # PostgREST max-rows default: page explicitly so nothing is silently truncated
 
 
 def _row(model: BaseModel, **extra: Any) -> dict:
@@ -156,6 +189,19 @@ class SupabaseNotifyStore(MemoryNotifyStore):
     def _select(self, table: str, params: dict[str, str]) -> list[dict] | None:
         rows = self._try(f"select {table}", self._req, "GET", table, params=params)
         return rows if isinstance(rows, list) else None
+
+    def _select_all(self, table: str, params: dict[str, str]) -> list[dict] | None:
+        """Every matching row, paged with limit/offset (stable `order` required)."""
+        out: list[dict] = []
+        offset = 0
+        while True:
+            rows = self._select(table, {**params, "limit": str(PAGE), "offset": str(offset)})
+            if rows is None:
+                return None
+            out += rows
+            if len(rows) < PAGE:
+                return out
+            offset += PAGE
 
     def _delete(self, table: str, params: dict[str, str]) -> None:
         self._try(f"delete {table}", self._req, "DELETE", table, params=params)
@@ -249,9 +295,23 @@ class SupabaseNotifyStore(MemoryNotifyStore):
             out.append(n)
         return out
 
-    def add_notification(self, n: Notification) -> None:
-        super().add_notification(n)
-        self._upsert("notifications", self._notification_row(n), "id")
+    def add_notification(self, n: Notification) -> bool:
+        """Insert-if-new on unique(user_id, dedupe_key): concurrent scans can't both insert."""
+        rows = self._try(
+            "insert notifications",
+            self._req,
+            "POST",
+            "notifications",
+            params={"on_conflict": "user_id,dedupe_key"},
+            json=[self._notification_row(n)],
+            prefer="resolution=ignore-duplicates,return=representation",
+        )
+        if rows is None:  # Supabase down: memory decides
+            return super().add_notification(n)
+        if not rows:  # conflict: another scan already sent this one
+            return False
+        self.items[n.id] = n
+        return True
 
     def update_notification(self, n: Notification) -> None:
         super().update_notification(n)
@@ -292,6 +352,7 @@ class SupabaseNotifyStore(MemoryNotifyStore):
             "id": d["id"],
             "user_id": d["user_id"],
             "mode": d["mode"],
+            "trigger": d["trigger"],
             "workflow_id": d["workflow_id"],
             "top_id": d["top_id"],
             "inputs_hash": d["inputs_hash"],
@@ -346,13 +407,35 @@ class SupabaseNotifyStore(MemoryNotifyStore):
                 log.warning("bad saved_picks row: %s", exc)
         return out
 
-    def user_ids(self) -> list[str]:
-        """Users the daily scan visits: anyone who set prefs, subscribed, watches a pick or ran a scan."""
-        ids = set(super().user_ids())
-        for table in ("notification_prefs", "push_subscriptions", "saved_picks", "scan_runs"):
-            rows = self._select(table, {"select": "user_id"}) or []
-            ids |= {r["user_id"] for r in rows if r.get("user_id")}
-        return sorted(ids)
+    def active_user_ids(self, since: datetime, limit: int) -> list[str]:
+        ts = since.isoformat()
+        sources = [
+            ("notification_prefs", {"select": "user_id,updated_at,push_opt_in",
+                                    "or": f"(push_opt_in.is.true,updated_at.gte.{ts})"},
+             "updated_at"),
+            ("push_subscriptions", {"select": "user_id,created_at"}, "created_at"),
+            ("saved_picks", {"select": "user_id,saved_at", "saved_at": f"gte.{ts}"}, "saved_at"),
+            ("scan_runs", {"select": "user_id,started_at", "trigger": "eq.manual",
+                           "started_at": f"gte.{ts}"}, "started_at"),
+        ]  # fmt: skip
+        rows: dict[str, list[dict]] = {}
+        for table, params, col in sources:
+            got = self._select_all(table, {**params, "order": f"{col}.desc,user_id.asc"})
+            if got is None:  # Supabase down: memory view
+                return super().active_user_ids(since, limit)
+            rows[table] = got
+        opted = {r["user_id"] for r in rows["notification_prefs"] if r.get("push_opt_in")}
+        opted &= {r["user_id"] for r in rows["push_subscriptions"]}
+        seen: dict[str, datetime] = {}
+        for table, _, col in sources:
+            for r in rows[table]:
+                uid, at = r.get("user_id"), r.get(col)
+                if not uid or not at:
+                    continue
+                at = datetime.fromisoformat(at)
+                if at >= since or uid in opted:
+                    seen[uid] = max(seen.get(uid, at), at)
+        return _rank_active(seen, limit)
 
 
 def notify_store_from_env() -> NotifyStore:

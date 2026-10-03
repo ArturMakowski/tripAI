@@ -206,9 +206,11 @@ in order. Reads fall back to Supabase on a miss in a worker thread, never on the
 × candidates → `rank()` → rules (`tripai/notify/rules.py`) → in-app inbox + web push. Every I/O step (context, windows,
 ranking, long weekends, watched-pick prices, dedupe check, save, push, run record) goes through `run_step`, so:
 
-- **`DATABASE_URL` set** → a durable **DBOS** workflow: each step checkpointed in Postgres and retried (3 attempts,
-  exponential backoff); a crashed scan resumes from the last finished step. A DBOS schedule runs `daily_scan`
-  every day at 07:00 Europe/Warsaw (`TRIPAI_SCAN_CRON`, 6-field cron) for every known user.
+- **`DATABASE_URL` set** → a durable **DBOS** workflow: each step is checkpointed in Postgres, and a crashed scan
+  resumes from the last finished step. Free steps (DB, push) are retried (3 attempts, exponential backoff). Paid steps
+  (provider calls) are not retried. A DBOS schedule runs `daily_scan` every day at 07:00 Europe/Warsaw
+  (`TRIPAI_SCAN_CRON`, 6-field cron). It visits **active users only**, one after another, and stops early once the
+  SerpApi daily budget is spent (see "Cost caps" below).
   Use the Supabase pooler in **session mode** (port 5432; `aws-0-eu-west-1` is the host that knows this project):
   `postgresql://postgres.nvonqduyallbiggricdl:<url-encoded SUPABASE_PASSWORD>@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require`.
   DBOS creates its own `dbos` schema (not exposed through PostgREST).
@@ -222,17 +224,21 @@ When does it ping? (all numbers in title/body are copied from the ranked card an
 | `price_drop` | a watched pick (`POST /picks`) is ≥ 15% cheaper than the last price we told the user |
 | `long_weekend` | a radar window starts within 21 days and its best trip scores ≥ 0.8 |
 
-If `rec.fit` (AI fit verdict, docs/FIT_VERDICT.md) is present it replaces the score gate: only `good_fit`/`great_fit`
-notify, and `fit.summary` + `concerns` travel with the notification. User control: in-app inbox always on, push only
+Fit verdict (docs/FIT_VERDICT.md): the scan asks T1c's `tripai.agents.fit.fit` (LLM, or its deterministic rules
+fallback) for a verdict on each notification candidate: the #1, the best trip per soon long weekend, and each watched
+pick. When there is a verdict, it replaces the score gate: only `good_fit`/`great_fit` notify, and `fit.summary` +
+`concerns` travel with the notification. Until T1c (PR #9) is merged that module doesn't exist, so the score
+thresholds above apply. No code change is needed when it lands. User control: in-app inbox always on, push only
 after an explicit opt-in tap, max N per week (price drops first, then long weekends, then new #1), muted cities
 (name or IATA), snooze, one notification per dedupe key. `personalize=False` still notifies, but ranks on neutral
 default weights. Every rule evaluation, including the ones that didn't fire, is kept on the scan run (`GET /scan/last`).
 
 | Endpoint | What |
 |---|---|
-| `POST /scan/run` `{user_id, today?, profile?, weights?}` | run the scan now ("Run scan now" demo button); `{run, notifications}` |
-| `GET /scan/last?user_id` | last scan run with every decision and its reason |
-| `GET /notifications?user_id` · `POST /notifications/{id}/read?user_id` | inbox `{items, unread}` / mark read |
+| `GET /session` | issue/confirm this browser's session (the frontend calls it once before parallel requests) |
+| `POST /scan/run` `{today?, profile?, weights?}` | run the scan now ("Run scan now" demo button); `{run, notifications}` |
+| `GET /scan/last` | last scan run with every decision and its reason |
+| `GET /notifications` · `POST /notifications/{id}/read` | inbox `{items, unread}` / mark read |
 | `GET`/`PUT /notifications/prefs` | `{push_opt_in, max_per_week, muted_cities, snooze_until}` |
 | `GET /push/vapid-public-key` · `POST`/`DELETE /push/subscribe` | VAPID key / store or drop a browser `PushSubscription` |
 | `GET`/`POST /picks`, `DELETE /picks/{id}` | watch a recommendation's price |
@@ -241,6 +247,27 @@ Each notification carries `title`, `body`, `recommendation_id`, `inputs_hash`, `
 `evidence`, `score`, fit fields and the full card. Storage: `SUPABASE_URL` + `SUPABASE_SECRET_KEY` → tables from
 `supabase/migrations/0003_notifications.sql` (RLS on, no anon policies; apply it before deploying), else in memory
 (`TRIPAI_NOTIFY_STORE=memory` forces memory).
+
+**Who is "the user"?** There are no accounts. Every endpoint acts for the server-issued session from `tripai.api.session`
+(`X-TripAI-Session` header or cookie). Any `user_id` the client sends is ignored. The frontend keeps the token in
+localStorage (`lib/session.ts`), so each browser has its own inbox, prefs, picks and push subscription, and one visitor
+can't trigger, mute or receive another's pushes. Set `TRIPAI_SESSION_SECRET` in production. Without it, sessions (and
+therefore inboxes) reset when the backend restarts. Real auth is out of scope for the hackathon.
+
+**Cost caps** (in place before a live provider scans on a schedule):
+
+| Env | Default | Bounds |
+|---|---|---|
+| `TRIPAI_SCAN_ACTIVE_DAYS` | 14 | the daily run visits push opt-ins plus users who changed prefs, watched a pick or ran a scan by hand in this window (scheduled runs don't count as activity) |
+| `TRIPAI_SCAN_MAX_USERS` | 50 | users per daily run, most recently active first |
+| `TRIPAI_MAX_PICKS` | 5 | watched picks per user (each one is a provider call per scan); `POST /picks` returns 409 beyond it |
+| `TRIPAI_SCAN_MAX_LW` | 2 | soon long weekends priced per scan |
+| `TRIPAI_SCAN_MIN_INTERVAL_S` · `TRIPAI_SCAN_PER_MIN` | 60 · 10 | `POST /scan/run` rate limit, per user and per process overall (429 + `Retry-After`) |
+
+On top of these, the LiveProvider's shared SerpApi daily and per-request caps meter every paid call, and `daily_scan`
+stops when the daily cap is used up. Concurrent scans for one user (cron + "Run scan now") are serialised in-process.
+Across processes, the weekly cap is re-counted at insert time and the insert is unique on `(user_id, dedupe_key)`, so
+nothing is sent twice.
 
 **VAPID setup** (web push):
 ```bash

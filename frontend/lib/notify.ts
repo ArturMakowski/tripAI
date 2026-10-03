@@ -5,20 +5,23 @@
  * Needs the live backend (NEXT_PUBLIC_API_URL); in fixture mode the inbox explains that instead.
  */
 import { create } from "zustand";
-import { API_URL, FORCE_MOCK, USER_ID, api } from "./api";
+import { API_URL, FORCE_MOCK, api } from "./api";
 import { DEMO_PROFILE } from "./mock/fixtures";
 import type { AppNotification, Inbox, NotificationPrefs, ScanResult } from "./notify-types";
+import { ensureSession, rememberSession, sessionHeaders } from "./session";
 import { useTrip } from "./store";
 import type { RankedRecommendation, TasteProfile, Weights } from "./types";
 
 export const NOTIFY_AVAILABLE = !FORCE_MOCK;
 
 async function http<T>(path: string, init?: RequestInit, timeoutMs = 20_000): Promise<T> {
+  await ensureSession(API_URL);
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+    headers: { "content-type": "application/json", ...sessionHeaders(), ...(init?.headers ?? {}) },
     signal: AbortSignal.timeout(timeoutMs),
   });
+  rememberSession(res);
   if (!res.ok) {
     const detail = await res.json().then((j) => j?.detail, () => null);
     throw new Error(typeof detail === "string" ? detail : `${init?.method ?? "GET"} ${path} -> ${res.status}`);
@@ -27,24 +30,23 @@ async function http<T>(path: string, init?: RequestInit, timeoutMs = 20_000): Pr
 }
 
 const json = (method: string, body: unknown): RequestInit => ({ method, body: JSON.stringify(body) });
-const uid = `user_id=${encodeURIComponent(USER_ID)}`;
 
 export const notifyApi = {
-  inbox: () => http<Inbox>(`/notifications?${uid}`),
-  markRead: (id: string) => http<AppNotification>(`/notifications/${encodeURIComponent(id)}/read?${uid}`, { method: "POST" }),
-  prefs: () => http<NotificationPrefs>(`/notifications/prefs?${uid}`),
+  inbox: () => http<Inbox>("/notifications"),
+  markRead: (id: string) => http<AppNotification>(`/notifications/${encodeURIComponent(id)}/read`, { method: "POST" }),
+  prefs: () => http<NotificationPrefs>("/notifications/prefs"),
   savePrefs: (p: Partial<Omit<NotificationPrefs, "snooze_until">> & { snooze_until?: string }) =>
-    http<NotificationPrefs>("/notifications/prefs", json("PUT", { user_id: USER_ID, ...p })),
+    http<NotificationPrefs>("/notifications/prefs", json("PUT", p)),
   runScan: (profile: TasteProfile | null, weights: Weights | null, today?: string) =>
     http<ScanResult>(
       "/scan/run",
-      json("POST", { user_id: USER_ID, ...(profile ? { profile: { ...profile, user_id: USER_ID } } : {}), ...(weights ? { weights } : {}), ...(today ? { today } : {}) }),
+      json("POST", { ...(profile ? { profile } : {}), ...(weights ? { weights } : {}), ...(today ? { today } : {}) }),
       90_000,
     ),
   vapidKey: () => http<{ enabled: boolean; public_key: string | null }>("/push/vapid-public-key"),
-  subscribe: (sub: PushSubscriptionJSON) => http<NotificationPrefs>("/push/subscribe", json("POST", { user_id: USER_ID, subscription: sub })),
-  unsubscribe: (endpoint: string) => http<NotificationPrefs>("/push/subscribe", json("DELETE", { user_id: USER_ID, endpoint })),
-  watch: (recommendationId: string) => http<unknown>("/picks", json("POST", { user_id: USER_ID, recommendation_id: recommendationId })),
+  subscribe: (sub: PushSubscriptionJSON) => http<NotificationPrefs>("/push/subscribe", json("POST", { subscription: sub })),
+  unsubscribe: (endpoint: string) => http<NotificationPrefs>("/push/subscribe", json("DELETE", { endpoint })),
+  watch: (recommendationId: string) => http<unknown>("/picks", json("POST", { recommendation_id: recommendationId })),
 };
 
 // ------------------------------------------------------------------ unread badge

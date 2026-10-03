@@ -10,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from tripai.api import create_app
-from tripai.models import FitPoint, FitVerdict, TasteProfile, Weights
+from tripai.models import FitPoint, FitVerdict, FreeWindow, TasteProfile, Weights
 from tripai.notify import vapid
 from tripai.notify.models import NotificationPrefs
 from tripai.notify.push import VapidConfig, WebPusher, generate_vapid_keys
@@ -68,17 +68,29 @@ class FakeSender:
             raise err
 
 
+@pytest.fixture(autouse=True)
+def _no_rate_limit(monkeypatch):
+    monkeypatch.setenv("TRIPAI_SCAN_MIN_INTERVAL_S", "0")
+    monkeypatch.setenv("TRIPAI_SCAN_PER_MIN", "1000")
+
+
+def uid(c) -> str:
+    """The session user the TestClient's cookie stands for."""
+    return c.get("/session").json()["user_id"]
+
+
 def make(provider=None, sender=None, vapid_on=True):
     notify = MemoryNotifyStore()
     pub, priv = generate_vapid_keys()
     cfg = VapidConfig(pub, priv, "mailto:test@example.com") if vapid_on else None
     pusher = WebPusher(cfg, sender=sender or FakeSender())
     app = create_app(provider=provider, notify_store=notify, pusher=pusher)
+    app.state.scan_deps.fit = None  # score gate; fit-gate tests inject their own verdicts
     return TestClient(app), notify, pusher
 
 
 def scan(c, **extra):
-    body = {"user_id": "u1", "today": TODAY, "profile": PROFILE, **extra}
+    body = {"today": TODAY, "profile": PROFILE, **extra}
     r = c.post("/scan/run", json=body)
     assert r.status_code == 200, r.text
     return r.json()
@@ -202,13 +214,16 @@ def test_scan_notifies_new_top_with_real_numbers():
     assert again["notifications"] == []
     assert any(d["reason"] == "#1 unchanged" for d in again["run"]["decisions"])
 
-    inbox = c.get("/notifications", params={"user_id": "u1"}).json()
+    inbox = c.get("/notifications").json()
     assert inbox["unread"] == len(notes) == len(inbox["items"])
     nid = inbox["items"][0]["id"]
-    assert c.post(f"/notifications/{nid}/read", params={"user_id": "u1"}).json()["read_at"]
-    assert c.get("/notifications", params={"user_id": "u1"}).json()["unread"] == len(notes) - 1
-    assert c.post(f"/notifications/{nid}/read", params={"user_id": "x"}).status_code == 404
-    assert c.get("/scan/last", params={"user_id": "u1"}).json()["id"] == again["run"]["id"]
+    assert c.post(f"/notifications/{nid}/read").json()["read_at"]
+    assert c.get("/notifications").json()["unread"] == len(notes) - 1
+    # another browser (fresh session) can't see or touch this user's inbox
+    other = TestClient(c.app)
+    assert other.post(f"/notifications/{nid}/read").status_code == 404
+    assert other.get("/notifications").json() == {"items": [], "unread": 0}
+    assert c.get("/scan/last").json()["id"] == again["run"]["id"]
 
 
 def _label_numbers(n: dict) -> set[str]:
@@ -240,9 +255,9 @@ def test_price_drop_on_saved_pick_then_no_repeat():
     provider = ScaledProvider()
     c, _, _ = make(provider=provider)
     recs = c.post("/recommendations", json={"profile": PROFILE, "today": TODAY, "limit": 3}).json()
-    pick = c.post("/picks", json={"user_id": "u1", "recommendation_id": recs[1]["id"]}).json()
+    pick = c.post("/picks", json={"recommendation_id": recs[1]["id"]}).json()
     assert pick["baseline_pln"] == recs[1]["total_cost_pln"]
-    assert c.post("/picks", json={"user_id": "u1", "recommendation_id": "nope"}).status_code == 404
+    assert c.post("/picks", json={"recommendation_id": "nope"}).status_code == 404
 
     scan(c)  # prices unchanged -> no price_drop
     provider.factor = 0.8
@@ -255,32 +270,28 @@ def test_price_drop_on_saved_pick_then_no_repeat():
     assert f"Now {now:.0f} PLN, was {pick['baseline_pln']:.0f} PLN" in d["body"]
     assert (pick["baseline_pln"] - now) / pick["baseline_pln"] >= 0.15
     # baseline moved to the price we just told them -> the next scan doesn't repeat it
-    assert c.get("/picks", params={"user_id": "u1"}).json()[0]["baseline_pln"] == now
+    assert c.get("/picks").json()[0]["baseline_pln"] == now
     again = scan(c)
     assert not [n for n in again["notifications"] if n["kind"] == "price_drop"]
-    assert c.delete(f"/picks/{pick['recommendation_id']}", params={"user_id": "u1"}).json() == {
-        "removed": True
-    }
+    assert c.delete(f"/picks/{pick['recommendation_id']}").json() == {"removed": True}
 
 
 def test_prefs_respected_by_scan():
     c, _, _ = make()
-    prefs = c.put("/notifications/prefs", json={"user_id": "u1", "max_per_week": 0}).json()
+    prefs = c.put("/notifications/prefs", json={"max_per_week": 0}).json()
     assert prefs["max_per_week"] == 0 and prefs["push_opt_in"] is False
     out = scan(c)
     assert out["notifications"] == []
     assert any("weekly limit" in d["reason"] for d in out["run"]["decisions"])
 
-    c.put("/notifications/prefs", json={"user_id": "u1", "max_per_week": 5,
+    c.put("/notifications/prefs", json={"max_per_week": 5,
                                         "snooze_until": "2099-01-01T00:00:00Z"})  # fmt: skip
     assert scan(c)["notifications"] == []
-    p = c.put("/notifications/prefs", json={"user_id": "u1", "snooze_until": "",
+    p = c.put("/notifications/prefs", json={"snooze_until": "",
                                             "muted_cities": [" Rome ", "Rome", ""]}).json()  # fmt: skip
     assert p["snooze_until"] is None and p["muted_cities"] == ["Rome"]
-    assert c.get("/notifications/prefs", params={"user_id": "u1"}).json() == p
-    assert (
-        c.put("/notifications/prefs", json={"user_id": "u1", "max_per_week": 99}).status_code == 422
-    )
+    assert c.get("/notifications/prefs").json() == p
+    assert c.put("/notifications/prefs", json={"max_per_week": 99}).status_code == 422
 
 
 def test_personalize_false_uses_neutral_weights():
@@ -289,13 +300,14 @@ def test_personalize_false_uses_neutral_weights():
     skewed = {"price": 1, "weather": 0, "crowds": 0, "taste": 0}
     out = scan(c, profile=profile, weights=skewed)
     assert out["run"]["personalized"] is False and out["notifications"]
-    expected = asyncio.run(_neutral_hash(TasteProfile.model_validate(profile)))
+    mine = TasteProfile.model_validate({**profile, "user_id": uid(c)})
+    expected = asyncio.run(_neutral_hash(mine))
     assert out["run"]["inputs_hash"] == expected
 
 
 async def _neutral_hash(profile: TasteProfile) -> str:
     deps = ScanDeps(FixtureProvider(), FixtureCalendar(), _Store(profile), MemoryNotifyStore(),
-                    WebPusher(None))  # fmt: skip
+                    WebPusher(None), fit=None)  # fmt: skip
     out = await scan_body(deps, profile.user_id, TODAY)
     return out["run"]["inputs_hash"]
 
@@ -304,13 +316,13 @@ class _Store:
     def __init__(self, profile):
         self.p = profile
 
-    def get_profile(self, user_id):
+    async def get_profile(self, user_id):
         return self.p
 
-    def get_weights(self, user_id):
+    async def get_weights(self, user_id):
         return Weights()
 
-    def save_recommendations(self, user_id, recs):
+    async def save_recommendations(self, user_id, recs):
         pass
 
 
@@ -326,7 +338,7 @@ def test_scan_body_runs_every_io_through_steps():
         return out
 
     deps = ScanDeps(FixtureProvider(), FixtureCalendar(), _Store(TasteProfile(**PROFILE)),
-                    MemoryNotifyStore(), WebPusher(None))  # fmt: skip
+                    MemoryNotifyStore(), WebPusher(None), fit=None)  # fmt: skip
     out = asyncio.run(scan_body(deps, "u1", TODAY, run_step=recorder, mode="dbos",
                                 workflow_id="wf-1"))  # fmt: skip
     assert seen[:5] == ["load_context", "find_windows", "rank_trips", "rank_long_weekends",
@@ -347,7 +359,7 @@ def test_scan_endpoint_uses_dbos_when_enabled(monkeypatch):
     monkeypatch.setattr(runtime, "_dbos_on", True)
     monkeypatch.setattr(runtime, "run_scan", fake_run_scan)
     out = scan(c)
-    assert calls == [("u1", TODAY)] and out["run"]["workflow_id"] == "wf"
+    assert calls == [(uid(c), TODAY)] and out["run"]["workflow_id"] == "wf"
 
 
 def test_enable_durable_scans_noop_without_database_url(monkeypatch):
@@ -376,7 +388,7 @@ def test_launch_dbos_failure_falls_back_inline(monkeypatch):
 
 
 def _sub(endpoint="https://push.example.com/abc123"):
-    return {"user_id": "u1", "subscription": {"endpoint": endpoint,
+    return {"subscription": {"endpoint": endpoint,
             "keys": {"p256dh": "BPk", "auth": "xyz"}}}  # fmt: skip
 
 
@@ -401,8 +413,8 @@ def test_push_opt_in_subscribe_and_send():
     assert call["subscription_info"]["endpoint"] == "https://push.example.com/abc123"
 
     off = c.request("DELETE", "/push/subscribe",
-                    json={"user_id": "u1", "endpoint": "https://push.example.com/abc123"}).json()  # fmt: skip
-    assert off["push_opt_in"] is False and notify.subscriptions("u1") == []
+                    json={"endpoint": "https://push.example.com/abc123"}).json()  # fmt: skip
+    assert off["push_opt_in"] is False and notify.subscriptions(uid(c)) == []
 
 
 def test_expired_subscription_is_removed():
@@ -410,7 +422,7 @@ def test_expired_subscription_is_removed():
     c.post("/push/subscribe", json=_sub())
     out = scan(c)
     assert out["notifications"][0]["push_status"] == "sent:0"
-    assert notify.subscriptions("u1") == []
+    assert notify.subscriptions(uid(c)) == []
 
 
 def test_subscribe_without_vapid_is_503():
@@ -471,3 +483,199 @@ def test_store_from_env(monkeypatch, env, kind):
     for k, v in env.items():
         monkeypatch.setenv(k, v)
     assert type(notify_store_from_env()) is kind
+
+
+# ---------------------------------------------------------------------------- review fixes (PR #10)
+
+
+def test_naive_snooze_is_utc_and_scan_still_runs():
+    """#1: a naive ISO snooze used to make every later scan raise TypeError (500)."""
+    c, _, _ = make()
+    p = c.put("/notifications/prefs", json={"snooze_until": "2099-10-10T10:00:00"})
+    assert p.status_code == 200 and p.json()["snooze_until"].endswith(("Z", "+00:00"))
+    out = scan(c)
+    assert out["notifications"] == [] and any(
+        "snoozed" in d["reason"] for d in out["run"]["decisions"]
+    )
+    assert NotificationPrefs(user_id="x", snooze_until="2026-01-01T00:00:00").snooze_until.tzinfo
+
+
+def test_sessions_isolate_push_prefs_and_subscriptions():
+    """#2: B's scan never pushes to A's device; B can't unsubscribe/opt out A; body user_id ignored."""
+    sender = FakeSender()
+    a, notify, _ = make(sender=sender)
+    b = TestClient(a.app)
+    a.post("/push/subscribe", json={**_sub(), "user_id": "victim"})
+    assert notify.subscriptions(uid(a)) and not notify.subscriptions("victim")
+    out = scan(b)
+    assert out["notifications"] and sender.calls == []  # B isn't subscribed, A got nothing
+    assert all(n["push_status"] == "not_opted_in" for n in out["notifications"])
+    b.put("/notifications/prefs", json={"push_opt_in": False, "max_per_week": 0})
+    assert a.get("/notifications/prefs").json()["push_opt_in"] is True
+    assert a.get("/notifications/prefs").json()["max_per_week"] == 3
+    assert uid(a) != uid(b) and uid(a).startswith("s_")
+
+
+def test_push_opt_in_only_via_subscribe():
+    """#7"""
+    c, _, _ = make()
+    assert c.put("/notifications/prefs", json={"push_opt_in": True}).status_code == 422
+    assert c.put("/notifications/prefs", json={"push_opt_in": False}).status_code == 200
+
+
+def test_scan_rate_limit(monkeypatch):
+    """#3: POST /scan/run is synchronous and may call paid APIs."""
+    monkeypatch.setenv("TRIPAI_SCAN_MIN_INTERVAL_S", "60")
+    monkeypatch.setenv("TRIPAI_SCAN_PER_MIN", "2")
+    c, _, _ = make()
+    scan(c)
+    r = c.post("/scan/run", json={"today": TODAY})
+    assert r.status_code == 429 and int(r.headers["retry-after"]) > 0
+    scan(TestClient(c.app))  # another user: own interval, global 2/min
+    assert TestClient(c.app).post("/scan/run", json={"today": TODAY}).status_code == 429
+
+
+def test_pick_cap(monkeypatch):
+    """#3: unlimited picks = unlimited provider calls per scan."""
+    monkeypatch.setenv("TRIPAI_MAX_PICKS", "2")
+    c, _, _ = make()
+    recs = c.post("/recommendations", json={"profile": PROFILE, "today": TODAY, "limit": 3}).json()
+    for r in recs[:2]:
+        assert c.post("/picks", json={"recommendation_id": r["id"]}).status_code == 200
+    assert c.post("/picks", json={"recommendation_id": recs[0]["id"]}).status_code == 200  # re-save
+    assert c.post("/picks", json={"recommendation_id": recs[2]["id"]}).status_code == 409
+
+
+def test_active_user_ids_bounds_the_daily_scan():
+    """#3: only push opt-ins + recently active users, newest first, at most `limit`;
+    scheduled runs don't keep a user 'active'."""
+    from tripai.notify.models import PushSubscription, ScanRun
+
+    s = MemoryNotifyStore()
+    now = datetime(2026, 10, 20, tzinfo=UTC)
+    old = now - timedelta(days=40)
+    s.save_prefs(NotificationPrefs(user_id="idle", updated_at=old))
+    s.save_prefs(NotificationPrefs(user_id="opted", push_opt_in=True, updated_at=old))
+    s.add_subscription(PushSubscription(user_id="opted", endpoint="https://p/x",
+                                        keys={"p256dh": "a", "auth": "b"}, created_at=old))  # fmt: skip
+    s.save_prefs(NotificationPrefs(user_id="fresh", updated_at=now - timedelta(days=1)))
+    for trig, who in (("scheduled", "idle"), ("manual", "clicker")):
+        s.save_scan_run(ScanRun(user_id=who, today=now.date(), trigger=trig,
+                                started_at=now - timedelta(hours=2), finished_at=now))  # fmt: skip
+    since = now - timedelta(days=14)
+    assert s.active_user_ids(since, 10) == ["clicker", "fresh", "opted"]
+    assert s.active_user_ids(since, 2) == ["clicker", "fresh"]
+
+
+def test_runtime_budget_and_paid_steps_not_retried(monkeypatch):
+    """#3: paid steps never retried; the daily run stops once the SerpApi budget is spent."""
+    assert runtime.step_options("rank_trips")["retries_allowed"] is False
+    assert runtime.step_options("push")["retries_allowed"] is True
+
+    class Budgeted(FixtureProvider):
+        used = 5
+
+        def budget_status(self):
+            return {"used": self.used, "daily_cap": 5}
+
+    p = Budgeted()
+    deps = ScanDeps(p, FixtureCalendar(), _Store(TasteProfile(**PROFILE)), MemoryNotifyStore(),
+                    WebPusher(None), fit=None)  # fmt: skip
+    monkeypatch.setattr(runtime, "_deps", deps)
+    assert runtime.budget_exhausted() is True
+    p.used = 4
+    assert runtime.budget_exhausted() is False
+
+
+def test_long_weekend_cap(monkeypatch):
+    """#3: at most TRIPAI_SCAN_MAX_LW soon long weekends are priced per scan."""
+    monkeypatch.setenv("TRIPAI_SCAN_MAX_LW", "0")
+    c, _, _ = make()
+    out = scan(c)
+    assert not [d for d in out["run"]["decisions"] if d["kind"] == "long_weekend"]
+
+
+def test_supabase_active_users_pages_past_max_rows(monkeypatch):
+    """#4: PostgREST caps a select at max-rows; the store must page."""
+    import tripai.notify.store as st
+
+    monkeypatch.setattr(st, "PAGE", 3)
+    rows = [{"user_id": f"u{i}", "started_at": "2026-10-19T08:00:00+00:00"} for i in range(7)]
+    seen_offsets = []
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        table = req.url.path.rsplit("/", 1)[-1]
+        if table != "scan_runs":
+            return httpx.Response(200, json=[])
+        off, lim = int(req.url.params["offset"]), int(req.url.params["limit"])
+        seen_offsets.append(off)
+        return httpx.Response(200, json=rows[off : off + lim])
+
+    store = SupabaseNotifyStore("https://x.supabase.co", "k",
+                                client=httpx.Client(transport=httpx.MockTransport(handler)))  # fmt: skip
+    since = datetime(2026, 10, 10, tzinfo=UTC)
+    assert len(store.active_user_ids(since, 100)) == 7
+    assert seen_offsets == [0, 3, 6]
+
+
+def test_fit_verdict_gates_scan_notifications():
+    """#5: the scan computes a fit verdict (T1c's `fit`) for notification candidates; only
+    good/great fit notify, and summary + concerns travel with the notification."""
+    c, _, _ = make()
+    deps = c.app.state.scan_deps
+    concern = FitPoint(text="Hot for your taste", dna=["q6"], evidence=[3])
+
+    async def good(rec, profile):
+        return FitVerdict(label="good_fit", confidence=0.7, summary=f"{rec.city} suits you",
+                          concerns=[concern], model="rules")  # fmt: skip
+
+    async def mixed(rec, profile):
+        return FitVerdict(label="mixed", confidence=0.5, summary="meh", model="rules")
+
+    deps.fit = mixed
+    out = scan(c)
+    assert out["notifications"] == []
+    assert any("fit verdict mixed" in d["reason"] for d in out["run"]["decisions"])
+
+    c2, _, _ = make()
+    c2.app.state.scan_deps.fit = good
+    n = next(x for x in scan(c2)["notifications"] if x["kind"] == "new_top")
+    assert n["fit_label"] == "good_fit" and n["fit_summary"].endswith("suits you")
+    assert n["concerns"][0]["text"] == "Hot for your taste"
+    assert n["recommendation"]["fit"]["label"] == "good_fit"
+
+
+def test_concurrent_scans_respect_weekly_cap_and_dedupe():
+    """#6: two scans at once for one user (cron + 'Run scan now') send each thing once and
+    never exceed the weekly cap."""
+    notify = MemoryNotifyStore()
+    notify.save_prefs(NotificationPrefs(user_id="u1", max_per_week=1))
+    deps = ScanDeps(FixtureProvider(), FixtureCalendar(), _Store(TasteProfile(**PROFILE)), notify,
+                    WebPusher(None), fit=None)  # fmt: skip
+
+    async def both():
+        return await asyncio.gather(scan_body(deps, "u1", TODAY), scan_body(deps, "u1", TODAY))
+
+    a, b = asyncio.run(both())
+    assert len(notify.notifications("u1")) == 1
+    assert len(a["notifications"]) + len(b["notifications"]) == 1
+
+
+def test_supabase_insert_conflict_means_not_sent():
+    """#6: unique(user_id, dedupe_key) conflict -> no insert, no push."""
+
+    def handler(req):
+        return (
+            httpx.Response(201, json=[]) if req.method == "POST" else httpx.Response(200, json=[])
+        )
+
+    store = SupabaseNotifyStore("https://x.supabase.co", "k",
+                                client=httpx.Client(transport=httpx.MockTransport(handler)))  # fmt: skip
+    profile = TasteProfile(**PROFILE)
+    cands = asyncio.run(FixtureProvider().candidates("KRK", [FreeWindow(start=date(2026, 11, 7),
+                                                                        end=date(2026, 11, 11))]))  # fmt: skip
+    rec = rank(cands, profile, Weights())[0]
+    from tripai.notify.rules import to_notification
+
+    n = to_notification(Draft("new_top", rec, "t", "b"), "u1", {}, None)
+    assert store.add_notification(n) is False and store.get_notification(n.id) is None

@@ -1,10 +1,10 @@
 """Notification-lane types (T5b). Mirrored by supabase/migrations/0003_notifications.sql."""
 
 from datetime import UTC, date, datetime
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import AfterValidator, BaseModel, Field
 
 from tripai.models import Evidence, FitPoint, ScoreBreakdown
 from tripai.scoring.types import RankedRecommendation
@@ -14,6 +14,15 @@ NotificationKind = Literal["new_top", "price_drop", "long_weekend"]
 
 def now_utc() -> datetime:
     return datetime.now(UTC)
+
+
+def _aware(dt: datetime) -> datetime:
+    """Naive datetimes from API clients are taken as UTC, so comparisons with now_utc() never
+    raise (a naive snooze_until used to crash every scan for that user)."""
+    return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt
+
+
+UTCDateTime = Annotated[datetime, AfterValidator(_aware)]
 
 
 def new_id() -> str:
@@ -27,8 +36,8 @@ class NotificationPrefs(BaseModel):
     push_opt_in: bool = False
     max_per_week: int = Field(3, ge=0, le=50)
     muted_cities: list[str] = Field(default_factory=list)  # city names or IATA codes
-    snooze_until: datetime | None = None
-    updated_at: datetime = Field(default_factory=now_utc)
+    snooze_until: UTCDateTime | None = None
+    updated_at: UTCDateTime = Field(default_factory=now_utc)
 
 
 class PushKeys(BaseModel):
@@ -42,7 +51,7 @@ class PushSubscription(BaseModel):
     user_id: str
     endpoint: str
     keys: PushKeys
-    created_at: datetime = Field(default_factory=now_utc)
+    created_at: UTCDateTime = Field(default_factory=now_utc)
 
 
 class Notification(BaseModel):
@@ -64,9 +73,9 @@ class Notification(BaseModel):
     url: str
     dedupe_key: str
     scan_run_id: str | None = None
-    created_at: datetime = Field(default_factory=now_utc)
-    read_at: datetime | None = None
-    pushed_at: datetime | None = None
+    created_at: UTCDateTime = Field(default_factory=now_utc)
+    read_at: UTCDateTime | None = None
+    pushed_at: UTCDateTime | None = None
     push_status: str | None = None  # "sent:2" | "no_subscription" | "not_opted_in" | "error:..."
 
 
@@ -81,8 +90,8 @@ class SavedPick(BaseModel):
     end: date
     baseline_pln: float
     baseline_source: str
-    baseline_fetched_at: datetime
-    saved_at: datetime = Field(default_factory=now_utc)
+    baseline_fetched_at: UTCDateTime
+    saved_at: UTCDateTime = Field(default_factory=now_utc)
 
 
 class Decision(BaseModel):
@@ -98,10 +107,11 @@ class ScanRun(BaseModel):
     id: str = Field(default_factory=new_id)
     user_id: str
     mode: Literal["dbos", "sync"] = "sync"
+    trigger: Literal["manual", "scheduled"] = "manual"
     workflow_id: str | None = None
     today: date
-    started_at: datetime = Field(default_factory=now_utc)
-    finished_at: datetime | None = None
+    started_at: UTCDateTime = Field(default_factory=now_utc)
+    finished_at: UTCDateTime | None = None
     personalized: bool = True
     windows: int = 0
     candidates: int = 0

@@ -25,6 +25,7 @@ create table if not exists scan_runs (
   id           text primary key,
   user_id      text not null,
   mode         text not null,                          -- dbos | sync
+  trigger      text not null default 'manual',         -- manual | scheduled (only manual = activity)
   workflow_id  text,                                   -- DBOS workflow id (dbos.workflow_status)
   top_id       text,                                   -- #1 recommendation id this run
   inputs_hash  text,
@@ -34,6 +35,7 @@ create table if not exists scan_runs (
   error        text
 );
 create index if not exists scan_runs_user_idx on scan_runs(user_id, finished_at desc);
+create index if not exists scan_runs_active_idx on scan_runs(trigger, started_at desc);
 
 create table if not exists notifications (
   id                 text primary key,

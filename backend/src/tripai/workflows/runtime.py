@@ -1,19 +1,24 @@
 """DBOS wiring for the proactive scan.
 
 With DATABASE_URL set (Supabase pooler, *session* mode, port 5432), `proactive_scan` runs as a
-durable DBOS workflow: every step is checkpointed in Postgres and retried (3 attempts, backoff),
-and a crashed scan resumes from the last finished step on restart. A DBOS schedule fires
-`daily_scan` every day at 07:00 Europe/Warsaw and scans every known user.
+durable DBOS workflow: every step is checkpointed in Postgres, and a crashed scan resumes from the
+last finished step on restart. Free steps (DB, push) are retried (3 attempts, backoff); paid steps
+(provider calls) are not, so a failed SerpApi call is never bought twice.
+
+A DBOS schedule fires `daily_scan` every day at 07:00 Europe/Warsaw. It visits only active users
+(push opt-ins plus anyone who changed prefs, watched a pick or ran a scan in the last
+TRIPAI_SCAN_ACTIVE_DAYS days; at most TRIPAI_SCAN_MAX_USERS, most recent first), one after
+another, and stops early once the provider's SerpApi daily budget is spent.
 
 Without DATABASE_URL (tests, local) the same body runs inline with plain awaits.
 """
 
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
-from tripai.workflows.scan import ScanDeps, plain_step, scan_body
+from tripai.workflows.scan import PAID_STEPS, ScanDeps, plain_step, scan_body
 
 log = logging.getLogger(__name__)
 
@@ -41,12 +46,35 @@ def _require_deps() -> ScanDeps:
     return _deps
 
 
+def step_options(name: str) -> dict:
+    opts = {**STEP_OPTIONS, "name": name}
+    if name in PAID_STEPS:  # a failed provider call is not re-bought
+        opts["retries_allowed"] = False
+    return opts
+
+
+def scheduled_users(at_iso: str) -> list[str]:
+    deps = _require_deps()
+    since = datetime.fromisoformat(at_iso) - timedelta(days=deps.limits.active_days)
+    return deps.notify.active_user_ids(since, deps.limits.max_users)
+
+
+def budget_exhausted() -> bool:
+    """True once the provider's shared SerpApi daily budget is used up (fixture: never)."""
+    status = getattr(_require_deps().provider, "budget_status", None)
+    if not callable(status):
+        return False
+    b = status()
+    cap = b.get("daily_cap")
+    return bool(cap) and b.get("used", 0) >= cap
+
+
 async def run_scan(user_id: str, today_iso: str | None = None) -> dict:
     """Entry point used by POST /scan/run: durable under DBOS, inline otherwise."""
     if _dbos_on:
         from dbos import DBOS
 
-        handle = await DBOS.start_workflow_async(_wf_scan, user_id, today_iso)
+        handle = await DBOS.start_workflow_async(_wf_scan, user_id, today_iso, "manual")
         return await handle.get_result()
     return await scan_body(_require_deps(), user_id, today_iso, run_step=plain_step)
 
@@ -56,28 +84,43 @@ def _register() -> tuple[Any, Any]:
     from dbos import DBOS
 
     async def dbos_step(name: str, fn, *args):
-        return await DBOS.run_step_async({**STEP_OPTIONS, "name": name}, fn, *args)
+        return await DBOS.run_step_async(step_options(name), fn, *args)
 
     @DBOS.workflow(name="proactive_scan")
-    async def proactive_scan(user_id: str, today_iso: str | None = None) -> dict:
+    async def proactive_scan(
+        user_id: str, today_iso: str | None = None, trigger: str = "manual"
+    ) -> dict:
         return await scan_body(
             _require_deps(),
             user_id,
             today_iso,
             run_step=dbos_step,
             mode="dbos",
+            trigger=trigger,
             workflow_id=DBOS.workflow_id,
         )
 
     @DBOS.workflow(name="daily_scan")
     async def daily_scan(scheduled_at: datetime, context: Any) -> None:
         users = await DBOS.run_step_async(
-            {**STEP_OPTIONS, "name": "list_users"}, _require_deps().notify.user_ids
+            step_options("list_users"), scheduled_users, scheduled_at.isoformat()
         )
+        done = 0
         for uid in users:
-            # one child workflow per user, so a failing user never blocks the rest
-            await DBOS.start_workflow_async(proactive_scan, uid, None)
-        DBOS.logger.info("daily_scan %s: %d users", scheduled_at.isoformat(), len(users))
+            if await DBOS.run_step_async(step_options("budget_left"), budget_exhausted):
+                DBOS.logger.warning(
+                    "daily_scan: SerpApi budget spent, %d users skipped", len(users) - done
+                )
+                break
+            # one child workflow per user, in turn: a failing user never blocks the rest, and
+            # the budget check above sees what the previous user spent
+            handle = await DBOS.start_workflow_async(proactive_scan, uid, None, "scheduled")
+            try:
+                await handle.get_result()
+            except Exception as exc:  # noqa: BLE001
+                DBOS.logger.warning("daily_scan: user %s failed: %s", uid, exc)
+            done += 1
+        DBOS.logger.info("daily_scan %s: %d/%d users", scheduled_at.isoformat(), done, len(users))
 
     return proactive_scan, daily_scan
 

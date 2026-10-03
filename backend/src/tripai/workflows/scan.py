@@ -5,17 +5,24 @@ The body is written once against a `run_step(name, fn, *args)` callable: under D
 (tripai.workflows.runtime) each call is a checkpointed, retried step; without DATABASE_URL it is
 a plain await. Step outputs are JSON-able dicts so DBOS can checkpoint them, and the workflow body
 itself does no I/O and reads no clock (`now` comes from the first step), so replays are exact.
+
+Cost: the paid steps (provider calls) are capped by `ScanLimits` (soon long weekends, watched
+picks) and are not retried; the LiveProvider's own SerpApi budget caps each call on top.
 """
 
+import asyncio
 import hashlib
+import importlib
 import inspect
+import logging
+import os
 from collections.abc import Awaitable, Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Any
 
 from tripai.api.state import Store
-from tripai.models import FreeWindow, TasteProfile, Weights
+from tripai.models import FitVerdict, FreeWindow, TasteProfile, Weights
 from tripai.notify.models import (
     Decision,
     Notification,
@@ -49,25 +56,67 @@ from tripai.scoring import (
 from tripai.scoring.types import Candidate, RankedRecommendation
 from tripai.scoring.windows import TZ
 
+log = logging.getLogger(__name__)
+
 SCAN_HORIZON_DAYS = 90
 MAX_LEAVE_DAYS = 2
 TOP_N = 10
+PAID_STEPS = frozenset({"rank_trips", "rank_long_weekends", "price_picks"})  # never retried
 
 RunStep = Callable[..., Awaitable[Any]]
+FitFn = Callable[[RankedRecommendation, TasteProfile], Awaitable[FitVerdict]]
+
+
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name, default))
+    except ValueError:
+        return default
+
+
+@dataclass(frozen=True)
+class ScanLimits:
+    """Bounds on what one scan / one daily run may cost (env-tunable)."""
+
+    max_long_weekends: int = field(default_factory=lambda: _env_int("TRIPAI_SCAN_MAX_LW", 2))
+    max_picks: int = field(default_factory=lambda: _env_int("TRIPAI_MAX_PICKS", 5))
+    max_users: int = field(default_factory=lambda: _env_int("TRIPAI_SCAN_MAX_USERS", 50))
+    active_days: int = field(default_factory=lambda: _env_int("TRIPAI_SCAN_ACTIVE_DAYS", 14))
+    min_interval_s: int = field(default_factory=lambda: _env_int("TRIPAI_SCAN_MIN_INTERVAL_S", 60))
+    global_per_min: int = field(default_factory=lambda: _env_int("TRIPAI_SCAN_PER_MIN", 10))
+
+
+def default_fit() -> FitFn | None:
+    """T1c's fit verdict (`tripai.agents.fit.fit`: LLM, else deterministic rules) when installed."""
+    try:
+        return importlib.import_module("tripai.agents.fit").fit
+    except (ImportError, AttributeError):
+        return None
 
 
 @dataclass
 class ScanDeps:
     provider: TripDataProvider
     calendar: CalendarProvider
-    store: Store  # core per-user state: profile, weights, last recommendations
-    notify: NotifyStore
+    store: Store  # core per-user state: profile, weights, last recommendations (async)
+    notify: NotifyStore  # sync: always called from a worker thread
     pusher: WebPusher
+    fit: FitFn | None = field(default_factory=default_fit)
+    limits: ScanLimits = field(default_factory=ScanLimits)
 
 
 async def plain_step(name: str, fn: Callable[..., Any], *args: Any) -> Any:
-    out = fn(*args)
-    return await out if inspect.isawaitable(out) else out
+    if inspect.iscoroutinefunction(fn):
+        return await fn(*args)
+    return await asyncio.to_thread(fn, *args)  # sync steps hit Supabase: keep the loop free
+
+
+_locks: dict[str, asyncio.Lock] = {}
+
+
+def user_lock(user_id: str) -> asyncio.Lock:
+    """One scan per user at a time in this process (cron + 'Run scan now' can't interleave)."""
+    return _locks.setdefault(user_id, asyncio.Lock())
 
 
 def _dump(models: Sequence[Any]) -> list[dict]:
@@ -99,23 +148,41 @@ class Scan:
         self.deps = deps
 
     # 1 ------------------------------------------------------------------ context
-    def load_context(self, user_id: str) -> dict:
+    async def load_context(self, user_id: str) -> dict:
         d = self.deps
-        profile = d.store.get_profile(user_id) or TasteProfile(user_id=user_id)
+        profile = await d.store.get_profile(user_id) or TasteProfile(user_id=user_id)
+        profile = profile.model_copy(update={"user_id": user_id})
         # personalize=False (Travel DNA y2): still notify, but rank on neutral default weights
-        weights = (d.store.get_weights(user_id) if profile.personalize else None) or Weights()
+        stored = await d.store.get_weights(user_id) if profile.personalize else None
+        weights = stored or Weights()
+        return {
+            **await asyncio.to_thread(self._notify_context, user_id),
+            "profile": profile.model_dump(mode="json"),
+            "weights": weights.model_dump(mode="json"),
+        }
+
+    def _notify_context(self, user_id: str) -> dict:
+        n = self.deps.notify
         now = now_utc()
-        last = d.notify.last_scan_run(user_id)
+        last = n.last_scan_run(user_id)
+        picks = sorted(n.picks(user_id), key=lambda p: p.saved_at, reverse=True)
         return {
             "run_id": new_id(),
             "now": now.isoformat(),
-            "profile": profile.model_dump(mode="json"),
-            "weights": weights.model_dump(mode="json"),
-            "prefs": d.notify.get_prefs(user_id).model_dump(mode="json"),
+            "prefs": n.get_prefs(user_id).model_dump(mode="json"),
             "last_run": last.model_dump(mode="json") if last else None,
-            "picks": _dump(d.notify.picks(user_id)),
-            "sent_last_week": d.notify.count_since(user_id, now - timedelta(days=7)),
+            "picks": _dump(picks[: self.deps.limits.max_picks]),
+            "sent_last_week": n.count_since(user_id, now - timedelta(days=7)),
         }
+
+    async def _with_fit(self, rec: RankedRecommendation, profile: TasteProfile) -> dict:
+        """Attach the AI fit verdict (docs/FIT_VERDICT.md) to a notification candidate."""
+        if self.deps.fit is not None and rec.fit is None:
+            try:
+                rec.fit = await self.deps.fit(rec, profile)
+            except Exception as exc:  # noqa: BLE001 - no verdict -> score thresholds apply
+                log.warning("fit verdict failed for %s: %s", rec.id, exc)
+        return rec.model_dump(mode="json")
 
     # 2 ------------------------------------------------------------------ windows
     async def find_windows(self, today_iso: str) -> dict:
@@ -135,8 +202,11 @@ class Scan:
         cands = await _candidates(self.deps, p, w, trips)
         recs = rank(cands, p, w, limit=TOP_N)
         if recs:
-            self.deps.store.save_recommendations(p.user_id, recs)
-        return {"recs": _dump(recs), "candidates": len(cands), "trip_windows": len(trips)}
+            await self.deps.store.save_recommendations(p.user_id, recs)
+        out = _dump(recs)
+        if recs:  # only the #1 can trigger new_top: one verdict per scan
+            out[0] = await self._with_fit(recs[0], p)
+        return {"recs": out, "candidates": len(cands), "trip_windows": len(trips)}
 
     async def rank_long_weekends(self, profile: dict, weights: dict, bridges: list[dict]) -> dict:
         """Best trip per soon long weekend (ranked on its own so it isn't crowded out)."""
@@ -147,8 +217,8 @@ class Scan:
             trips = trip_windows([bw.window], p.trip_length_days)
             recs = rank(await _candidates(self.deps, p, w, trips), p, w, limit=1)
             if recs:
-                self.deps.store.save_recommendations(p.user_id, recs)
-            best.append(recs[0].model_dump(mode="json") if recs else None)
+                await self.deps.store.save_recommendations(p.user_id, recs)
+            best.append(await self._with_fit(recs[0], p) if recs else None)
         return {"best": best}
 
     async def price_picks(self, profile: dict, weights: dict, picks: list[dict]) -> dict:
@@ -160,24 +230,32 @@ class Scan:
             win = FreeWindow(start=pick.start, end=pick.end)
             cands = [c for c in await _candidates(self.deps, p, w, [win]) if c.iata == pick.iata]
             recs = rank(cands, p, w, limit=1)
-            out[pick.recommendation_id] = recs[0].model_dump(mode="json") if recs else None
+            out[pick.recommendation_id] = await self._with_fit(recs[0], p) if recs else None
         return {"recs": out}
 
     # 4 ------------------------------------------------------------------ persist + push
     def sent_keys(self, user_id: str, keys: list[str]) -> list[str]:
         return [k for k in keys if self.deps.notify.has_dedupe(user_id, k)]
 
-    def save_notifications(self, user_id: str, notifications: list[dict]) -> dict:
-        """Insert unless the dedupe key was already used (idempotent on step retry)."""
-        saved = []
+    def save_notifications(self, user_id: str, notifications: list[dict], max_week: int) -> dict:
+        """Insert in priority order. The weekly cap is re-counted here (another scan may have sent
+        some since load_context) and the insert itself is unique on the dedupe key, so concurrent
+        scans neither exceed the cap nor send the same notification twice. Idempotent on retry."""
+        n_store = self.deps.notify
+        saved: list[str] = []
+        skipped: dict[str, str] = {}
+        week_ago = now_utc() - timedelta(days=7)
         for raw in notifications:
             n = Notification.model_validate(raw)
-            if self.deps.notify.get_notification(n.id) is not None:
+            if n_store.get_notification(n.id) is not None:
                 saved.append(n.id)  # retried step: already inserted
-            elif not self.deps.notify.has_dedupe(user_id, n.dedupe_key):
-                self.deps.notify.add_notification(n)
+            elif n_store.count_since(user_id, week_ago) >= max_week:
+                skipped[n.id] = f"weekly limit reached ({max_week}/week)"
+            elif n_store.add_notification(n):
                 saved.append(n.id)
-        return {"ids": saved}
+            else:
+                skipped[n.id] = "already notified"
+        return {"ids": saved, "skipped": skipped}
 
     def update_pick_baselines(self, user_id: str, updates: list[dict]) -> dict:
         for raw in updates:
@@ -293,8 +371,14 @@ async def scan_body(
     *,
     run_step: RunStep = plain_step,
     mode: str = "sync",
+    trigger: str = "manual",
     workflow_id: str | None = None,
 ) -> dict:
+    async with user_lock(user_id):
+        return await _scan(deps, user_id, today_iso, run_step, mode, trigger, workflow_id)
+
+
+async def _scan(deps, user_id, today_iso, run_step, mode, trigger, workflow_id) -> dict:
     s = Scan(deps)
     ctx = await run_step("load_context", s.load_context, user_id)
     now = datetime.fromisoformat(ctx["now"])
@@ -304,6 +388,7 @@ async def scan_body(
         id=ctx["run_id"],
         user_id=user_id,
         mode=mode,
+        trigger=trigger,
         workflow_id=workflow_id,
         today=today,
         started_at=now,
@@ -311,7 +396,7 @@ async def scan_body(
     )
     win = await run_step("find_windows", s.find_windows, today.isoformat())
     bridges_all = [BridgeWindow.model_validate(b) for b in win["bridges"]]
-    soon = soon_long_weekends(bridges_all, today)
+    soon = soon_long_weekends(bridges_all, today)[: deps.limits.max_long_weekends]
     ranked = await run_step("rank_trips", s.rank_trips, ctx["profile"], ctx["weights"],
                             win["windows"])  # fmt: skip
     lw = await run_step("rank_long_weekends", s.rank_long_weekends, ctx["profile"],
@@ -327,7 +412,27 @@ async def scan_body(
         d for d in decisions if not (d.notify and (d.kind, d.recommendation_id) in overruled)
     ]
     decisions += dropped
-    saved = await run_step("save_notifications", s.save_notifications, user_id, _dump(notes))
+    prefs = NotificationPrefs.model_validate(ctx["prefs"])
+    saved = await run_step("save_notifications", s.save_notifications, user_id, _dump(notes),
+                           prefs.max_per_week)  # fmt: skip
+    by_id = {n.id: n for n in notes}
+    for nid, reason in saved["skipped"].items():
+        late = by_id[nid]
+        decisions = [
+            d
+            for d in decisions
+            if not (
+                d.notify and d.kind == late.kind and d.recommendation_id == late.recommendation_id
+            )
+        ]
+        decisions.append(Decision(kind=late.kind, recommendation_id=late.recommendation_id,
+                                  notify=False, reason=reason))  # fmt: skip
+    sent_ids = set(saved["ids"])
+    pick_updates = [
+        u
+        for u in pick_updates
+        if any(by_id[i].recommendation_id == u.recommendation_id for i in sent_ids)
+    ]
     if pick_updates:
         await run_step("update_pick_baselines", s.update_pick_baselines, user_id,
                        _dump(pick_updates))  # fmt: skip
