@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { Bell, Check, ChevronDown, ChevronRight, Plane, Wallet, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatOrigins } from "@/lib/airports";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
@@ -74,7 +75,7 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
 function Trips() {
   const params = useSearchParams();
   const windowFilter = params.get("window");
-  const { t, fmt } = useT();
+  const { t, fmt, lang } = useT();
   const tt = t.trips;
   const { ranked, loading, refining, phased, mode, weights } = useRecommendations();
   const slider = useTrip((s) => s.slider);
@@ -149,7 +150,7 @@ function Trips() {
   // pipeline is doing until the response replaces the loader.
   const stages: Stage[] = [
     windowCount ? { label: tt.loader.foundWindows(windowCount), done: true } : { label: tt.loader.findingWindows },
-    { label: tt.loader.scanning(origin) },
+    { label: tt.loader.scanning(formatOrigins((profile ?? DEMO_PROFILE).origin_airports, lang)) },
     ...(phased === false
       ? [{ label: tt.loader.flightsHotels }, { label: tt.loader.weatherRanking }]
       : [{ label: tt.loader.cachedFlights }]),

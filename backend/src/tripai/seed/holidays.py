@@ -37,7 +37,17 @@ VOIVODESHIPS = {
     "PL-24": "śląskie", "PL-26": "świętokrzyskie", "PL-28": "warmińsko-mazurskie",
     "PL-30": "wielkopolskie", "PL-32": "zachodniopomorskie",
 }  # fmt: skip
-AIRPORT_VOIVODESHIP = {"KRK": "PL-12", "KTW": "PL-24", "WAW": "PL-14", "GDN": "PL-22"}
+# every PL origin airport offered in the app (tripai.seed.airports.ORIGINS)
+AIRPORT_VOIVODESHIP = {
+    "KRK": "PL-12",
+    "KTW": "PL-24",
+    "WAW": "PL-14",
+    "WMI": "PL-14",  # Warszawa-Modlin: mazowieckie, same school breaks as Chopin
+    "GDN": "PL-22",
+    "WRO": "PL-02",
+    "POZ": "PL-30",
+    "RZE": "PL-18",
+}
 
 FERIE_2027 = [  # MEN, school year 2026/2027
     # I: dolnośląskie, łódzkie, opolskie, podkarpackie, podlaskie, śląskie

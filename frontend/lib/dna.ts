@@ -4,8 +4,6 @@
  * gesture -> answer mapping; the profile itself comes from POST /profile/dna.
  */
 
-import { cityPhotoCredit } from "@/lib/photos";
-
 export type { Lang } from "./i18n/types";
 import * as onboarding from "./i18n/messages/onboarding";
 import type { Lang } from "./i18n/types";
@@ -29,12 +27,7 @@ export interface DnaCard {
 }
 
 const WM = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
-/** Cards that reuse a bundled city photo carry that photo's credit (public/cities/CREDITS.md). */
-const CITY = (iata: string): Credit => {
-  const credit = cityPhotoCredit(iata);
-  if (!credit) throw new Error(`No bundled city photo credit for ${iata}`);
-  return credit;
-};
+const FLICKR = (path: string) => `https://www.flickr.com/photos/${path}`;
 
 export const DNA_DECK: DnaCard[] = [
   {
@@ -51,18 +44,18 @@ export const DNA_DECK: DnaCard[] = [
     text: { pl: "Podczas podróży wolę mieć zaplanowany każdy dzień.", en: "I prefer every travel day to be planned." },
     short: { pl: "planowaniu każdego dnia", en: "planning every day" },
     image: "/swipe/plan.jpg",
-    credit: { author: "Anna Goelet / Johan Nieuhof", license: "Public domain", source: WM("AMH-6926-KB_Map_of_the_Cape_of_Good_Hope.jpg") },
+    credit: { author: "Glenn Carstens-Peters", license: "CC0", source: WM("Paperlist.jpg") },
   },
   {
     id: "q3",
     kind: "statement",
     text: { pl: "Lubię spontanicznie zmieniać plany podczas podróży.", en: "I like changing plans spontaneously." },
     short: { pl: "spontanicznych zmianach planów", en: "changing plans spontaneously" },
-    image: "/swipe/nightlife.jpg",
+    image: "/swipe/departures.jpg",
     credit: {
-      author: "PattayaPatrol",
-      license: "CC BY-SA 4.0",
-      source: WM("DSCF0502_A_chilled_cocktail_on_the_bar_ice_clinking_and_neon_lights_blurring_into_a_colorful_night.jpg"),
+      author: "Marek Ślusarczyk (Tupungato)",
+      license: "CC BY 3.0",
+      source: WM("47_Airport_departures_board_free_photo_-_Melbourne_Airport_timetable_-_Creative_Commons_Attribution.jpg"),
     },
   },
   {
@@ -79,35 +72,31 @@ export const DNA_DECK: DnaCard[] = [
     text: { pl: "Chętnie poznaję lokalną kuchnię i kulturę.", en: "I'm keen on local food and culture." },
     short: { pl: "lokalnej kuchni i kulturze", en: "local food and culture" },
     image: "/swipe/food.jpg",
-    credit: { author: "Wilfredor", license: "CC BY-SA 4.0", source: WM("Municipal_Market_of_S%C3%A3o_Paulo_city.jpg") },
+    credit: { author: "Ian Gratton", license: "CC BY 2.0", source: WM("Food_stall,_Chatachuk_Market_(8271085684).jpg") },
   },
   {
     id: "q6",
     kind: "statement",
     text: { pl: "Szukam przede wszystkim odpoczynku i relaksu.", en: "Above all I look for rest and relaxation." },
     short: { pl: "odpoczynku i relaksie", en: "rest and relaxation" },
-    image: "/swipe/five-star.jpg",
-    credit: { author: "Martin Falbisoner", license: "CC BY-SA 4.0", source: WM("Infinity_Edge_Pool,_Mauritius.JPG") },
+    image: "/swipe/rest.jpg",
+    credit: { author: "Chris McClave", license: "CC BY 2.0", source: WM("Hammock_-_Polynesia.jpg") },
   },
   {
     id: "q7",
     kind: "statement",
     text: { pl: "Lubię aktywnie spędzać czas (pieszo, rower, woda).", en: "I like being active (hiking, cycling, water)." },
     short: { pl: "aktywnym wypoczynku", en: "being active" },
-    image: "/swipe/hiking.jpg",
-    credit: { author: "BLM Oregon & Washington", license: "Public domain", source: WM("Hiking_Along_the_East_Applegate_Ridge_Trail_(40237270420).jpg") },
+    image: "/swipe/active.jpg",
+    credit: { author: "Kristoffer Trolle", license: "CC BY 2.0", source: FLICKR("126744325@N07/29283551075") },
   },
   {
     id: "q8",
     kind: "statement",
     text: { pl: "Często wybieram miejsca mniej turystyczne.", en: "I often pick less touristy places." },
     short: { pl: "mniej turystycznych miejscach", en: "less touristy places" },
-    image: "/swipe/beach.jpg",
-    credit: {
-      author: "dronepicr",
-      license: "CC BY 2.0",
-      source: WM("Turquoise_waters_of_the_Aegean_Sea_at_Hawaii_Beach_on_Naxos_Island,_Greece.jpg"),
-    },
+    image: "/swipe/village.jpg",
+    credit: { author: "Jorge Franganillo", license: "CC BY 4.0", source: FLICKR("46191841@N00/3728667165") },
   },
   {
     id: "q9",
@@ -115,39 +104,43 @@ export const DNA_DECK: DnaCard[] = [
     text: { pl: "Cena ma duży wpływ na wybór kierunku i atrakcji.", en: "Price strongly drives where I go and what I do." },
     short: { pl: "cenie jako głównym kryterium", en: "price driving your choices" },
     image: "/swipe/price.jpg",
-    credit: { author: "Spielvogel", license: "CC BY-SA 3.0", source: WM("1984_in_Merida_station._Spielvogel_Archiv2.jpg") },
+    credit: { author: "Images Money", license: "CC BY 2.0", source: FLICKR("59937401@N07/5929574223") },
   },
   {
     id: "q10",
     kind: "statement",
     text: { pl: "Jestem skłonny zapłacić więcej za wyjątkowe doświadczenie.", en: "I'll pay more for a unique experience." },
     short: { pl: "dopłacaniu za wyjątkowe przeżycia", en: "paying more for something unique" },
-    image: "/swipe/wine.jpg",
-    credit: { author: "Aciarium", license: "CC BY 4.0", source: WM("DSC06590_Vineyard_at_Sunset,_Gumpoldskirchen,_2023-10.jpg") },
+    image: "/swipe/balloons.jpg",
+    credit: { author: "Feridun F. Alkaya", license: "CC0", source: FLICKR("11773439@N03/45010287104") },
   },
   {
     id: "q11",
     kind: "statement",
     text: { pl: "Lubię podróżować z dala od tłumów.", en: "I like travelling away from crowds." },
     short: { pl: "podróżowaniu z dala od tłumów", en: "travelling away from crowds" },
-    image: "/swipe/nature.jpg",
-    credit: { author: "King of Hearts", license: "CC BY-SA 4.0", source: WM("Lake_Mary_Mammoth_September_2016.jpg") },
+    image: "/swipe/viewpoint.jpg",
+    credit: {
+      author: "Mateus2019",
+      license: "CC BY 2.0 DE",
+      source: WM("GER_—_BY_—_Lkr._MB_—_Rottach-Egern_(Wallberg-Panoramastrasse_höchster_Aussichtspunkt).JPG"),
+    },
   },
   {
     id: "q12",
     kind: "statement",
     text: { pl: "Chętnie wracam do miejsc, które już znam.", en: "I happily return to places I know." },
     short: { pl: "powrotach do znanych miejsc", en: "returning to places you know" },
-    image: "/cities/rome.jpg",
-    credit: CITY("FCO"),
+    image: "/swipe/cafe.jpg",
+    credit: { author: "Shixart1985", license: "CC BY 2.0", source: WM("Warm_cup_of_coffee_on_a_table_at_a_cafe.jpg") },
   },
   {
     id: "y1",
     kind: "yesno",
     text: { pl: "Czy chcesz odkrywać nowe miejsca każdego dnia?", en: "Do you want to discover new places every day?" },
     short: { pl: "codziennym odkrywaniu", en: "discovering something new daily" },
-    image: "/cities/lisbon.jpg",
-    credit: CITY("LIS"),
+    image: "/swipe/discover.jpg",
+    credit: { author: "RB Photo (rboed)", license: "CC BY 2.0", source: FLICKR("92082510@N04/15333261498") },
   },
   {
     id: "y2",
@@ -157,8 +150,8 @@ export const DNA_DECK: DnaCard[] = [
       en: "Should the app tailor recommendations to your style?",
     },
     short: { pl: "dopasowywaniu rekomendacji", en: "tailored recommendations" },
-    image: "/cities/porto.jpg",
-    credit: CITY("OPO"),
+    image: "/swipe/your-style.jpg",
+    credit: { author: "John Beans", license: "CC BY 2.0", source: FLICKR("147592390@N06/40713216003") },
   },
 ];
 

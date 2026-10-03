@@ -569,3 +569,17 @@ no anon policy. **The president applies it before deploy.** Until then, the back
   `price_drop` baseline still persist.
 - Target and last-check values stay in memory and are merged back into the Supabase rows this process reads.
 - `trips` writes are logged and served from memory.
+
+## Origin airports + Travel DNA photos (T15)
+
+- **Origin airports** (`tripai.seed.airports.ORIGIN_LABELS` → `data/airports.json` `city` + `label`, mirrored in
+  `frontend/lib/airports.ts`; a test keeps them in sync): KRK, WAW, WMI, KTW, GDN, WRO, POZ, RZE.
+  - A secondary airport is always named with the city it serves: "Warszawa-Modlin (WMI)", "Katowice-Pyrzowice (KTW)",
+    "Rzeszów-Jasionka (RZE)".
+  - `components/airport-picker.tsx` groups airports by city (Warszawa: Chopin WAW + Modlin WMI) in onboarding and on the
+    profile. The DNA result, profile and trips loader show full names (`formatOrigins`).
+  - Every origin maps to a voivodeship for school breaks. WMI, WRO, POZ and RZE used to raise a `KeyError`.
+- **Travel DNA photos** (`frontend/public/swipe/`, credits in `CREDITS.md` and on `/credits`): one photo per card that
+  literally shows the statement (q2 a checklist being ticked off, q3 a departures board, q6 a beach hammock, q9 euro
+  coins, q12 a coffee at a familiar café, …).
+  - Only CC0, public domain or CC BY images are used; a test enforces the licence, 900×1200 and < 250 KB.

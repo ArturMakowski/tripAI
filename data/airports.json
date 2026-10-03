@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "ourairports",
-    "fetched_at": "2026-10-03T16:34:08+00:00",
+    "fetched_at": "2026-10-03T21:40:00+00:00",
     "generator": "uv run python -m tripai.seed.airports",
     "url": "https://davidmegginson.github.io/ourairports-data/airports.csv",
     "licence": "Public Domain (OurAirports)"
@@ -157,7 +157,15 @@
       "lat": 54.3776,
       "lon": 18.4662,
       "municipality": "Gdańsk",
-      "country": "PL"
+      "country": "PL",
+      "city": {
+        "pl": "Gdańsk",
+        "en": "Gdańsk"
+      },
+      "label": {
+        "pl": "Gdańsk",
+        "en": "Gdańsk"
+      }
     },
     {
       "iata": "HER",
@@ -189,7 +197,15 @@
       "lat": 50.0777,
       "lon": 19.7848,
       "municipality": "Balice",
-      "country": "PL"
+      "country": "PL",
+      "city": {
+        "pl": "Kraków",
+        "en": "Kraków"
+      },
+      "label": {
+        "pl": "Kraków",
+        "en": "Kraków"
+      }
     },
     {
       "iata": "KTW",
@@ -197,7 +213,15 @@
       "lat": 50.47601,
       "lon": 19.0807,
       "municipality": "Katowice",
-      "country": "PL"
+      "country": "PL",
+      "city": {
+        "pl": "Katowice",
+        "en": "Katowice"
+      },
+      "label": {
+        "pl": "Katowice-Pyrzowice",
+        "en": "Katowice-Pyrzowice"
+      }
     },
     {
       "iata": "LCA",
@@ -336,12 +360,44 @@
       "country": "ES"
     },
     {
+      "iata": "POZ",
+      "name": "Poznań-Ławica Airport",
+      "lat": 52.4216,
+      "lon": 16.82336,
+      "municipality": "Poznań",
+      "country": "PL",
+      "city": {
+        "pl": "Poznań",
+        "en": "Poznań"
+      },
+      "label": {
+        "pl": "Poznań",
+        "en": "Poznań"
+      }
+    },
+    {
       "iata": "PRG",
       "name": "Václav Havel Airport Prague",
       "lat": 50.10087,
       "lon": 14.25991,
       "municipality": "Prague",
       "country": "CZ"
+    },
+    {
+      "iata": "RZE",
+      "name": "Rzeszów-Jasionka Airport",
+      "lat": 50.10979,
+      "lon": 22.02416,
+      "municipality": "Jasionka",
+      "country": "PL",
+      "city": {
+        "pl": "Rzeszów",
+        "en": "Rzeszów"
+      },
+      "label": {
+        "pl": "Rzeszów-Jasionka",
+        "en": "Rzeszów-Jasionka"
+      }
     },
     {
       "iata": "SPU",
@@ -421,7 +477,47 @@
       "lat": 52.1657,
       "lon": 20.9671,
       "municipality": "Warsaw",
-      "country": "PL"
+      "country": "PL",
+      "city": {
+        "pl": "Warszawa",
+        "en": "Warsaw"
+      },
+      "label": {
+        "pl": "Warszawa-Chopin",
+        "en": "Warsaw Chopin"
+      }
+    },
+    {
+      "iata": "WMI",
+      "name": "Warsaw Modlin Airport",
+      "lat": 52.4511,
+      "lon": 20.6518,
+      "municipality": "Nowy Dwór Mazowiecki",
+      "country": "PL",
+      "city": {
+        "pl": "Warszawa",
+        "en": "Warsaw"
+      },
+      "label": {
+        "pl": "Warszawa-Modlin",
+        "en": "Warsaw-Modlin"
+      }
+    },
+    {
+      "iata": "WRO",
+      "name": "Copernicus Wrocław Airport",
+      "lat": 51.10372,
+      "lon": 16.8821,
+      "municipality": "Wrocław",
+      "country": "PL",
+      "city": {
+        "pl": "Wrocław",
+        "en": "Wrocław"
+      },
+      "label": {
+        "pl": "Wrocław",
+        "en": "Wrocław"
+      }
     }
   ]
 }

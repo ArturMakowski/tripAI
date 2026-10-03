@@ -10,6 +10,8 @@ import { useT } from "@/lib/i18n";
 import { nameOf } from "@/lib/i18n/messages/profile";
 import type { LuxuryLevel, TasteProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { AirportPicker } from "@/components/airport-picker";
+import { formatOrigins } from "@/lib/airports";
 
 const LEVELS = [
   { at: 0.35, key: "little" },
@@ -62,7 +64,7 @@ export function ProfileChips({
 }) {
   const [adding, setAdding] = useState(false);
   const [addingAvoid, setAddingAvoid] = useState(false);
-  const { t: all, fmt } = useT();
+  const { t: all, fmt, lang } = useT();
   const t = all.profile;
   const tm = all.money;
   const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
@@ -203,7 +205,7 @@ export function ProfileChips({
       {compact ? (
         <div className="divide-y divide-line border-t border-line">
           <Row icon={Plane} label={t.from}>
-            {profile.origin_airports.join(", ")}
+            {formatOrigins(profile.origin_airports, lang)}
           </Row>
           <Row icon={Wallet} label={t.budget}>
             {profile.budget_pln ? t.perPerson(fmt.pln(profile.budget_pln)) : t.flexible}
@@ -325,30 +327,16 @@ export function ProfileChips({
             />
           </div>
 
-          <div className="flex items-center justify-between text-sm">
+          <div className="text-sm">
             <span className="flex items-center gap-2 font-semibold text-ink">
               <Plane className="size-4 text-pine" /> {t.flyingFrom}
             </span>
-            <div className="flex gap-1">
-              {["KRK", "KTW", "WAW"].map((a) => {
-                const on = profile.origin_airports.includes(a);
-                return (
-                  <button
-                    key={a}
-                    onClick={() => {
-                      const next = on ? profile.origin_airports.filter((x) => x !== a) : [...profile.origin_airports, a];
-                      if (next.length) update({ origin_airports: next });
-                    }}
-                    className={cn(
-                      "rounded-lg border px-2.5 py-1 font-mono text-xs",
-                      on ? "border-pine bg-pine text-primary-foreground" : "border-line text-muted-foreground",
-                    )}
-                  >
-                    {a}
-                  </button>
-                );
-              })}
-            </div>
+            <AirportPicker
+              className="mt-2"
+              required
+              value={profile.origin_airports}
+              onChange={(next) => update({ origin_airports: next })}
+            />
           </div>
         </section>
       )}
