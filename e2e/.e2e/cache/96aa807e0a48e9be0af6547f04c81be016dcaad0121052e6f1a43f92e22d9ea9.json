@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:42:43.580Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap button \"Fill demo answers\"",
+        "target": {
+          "role": "button",
+          "name": "Fill demo answers"
+        }
+      },
+      {
+        "name": "tap",
+        "summary": "tap button \"Update my profile\"",
+        "target": {
+          "role": "button",
+          "name": "Update my profile"
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/07-survey.e2e.ts::Post-trip%20survey%3A%20submitting%20answers%20shows%20how%20the%20ranking%20weights%20changed",
+      "targetId": "iphone14",
+      "instructionDigest": "e11625e98f918d68855c30e232f450a56ffd94806306df8669dd126830a5342d"
+    },
+    "summary": "The demo survey submission took effect. The confirmation shows updated ranking weights (including Crowds 25%→35%) and re-ranked trips, with Málaga as the new top pick.",
+    "startPath": "/survey",
+    "endPath": "/survey",
+    "endAnchors": [
+      {
+        "name": "Answers come from the TripAI backend",
+        "text": "Live API"
+      },
+      {
+        "text": "Learning from your trip"
+      },
+      {
+        "role": "heading",
+        "name": "Your weights changed."
+      },
+      {
+        "text": "Here’s exactly what your Barcelona feedback changed, and how your trips re-ranked."
+      },
+      {
+        "text": "New top pick:"
+      },
+      {
+        "role": "heading",
+        "name": "Ranking weights"
+      },
+      {
+        "text": "Price"
+      },
+      {
+        "text": "25%"
+      }
+    ],
+    "endWaitMs": 27256
+  }
+}

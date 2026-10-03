@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:39:30.913Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap button \"Next\"",
+        "target": {
+          "role": "button",
+          "name": "Next"
+        }
+      },
+      {
+        "name": "tap",
+        "summary": "tap button \"Show my DNA\"",
+        "target": {
+          "role": "button",
+          "name": "Show my DNA"
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/01-travel-dna.e2e.ts::Travel%20DNA%3A%20swiping%20the%20deck%20ends%20on%20a%20result%20that%20explains%20itself%20with%20your%20swipes",
+      "targetId": "iphone14",
+      "instructionDigest": "87e68c802fa5aaeed9df82b0bce34026a2ad6684e50c200b1250574eb97c77b0"
+    },
+    "summary": "Kept the suggested budget of 1800 zł and the preselected home airport KRK (Kraków), then continued. The Travel DNA result is shown with ranking factors, travel-style preferences, and answers.",
+    "startPath": "/onboarding",
+    "endPath": "/onboarding",
+    "endAnchors": [
+      {
+        "name": "Answers come from the TripAI backend",
+        "text": "Live API"
+      },
+      {
+        "text": "Travel DNA"
+      },
+      {
+        "role": "heading",
+        "name": "Your travel DNA."
+      },
+      {
+        "text": "Every value shows where it came from. Change any answer and the profile recalculates straight away."
+      },
+      {
+        "role": "heading",
+        "name": "What matters in the ranking"
+      },
+      {
+        "text": "Price"
+      },
+      {
+        "text": "35%"
+      },
+      {
+        "text": "because you swiped “So me!” on price driving your choices, “That's me” on paying more for something unique"
+      }
+    ],
+    "endWaitMs": 15582
+  }
+}

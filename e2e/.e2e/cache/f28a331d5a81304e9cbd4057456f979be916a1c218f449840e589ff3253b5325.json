@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:39:44.704Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap node \"Why this, why now\" in \"1\"",
+        "target": {
+          "text": "Why this, why now",
+          "within": "1"
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/05-receipt.e2e.ts::Receipt%3A%20every%20price%20row%20shows%20its%20source%20and%20fetch%20time%2C%20and%20the%20inputs%20hash%20is%20shown",
+      "targetId": "iphone14",
+      "instructionDigest": "d96c78fe4095b251572e21408b270a3c40e6079cfce4f011a8c035ce0e8c7e5e"
+    },
+    "summary": "Opened the top-ranked trip, Málaga. The “Why this, why now” details are displayed at /trips/AGP-20270101-20270103, including the fit explanation, score breakdown, receipt, and evidence.",
+    "startPath": "/trips",
+    "endPath": "/trips/AGP-20270101-20270103",
+    "endAnchors": [
+      {
+        "role": "button",
+        "name": "Back to trips"
+      },
+      {
+        "text": "#1 of 10 · Spain"
+      },
+      {
+        "role": "link",
+        "name": "Photo: Benjamin Smith · CC BY-SA 4.0"
+      },
+      {
+        "role": "heading",
+        "name": "Why this, why now"
+      },
+      {
+        "text": "Written by AI from the evidence below. Every number in it is quoted from a source."
+      },
+      {
+        "role": "heading",
+        "name": "Fit with your Travel DNA"
+      },
+      {
+        "text": "Rule-based check · preview computed on this device · confidence 60%"
+      },
+      {
+        "role": "heading",
+        "name": "Why it fits you"
+      }
+    ],
+    "endWaitMs": 15299
+  }
+}

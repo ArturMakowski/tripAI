@@ -1,0 +1,4 @@
+node_modules/
+# run output (report, screenshots, traces) is regenerated every run; the replay cache is committed
+.e2e/*
+!.e2e/cache/

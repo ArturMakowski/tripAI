@@ -360,3 +360,9 @@ swipe changed, unless that field changed again since (`note` names it), and unhi
 Storage: `SupabaseStore` upserts into `reactions` (`supabase/migrations/0005_reactions.sql`, RLS on, no anon policy;
 **the president applies it before deploy**). Until it's applied, writes are logged and ignored, and memory serves. Reactions are read once per
 user and process. A failed read is not treated as "no reactions": it's retried after `MISS_TTL_S`, so a blip can't un-hide trips.
+
+## End-to-end tests (T9): `e2e/`
+Agentic E2E tests for the critical demo flows, run on the live Railway app at iPhone 14 size (TesterArmy `e2e` + Playwright Chromium,
+agent model OpenAI `gpt-6-luna`). Replays are committed, so reruns mostly skip model calls. Tests never trigger SerpApi:
+`/recommendations` is forced to `phase=fast` except in tests tagged `@live`.
+`cd e2e && npm install && npx playwright install chromium && npm run e2e` (or `npm run e2e:prod` / `npm run e2e:local`). See [e2e/README.md](e2e/README.md).
