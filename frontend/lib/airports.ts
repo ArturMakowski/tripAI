@@ -50,14 +50,18 @@ export function airportGroups(lang: Lang): { city: string; airports: OriginAirpo
   return groups;
 }
 
-/** Every airport of the cities in `codes`, in picker order: choosing Warszawa means WAW + WMI
- * (the backend then sends ONE search for the city, tripai.scoring.origins). Unknown codes stay. */
+/** Every airport of the cities in `codes`, keeping the user's order: a city's sibling airports follow
+ * the first one picked (["WMI", "KRK"] -> ["WMI", "WAW", "KRK"]). The order matters: the first city
+ * is the one the backend refines with exact-date prices (tripai.scoring.origins). Unknown codes stay. */
 export function expandToCity(codes: string[]): string[] {
-  const picked = new Set(codes.map((c) => c.toUpperCase()));
-  const cities = new Set(ORIGIN_AIRPORTS.filter((a) => picked.has(a.code)).map((a) => a.city.en));
-  const known = ORIGIN_AIRPORTS.filter((a) => cities.has(a.city.en)).map((a) => a.code);
-  const unknown = [...picked].filter((c) => !BY_CODE.has(c));
-  return [...known, ...unknown];
+  const out: string[] = [];
+  for (const raw of codes) {
+    const code = raw.toUpperCase();
+    const a = BY_CODE.get(code);
+    const city = a ? ORIGIN_AIRPORTS.filter((x) => x.city.en === a.city.en).map((x) => x.code) : [];
+    for (const c of [code, ...city]) if (!out.includes(c)) out.push(c);
+  }
+  return out;
 }
 
 /** Toggle a whole city: all its airports on, or (if all were on) all off. */

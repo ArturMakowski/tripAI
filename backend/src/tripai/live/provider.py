@@ -131,10 +131,16 @@ def _src(res: Any) -> str:
     return res.source + (SYNTHETIC_TAG if getattr(res, "synthetic", False) else "")
 
 
-def _flight_evidence(flights: Any, price: float) -> list[Evidence]:
+def _flight_evidence(flights: Any, price: float, depart: str | None = None) -> list[Evidence]:
     """Google Flights evidence whose headline number is the price actually used (the cheapest
-    listed itinerary), not `price_insights.lowest_price` (Google doesn't promise they match)."""
+    listed itinerary), not `price_insights.lowest_price` (Google doesn't promise they match).
+    A city search ("WAW,WMI") names the airport the priced itinerary departs from (`depart`),
+    else "WAW/WMI"."""
     ev = flights.evidence()
+    if "," in flights.origin:
+        route = f"{flights.origin}-"
+        named = f"{depart or _lab(flights.origin)}-"
+        ev = [e.model_copy(update={"label": e.label.replace(route, named)}) for e in ev]
     if flights.lowest_price is not None and flights.lowest_price != price:
         log.info(
             "google_flights lowest_price %s != cheapest itinerary %s", flights.lowest_price, price
@@ -640,8 +646,9 @@ class LiveProvider:
         numbers into live results; tripai.scoring.origins)."""
         try:
             out = await self._live(
-                origin, list(windows), luxury, profile, weights, fast, typical_spend_pln
-            )
+                origin, list(windows), luxury, profile, weights, fast, typical_spend_pln,
+                stats=fallback,  # a secondary city's cheap pass never overwrites the primary's
+            )  # fmt: skip
         except Exception:
             log.exception("live provider failed; falling back")
             out = []
@@ -660,6 +667,7 @@ class LiveProvider:
         weights: Weights | None,
         fast: bool = False,
         typical_spend_pln: float | None = None,
+        stats: bool = True,
     ) -> list[Candidate]:
         if not windows:
             return []
@@ -748,21 +756,22 @@ class LiveProvider:
                 ev = sorted([*ev, q.evidence()], key=lambda e: KIND_ORDER.get(e.kind, 99))
                 final.append(c.model_copy(update={"evidence": ev}))
             cands = final
-            self.last_stats = {
-                "cities": len(cities),
-                "candidates": len(cands),
-                "refined": sorted(refined),
-                "serpapi_calls": s.serpapi_calls,
-                "serpapi_network": s.serpapi_network,
-                "sources": s.modes,
-                "failures": s.failures[:200],
-                "uncovered": dict(s.uncovered),
-                "phase": "fast" if fast else "full",
-                "late": late,
-                "late_calls": s.late_calls,
-                "seconds": round(time.monotonic() - started, 2),
-                "capped": s.capped,
-            }
+            if stats:
+                self.last_stats = {
+                    "cities": len(cities),
+                    "candidates": len(cands),
+                    "refined": sorted(refined),
+                    "serpapi_calls": s.serpapi_calls,
+                    "serpapi_network": s.serpapi_network,
+                    "sources": s.modes,
+                    "failures": s.failures[:200],
+                    "uncovered": dict(s.uncovered),
+                    "phase": "fast" if fast else "full",
+                    "late": late,
+                    "late_calls": s.late_calls,
+                    "seconds": round(time.monotonic() - started, 2),
+                    "capped": s.capped,
+                }
             # one summary line per request (no per-call noise for expected gaps)
             log.info(
                 "live provider: %d candidates from %d cities; SerpApi searches: %d, capped: %d; "
@@ -1122,7 +1131,7 @@ class LiveProvider:
             cal._ev(
                 "peak",
                 f"Peak-crowd month {month}: median cached return fare "
-                f"{cal.origin}-{cal.destination} (hotel cost held equal to this trip)",
+                f"{_lab(cal.origin)}-{cal.destination} (hotel cost held equal to this trip)",
                 fare,
                 cal.currency,
             ),
@@ -1264,7 +1273,12 @@ class LiveProvider:
             else:
                 flight_cost, flight_details = flights.lowest_price, None
             ev = [e for e in ev if e.kind != "flight"]
-            ev[:0] = _flight_evidence(flights, flight_cost)
+            depart = (
+                flight_details.outbound[0].from_iata
+                if flight_details is not None and flight_details.outbound
+                else None
+            )
+            ev[:0] = _flight_evidence(flights, flight_cost, depart)
             q.set("flight", 1.0, "Google Flights, exact dates")
             q.exact["flight"] = True
             if flights.typical_price_range:

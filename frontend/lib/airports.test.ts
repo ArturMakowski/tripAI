@@ -44,7 +44,8 @@ describe("origin airports", () => {
 
   it("choosing a city covers all its airports", () => {
     expect(expandToCity(["WAW"])).toEqual(["WAW", "WMI"]);
-    expect(expandToCity(["wmi", "KRK"])).toEqual(["KRK", "WAW", "WMI"]);
+    expect(expandToCity(["wmi", "KRK"])).toEqual(["WMI", "WAW", "KRK"]); // the user's first city stays first
+    expect(expandToCity(["KRK", "WAW"])).toEqual(["KRK", "WAW", "WMI"]);
     expect(expandToCity(["KTW", "XYZ"])).toEqual(["KTW", "XYZ"]);
     const warszawa = airportGroups("pl")[1].airports;
     expect(toggleCity(["KRK"], warszawa)).toEqual(["KRK", "WAW", "WMI"]);

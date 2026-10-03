@@ -163,3 +163,57 @@ def test_live_provider_city_group_one_serpapi_search_travelpayouts_per_airport(
     assert len(serp_origins) <= p.max_refine
     flights = [e for c in got for e in c.evidence if e.kind == "flight"]
     assert flights and all("WMI-" in e.label for e in flights if e.label.startswith("Return"))
+
+
+def test_merge_ranks_price_honesty_before_price():
+    """Review repro: a cheaper estimate from a secondary city must not replace the primary's
+    refined exact-date offer; only equally honest offers compete on price."""
+    from tripai.scoring.origins import merge_cheapest
+
+    c = asyncio.run(FixtureProvider().candidates("KRK", WINDOWS))[0]
+    exact = c.model_copy(update={"price_status": "exact", "hotel_cost_pln": c.hotel_cost_pln + 200})
+    est = c.model_copy(update={"price_status": "estimate"})
+    assert est.party_total_pln < exact.party_total_pln
+    assert merge_cheapest([[exact], [est]])[0].price_status == "exact"
+    assert merge_cheapest([[est], [exact]])[0].price_status == "exact"
+    partial = c.model_copy(
+        update={"price_status": "partial", "hotel_cost_pln": c.hotel_cost_pln + 50}
+    )
+    assert merge_cheapest([[est], [partial]])[0].price_status == "partial"
+    cheaper_exact = exact.model_copy(update={"hotel_cost_pln": exact.hotel_cost_pln - 300})
+    assert merge_cheapest([[exact], [cheaper_exact]])[0] is cheaper_exact  # same status: price
+
+
+def test_live_offer_beats_labelled_sample_whatever_the_price():
+    from tripai.scoring.origins import merge_cheapest
+
+    sample = asyncio.run(FixtureProvider().candidates("KRK", WINDOWS))[0]  # fixture:sample evidence
+    assert sample.evidence and any(e.source.startswith("fixture:") for e in sample.evidence)
+    live_ev = [
+        e.model_copy(update={"source": "travelpayouts:grouped_prices"}) if e.kind == "flight" else e
+        for e in sample.evidence
+    ]
+    live = sample.model_copy(
+        update={
+            "evidence": live_ev,
+            "price_status": "estimate",
+            "flight_cost_pln": sample.flight_cost_pln + 500,
+        }
+    )
+    assert merge_cheapest([[sample], [live]])[0] is live
+
+
+def test_city_search_labels_the_airport_the_itinerary_departs_from():
+    from datetime import date
+
+    from tripai.connectors.serpapi import FlightPriceInsights
+    from tripai.live.provider import _flight_evidence
+
+    res = FlightPriceInsights(
+        source="serpapi:google_flights", fetched_at="2026-10-03T12:00:00+00:00", origin="WAW,WMI",
+        destination="BCN", outbound_date=date(2027, 1, 14), return_date=date(2027, 1, 19),
+        currency="PLN", lowest_price=420, price_level="low", typical_price_range=(400, 700),
+    )  # fmt: skip
+    labels = [e.label for e in _flight_evidence(res, 410, depart="WMI")]
+    assert labels[0].startswith("Return WMI-BCN") and all("WAW,WMI" not in lab for lab in labels)
+    assert _flight_evidence(res, 410)[0].label.startswith("Return WAW/WMI-BCN")

@@ -26,7 +26,8 @@ export function AirportPicker({
   return (
     <div className={cn("flex flex-wrap gap-x-3 gap-y-2", className)}>
       {airportGroups(lang).map((g) => {
-        const on = g.airports.every((a) => value.includes(a.code));
+        // any airport of the city counts (a legacy ["WAW"] is searched as all of Warszawa)
+        const on = g.airports.some((a) => value.includes(a.code));
         const toggle = () => {
           const next = toggleCity(value, g.airports);
           if (!required || next.length) onChange(next);

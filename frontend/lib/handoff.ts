@@ -1,9 +1,15 @@
 import type { Recommendation } from "./types";
 
-/** Departure airport the scorer actually priced (from the flight evidence), else the profile's first. */
+/**
+ * Departure airport the scorer actually priced: the itinerary's first leg, else the flight evidence
+ * label (a city search reads "WAW/WMI-BCN": its first airport, never a guess from the middle), else
+ * the profile's first airport.
+ */
 export function originOf(rec: Recommendation, fallback = "KRK"): string {
+  const leg = rec.flight?.outbound?.[0]?.from_iata;
+  if (leg) return leg;
   const label = rec.evidence.find((e) => e.kind === "flight")?.label ?? "";
-  return label.match(/\b([A-Z]{3})[-–]([A-Z]{3})\b/)?.[1] ?? fallback;
+  return label.match(/\b([A-Z]{3})(?:[/,][A-Z]{3})*[-–]([A-Z]{3})\b/)?.[1] ?? fallback;
 }
 
 /** Partner deep links with dates pre-filled. Nothing is booked by TripAI. */

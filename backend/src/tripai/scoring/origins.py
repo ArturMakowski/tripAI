@@ -6,7 +6,8 @@ while Travelpayouts and fixtures loop per airport (tripai.live.provider). SerpAp
 so only the first city gets the full pipeline (exact-date refinement within the per-request cap);
 further cities get the cheap pass: `fast=True` (Travelpayouts + cached SerpApi, never a new metered
 call) and `fallback=False` (no sample fixtures), when the provider supports them. Per (destination,
-window) the cheapest offer wins; its evidence names the airport it flies from."""
+window) the most honest offer wins (exact > partial > estimate > sample), then the cheapest; its
+evidence names the airport it flies from."""
 
 import asyncio
 import inspect
@@ -42,14 +43,31 @@ def city_groups(codes: Sequence[str]) -> list[str]:
     return [",".join(g) for g in groups.values()]
 
 
+# docs/BUDGET.md "Price honesty": an offer priced for the exact dates beats any estimate, whatever
+# the numbers say (an estimate total is a median fare + a city-average hotel: not comparable).
+HONESTY_RANK = {"exact": 0, "partial": 1, "estimate": 2}
+SAMPLE_PENALTY = 10  # labelled sample fixtures lose to any live offer
+
+
+def _is_sample(c: Candidate) -> bool:
+    return any(e.source.startswith("fixture:") for e in c.evidence if e.kind == "flight")
+
+
+def offer_key(c: Candidate) -> tuple[int, float]:
+    """(honesty rank, party total): lower is better; only equally honest offers compete on price."""
+    rank = HONESTY_RANK.get(c.price_status, len(HONESTY_RANK))
+    return (rank + (SAMPLE_PENALTY if _is_sample(c) else 0), c.party_total_pln)
+
+
 def merge_cheapest(groups: Sequence[Sequence[Candidate]]) -> list[Candidate]:
-    """One candidate per (destination, window): the lowest party total; ties keep the earlier
-    group (the primary origin, which is the refined one)."""
+    """One candidate per (destination, window): the most honest price first (live exact >
+    partial > estimate > sample), then the lowest party total; ties keep the earlier group (the
+    primary city, the refined one)."""
     best: dict[str, Candidate] = {}
     for group in groups:
         for c in group:
             k = candidate_id(c)
-            if k not in best or c.party_total_pln < best[k].party_total_pln:
+            if k not in best or offer_key(c) < offer_key(best[k]):
                 best[k] = c
     return list(best.values())
 
@@ -65,7 +83,7 @@ async def candidates_for_origins(
     params = inspect.signature(provider.candidates).parameters
     kwargs = {k: v for k, v in extra.items() if k in params}
     cheap = dict(kwargs)
-    if "fast" in params:
+    if "fast" in params and getattr(provider, "supports_fast", False):
         cheap["fast"] = True
     if "fallback" in params:
         cheap["fallback"] = False
