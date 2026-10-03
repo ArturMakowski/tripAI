@@ -1,0 +1,138 @@
+{
+ "note": "Live bug 2026-10-03: Serper Places answered top attractions in Palma de Mallorca near the requester (gl=pl -> Lodz). Must be filtered out.",
+ "source": "serper:places",
+ "fetched_at": "2026-10-03T21:11:49.371372+00:00",
+ "payload": {
+  "places": [
+   {
+    "cid": "2192114009918077256",
+    "title": "TOP SHOP E S.C.",
+    "rating": 4.2,
+    "address": "Opens 8 am Mon",
+    "website": "https://topeshop.pl/",
+    "category": "Furniture maker",
+    "latitude": 51.774548,
+    "position": 1,
+    "longitude": 20.247292,
+    "phoneNumber": "46 834 70 20",
+    "ratingCount": 679
+   },
+   {
+    "cid": "17155054874422572213",
+    "title": "Top Market Maxfresh",
+    "rating": 4.2,
+    "category": "Supermarket",
+    "latitude": 52.60308,
+    "position": 2,
+    "longitude": 19.652433,
+    "phoneNumber": "502 082 324",
+    "ratingCount": 260
+   },
+   {
+    "cid": "7482430439190528183",
+    "title": "Top. Sprzedaż art. przemysłowych i zabawek",
+    "rating": 4.1,
+    "category": "Office supply wholesaler",
+    "latitude": 51.932434,
+    "position": 3,
+    "longitude": 22.389439,
+    "phoneNumber": "25 798 23 88",
+    "ratingCount": 8
+   },
+   {
+    "cid": "1043410144356387678",
+    "title": "Top-Nar Professional Tools",
+    "rating": 4.2,
+    "website": "http://www.topnar.pl/",
+    "category": "Tool store",
+    "latitude": 51.766804,
+    "position": 4,
+    "longitude": 19.44286,
+    "phoneNumber": "790 350 864",
+    "ratingCount": 199
+   },
+   {
+    "cid": "3584421680813466555",
+    "title": "TOP-SHOT Sklep Łódź",
+    "rating": 4.9,
+    "website": "https://sklep.top-shot.pl/",
+    "category": "Gun shop",
+    "latitude": 51.766132,
+    "position": 5,
+    "longitude": 19.446943,
+    "phoneNumber": "512 267 871",
+    "ratingCount": 167
+   },
+   {
+    "cid": "13658493803351262743",
+    "title": "TOP-SHOT Strzelnica Łódź",
+    "rating": 4.8,
+    "website": "http://top-shot.pl/",
+    "category": "Shooting range",
+    "latitude": 51.797924,
+    "position": 6,
+    "longitude": 19.471062,
+    "phoneNumber": "728 751 954",
+    "ratingCount": 360
+   },
+   {
+    "cid": "7828867542400347668",
+    "title": "Biuro Detektywistyczne Top Detektyw",
+    "rating": 5,
+    "website": "https://topdetektyw.pl/",
+    "category": "Private investigator",
+    "latitude": 51.733856,
+    "position": 7,
+    "longitude": 19.482445,
+    "phoneNumber": "664 060 565",
+    "ratingCount": 591
+   },
+   {
+    "cid": "10463954744895836155",
+    "title": "Mieszalnia lakierów samochodowych TOP TRADE Tomasz Pawlak | Sklep lakierniczy",
+    "rating": 5,
+    "website": "https://www.facebook.com/mieszalniatoptrade/",
+    "category": "General store",
+    "latitude": 51.913296,
+    "position": 8,
+    "longitude": 18.973078,
+    "phoneNumber": "510 239 166",
+    "ratingCount": 60
+   },
+   {
+    "cid": "8570356030650379553",
+    "title": "Top Service",
+    "rating": 4.8,
+    "website": "https://www.topservice.info/",
+    "category": "Office equipment supplier",
+    "latitude": 52.538998,
+    "position": 9,
+    "longitude": 19.728376,
+    "phoneNumber": "601 380 604",
+    "ratingCount": 44
+   },
+   {
+    "cid": "8850777603513279954",
+    "title": "Top Market Głowno",
+    "rating": 4.4,
+    "website": "https://stokrotka.pl/",
+    "category": "Grocery store",
+    "latitude": 51.95732,
+    "position": 10,
+    "longitude": 19.729391,
+    "phoneNumber": "500 615 986",
+    "ratingCount": 204
+   }
+  ],
+  "credits": 1,
+  "searchParameters": {
+   "q": "top attractions in Palma de Mallorca, Spain",
+   "gl": "pl",
+   "hl": "en",
+   "num": 10,
+   "page": 1,
+   "type": "places",
+   "engine": "google"
+  }
+ }
+}

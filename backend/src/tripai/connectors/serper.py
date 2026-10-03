@@ -2,7 +2,8 @@
 No flights/hotels here. SERPER_API_KEY required unless TRIPAI_USE_FIXTURES=1."""
 
 import re
-from datetime import datetime
+from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel
@@ -60,6 +61,7 @@ class Place(BaseModel):
 class PlaceResults(SourcedResult):
     query: str
     places: list[Place]
+    hl: str | None = None  # language Google answered in (names/categories), from searchParameters
 
     def top(self, n: int = 5, min_reviews: int = 500) -> list[Place]:
         ok = [p for p in self.places if (p.rating_count or 0) >= min_reviews]
@@ -105,6 +107,7 @@ def parse_places(payload: dict, fetched_at: datetime, query: str) -> PlaceResult
         source="serper:places",
         fetched_at=fetched_at,
         query=query,
+        hl=(payload.get("searchParameters") or {}).get("hl"),
         places=[
             Place(
                 title=p["title"],
@@ -129,7 +132,13 @@ class Serper(Connector):
         super().__init__(*args, **kw)
         self.gl, self.hl = gl, hl
 
-    async def _post(self, endpoint: str, body: dict, fixture: str) -> Fetched:
+    async def _post(
+        self,
+        endpoint: str,
+        body: dict,
+        fixture: str,
+        validate: Callable[[Any], None] | None = None,
+    ) -> Fetched:
         key = config.env("SERPER_API_KEY")
         if not key and not self.fixtures:
             raise MissingCredentials("SERPER_API_KEY not set")
@@ -141,6 +150,7 @@ class Serper(Connector):
             method="POST",
             json_body={"gl": self.gl, "hl": self.hl, **body},
             headers={"X-API-KEY": key or ""},
+            validate=validate,
         )
 
     async def city_images(
@@ -153,13 +163,37 @@ class Serper(Connector):
         return res
 
     async def places(
-        self, city: str, *, country: str | None = None, what: str = "top attractions"
+        self,
+        city: str,
+        *,
+        country: str | None = None,
+        what: str = "top attractions",
+        near: tuple[float, float] | None = None,
+        gl: str | None = None,
+        hl: str | None = None,
+        validate: Callable[[PlaceResults], None] | None = None,
     ) -> PlaceResults:
         """e.g. what="top attractions" | "best restaurants" | "museums". Pass `country` to
-        disambiguate (Naples, Italy vs Naples, FL). Fixture name ignores country."""
+        disambiguate (Naples, Italy vs Naples, FL) and `near=(lat, lon)` + `gl` (destination
+        country code) to anchor the search there: without them Google answers near the
+        requester (live bug: "top attractions in Palma" -> shops named "Top" in Łódź).
+        `validate` raises ConnectorError for a payload that must not be cached (e.g. nothing
+        near the destination). Fixture name ignores country/near/gl; a non-default `hl` gets a suffix (`-pl`)."""
         q = f"{what} in {city}{f', {country}' if country else ''}"
-        fixture = _slug(f"{what} in {city}")
-        f = await self._post("places", {"q": q}, fixture=fixture)
+        fixture = _slug(f"{what} in {city}") + (f"-{hl}" if hl and hl != self.hl else "")
+        body: dict[str, Any] = {"q": q}
+        if near is not None:
+            body["ll"] = f"@{near[0]:.4f},{near[1]:.4f},13z"
+        if gl:
+            body["gl"] = gl.lower()
+        if hl:
+            body["hl"] = hl
+
+        def check(payload: Any) -> None:
+            if validate is not None:
+                validate(parse_places(payload, datetime.now(UTC), q))
+
+        f = await self._post("places", body, fixture=fixture, validate=check)
         res = parse_places(f.payload, f.fetched_at, q)
         res.synthetic = f.synthetic
         return res

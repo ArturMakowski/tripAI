@@ -12,6 +12,7 @@ from tripai.api import create_app
 from tripai.connectors.base import fixture_path
 from tripai.connectors.cache import DiskCache, NullCache
 from tripai.connectors.serper import BASE
+from tripai.connectors.serper import _slug as slug
 from tripai.live.budget import WeeklyCap
 from tripai.live.places import PlacesService, parse_interests
 
@@ -93,13 +94,17 @@ def test_parse_interests():
     assert parse_interests(None) == {}
 
 
+def _by_query(request: httpx.Request) -> httpx.Response:
+    """Answer each live search with the recorded payload for that city + query."""
+    q = json.loads(request.content)["q"]  # "best restaurants in Lisbon, Portugal"
+    return httpx.Response(200, json=_payload(slug(q.split(",")[0])))
+
+
 @respx.mock
 def test_live_calls_are_capped_per_city_per_week(monkeypatch, tmp_path):
     monkeypatch.setenv("TRIPAI_USE_FIXTURES", "0")
     monkeypatch.setenv("SERPER_API_KEY", "serper-test")
-    route = respx.post(f"{BASE}/places").mock(
-        return_value=httpx.Response(200, json=_payload("best-restaurants-in-rome"))
-    )
+    route = respx.post(f"{BASE}/places").mock(side_effect=_by_query)
     cap = WeeklyCap("serper_places", 2, root=tmp_path / "budget")
     # no cache at all: the cap alone must stop the third and fourth searches
     svc = PlacesService(cache=NullCache(), cap=cap)
@@ -204,3 +209,108 @@ def test_weekly_cap_counts_in_flight_reservations(tmp_path):
         await cap.take("x")  # the failed slot is free again (tries 3 <= cap + slack)
 
     asyncio.run(run())
+
+
+# ---------------------------------------------------------------- live bug: Palma -> Łódź
+
+LODZ = json.loads(
+    (
+        fixture_path("serper:places", "x").parent.parent
+        / "regressions"
+        / "palma-attractions-lodz.json"
+    ).read_text()
+)["payload"]
+
+
+@respx.mock
+def test_lodz_payload_for_palma_is_rejected_and_never_cached(monkeypatch, tmp_path):
+    _live(monkeypatch)
+    route = respx.post(f"{BASE}/places").mock(return_value=httpx.Response(200, json=LODZ))
+    cache = DiskCache(tmp_path / "c")
+    svc = PlacesService(cache=cache, cap=WeeklyCap("serper_places", 3, root=tmp_path / "b"))
+    res = asyncio.run(svc.get("PMI", lang="pl"))
+    assert res.things_to_do == [] and res.restaurants == []
+    assert res.notes == {"restaurants": "unavailable", "things_to_do": "unavailable"}
+    assert not list((tmp_path / "c").rglob("*.json"))  # garbage is not a success
+    bodies = [json.loads(c.request.content) for c in route.calls]
+    assert {b["hl"] for b in bodies} == {"en", "pl"}
+    for b in bodies:  # anchored at the destination, not at the requester
+        assert b["gl"] == "es" and b["ll"] == "@39.5696,2.6502,13z"
+        assert b["q"].endswith("in Palma de Mallorca, Spain")
+
+
+def test_lodz_payload_already_cached_is_filtered_out(monkeypatch, tmp_path):
+    folder = tmp_path / "fx" / "serper" / "places"
+    folder.mkdir(parents=True)
+    entry = {"source": "serper:places", "params": {}, "fetched_at": "2026-10-03T21:11:00+00:00",
+             "recorded": True, "payload": LODZ}  # fmt: skip
+    (folder / "top-attractions-in-palma-de-mallorca.json").write_text(json.dumps(entry))
+    monkeypatch.setenv("TRIPAI_FIXTURES_DIR", str(tmp_path / "fx"))
+    body = _client().get("/destinations/PMI/places").json()
+    assert body["things_to_do"] == [] and body["notes"]["things_to_do"] == "not_nearby"
+
+
+def test_geo_filter_and_address_fallback():
+    from tripai.connectors.serper import Place
+    from tripai.live.places import nearby
+    from tripai.seed import load
+
+    palma = load.city("PMI")
+    places = [
+        Place(title="Catedral", lat=39.5674, lon=2.6483),  # in town
+        Place(title="Sóller", lat=39.766, lon=2.715),  # ~23 km: still in
+        Place(title="Alcúdia", lat=39.853, lon=3.121),  # ~51 km: out
+        Place(title="TOP-SHOT Łódź", lat=51.766, lon=19.447),
+        Place(title="No coords, Spanish address", address="Carrer X, Palma, España"),
+        Place(title="No coords, Spain", address="07001 Palma de Mallorca, Spain"),
+        Place(title="No coords, no address"),
+        Place(title="No coords, elsewhere", address="ul. Piotrkowska 1, Łódź"),
+    ]
+    assert [p.title for p in nearby(places, palma)] == [
+        "Catedral",
+        "Sóller",
+        "No coords, Spanish address",  # names the city ("Palma")
+        "No coords, Spain",
+    ]
+
+
+def test_polish_names_join_english_counts():
+    body = _client().get("/destinations/PMI/places?lang=pl&limit=5").json()
+    by_name = {p["name"]: p for p in body["things_to_do"]}
+    cathedral = by_name["Katedra w Palma de Mallorca"]  # Polish name from the hl=pl search...
+    assert cathedral["rating_count"] == 69000  # ...with the real count from the English one
+    assert cathedral["category"] == "Katedra"
+    en = _client().get("/destinations/PMI/places?lang=en&limit=5").json()
+    assert "Catedral-Basílica de Santa María de Mallorca" in {p["name"] for p in en["things_to_do"]}
+
+
+def test_purge_finds_and_deletes_only_bad_rows(monkeypatch, tmp_path):
+    from tripai.live.places import bad_payload, city_for_query, purge_cache
+
+    assert city_for_query("top attractions in Palma de Mallorca, Spain").id == "palma"
+    assert "0 of 10" in bad_payload(LODZ)
+    assert bad_payload(_payload("top-attractions-in-rome")) is None
+
+    folder = tmp_path / "cache" / "serper_places"
+    folder.mkdir(parents=True)
+    (folder / "bad.json").write_text(json.dumps({"payload": LODZ}))
+    (folder / "good.json").write_text(json.dumps({"payload": _payload("top-attractions-in-rome")}))
+    monkeypatch.setenv("SUPABASE_URL", "https://sb.example")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb-test")
+    rows = [
+        {"cache_key": "bad1", "payload": LODZ},
+        {"cache_key": "ok1", "payload": _payload("best-restaurants-in-rome")},
+    ]
+    with respx.mock:
+        respx.get("https://sb.example/rest/v1/api_cache").mock(
+            return_value=httpx.Response(200, json=rows)
+        )
+        delete = respx.delete("https://sb.example/rest/v1/api_cache").mock(
+            return_value=httpx.Response(204)
+        )
+        dry = asyncio.run(purge_cache(apply=False))
+        assert len(dry) == 2 and delete.call_count == 0 and (folder / "bad.json").exists()
+        asyncio.run(purge_cache(apply=True))
+    assert delete.call_count == 1
+    assert "cache_key=eq.bad1" in str(delete.calls.last.request.url)
+    assert not (folder / "bad.json").exists() and (folder / "good.json").exists()

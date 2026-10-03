@@ -141,7 +141,7 @@ async def probe(args: argparse.Namespace) -> int:
                         imgs,
                         f"{len(imgs.images)} images, best {best.width if best else '-'}px",
                     )
-                    pl = await Serper(**kw).places(p.city, country=p.country)
+                    pl = await Serper(**kw).places(p.city, country=p.country, near=(p.lat, p.lon))
                     top = ", ".join(x.title for x in pl.top(3))
                     _ok(f"serper places {p.city}", pl, f"{len(pl.places)} places: {top}")
 

@@ -422,13 +422,24 @@ refined.
   `restaurants` and `things_to_do` from Google Maps via Serper Places (`tripai.live.places`). Each place has a name, ★ rating,
   review count, Google's own `price_level` text (restaurants only; `null` when Google gives none, and we never fill it in;
   the UI always labels it with its source, e.g. `€20–30 (Google)`, never bare next to PLN totals),
-  a category localised to PL/EN (`null` in PL when there is no translation), address, Maps link, `source` and `fetched_at`.
-- Spend: each city gets two fixed searches ("best restaurants in X" and "top attractions in X", `hl=en` for every language). They are
-  cached for 7 days in api_cache (`serper:places`), and a hard cap allows at most 2 *successful* real Serper calls per city
-  per ISO week (`WeeklyCap`, counter row `tripai:budget` / `serper_places:<city>:<week>`, override with
-  `TRIPAI_SERPER_PLACES_WEEKLY_CAP`). In-flight calls hold a slot, a failed call releases it, and attempts stop at
-  cap + 2 (slack, which also absorbs a cross-process race). Concurrent cold requests for a city share one search
-  (single-flight) and then read the cache. After a cap hit, the shared cache is re-checked once.
+  a category localised to PL/EN (Google's Polish one on PL screens, else our translation, else `null`), address, Maps link, `source` and `fetched_at`.
+- Anchored at the destination: every search sends the city + country in `q`, plus `ll=@<lat>,<lon>,13z` (from
+  `data/cities.json`) and `gl=<destination country>`. Without these, Google answered near the requester (live bug: "top
+  attractions in Palma" returned shops named "Top" in Łódź).
+- Hard geo filter: a place farther than 25 km from the city centre is dropped. A place without coordinates is kept only
+  if its address names the city or the country. A search with fewer than 3 nearby results fails validation, so it is
+  never cached and never counted as a success. The filter also applies to fixtures and to older cache rows.
+- Names in the UI language: searches run with `hl=en`, because only English gives real review counts (with `hl=pl`, Google
+  writes "69 tys." and Serper returns 69). On a Polish screen, one extra attractions search with `hl=pl` supplies the
+  Polish names and categories, joined to the English results by Google's place id.
+- Spend: up to 3 searches per city (restaurants EN, attractions EN, attractions PL), cached for 7 days in api_cache
+  (`serper:places`). A hard cap allows at most 3 *successful* real Serper calls per city per ISO week (`WeeklyCap`,
+  counter row `tripai:budget` / `serper_places:<city>:<week>`, override with `TRIPAI_SERPER_PLACES_WEEKLY_CAP`). In-flight
+  calls hold a slot, a failed call releases it, and attempts stop at cap + 2. Concurrent cold requests share one search
+  (single-flight). After a cap hit, the shared cache is re-checked once.
+- Purging bad cache rows: `uv run python -m tripai.live.places_purge` (dry run), then `--apply`. It deletes
+  `serper:places` rows that fail the geo filter, from Supabase `api_cache` (needs `SUPABASE_SECRET_KEY`) and from the disk
+  cache.
 - Interests re-rank the cached results and never trigger another search: `hiking`/`nature` → parks and viewpoints,
   `history`/`art`/`beach`/`nightlife` → the matching places, and a strong `food` interest → `food_first`. A list can be
   empty for one of these reasons, given in `notes`: `budget`, `not_recorded` (fixture mode) or `unavailable`.
