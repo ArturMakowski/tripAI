@@ -10,10 +10,21 @@ Tag weights and `direct_from` are editorial priors, not facts: live prices come 
 from typing import Any
 
 from tripai.seed._common import meta, write_json
+from tripai.seed.airports import ORIGINS
 
 TAGS = ("food", "history", "art", "beach", "nature", "hiking", "nightlife", "ski")
-ORIGINS = ("KRK", "KTW", "WAW", "GDN")
-ALL = ORIGINS
+# Every origin the app offers is tripai.seed.airports.ORIGINS. The per-city tuples below cover the
+# four main origins; the other airports get a short, conservative list of long-standing direct routes
+# (low-cost bases / hub flights). Editorial priors, unverified: only a +0.1 shortlist bonus, live
+# fares decide.
+MAIN_ORIGINS = ("KRK", "KTW", "WAW", "GDN")
+ALL = MAIN_ORIGINS
+OTHER_ORIGIN_PRIORS: dict[str, tuple[str, ...]] = {
+    "WMI": ("rome", "milan", "malaga", "london", "dublin", "paris"),  # Ryanair base
+    "WRO": ("london", "dublin", "milan", "barcelona", "munich"),
+    "POZ": ("london", "dublin", "milan", "munich", "oslo"),
+    "RZE": ("london", "dublin", "munich"),
+}
 
 # id, name, country, iata, airports, lat, lon, nuts2, direct_from, radius_km, tags
 _C = tuple[str, str, str, str, list[str], float, float, str, tuple[str, ...], int, dict[str, float]]
@@ -145,8 +156,11 @@ COUNTRY_NAMES = {
 
 def build() -> list[dict[str, Any]]:
     out = []
+    known = {row[0] for row in _CITIES}
+    assert all(set(ids) <= known for ids in OTHER_ORIGIN_PRIORS.values()), OTHER_ORIGIN_PRIORS
     for cid, name, cc, iata, airports, lat, lon, nuts2, direct, radius, tags in _CITIES:
         assert set(tags) <= set(TAGS), (cid, set(tags) - set(TAGS))
+        direct = (*direct, *(o for o, ids in OTHER_ORIGIN_PRIORS.items() if cid in ids))
         assert set(direct) <= set(ORIGINS), cid
         assert all(code.startswith(cc + "-") for code in SUBDIVISIONS[cid]), cid
         out.append(

@@ -1,18 +1,21 @@
 # Travel DNA deck photo credits
 
-| Card | Image | Author | License | Source |
-|---|---|---|---|---|
-| q1 | `/swipe/explore.jpg` | Kalen Emsley (Unsplash) | CC0 | https://unsplash.com/photos/mgJSkgIo_JI (mirrored at https://commons.wikimedia.org/wiki/File:Backpacker_on_a_high_ledge_(Unsplash).jpg) |
-| q2 | `/swipe/plan.jpg` | Anna Goelet / Johan Nieuhof | Public domain | https://commons.wikimedia.org/wiki/File:AMH-6926-KB_Map_of_the_Cape_of_Good_Hope.jpg |
-| q3 | `/swipe/nightlife.jpg` | PattayaPatrol | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:DSCF0502_A_chilled_cocktail_on_the_bar_ice_clinking_and_neon_lights_blurring_into_a_colorful_night.jpg |
-| q4 | `/swipe/heat.jpg` | Mustang Joe | CC0 | https://commons.wikimedia.org/wiki/File:Climbing_the_Merzouga_Dunes.jpg |
-| q5 | `/swipe/food.jpg` | Wilfredor | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Municipal_Market_of_S%C3%A3o_Paulo_city.jpg |
-| q6 | `/swipe/five-star.jpg` | Martin Falbisoner | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Infinity_Edge_Pool,_Mauritius.JPG |
-| q7 | `/swipe/hiking.jpg` | BLM Oregon & Washington | Public domain | https://commons.wikimedia.org/wiki/File:Hiking_Along_the_East_Applegate_Ridge_Trail_(40237270420).jpg |
-| q8 | `/swipe/beach.jpg` | dronepicr | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Turquoise_waters_of_the_Aegean_Sea_at_Hawaii_Beach_on_Naxos_Island,_Greece.jpg |
-| q9 | `/swipe/price.jpg` | Spielvogel | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:1984_in_Merida_station._Spielvogel_Archiv2.jpg |
-| q10 | `/swipe/wine.jpg` | Aciarium | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:DSC06590_Vineyard_at_Sunset,_Gumpoldskirchen,_2023-10.jpg |
-| q11 | `/swipe/nature.jpg` | King of Hearts | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Lake_Mary_Mammoth_September_2016.jpg |
-| q12 | `/cities/rome.jpg` | Diliff | CC BY-SA 2.5 | https://commons.wikimedia.org/wiki/File:Colosseum_in_Rome-April_2007-1-_copie_2B.jpg |
-| y1 | `/cities/lisbon.jpg` | Jakub Hałun | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:View_from_Miradouro_de_Santa_Luzia,_Lisbon,_20250603_2015_9043.jpg |
-| y2 | `/cities/porto.jpg` | Michael Gaylard | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:A_vibrant_panorama_of_Porto,_Portugal,_showcasing_the_Douro_River,_historic_Ribeira_district,_and_the_Dom_Lu%C3%ADs_I_Bridge._(55247151390).jpg |
+Each photo literally illustrates its statement (docs/TRAVEL_DNA.md). Only CC0, public domain or CC BY (attribution) images are used;
+they are center-cropped to 900×1200 and re-encoded (< 250 KB). All are shown with credits on `/credits`.
+
+| Card | Image | Shows | Author | License | Source |
+|---|---|---|---|---|---|
+| q1 | `/swipe/explore.jpg` | backpacker on a ledge over unknown terrain (crop anchored left so the person shows) | Kalen Emsley (Unsplash) | CC0 | https://unsplash.com/photos/mgJSkgIo_JI (mirrored at https://commons.wikimedia.org/wiki/File:Backpacker_on_a_high_ledge_(Unsplash).jpg) |
+| q2 | `/swipe/plan.jpg` | ticking off a written plan in a notebook | Glenn Carstens-Peters | CC0 | https://commons.wikimedia.org/wiki/File:Paperlist.jpg |
+| q3 | `/swipe/departures.jpg` | split-flap departures board | Marek Ślusarczyk (Tupungato) | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:47_Airport_departures_board_free_photo_-_Melbourne_Airport_timetable_-_Creative_Commons_Attribution.jpg |
+| q4 | `/swipe/heat.jpg` | climbing desert dunes (experience over comfort) | Mustang Joe | CC0 | https://commons.wikimedia.org/wiki/File:Climbing_the_Merzouga_Dunes.jpg |
+| q5 | `/swipe/food.jpg` | street-food grill stall at a market | Ian Gratton | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Food_stall,_Chatachuk_Market_(8271085684).jpg |
+| q6 | `/swipe/rest.jpg` | hammock between palms on a beach | Chris McClave | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Hammock_-_Polynesia.jpg |
+| q7 | `/swipe/active.jpg` | kayaking in a harbour | Kristoffer Trolle | CC BY 2.0 | https://www.flickr.com/photos/126744325@N07/29283551075 |
+| q8 | `/swipe/village.jpg` | quiet cobbled lane in a mountain village (Queralbs) | Jorge Franganillo | CC BY 4.0 | https://www.flickr.com/photos/46191841@N00/3728667165 |
+| q9 | `/swipe/price.jpg` | euro coins | Images Money | CC BY 2.0 | https://www.flickr.com/photos/59937401@N07/5929574223 |
+| q10 | `/swipe/balloons.jpg` | hot-air balloons over Cappadocia | Feridun F. Alkaya | CC0 | https://www.flickr.com/photos/11773439@N03/45010287104 |
+| q11 | `/swipe/viewpoint.jpg` | empty bench at a mountain viewpoint | Mateus2019 | CC BY 2.0 DE | https://commons.wikimedia.org/wiki/File:GER_—_BY_—_Lkr._MB_—_Rottach-Egern_(Wallberg-Panoramastrasse_höchster_Aussichtspunkt).JPG |
+| q12 | `/swipe/known-places.jpg` | pins on the places you have already been (France, Italy) | Marc Levin (mil8) | CC BY 2.0 | https://www.flickr.com/photos/61237118@N00/380104461 |
+| y1 | `/swipe/discover.jpg` | lamp-lit lane leading on through an archway | RB Photo (rboed) | CC BY 2.0 | https://www.flickr.com/photos/92082510@N04/15333261498 |
+| y2 | `/swipe/tailored.jpg` | tape measure on a tailor's dummy: made to measure ("szyte na miarę") | Igor Ovsyannykov (Unsplash) | CC0 | https://commons.wikimedia.org/wiki/File:Igor_Ovsyannykov_2017-05-08_(Unsplash).jpg |

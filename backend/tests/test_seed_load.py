@@ -93,7 +93,7 @@ def test_every_city_has_iso_subdivisions():
 
 def test_unknown_origin_airport_raises_instead_of_returning_all_ferie():
     with pytest.raises(KeyError):
-        load.school_breaks(airport="POZ")
+        load.school_breaks(airport="LCJ")  # not an origin we offer
     for airport in ORIGINS:  # every supported origin maps to a voivodeship
         assert load.voivodeship_for_airport(airport).startswith("PL-")
 

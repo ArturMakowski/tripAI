@@ -10,6 +10,7 @@ import { nameOf } from "@/lib/i18n/messages/profile";
 import { FACTORS } from "@/lib/scoring";
 import type { DnaResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { formatOrigins } from "@/lib/airports";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -240,8 +241,8 @@ export function DnaResult({
             <span className="flex items-center gap-2 text-ink-soft">
               <Plane className="size-4 text-pine" /> {s.from}
             </span>
-            <button onClick={() => onEditStep("trip")} className="flex items-center gap-1.5 font-mono font-medium text-ink">
-              {airports.join(", ")}
+            <button onClick={() => onEditStep("trip")} className="flex items-center gap-1.5 text-right font-medium text-ink">
+              {formatOrigins(airports, lang)}
               <Pencil className="size-3.5 text-muted-foreground" aria-label={s.change} />
             </button>
           </li>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Ban, MessageCircle, Plane } from "lucide-react";
+import { ArrowRight, Ban, MessageCircle } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { DnaDeck } from "@/components/dna-deck";
 import { DnaResult } from "@/components/dna-result";
@@ -17,9 +17,9 @@ import { useT } from "@/lib/i18n";
 import { useHydrated, useTrip, type DeckStep } from "@/lib/store";
 import { useUsableRanges } from "@/lib/windows-store";
 import { QuickDates } from "@/components/date-picker/free-dates-planner";
-import { cn } from "@/lib/utils";
+import { AirportPicker } from "@/components/airport-picker";
+import { expandToCity } from "@/lib/airports";
 
-const AIRPORTS = ["KRK", "KTW", "WAW", "WMI", "GDN", "WRO", "POZ", "RZE"] as const;
 
 
 function Dots({ total, done }: { total: number; done: number }) {
@@ -129,7 +129,8 @@ export default function SwipeOnboarding() {
     setProfile({
       ...result.profile,
       budget_pln: profile?.budget_pln ?? null,
-      origin_airports: airports.length ? airports : ["KRK"],
+      // a city covers all its airports (Warszawa = WAW + WMI), also for selections saved earlier
+      origin_airports: expandToCity(airports.length ? airports : ["KRK"]),
       // party size from the airport step; flights are priced × travellers, the stay per room
       adults: deck.party ?? profile?.adults ?? 1,
       children: deck.party != null ? 0 : (profile?.children ?? 0),
@@ -181,29 +182,7 @@ export default function SwipeOnboarding() {
             <PartyPicker className="mt-6" value={deck.party ?? partySize(profile)} onChange={(n) => setDeck({ party: n })} />
 
             <h2 className="mt-6 text-sm font-semibold text-ink">{t.airportTitle}</h2>
-            <div className="mt-2 grid grid-cols-4 gap-1.5">
-              {AIRPORTS.map((code) => {
-                const on = airports.includes(code);
-                return (
-                  <motion.button
-                    key={code}
-                    whileTap={{ scale: 0.97 }}
-                    role="checkbox"
-                    aria-checked={on}
-                    aria-label={`${code} ${t.airports[code]}`}
-                    title={t.airports[code]}
-                    onClick={() => setDeck({ airports: on ? airports.filter((a) => a !== code) : [...airports, code] })}
-                    className={cn(
-                      "flex items-center justify-center gap-1 rounded-xl border py-2.5 font-mono text-sm font-semibold transition-colors",
-                      on ? "border-pine bg-pine text-primary-foreground shadow-soft" : "border-line bg-card text-ink",
-                    )}
-                  >
-                    <Plane className={cn("size-3.5", on ? "text-paper" : "text-pine")} aria-hidden />
-                    {code}
-                  </motion.button>
-                );
-              })}
-            </div>
+            <AirportPicker className="mt-2" value={airports} onChange={(next) => setDeck({ airports: next })} />
 
             <div className="mt-auto flex gap-3 pt-8">
               {/* Back = undo the last swipe, like the deck's own undo */}

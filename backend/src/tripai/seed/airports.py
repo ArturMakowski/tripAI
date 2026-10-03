@@ -14,7 +14,35 @@ import sys
 from tripai.seed._common import client, meta, read_json, write_json
 
 URL = "https://davidmegginson.github.io/ourairports-data/airports.csv"
-ORIGINS = ("KRK", "KTW", "WAW", "GDN")
+# PL origin airports offered in the app, in picker order. `city` groups airports that serve the same
+# city (Warszawa: Chopin + Modlin); `label` is how the airport is named everywhere in the UI, so a
+# secondary airport never passes for the city itself ("Warszawa-Modlin (WMI)", not "Modlin").
+ORIGIN_LABELS: dict[str, dict[str, dict[str, str]]] = {
+    "KRK": {"city": {"pl": "Kraków", "en": "Kraków"}, "label": {"pl": "Kraków", "en": "Kraków"}},
+    "WAW": {
+        "city": {"pl": "Warszawa", "en": "Warsaw"},
+        "label": {"pl": "Warszawa-Chopin", "en": "Warsaw Chopin"},
+    },
+    "WMI": {
+        "city": {"pl": "Warszawa", "en": "Warsaw"},
+        "label": {"pl": "Warszawa-Modlin", "en": "Warsaw Modlin"},
+    },
+    "KTW": {
+        "city": {"pl": "Katowice", "en": "Katowice"},
+        "label": {"pl": "Katowice-Pyrzowice", "en": "Katowice-Pyrzowice"},
+    },
+    "GDN": {"city": {"pl": "Gdańsk", "en": "Gdańsk"}, "label": {"pl": "Gdańsk", "en": "Gdańsk"}},
+    "WRO": {
+        "city": {"pl": "Wrocław", "en": "Wrocław"},
+        "label": {"pl": "Wrocław", "en": "Wrocław"},
+    },
+    "POZ": {"city": {"pl": "Poznań", "en": "Poznań"}, "label": {"pl": "Poznań", "en": "Poznań"}},
+    "RZE": {
+        "city": {"pl": "Rzeszów", "en": "Rzeszów"},
+        "label": {"pl": "Rzeszów-Jasionka", "en": "Rzeszów-Jasionka"},
+    },
+}
+ORIGINS = tuple(ORIGIN_LABELS)
 
 
 def wanted() -> set[str]:
@@ -36,6 +64,7 @@ def parse(text: str, codes: set[str]) -> list[dict]:
                     "lon": round(float(r["longitude_deg"]), 5),
                     "municipality": r.get("municipality") or None,
                     "country": r["iso_country"],
+                    **ORIGIN_LABELS.get(r["iata_code"], {}),
                 }
             )
     return sorted(rows, key=lambda r: r["iata"])

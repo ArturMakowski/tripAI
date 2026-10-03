@@ -1,20 +1,19 @@
 "use client";
 
 import { AppShell, ModeBadge, PageTitle } from "@/components/shell";
-import { DNA_DECK } from "@/lib/dna";
+import { DNA_DECK, licenseUrl } from "@/lib/dna";
 import { useT, type Lang } from "@/lib/i18n";
 import { allCityPhotos, type PhotoCredit } from "@/lib/photos";
 
 type Row = { key: string; title: string; src: string; credit: Pick<PhotoCredit, "author" | "license" | "source"> & { licenseUrl?: string } };
 
 const CITY_ROWS: Row[] = allCityPhotos().map((p) => ({ key: p.src, title: p.city, src: p.src, credit: p }));
-// Travel DNA cards with their own photos; the ones that reuse a city photo are already listed above.
 const deckRows = (lang: Lang): Row[] =>
-  DNA_DECK.filter((c) => c.image.startsWith("/swipe/")).map((c) => ({
+  DNA_DECK.map((c) => ({
     key: c.id,
     title: c.short[lang].charAt(0).toUpperCase() + c.short[lang].slice(1),
     src: c.image,
-    credit: c.credit,
+    credit: { ...c.credit, licenseUrl: licenseUrl(c.credit.license) },
   }));
 
 function CreditList({ rows }: { rows: Row[] }) {
@@ -61,6 +60,7 @@ export default function Credits() {
       <h2 className="mt-2 mb-1 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.credits.destinations}</h2>
       <CreditList rows={CITY_ROWS} />
       <h2 className="mt-8 mb-1 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.credits.dnaCards}</h2>
+      <p className="mb-1 text-xs text-muted-foreground">{t.credits.cropped}</p>
       <CreditList rows={deckRows(lang)} />
     </AppShell>
   );

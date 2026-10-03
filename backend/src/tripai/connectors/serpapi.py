@@ -348,6 +348,7 @@ class SerpApiFlights(_SerpApi):
         stops: int | None = None,
     ) -> FlightPriceInsights:
         params = {
+            # one city's airports in one search: "WAW,WMI" (Google Flights takes a comma list)
             "departure_id": origin,
             "arrival_id": destination,
             "type": 1 if return_date else 2,
@@ -359,7 +360,9 @@ class SerpApiFlights(_SerpApi):
         params = {k: v for k, v in params.items() if v is not None}
         f = await self._search(
             params,
-            fixture=f"{origin}-{destination}",
+            # fixture name: the group's first airport; `match` still requires the recorded
+            # departure_id, so KRK data is never served as a WAW,WMI search
+            fixture=f"{origin.split(',')[0]}-{destination}",
             match=("departure_id", "arrival_id", "outbound_date", "return_date"),
         )
         payload, fetched_at = f.payload, f.fetched_at

@@ -68,7 +68,11 @@
     "KRK": "PL-12",
     "KTW": "PL-24",
     "WAW": "PL-14",
-    "GDN": "PL-22"
+    "WMI": "PL-14",
+    "GDN": "PL-22",
+    "WRO": "PL-02",
+    "POZ": "PL-30",
+    "RZE": "PL-18"
   },
   "public": [
     {

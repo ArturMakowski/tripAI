@@ -569,3 +569,27 @@ no anon policy. **The president applies it before deploy.** Until then, the back
   `price_drop` baseline still persist.
 - Target and last-check values stay in memory and are merged back into the Supabase rows this process reads.
 - `trips` writes are logged and served from memory.
+
+## Origin airports + Travel DNA photos (T15)
+
+- **Origin airports.** Defined once in `tripai.seed.airports.ORIGINS`/`ORIGIN_LABELS`, written to `data/airports.json` as
+  `city` + `label`, and mirrored in `frontend/lib/airports.ts` (a test keeps the two in sync). The airports are KRK, WAW,
+  WMI, KTW, GDN, WRO, POZ and RZE.
+  - A secondary airport is always named with the city it serves: "Warszawa-Modlin (WMI)" / "Warsaw Modlin (WMI)",
+    "Katowice-Pyrzowice (KTW)", "Rzeszów-Jasionka (RZE)".
+- **City picker.** In `components/airport-picker.tsx` the city is the unit: Warszawa = WAW + WMI. `expandToCity()` runs
+  before a selection is saved, in onboarding and on the profile.
+- **Every origin is searched.** `tripai.scoring.origins.candidates_for_origins` groups the airports by city, and each city
+  is one provider call with a comma origin (`"WAW,WMI"`).
+  - Google Flights gets one SerpApi search per city (comma `departure_id`).
+  - Travelpayouts and fixtures loop over the airports; the fixture name uses the group's first airport.
+  - Only the first city gets the metered pipeline. Further cities get the cheap pass: Travelpayouts and cached SerpApi,
+    no sample fallback.
+  - The cheapest offer per (destination, window) wins, labelled with the airport it departs from.
+- **Route priors.** Every origin maps to a voivodeship for school breaks; WMI, WRO, POZ and RZE used to raise a
+  `KeyError`. They also have conservative `direct_from` priors in `tripai.seed.cities`.
+- **Travel DNA photos** (`frontend/public/swipe/`, credits in `CREDITS.md` and on `/credits` only, never in other
+  views). Each card has one photo that literally shows the statement: q2 a checklist being ticked off, q6 a beach hammock,
+  q12 pins on places you've been, y2 a tape measure ("made to measure"), and so on.
+  - Only CC0, public domain or CC BY images are used, cropped to 900×1200 and under 250 KB; a test enforces all of this.
+  - Licence links on `/credits` are derived from the licence name (`licenseUrl`).

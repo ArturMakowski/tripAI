@@ -375,6 +375,9 @@ class Airport(BaseModel):
     lon: float
     municipality: str | None = None
     country: str
+    # PL origins only (tripai.seed.airports.ORIGIN_LABELS): {"pl": ..., "en": ...}
+    city: dict[str, str] | None = None  # the city it serves, for grouping (WAW + WMI -> Warszawa)
+    label: dict[str, str] | None = None  # how the UI names it ("Warszawa-Modlin")
 
 
 @cache
@@ -389,3 +392,16 @@ def _airports() -> dict[str, Airport]:
 def airport(iata: str) -> Airport | None:
     """Coordinates of a seed airport (OurAirports snapshot), or None."""
     return _airports().get(iata.upper())
+
+
+def origin_airports() -> list[Airport]:
+    """PL origin airports offered in the app (the ones with a UI label)."""
+    return [a for a in _airports().values() if a.label]
+
+
+def airport_label(iata: str, lang: str = "en") -> str:
+    """'Warszawa-Modlin (WMI)' / 'Warsaw Modlin (WMI)'; unknown or non-origin airports: the code."""
+    ap = airport(iata)
+    if ap is None or not ap.label:
+        return iata.upper()
+    return f"{ap.label.get(lang) or ap.label['en']} ({ap.iata})"

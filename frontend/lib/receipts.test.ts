@@ -6,8 +6,10 @@ import { weightsFromSlider } from "./scoring";
 import { sameWeights } from "./use-recommendations";
 
 const rec = scoreLocally(DEMO_PROFILE, weightsFromSlider(50))[0];
+// label-based cases: no itinerary attached (the itinerary's first leg wins when there is one)
 const fromWaw = {
   ...rec,
+  flight: null,
   evidence: rec.evidence.map((e) => (e.kind === "flight" ? { ...e, label: "Return WAW-MLA 01.01-03.01" } : e)),
 };
 
@@ -16,8 +18,15 @@ describe("hand-off uses the priced origin", () => {
     expect(originOf(rec)).toBe("KRK");
     expect(originOf(fromWaw)).toBe("WAW");
   });
+  it("prefers the itinerary's departure airport and reads a city group's first airport", () => {
+    const leg = { airline: "Ryanair", flight_number: null, from_iata: "WMI", to_iata: "MLA", depart_at: null, arrive_at: null, duration_min: null };
+    const flight = { outbound: [leg], inbound: [], stops_outbound: 0, stops_inbound: null } as unknown as NonNullable<typeof rec.flight>;
+    expect(originOf({ ...fromWaw, flight })).toBe("WMI");
+    const group = { ...rec, flight: null, evidence: rec.evidence.map((e) => (e.kind === "flight" ? { ...e, label: "Typical return WAW/WMI-MLA in Jan" } : e)) };
+    expect(originOf(group)).toBe("WAW");
+  });
   it("falls back to the profile airport when evidence has none", () => {
-    expect(originOf({ ...rec, evidence: [] }, "KTW")).toBe("KTW");
+    expect(originOf({ ...rec, flight: null, evidence: [] }, "KTW")).toBe("KTW");
   });
   it("puts the origin into the Google Flights link", () => {
     expect(decodeURIComponent(handoffLinks(fromWaw)[0].url)).toContain("Flights from WAW to");

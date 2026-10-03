@@ -213,6 +213,7 @@ class FixtureProvider:
         weights: Weights | None = None,
         typical_spend_pln: float | None = None,
     ) -> list[Candidate]:
+        origin = origin.split(",")[0]  # a city group ("WAW,WMI"): sample data per first airport
         out = [self._candidate(c, origin, w, luxury) for c in self._cities for w in windows]
         n, r = party.travelers(profile), party.rooms(profile)
         if n == 1 and r == 1:
