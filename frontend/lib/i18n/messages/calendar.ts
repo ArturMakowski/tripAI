@@ -16,7 +16,8 @@ const plural = (n: number, one: string, few: string, many: string) => {
 export const en = {
   locale: "en-GB",
   sectionTitle: "Pick your dates",
-  sectionLead: "Tap a start day, then an end day. Add as many as you like and we'll show where it's worth going.",
+  sectionHint: "Tap a start, then an end.",
+  legendTitle: "Legend",
   calendarLabel: "Date range calendar",
   prevMonth: "Previous month",
   nextMonth: "Next month",
@@ -53,7 +54,6 @@ export const en = {
   flexOff: "Exact dates",
   flexDays: (n: number) => `± ${n}`,
   listTitle: "Your dates",
-  empty: "Nothing picked yet. We'll use your calendar and the long-weekend radar.",
   dayCount: (n: number) => `${n} day${n > 1 ? "s" : ""}`,
   anyDays: (n: number) => `any ${n} days`,
   remove: (range: string) => `Remove ${range}`,
@@ -93,7 +93,8 @@ export const en = {
 export const pl: Shape<typeof en> = {
   locale: "pl-PL",
   sectionTitle: "Wybierz swoje terminy",
-  sectionLead: "Stuknij dzień początku i dzień końca. Możesz dodać kilka terminów. Pokażemy, gdzie warto wtedy lecieć.",
+  sectionHint: "Dotknij początku, potem końca.",
+  legendTitle: "Legenda",
   calendarLabel: "Kalendarz wyboru terminów",
   prevMonth: "Poprzedni miesiąc",
   nextMonth: "Następny miesiąc",
@@ -137,7 +138,6 @@ export const pl: Shape<typeof en> = {
   flexDays: (n: number) => `± ${n}`,
   // list
   listTitle: "Wybrane terminy",
-  empty: "Nic jeszcze nie wybrano. Polecimy według Twojego kalendarza i radaru długich weekendów.",
   dayCount: (n: number) => `${n} ${plural(n, "dzień", "dni", "dni")}`,
   anyDays: (n: number) => `dowolne ${n} dni`,
   remove: (range: string) => `Usuń termin ${range}`,

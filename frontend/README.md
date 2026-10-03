@@ -28,21 +28,29 @@ Demo script: interview → windows → trips → drag the slider to **Price** (A
 → "Fill demo answers" → crowd weight goes up → Rome goes back to #1.
 
 ## Travel DNA swipe onboarding (`/onboarding`)
-Profile creation is a swipe deck built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12 statements (q1–q12) and 2 yes/no cards
+**Order (user testing, docs/USER_TESTING.md): dates and party size come before any price question.**
+- **Step 1, "Kiedy i z kim?"** has three parts:
+  - quick date chips (this weekend, next long weekend, any 5 days next month), which feed the same store as `/windows`;
+  - a party stepper, 1–12 people;
+  - home-airport chips.
+- **Step 2** is the swipe deck below. Its price statements (q9/q10) come only here.
+- **No budget step.** Price sensitivity comes from DNA q9/q10. A hard limit is optional in Profile (docs/BUDGET.md), shown per person and per trip.
+- **When the deck ends,** the result is computed and shown. "Looks right" goes to `/trips` if dates were picked, otherwise to `/windows`.
+
+The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12 statements (q1–q12) and 2 yes/no cards
 (y1, y2). Copy is Polish first, with an EN toggle.
 
 - **Gestures.** ← left = 1 "Nie ja", ↓ down = 3 "Zależy", → right = 4 "To ja", ↑ up = 5 "Bardzo ja!". Yes/no cards: → Tak, ← Nie.
   The same choices are available as buttons and arrow keys. Backspace undoes the last swipe.
 - **Motion.** Cards tilt with the drag, show direction stamps, fly out with spring physics, and fly back in on undo.
   Progress dots track the deck. Progress survives a reload.
-- **Budget and airports.** Two quick tap screens follow the deck: a budget slider and home-airport chips.
 - **Result.** Answers are POSTed to `/profile/dna`. **The UI never derives the profile itself.** Until T1b ships the route, `lib/mock/dna.ts`
   implements the spec formulas verbatim and `lib/dna.test.ts` pins them. The result screen renders the returned `reasons`
   ("na podstawie: „Bardzo ja!” przy …" / "because you swiped “So me!” on …").
   - Every answer can be edited on a 1–5 dot scale; 2 "Raczej nie" is only reachable there. Each edit re-POSTs.
   - y2 = No shows "recommendations won't adapt; post-trip feedback won't change your profile". The survey repeats that notice,
     and the mock feedback keeps the profile unchanged.
-- **Hand-off.** "Looks right" stores the profile (with budget and airports) and the DNA weights, then continues to free windows.
+- **Hand-off.** "Looks right" stores the profile (with airports and party size) and the DNA weights, then continues to free windows.
   "Fine-tune by chat" opens the earlier LLM interview, now at `/onboarding/chat`.
 - **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA) or Unsplash (CC0). Three cards reuse
   bundled city photos and their credits. Every card shows its photo credit, and the full list is in `public/swipe/CREDITS.md`.
@@ -59,7 +67,7 @@ Profile creation is a swipe deck built from the team questionnaire in `docs/TRAV
     The push toast floats over the page, so the cards never jump.
   - **Accessibility:** one persistent screen-reader live region. `MotionConfig reducedMotion="user"` app-wide plus a static plane and
     no sheen under `prefers-reduced-motion`.
-- **Budget.**
+- **Budget** (only when the optional "Never show trips over…" limit is on in Profile; off by default).
   - A "Budget 1,000 PLN · set in profile" chip links to the profile.
   - Cards show "Over budget +X PLN" from the backend's `over_budget_pln`, falling back to total minus budget.
   - An over-budget #1 is never shown without a banner. Either "Nothing fits {budget} for these dates — closest options" (naming the
@@ -74,10 +82,44 @@ overall rating is half stars with the exact value in small text (`★★★★½
   - overall stars = `round(total × 10) / 2`, i.e. half steps on 0–5
   - the small number = `total × 5`, one decimal
   - each factor = `clamp(round(score × 5), 1, 5)`
-- **Auditability is one tap away.** "Audit · N sources" / "Audyt · N źródeł" on the receipt expands the exact factor score × weight
-  bars and the total (`NN.N / 100 = 4.4/5`), "what would flip it", every evidence row with its source and timestamp, and the
-  inputs hash. Evidence links in the fit section open it automatically.
+- **Auditability is one tap away.** The receipt's collapsed rows hold the precise parts: "Compare", "What would flip it",
+  "Evidence · N sources" (every row with its source and timestamp) and "Audit" (factor score × weight bars, the total as
+  `NN.N / 100 = 4.4/5`, the formula, the inputs hash, the fit-check model). Evidence links in the fit section open the right row.
 - **Accessibility:** each rating has an `aria-label` such as "Pogoda: 4 z 5 gwiazdek" or "Weather: 4 out of 5 stars".
+
+## Declutter and money (docs/DECLUTTER.md, docs/BUDGET.md)
+- **Less text, same trust.** Every screen keeps its numbers, sources and one primary action visible, and moves explanations
+  behind small primitives in `components/declutter.tsx`: `Disclosure` (a collapsed "Evidence · 8 sources ›" row that opens
+  itself when a link targets something inside), `InfoTip` (ⓘ expands one line in place) and `Chip` (a compact source or fact).
+  The data-source pill moved to `/credits`. The receipt keeps the hero, a two-line AI "why" with More, the stars row, bold fit
+  claims and the money lines with one source chip each. Everything else is one tap away.
+- **One money block.** `lib/money.ts` `moneyOf()` is the only place a trip total is computed. Cards (`TripPrice`), the receipt
+  and confirm (`MoneyLines`) all render through it, so the same trip shows the same total everywhere, in both loading phases
+  and both languages. `components/money-consistency.test.tsx` renders all three for solo, party, exact, partial and estimate
+  trips and compares them.
+- **Party size.** An "Ile osób?" stepper (1–12) on onboarding's first step and in the Trips header writes `adults` (rooms
+  default to ceil(people / 2)). Cards say "2 osoby · 2 480 zł razem · 1 240 zł/os." from `party_total_pln` / `per_person_pln`;
+  the receipt and confirm show "Loty × 2", "Nocleg, 4 noce × 2 pokoje", "Razem za 3 os." and "na osobę".
+- **Hotel line says what was priced:** "Hotel Raphael, 4 noce" for a specific hotel (`rec.hotel.name`), "Nocleg, 4 noce ·
+  średnia w mieście" for a city average.
+- **Off the user view (Audit at most):** the inputs hash, the AI-check model and confidence line, and data confidence. Stock
+  photos (image URLs, `serper:images`) are never listed as evidence. The crowd index reads "Tłum: 12% szczytu sezonu", and
+  "what would flip it" names a concrete trigger: "Jeśli Rzym podrożeje o 193 zł, lepszą opcją będzie Lizbona".
+- **Price honesty.** `price_status: "estimate"` renders muted as "od ~1 718 zł (inne daty)" with the reason behind ⓘ, never
+  styled like a price, and without "vs peak" or "vs typical" comparisons. `"partial"` marks only the estimated leg
+  ("≈ 690 zł szac." with ⓘ). Estimate sources read "Szacunek · średnia miasta" / "Google Travel Explore · inne daty".
+- **Value badges.** "Świetna cena" / "Warto dopłacić +300 zł" from `value_badge` / `value_reason`; tapping the badge shows the
+  reason. In fixture mode `lib/value.ts` derives them with the BUDGET.md rules (never on estimates).
+- **Live price honesty:** `moneyOf()` takes the more honest of the declared `price_status` and what the evidence says
+  (Travel Explore / "not your exact dates" / Aviasales month median / `estimate:*` sources). An API "exact" never hides an
+  other-dates price; `lib/money.test.ts` pins the Nice 11–15 Nov case (358 + 1 292 zł → estimate). Estimates never enter a
+  comparison: no "vs runner-up" money delta, no value badge against them, no push.
+- **Receipt order:** hero (price via `PriceInline`) → fit badge + AI chip → money lines with source chips (above the
+  fold) → stars + one fit claim ("+2 kolejne ›") → the two-line why → collapsed rows (flight, stay + map, compare, flip,
+  evidence, audit).
+- **Evidence values** go through `lib/evidence-display.ts`: crowds with peak data read "Tłum · 46% szczytu sezonu"; a
+  relative scale (`unit: "0-1 rel"`, e.g. London) reads "76/100 (0 = najspokojniejszy miesiąc)", never a percentage.
+- **Comparisons name the trip:** "Rzym: wynik wyższy o 3,6 pkt · drożej o 108 zł".
 
 ## Pick your dates (`/windows`, T4f)
 A mobile-first month calendar at the top of Free time. The user taps a start day, then an end day, to pick a date range.

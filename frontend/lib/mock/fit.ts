@@ -19,8 +19,8 @@ const TEXT = {
     cheaperMedian: "Cheaper than the seasonal median for this trip",
     belowFare: "Flight below the typical fare range for this route",
     active: "Good for being active outdoors",
-    crowdsSaid: (c: string) => `Crowd index ${c} of peak, and you said you like travelling away from crowds`,
-    crowdsDisliked: (c: string) => `Crowd index ${c} of peak, and you listed crowds as a dislike`,
+    crowdsSaid: (c: string) => `Crowds: ${c}% of peak season, and you said you like travelling away from crowds`,
+    crowdsDisliked: (c: string) => `Crowds: ${c}% of peak season, and you listed crowds as a dislike`,
     nightlife: "Known for nightlife, but you're mostly after rest",
     tempOut: (t: string) => `Around ${t} °C, outside your comfortable range`,
     rain: (n: string) => `About ${n} rainy days expected in the window`,
@@ -37,8 +37,8 @@ const TEXT = {
     cheaperMedian: "Taniej niż sezonowa mediana dla tego wyjazdu",
     belowFare: "Lot poniżej typowego przedziału cen na tej trasie",
     active: "Dobre miejsce na aktywność na świeżym powietrzu",
-    crowdsSaid: (c: string) => `Wskaźnik tłoku ${c} szczytu, a lubisz podróżować z dala od tłumów`,
-    crowdsDisliked: (c: string) => `Wskaźnik tłoku ${c} szczytu, a tłok jest na Twojej liście rzeczy do unikania`,
+    crowdsSaid: (c: string) => `Tłum: ${c}% szczytu sezonu, a lubisz podróżować z dala od tłumów`,
+    crowdsDisliked: (c: string) => `Tłum: ${c}% szczytu sezonu, a tłum jest na Twojej liście rzeczy do unikania`,
     nightlife: "Słynie z nocnego życia, a Ty szukasz głównie odpoczynku",
     tempOut: (t: string) => `Około ${t} °C, poza Twoim komfortowym zakresem`,
     rain: (n: string) => `W tym terminie spodziewanych jest około ${n} deszczowych dni`,
@@ -117,7 +117,7 @@ export function rulesFit(rec: Recommendation, profile: TasteProfile, model = "ru
   // --- concerns ----------------------------------------------------------------------
   if (Number.isFinite(crowd) && crowd >= 0.45 && (crowdHaters.length || dislikesCrowds))
     concerns.push({
-      text: crowdHaters.length ? T.crowdsSaid(dec(crowd)) : T.crowdsDisliked(dec(crowd)),
+      text: crowdHaters.length ? T.crowdsSaid(String(Math.round(crowd * 100))) : T.crowdsDisliked(String(Math.round(crowd * 100))),
       dna: crowdHaters,
       evidence: cite(["crowds"]),
       severity: 2,

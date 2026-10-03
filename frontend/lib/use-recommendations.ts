@@ -5,6 +5,7 @@ import { api } from "./api";
 import { useLang, type Lang } from "./i18n";
 import { withReceipts } from "./mock/api";
 import { CLIENT_PREVIEW_MODEL, withFit } from "./mock/fit";
+import { withValueBadges } from "./value";
 import { DEMO_PROFILE } from "./mock/fixtures";
 import { normalise, rerank } from "./scoring";
 import { profileKey, RECS_TTL_MS, useHydrated, useTrip } from "./store";
@@ -134,7 +135,9 @@ export function useRecommendations() {
     // Fixture verdicts are always derived from this ranking (drop any stored one so it can't go stale).
     const r = fixture ? withReceipts(rerank(recs, weights), weights).map((x) => ({ ...x, fit: undefined })) : rerank(recs, weights);
     // Backend verdicts win; until the fit agent ships, a rule-based preview is computed here and labelled as such.
-    return withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL, fitLang);
+    const fitted = withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL, fitLang);
+    // Value badges compare against the current top 5, so in fixture mode they follow the ranking like fit does.
+    return fixture ? withValueBadges(fitted.map((x) => ({ ...x, value_badge: undefined, value_reason: undefined })), fitLang) : fitted;
   }, [recs, weights, fixture, fitProfile, fitLang]);
   return {
     ranked,

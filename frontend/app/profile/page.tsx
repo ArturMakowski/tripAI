@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Languages, Lock } from "lucide-react";
+import { InfoTip } from "@/components/declutter";
 import { LangSwitch } from "@/components/lang-switch";
 import { ProfileChips } from "@/components/profile-chips";
 import { AppShell, PageTitle } from "@/components/shell";
@@ -23,7 +24,13 @@ export default function ProfilePage() {
   return (
     <AppShell>
       <PageTitle eyebrow={t.eyebrow} title={t.title}>
-        {t.intro}
+        {t.intro}{" "}
+        <InfoTip>
+          <span className="flex items-start gap-1.5">
+            <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+            {t.aiNote}
+          </span>
+        </InfoTip>
       </PageTitle>
 
       <ProfileChips
@@ -33,18 +40,10 @@ export default function ProfilePage() {
         }}
       />
 
-      <p className="mt-5 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-        <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-        {t.aiNote}
-      </p>
-
       <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-line bg-card px-4 py-3 shadow-soft">
-        <div>
-          <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-            <Languages className="size-4 text-pine" aria-hidden /> {t.languageTitle}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{t.languageHint}</p>
-        </div>
+        <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <Languages className="size-4 text-pine" aria-hidden /> {t.languageTitle}
+        </p>
         <LangSwitch size="md" />
       </div>
 

@@ -3,21 +3,23 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Ban, MessageCircle, Plane, RotateCcw } from "lucide-react";
+import { ArrowRight, Ban, MessageCircle, Plane } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { DnaDeck } from "@/components/dna-deck";
 import { DnaResult } from "@/components/dna-result";
+import { PartyPicker } from "@/components/money";
+import { partySize } from "@/lib/money";
 import { AppShell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { api, USER_ID } from "@/lib/api";
 import { collectAnswers, DNA_DECK, STATEMENT_ANSWER, YESNO_ANSWER, type DnaCard, type Gesture } from "@/lib/dna";
 import { useT } from "@/lib/i18n";
-import { useHydrated, useTrip } from "@/lib/store";
+import { useHydrated, useTrip, type DeckStep } from "@/lib/store";
+import { useUsableRanges } from "@/lib/windows-store";
+import { QuickDates } from "@/components/date-picker/free-dates-planner";
 import { cn } from "@/lib/utils";
 
 const AIRPORTS = ["KRK", "KTW", "WAW", "WMI", "GDN", "WRO", "POZ", "RZE"] as const;
-const BUDGET_MAX = 6000;
 
 
 function Dots({ total, done }: { total: number; done: number }) {
@@ -55,9 +57,12 @@ const slide = {
 export default function SwipeOnboarding() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { deck, setDeck, setProfile, setWeights, setMode } = useTrip();
-  const { swipes, step, budget, airports, result } = deck;
-  const { t: all, fmt, lang } = useT();
+  const { deck, setDeck, profile, setProfile, setWeights, setMode } = useTrip();
+  const { swipes, airports, result } = deck;
+  // Saved state from the old order (deck → budget → airports) lands on the first step.
+  const step: DeckStep = ["budget", "airport"].includes(deck.step as string) ? "trip" : deck.step;
+  const ranges = useUsableRanges();
+  const { t: all, lang } = useT();
   const t = all.onboarding;
   const advance = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -73,7 +78,11 @@ export default function SwipeOnboarding() {
     const next = [...swipes, { id: card.id, value }];
     setDeck({ swipes: next });
     // Let the last card fly out first; undo within that moment cancels the jump.
-    if (next.length >= DNA_DECK.length) advance.current = setTimeout(() => setDeck({ step: "budget" }), 380);
+    if (next.length >= DNA_DECK.length)
+      advance.current = setTimeout(() => {
+        setDeck({ step: "result" });
+        void compute(collectAnswers(next));
+      }, 380);
   }
 
   function undo() {
@@ -119,13 +128,23 @@ export default function SwipeOnboarding() {
 
   function finish() {
     if (!result) return;
-    setProfile({ ...result.profile, budget_pln: budget, origin_airports: airports.length ? airports : ["KRK"] });
+    // Price sensitivity comes from DNA q9/q10; a hard "never over X" limit is optional and lives in Profile.
+    setProfile({
+      ...result.profile,
+      budget_pln: profile?.budget_pln ?? null,
+      origin_airports: airports.length ? airports : ["KRK"],
+      // party size from the airport step; flights are priced × travellers, the stay per room
+      adults: deck.party ?? profile?.adults ?? 1,
+      children: deck.party != null ? 0 : (profile?.children ?? 0),
+      rooms: null,
+    });
     setWeights(result.weights);
-    router.push("/windows");
+    // dates were picked on the first step: straight to trips; otherwise the calendar
+    router.push(ranges.length ? "/trips" : "/windows");
   }
 
   function restart() {
-    setDeck({ swipes: [], step: "swipe", result: null });
+    setDeck({ swipes: [], step: "trip", result: null });
   }
 
   if (!hydrated) return <AppShell nav={false}>{null}</AppShell>;
@@ -141,6 +160,11 @@ export default function SwipeOnboarding() {
               {DNA_DECK[position]?.kind === "yesno" ? t.hintYesNo : t.hint}
             </p>
             <DnaDeck cards={DNA_DECK} position={position} lang={lang} onAnswer={answer} onUndo={undo} undoGesture={undoGesture} />
+            {position === 0 && (
+              <button onClick={() => setDeck({ step: "trip" })} className="mt-5 text-center text-sm text-muted-foreground hover:text-ink">
+                ← {t.back}
+              </button>
+            )}
             <Link
               href="/onboarding/chat"
               className="mt-6 flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-ink"
@@ -150,61 +174,23 @@ export default function SwipeOnboarding() {
           </motion.section>
         )}
 
-        {step === "budget" && (
-          <motion.section key="budget" {...slide} className="flex min-h-[70dvh] flex-col pt-6 pb-8">
-            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.step(2, 3)}</p>
-            <h1 className="mt-1 font-display text-[2rem] leading-tight text-ink">{t.budgetTitle}</h1>
-            <p className="mt-2 text-[15px] text-ink-soft">{t.budgetSub}</p>
-            <motion.p
-              key={budget ?? "flex"}
-              initial={{ scale: 0.96, opacity: 0.6 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="tabular mt-10 text-center font-display text-[3.4rem] leading-none text-ink"
-            >
-              {budget == null ? t.flexible : fmt.pln(budget)}
-            </motion.p>
-            <Slider
-              className="mt-8 py-2 [&_[data-slot=slider-thumb]]:size-7 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-pine [&_[data-slot=slider-track]]:h-2"
-              min={600}
-              max={BUDGET_MAX}
-              step={100}
-              value={[budget ?? BUDGET_MAX]}
-              onValueChange={([v]) => setDeck({ budget: v >= BUDGET_MAX ? null : v })}
-              aria-label={t.budgetTitle}
-            />
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {[1000, 1800, 3000, null].map((v) => (
-                <button
-                  key={String(v)}
-                  onClick={() => setDeck({ budget: v })}
-                  className={cn(
-                    "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
-                    budget === v ? "border-pine bg-pine text-primary-foreground" : "border-line bg-card text-ink-soft",
-                  )}
-                >
-                  {v == null ? t.flexible : fmt.pln(v)}
-                </button>
-              ))}
-            </div>
-            <div className="mt-auto flex gap-3 pt-10">
-              <Button variant="outline" size="lg" className="h-12 rounded-2xl" onClick={() => setDeck({ step: "swipe", swipes: swipes.slice(0, -1) })}>
-                <RotateCcw data-icon="inline-start" /> {t.undo}
-              </Button>
-              <Button size="lg" className="h-12 flex-1 rounded-2xl text-base" onClick={() => setDeck({ step: "airport" })}>
-                {t.next} <ArrowRight data-icon="inline-end" />
-              </Button>
-            </div>
-          </motion.section>
-        )}
+        {step === "trip" && (
+          <motion.section key="trip" {...slide} className="flex min-h-[70dvh] flex-col pt-4 pb-8">
+            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.step(1, 2)}</p>
+            <h1 className="mt-1 font-display text-[2rem] leading-tight text-ink">{t.tripTitle}</h1>
+            <p className="mt-1 text-[15px] text-ink-soft">{t.tripSub}</p>
 
-        {step === "airport" && (
-          <motion.section key="airport" {...slide} className="flex min-h-[70dvh] flex-col pt-6 pb-8">
-            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.step(3, 3)}</p>
-            <h1 className="mt-1 font-display text-[2rem] leading-tight text-ink">{t.airportTitle}</h1>
-            <p className="mt-2 text-[15px] text-ink-soft">{t.airportSub}</p>
-            <div className="mt-8 grid grid-cols-2 gap-2.5">
+            <h2 className="mt-6 text-sm font-semibold text-ink">{t.datesLabel}</h2>
+            <div className="mt-2">
+              <QuickDates />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{t.datesHint}</p>
+
+            <PartyPicker className="mt-6" value={deck.party ?? partySize(profile)} onChange={(n) => setDeck({ party: n })} />
+
+            <h2 className="mt-6 text-sm font-semibold text-ink">{t.airportTitle}</h2>
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
               {AIRPORTS.map((code) => {
-                const city = t.airports[code];
                 const on = airports.includes(code);
                 return (
                   <motion.button
@@ -212,35 +198,34 @@ export default function SwipeOnboarding() {
                     whileTap={{ scale: 0.97 }}
                     role="checkbox"
                     aria-checked={on}
+                    aria-label={`${code} ${t.airports[code]}`}
+                    title={t.airports[code]}
                     onClick={() => setDeck({ airports: on ? airports.filter((a) => a !== code) : [...airports, code] })}
                     className={cn(
-                      "flex items-center gap-3 rounded-2xl border p-3.5 text-left transition-colors",
+                      "flex items-center justify-center gap-1 rounded-xl border py-2.5 font-mono text-sm font-semibold transition-colors",
                       on ? "border-pine bg-pine text-primary-foreground shadow-soft" : "border-line bg-card text-ink",
                     )}
                   >
-                    <Plane className={cn("size-4", on ? "text-paper" : "text-pine")} />
-                    <span>
-                      <span className="block font-mono text-sm font-semibold">{code}</span>
-                      <span className={cn("block text-xs", on ? "text-paper/80" : "text-muted-foreground")}>{city}</span>
-                    </span>
+                    <Plane className={cn("size-3.5", on ? "text-paper" : "text-pine")} aria-hidden />
+                    {code}
                   </motion.button>
                 );
               })}
             </div>
-            <div className="mt-auto flex gap-3 pt-10">
-              <Button variant="outline" size="lg" className="h-12 rounded-2xl" onClick={() => setDeck({ step: "budget" })}>
-                {t.back}
-              </Button>
+
+            <div className="mt-auto pt-8">
               <Button
                 size="lg"
-                className="h-12 flex-1 rounded-2xl text-base"
+                className="h-12 w-full rounded-2xl text-base"
                 disabled={!airports.length || busy}
                 onClick={async () => {
-                  // Only move on once there is a result, so a reload never lands on an empty result screen.
-                  if (await compute()) setDeck({ step: "result" });
+                  // Coming back from the result (edit): the deck is already done, recompute instead.
+                  if (swipes.length >= DNA_DECK.length) {
+                    if (await compute()) setDeck({ step: "result" });
+                  } else setDeck({ step: "swipe" });
                 }}
               >
-                {busy ? t.computing : t.showDna} {!busy && <ArrowRight data-icon="inline-end" />}
+                {busy ? t.computing : t.next} {!busy && <ArrowRight data-icon="inline-end" />}
               </Button>
             </div>
           </motion.section>
@@ -254,7 +239,6 @@ export default function SwipeOnboarding() {
                 collected={collected}
                 lang={lang}
                 busy={busy}
-                budget={budget}
                 airports={airports}
                 onEdit={edit}
                 onEditStep={(s) => setDeck({ step: s })}
@@ -271,19 +255,22 @@ export default function SwipeOnboarding() {
               </div>
             )}
             {result && (
-              <div className="mt-8 space-y-2">
-                <Button size="lg" className="h-12 w-full rounded-2xl text-base" onClick={finish} disabled={busy}>
-                  {t.continue} <ArrowRight data-icon="inline-end" />
-                </Button>
-                <Button asChild variant="outline" size="lg" className="h-12 w-full rounded-2xl text-base">
-                  <Link href="/onboarding/chat">
-                    <MessageCircle data-icon="inline-start" /> {t.chat}
+              <>
+                <div className="mt-6 flex items-center justify-center gap-4 text-sm">
+                  <Link href="/onboarding/chat" className="flex items-center gap-1.5 text-pine underline-offset-2 hover:underline">
+                    <MessageCircle className="size-4" aria-hidden /> {t.chat}
                   </Link>
-                </Button>
-                <button onClick={restart} className="mx-auto flex items-center gap-1.5 py-2 text-sm text-muted-foreground hover:text-ink">
-                  <Ban className="size-3.5" /> {t.restart}
-                </button>
-              </div>
+                  <button onClick={restart} className="flex items-center gap-1.5 text-muted-foreground hover:text-ink">
+                    <Ban className="size-3.5" aria-hidden /> {t.restart}
+                  </button>
+                </div>
+                {/* One primary action, always visible. */}
+                <div className="sticky bottom-0 -mx-5 mt-4 border-t border-line bg-paper/90 px-5 pt-3 pb-[max(env(safe-area-inset-bottom),0.9rem)] backdrop-blur-md">
+                  <Button size="lg" className="h-12 w-full rounded-2xl text-base" onClick={finish} disabled={busy}>
+                    {t.continue} <ArrowRight data-icon="inline-end" />
+                  </Button>
+                </div>
+              </>
             )}
           </motion.section>
         )}

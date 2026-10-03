@@ -4,7 +4,7 @@ import type { Shape } from "../types";
 export const en = {
   eyebrow: "After your trip",
   title: (city: string) => `How was ${city}?`,
-  intro: "Four taps. Your answers adjust the ranking weights, and we’ll show you exactly how.",
+  intro: "4 taps · tunes your ranking.",
   noTailorBold: "You chose no tailoring",
   noTailorRest: " in your Travel DNA, so this feedback won’t change your profile or weights.",
   changeThat: "Change that",
@@ -51,7 +51,7 @@ export const en = {
 export const pl: Shape<typeof en> = {
   eyebrow: "Po wyjeździe",
   title: (city) => `Jak było: ${city}?`,
-  intro: "Cztery dotknięcia. Odpowiedzi zmienią wagi rankingu, a my pokażemy dokładnie jak.",
+  intro: "4 dotknięcia · dostroją ranking.",
   noTailorBold: "Wybrano brak dopasowania",
   noTailorRest: " w Twoim DNA podróżnika, więc ta opinia nie zmieni Twojego profilu ani wag.",
   changeThat: "Zmień to",

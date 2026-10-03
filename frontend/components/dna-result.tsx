@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Ban, Compass, Footprints, Hotel, Pencil, Plane, Sparkles, Wallet } from "lucide-react";
-import { FACTOR_COLOR, FACTOR_ICON } from "@/components/factor-bars";
+import { Ban, Compass, Footprints, Hotel, Pencil, Plane } from "lucide-react";
+import { Disclosure, InfoTip } from "@/components/declutter";
+import { FACTOR_COLOR } from "@/components/factor-bars";
 import { DNA_CARD, DNA_DECK, type CardId, type DnaAnswers, type Lang } from "@/lib/dna";
-import { fmtFor, messagesFor } from "@/lib/i18n";
+import { messagesFor } from "@/lib/i18n";
 import { nameOf } from "@/lib/i18n/messages/profile";
 import { FACTORS } from "@/lib/scoring";
-import type { DnaReason, DnaResponse } from "@/lib/types";
+import type { DnaResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -33,15 +34,33 @@ export function becauseLine(because: string[], collected: DnaAnswers, lang: Lang
   return messagesFor(lang).onboarding.because(parts.join(", "));
 }
 
-function Why({ reason, collected, lang }: { reason?: DnaReason; collected: DnaAnswers; lang: Lang }) {
-  if (!reason) return null;
-  return <p className="mt-1 text-xs leading-snug text-muted-foreground">{becauseLine(reason.because, collected, lang)}</p>;
+/** "Label: because you swiped …" lines behind an ⓘ: the traceability stays one tap away. */
+function Reasons({ rows }: { rows: { label: string; text: string }[] }) {
+  const shown = rows.filter((r) => r.text);
+  if (!shown.length) return null;
+  return (
+    <>
+      {shown.map((r) => (
+        <span key={r.label} className="mt-1 block first:mt-0">
+          <span className="font-medium text-ink-soft">{r.label}:</span> {r.text}
+        </span>
+      ))}
+    </>
+  );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, info, infoLabel, children }: { title: string; info?: React.ReactNode; infoLabel?: string; children: React.ReactNode }) {
   return (
     <section className="mt-6">
-      <h2 className="mb-3 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{title}</h2>
+      <div className="mb-3">
+        <h2 className="inline text-xs font-semibold tracking-[0.14em] text-clay uppercase">{title}</h2>
+        {info && (
+          <>
+            {" "}
+            <InfoTip label={infoLabel}>{info}</InfoTip>
+          </>
+        )}
+      </div>
       {children}
     </section>
   );
@@ -81,7 +100,6 @@ export function DnaResult({
   collected,
   lang,
   busy,
-  budget,
   airports,
   onEdit,
   onEditStep,
@@ -90,17 +108,18 @@ export function DnaResult({
   collected: DnaAnswers;
   lang: Lang;
   busy: boolean;
-  budget: number | null;
   airports: string[];
   onEdit: (cardId: string, value: number | boolean) => void;
-  onEditStep: (step: "budget" | "airport") => void;
+  onEditStep: (step: "trip") => void;
 }) {
   const all = messagesFor(lang);
   const t = all.onboarding;
-  const fmt = fmtFor(lang);
   const tagName = (tag: string) => nameOf(all.profile.tags, tag);
   const s = t.styleRows;
-  const reason = (field: string) => result.reasons.find((r) => r.field === field);
+  const because = (field: string) => {
+    const r = result.reasons.find((x) => x.field === field);
+    return r ? becauseLine(r.because, collected, lang) : "";
+  };
   const { profile, weights } = result;
   const personalize = profile.personalize !== false;
   const interests = Object.entries(profile.interests).sort((a, b) => b[1] - a[1]);
@@ -108,12 +127,29 @@ export function DnaResult({
   const meh = interests.filter(([, v]) => v < 0.25);
   const pace = profile.traits?.pace ?? 0;
   const paceKey = pace > 0.25 ? "structured" : pace < -0.25 ? "spontaneous" : "balanced";
+  const total = FACTORS.reduce((a, f) => a + weights[f], 0) || 1;
+
+  const styleRows = [
+    { icon: Hotel, label: s.luxury, value: all.profile.luxury[profile.luxury], field: "luxury" },
+    { icon: Footprints, label: s.pace, value: t.pace[paceKey], field: "traits.pace" },
+    {
+      icon: Compass,
+      label: s.daily,
+      value: profile.daily_discovery == null ? "–" : profile.daily_discovery ? s.yes : s.no,
+      field: "daily_discovery",
+    },
+    {
+      icon: Ban,
+      label: s.avoid,
+      value: profile.dislikes.length ? profile.dislikes.map((d) => nameOf(t.avoid, d)).join(", ") : s.none,
+      field: "dislikes",
+    },
+  ];
 
   return (
     <div className={cn("transition-opacity", busy && "opacity-70")}>
-      <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.eyebrow}</p>
+      <p className="sr-only">{t.eyebrow}</p>
       <h1 className="mt-1 font-display text-[2rem] leading-[1.08] font-medium text-ink">{t.resultTitle}</h1>
-      <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{t.resultSub}</p>
 
       {!personalize && (
         <motion.div
@@ -130,53 +166,53 @@ export function DnaResult({
         </motion.div>
       )}
 
-      <Section title={t.weights}>
-        <ul className="space-y-4 rounded-3xl border border-line bg-card p-4 shadow-soft">
-          {FACTORS.map((f, i) => {
-            const Icon = FACTOR_ICON[f];
-            return (
-              <li key={f}>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 font-medium text-ink">
-                    <Icon className="size-4" style={{ color: FACTOR_COLOR[f] }} /> {all.trips.factors[f]}
-                  </span>
-                  <span className="tabular font-mono text-ink">{Math.round(weights[f] * 100)}%</span>
-                </div>
-                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-paper-deep">
-                  <motion.div
-                    className="h-full rounded-full"
-                    style={{ background: FACTOR_COLOR[f] }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(weights[f] / Math.max(...FACTORS.map((x) => weights[x]))) * 100}%` }}
-                    transition={{ delay: 0.05 * i, type: "spring", stiffness: 120, damping: 20 }}
-                  />
-                </div>
-                <Why reason={reason(`weights.${f}`)} collected={collected} lang={lang} />
+      <Section
+        title={t.weights}
+        infoLabel={t.whyWeights}
+        info={<Reasons rows={FACTORS.map((f) => ({ label: all.trips.factors[f], text: because(`weights.${f}`) }))} />}
+      >
+        {/* One stacked bar: each factor's share of the ranking. */}
+        <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
+          <div className="flex h-3 overflow-hidden rounded-full bg-paper-deep" aria-hidden>
+            {FACTORS.map((f, i) => (
+              <motion.span
+                key={f}
+                className="h-full"
+                style={{ background: FACTOR_COLOR[f] }}
+                initial={{ width: 0 }}
+                animate={{ width: `${(weights[f] / total) * 100}%` }}
+                transition={{ delay: 0.05 * i, type: "spring", stiffness: 120, damping: 20 }}
+              />
+            ))}
+          </div>
+          <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+            {FACTORS.map((f) => (
+              <li key={f} className="flex items-center gap-2">
+                <span className="size-2.5 shrink-0 rounded-full" style={{ background: FACTOR_COLOR[f] }} aria-hidden />
+                <span className="flex-1 text-ink-soft">{all.trips.factorsShort[f]}</span>
+                <span className="tabular font-mono text-ink">{Math.round(weights[f] * 100)}%</span>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </div>
       </Section>
 
-      <Section title={t.interests}>
-        <ul className="space-y-3">
+      <Section
+        title={t.interests}
+        infoLabel={t.whyInterests}
+        info={<Reasons rows={liked.map(([tag]) => ({ label: cap(tagName(tag)), text: because(`interests.${tag}`) }))} />}
+      >
+        {/* Chips without numbers: strength shows as fill. */}
+        <ul className="flex flex-wrap gap-2">
           {liked.map(([tag, v]) => (
-            <li key={tag} className="rounded-2xl border border-line bg-card px-4 py-3 shadow-soft">
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-medium text-ink">{cap(tagName(tag))}</span>
-                <span className="flex items-center gap-2">
-                  <span className="h-1.5 w-20 overflow-hidden rounded-full bg-paper-deep">
-                    <motion.span
-                      className="block h-full rounded-full bg-pine"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${v * 100}%` }}
-                      transition={{ type: "spring", stiffness: 120, damping: 20 }}
-                    />
-                  </span>
-                  <span className="tabular w-9 text-right font-mono text-sm text-ink">{v.toFixed(2)}</span>
-                </span>
-              </div>
-              <Why reason={reason(`interests.${tag}`)} collected={collected} lang={lang} />
+            <li
+              key={tag}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-sm",
+                v >= 0.75 ? "border-pine bg-pine text-paper" : v >= 0.5 ? "border-pine/30 bg-pine-soft text-pine-deep" : "border-line bg-card text-ink-soft",
+              )}
+            >
+              {cap(tagName(tag))}
             </li>
           ))}
         </ul>
@@ -187,67 +223,36 @@ export function DnaResult({
         )}
       </Section>
 
-      <Section title={t.style}>
+      <Section
+        title={t.style}
+        infoLabel={t.whyStyle}
+        info={<Reasons rows={styleRows.map((r) => ({ label: r.label, text: because(r.field) }))} />}
+      >
         <ul className="divide-y divide-line rounded-3xl border border-line bg-card px-4 shadow-soft">
-          {[
-            { icon: Hotel, label: s.luxury, value: all.profile.luxury[profile.luxury], r: reason("luxury") },
-            { icon: Footprints, label: s.pace, value: t.pace[paceKey], r: reason("traits.pace") },
-            {
-              icon: Compass,
-              label: s.daily,
-              value: profile.daily_discovery == null ? "–" : profile.daily_discovery ? s.yes : s.no,
-              r: reason("daily_discovery"),
-            },
-            {
-              icon: Ban,
-              label: s.avoid,
-              value: profile.dislikes.length ? profile.dislikes.map((d) => nameOf(t.avoid, d)).join(", ") : s.none,
-              r: reason("dislikes"),
-            },
-          ].map(({ icon: Icon, label, value, r }) => (
-            <li key={label} className="py-3">
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="flex items-center gap-2 text-ink-soft">
-                  <Icon className="size-4 text-pine" /> {label}
-                </span>
-                <span className="font-medium text-ink">{cap(value)}</span>
-              </div>
-              <Why reason={r} collected={collected} lang={lang} />
+          {styleRows.map(({ icon: Icon, label, value }) => (
+            <li key={label} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+              <span className="flex items-center gap-2 text-ink-soft">
+                <Icon className="size-4 text-pine" /> {label}
+              </span>
+              <span className="font-medium text-ink">{cap(value)}</span>
             </li>
           ))}
-          <li className="py-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-ink-soft">
-                <Wallet className="size-4 text-pine" /> {s.budget}
-              </span>
-              <button onClick={() => onEditStep("budget")} className="flex items-center gap-1.5 font-medium text-ink">
-                {budget == null ? s.flexible : fmt.pln(budget)}
-                <Pencil className="size-3.5 text-muted-foreground" aria-label={s.change} />
-              </button>
-            </div>
-          </li>
-          <li className="py-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-ink-soft">
-                <Plane className="size-4 text-pine" /> {s.from}
-              </span>
-              <button onClick={() => onEditStep("airport")} className="flex items-center gap-1.5 font-mono font-medium text-ink">
-                {airports.join(", ")}
-                <Pencil className="size-3.5 text-muted-foreground" aria-label={s.change} />
-              </button>
-            </div>
+                    <li className="flex items-center justify-between py-2.5 text-sm">
+            <span className="flex items-center gap-2 text-ink-soft">
+              <Plane className="size-4 text-pine" /> {s.from}
+            </span>
+            <button onClick={() => onEditStep("trip")} className="flex items-center gap-1.5 font-mono font-medium text-ink">
+              {airports.join(", ")}
+              <Pencil className="size-3.5 text-muted-foreground" aria-label={s.change} />
+            </button>
           </li>
         </ul>
       </Section>
 
-      <Section title={t.answersTitle}>
-        <p className="-mt-1 mb-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Sparkles className="size-3.5" />
-          {t.editHint}
-        </p>
+      <Disclosure title={t.editAnswers} count={DNA_DECK.length} hint={t.editHint} className="mt-6">
         <ul className="space-y-2">
           {DNA_DECK.map((card) => (
-            <li key={card.id} className="flex items-center gap-3 rounded-2xl border border-line bg-card p-2.5 pr-3 shadow-soft">
+            <li key={card.id} className="flex items-center gap-3 rounded-2xl border border-line bg-paper p-2.5 pr-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={card.image} alt="" className="size-12 shrink-0 rounded-xl object-cover" />
               <div className="min-w-0 flex-1">
@@ -288,7 +293,7 @@ export function DnaResult({
             </li>
           ))}
         </ul>
-      </Section>
+      </Disclosure>
     </div>
   );
 }

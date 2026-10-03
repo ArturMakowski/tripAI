@@ -280,7 +280,7 @@ export function fastEstimates(recs: RankedRecommendation[]): RankedRecommendatio
 
 /** Mark trips over the profile budget the way the backend will (positive = PLN over). */
 export function markBudget(recs: RankedRecommendation[], budget: number | null): RankedRecommendation[] {
-  return recs.map((r) => ({ ...r, over_budget_pln: budget == null ? null : Math.max(0, Math.round(r.total_cost_pln - budget)) }));
+  return recs.map((r) => ({ ...r, over_budget_pln: budget == null || r.price_status === "estimate" ? null : Math.max(0, Math.round(r.total_cost_pln - budget)) }));
 }
 
 export async function recommendations(req: RecommendationsRequest, phase?: RecPhase): Promise<RankedRecommendation[]> {
@@ -291,7 +291,40 @@ export async function recommendations(req: RecommendationsRequest, phase?: RecPh
   if (phase === "fast") recs = withReceipts(rerank(fastEstimates(recs), w), w);
   // No fit here: in fixture mode the verdict is derived from the *current* ranking (use-recommendations),
   // so it never goes stale when the slider re-weights locally.
-  return localize(markBudget(recs, req.profile.budget_pln), getApiLang()).slice(0, req.limit ?? 10);
+  recs = rerank(withPriceStatus(recs), w);
+  return localize(markBudget(withParty(recs, req.profile), req.profile.budget_pln), getApiLang()).slice(0, req.limit ?? 10);
+}
+
+/**
+ * Demo price honesty (docs/BUDGET.md): Venice is priced from OTHER dates + a city-average hotel
+ * ("estimate"), Porto's hotel is a city average ("partial"). Estimates get a neutral price score
+ * (never ranked on), and no budget/value badges.
+ */
+const STATUS_DEMO: Record<string, "estimate" | "partial"> = { VCE: "estimate", OPO: "partial" };
+export function withPriceStatus(recs: RankedRecommendation[]): RankedRecommendation[] {
+  return recs.map((r) => {
+    const status = STATUS_DEMO[r.iata];
+    if (!status) return { ...r, price_status: "exact" };
+    const evidence = r.evidence.map((e) =>
+      e.kind === "hotel"
+        ? { ...e, source: "estimate:city-average", label: `${e.label} (city average, not your dates)` }
+        : e.kind === "flight" && status === "estimate" && typeof e.value === "number"
+          ? { ...e, source: "serpapi:google_travel_explore", label: `${e.label} (other dates)` }
+          : e,
+    );
+    return { ...r, evidence, price_status: status, score: status === "estimate" ? { ...r.score, price: 0.5 } : r.score };
+  });
+}
+
+/** Party pricing: flights × travellers, hotel × rooms (rooms = ceil(people / 2) unless set). */
+export function withParty(recs: RankedRecommendation[], profile: TasteProfile): RankedRecommendation[] {
+  const travelers = Math.max(1, (profile.adults ?? 1) + (profile.children ?? 0));
+  const rooms = profile.rooms ?? Math.ceil(travelers / 2);
+  return recs.map((r) => {
+    const party = Math.round(r.flight_cost_pln * travelers + r.hotel_cost_pln * (travelers > 1 ? rooms : 1));
+    const per = Math.round(party / travelers);
+    return { ...r, travelers, party_total_pln: party, per_person_pln: per, total_cost_pln: per };
+  });
 }
 
 const PL_MONTH: Record<string, string> = {
@@ -306,7 +339,7 @@ const PL_EVIDENCE: Record<string, (label: string) => string> = {
   hotel: (l) => l.replace(/^Hotel (\d+) nights in (.+) \((\w+)\)/, "Hotel, noce: $1, $2 ($3)").replace("(estimate)", "(szacunek)"),
   "weather:°C": () => "Średnia maksymalna temperatura dzienna",
   "weather:days": () => "Spodziewane dni deszczowe w terminie",
-  crowds: () => "Wskaźnik tłoku turystycznego (1 = szczyt)",
+  crowds: () => "Tłum turystyczny (1 = szczyt sezonu)",
   attraction: () => "Najważniejsze atrakcje",
 };
 

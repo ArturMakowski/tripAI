@@ -72,7 +72,7 @@ export const en = {
       },
       flip: {
         title: "What would flip it?",
-        body: "Open Audit: what would make another trip win.",
+        body: "What would have to change for another trip to win.",
       },
       calendar: {
         title: "Mark your free days",
@@ -156,7 +156,7 @@ export const pl: Shape<typeof en> = {
       },
       flip: {
         title: "Co by to zmieniło?",
-        body: "W Audycie: co sprawiłoby, że wygra inny kierunek.",
+        body: "Co musiałoby się zmienić, żeby wygrał inny kierunek.",
       },
       calendar: {
         title: "Zaznacz wolne dni",

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowUpRight, BedDouble, Info, Plane, TrendingDown } from "lucide-react";
+import { BedDouble, ChevronRight, Info, Plane, TrendingDown } from "lucide-react";
 import { useState } from "react";
 import { FactorStars, OverallStars } from "@/components/stars";
 import { dayCount } from "@/lib/format";
@@ -13,6 +13,8 @@ import { flightLine, hotelLineParts, trustedDetails } from "@/lib/trip-details";
 import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/types";
 import { peakMonth } from "@/lib/counterfactual";
+import { moneyOf } from "@/lib/money";
+import { TripPrice, ValueBadge } from "@/components/money";
 import { cn } from "@/lib/utils";
 
 /** English country names from the backend -> ISO 3166 codes, so Intl can name them in the UI language. */
@@ -135,8 +137,10 @@ export function RecCard({
   const { t, fmt, lang } = useT();
   const tc = t.trips.card;
   const rank = rec.rank;
+  const money = moneyOf(rec);
   const split = disagreement(rec);
-  const peak = rec.counterfactuals.find((c) => c.kind === "peak_season");
+  // no "−49% vs peak" on an estimate: it would compare against a price that isn't this trip's
+  const peak = moneyOf(rec).status === "estimate" ? undefined : rec.counterfactuals.find((c) => c.kind === "peak_season");
   const peakM = peak ? peakMonth(peak.label) : null;
   const peakMonthName = peakM ? fmt.monthName(peakM, lang === "pl" ? "long" : "short") : null;
   const [showPeak, setShowPeak] = useState(false);
@@ -167,9 +171,6 @@ export function RecCard({
           >
             {rank}
           </motion.span>
-          {rec.window.source === "gcal" && (
-            <span className="rounded-full bg-black/35 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">{tc.youreFree}</span>
-          )}
           {bridge && bridge.leave_days.length > 0 && (
             <span className="rounded-full bg-black/35 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
               {tc.bridge(bridge.leave_days.length, bridge.total_days)}
@@ -195,25 +196,22 @@ export function RecCard({
       <div className="p-4">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs text-muted-foreground">{tc.when}</p>
             <p className="font-display text-lg leading-tight text-ink">
               {fmt.range(rec.window)} <span className="text-sm text-muted-foreground">· {tc.nights(nights)}</span>
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">{refining ? tc.cachedEstimate : tc.allIn}</p>
-            <motion.p
-              key={rec.total_cost_pln}
+            <p className="text-xs text-muted-foreground">{refining ? tc.cachedEstimate : money.travelers > 1 ? t.money.perPerson : tc.allIn}</p>
+            {/* Same component as the receipt and confirm (components/money.tsx): the totals can't drift apart. */}
+            <motion.div
+              key={money.perPerson}
               initial={{ opacity: 0.4, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className={cn(
-                "tabular rounded-md font-display text-2xl leading-tight font-semibold text-ink",
-                refining && "sheen text-ink-soft",
-              )}
+              className={cn("rounded-md", refining && "sheen")}
             >
-              {refining && "~"}
-              {fmt.pln(rec.total_cost_pln)}
-            </motion.p>
+              <TripPrice rec={rec} />
+            </motion.div>
+            <ValueBadge rec={rec} inLink className="mt-1 items-end" />
             {overBudgetPln != null && overBudgetPln > 0 && (
               <span className="mt-1 inline-block rounded-full bg-clay-soft px-2 py-0.5 text-xs font-semibold text-clay">
                 {tc.overBudget(fmt.pln(overBudgetPln))}
@@ -224,11 +222,19 @@ export function RecCard({
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
           <span className={cn("flex min-w-0 items-center gap-1", detailRow)}>
-            <Plane className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">{fmt.pln(rec.flight_cost_pln)}</span>
+            <Plane className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">
+              {fmt.pln(rec.flight_cost_pln)}
+              {money.travelers > 1 && t.money.perPersonShort}
+            </span>
+            {money.estimated.flight && <span className="shrink-0 italic">{t.money.est}</span>}
             {flightText && <span className="truncate text-ink-soft">· {flightText}</span>}
           </span>
           <span className={cn("flex min-w-0 items-center gap-1", detailRow)}>
-            <BedDouble className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">{fmt.pln(rec.hotel_cost_pln)}</span>
+            <BedDouble className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">
+              {fmt.pln(rec.hotel_cost_pln)}
+              {money.travelers > 1 && t.money.perRoomShort}
+            </span>
+            {money.estimated.hotel && <span className="shrink-0 italic">{t.money.est}</span>}
             {hotelParts && (
               <>
                 <span className="truncate text-ink-soft">· {hotelParts[0]}</span>
@@ -256,22 +262,23 @@ export function RecCard({
 
         <FactorStars score={rec.score} columns={2} className="mt-3.5" />
 
-        {rec.fit && (
-          <div className="mt-3.5 flex items-start gap-2.5">
-            <FitBadge fit={rec.fit} className="mt-px" />
-            <p className="text-[13px] leading-snug text-ink-soft">
-              {split && <span className="font-semibold text-ink">{tc.disagree} </span>}
-              {rec.fit.summary}
-            </p>
-          </div>
-        )}
-
-        {featured && <p className="mt-3.5 line-clamp-3 text-sm leading-relaxed text-ink-soft">{rec.why}</p>}
-
-        <p className="mt-3 flex items-center gap-1 text-sm font-medium text-pine">
-          {tc.whyNow}
-          <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </p>
+        <div className="mt-3.5 flex items-center gap-2.5">
+          {rec.fit && <FitBadge fit={rec.fit} />}
+          <p className="min-w-0 flex-1 truncate text-[13px] text-ink-soft">
+            {rec.fit ? (
+              <>
+                {split && <span className="font-semibold text-ink">{tc.disagree} </span>}
+                {rec.fit.summary}
+              </>
+            ) : (
+              rec.why
+            )}
+          </p>
+          <ChevronRight
+            className="size-5 shrink-0 text-pine transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
+        </div>
       </div>
     </Link>
   );

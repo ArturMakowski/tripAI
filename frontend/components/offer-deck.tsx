@@ -8,7 +8,9 @@ import { FitBadge } from "@/components/fit-badge";
 import { CityPhoto } from "@/components/rec-card";
 import { OverallStars } from "@/components/stars";
 import type { Lang } from "@/lib/dna";
-import { formatPLN, formatRange } from "@/lib/format";
+import { PriceInline, priceText } from "@/components/money";
+import { useT } from "@/lib/i18n";
+import { moneyOf } from "@/lib/money";
 import { swipeCopy, tagLabel, type OfferGesture } from "@/lib/reactions";
 import type { RankedRecommendation } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -22,6 +24,7 @@ function gestureLabel(g: OfferGesture, lang: Lang): string {
 
 function OfferFace({ rec, lang, index, total }: { rec: RankedRecommendation; lang: Lang; index: number; total: number }) {
   const t = swipeCopy(lang);
+  const { fmt } = useT();
   return (
     <CityPhoto rec={rec} className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
@@ -35,11 +38,12 @@ function OfferFace({ rec, lang, index, total }: { rec: RankedRecommendation; lan
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm text-white/75">
-              {rec.country} · {formatRange(rec.window)}
+              {rec.country} · {fmt.range(rec.window)}
             </p>
             <p className="font-display text-[2.1rem] leading-[1.05] font-medium">{rec.city}</p>
             <p className="tabular mt-1 text-base text-white/90">
-              <b className="font-semibold">{formatPLN(rec.total_cost_pln)}</b> {t.total}
+              <PriceInline rec={rec} tone="light" className="font-semibold" />
+              {moneyOf(rec).status !== "estimate" && moneyOf(rec).travelers === 1 && <> {t.total}</>}
             </p>
           </div>
           <OverallStars total={rec.score.total} size={14} tone="light" className="shrink-0 rounded-full bg-black/40 px-2.5 py-1.5 backdrop-blur-md" />
@@ -71,6 +75,7 @@ function TopOffer({
   total: number;
   onSwipe: (g: OfferGesture) => void;
 }) {
+  const { t: tt, fmt } = useT();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-240, 240], [-16, 16]);
@@ -97,7 +102,7 @@ function TopOffer({
       whileTap={{ scale: 1.01 }}
       role="group"
       aria-roledescription="swipe card"
-      aria-label={`${rec.city}, ${formatRange(rec.window)}, ${formatPLN(rec.total_cost_pln)}`}
+      aria-label={`${rec.city}, ${fmt.range(rec.window)}, ${priceText(rec, tt, fmt)}`}
     >
       <OfferFace rec={rec} lang={lang} index={index} total={total} />
       <Stamp g="right" label={gestureLabel("right", lang)} opacity={right} />

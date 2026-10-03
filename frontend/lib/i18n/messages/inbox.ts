@@ -23,14 +23,14 @@ export const en = {
   whyPinged: "Why (not) pinged",
   eyebrow: "Proactive inbox",
   heading: "We watch. You decide.",
-  intro:
-    "Every day TripAI re-checks your free time against fresh prices and pings you only when something changes: a new #1, a price drop on a trip you watch, or a long weekend coming up. Every number is from a cited source.",
+  intro: "Daily re-check; a ping only when something changes.",
+  /** ⓘ behind the one-line intro */
+  introMore:
+    "Every day TripAI re-checks your free time against fresh prices and pings you only when something changes: a new #1, a price drop on a trip you watch, or a long weekend coming up. Every number is from a cited source. The scan covers the next 90 days, like the daily 07:00 run.",
   needsBackendA: "The inbox needs the live backend (set ",
   needsBackendB: "). Demo fixtures can’t run a scan.",
-  runNow: "Run the scan now",
-  runNowSub: "Same workflow as the daily 07:00 scan, next 90 days.",
+  runNow: "Run scan now",
   scanning: "Scanning",
-  scanButton: "Scan",
   loading: "Loading…",
   empty: "No notifications yet. Run a scan to see what we’d send.",
   open: {
@@ -45,7 +45,7 @@ export const en = {
     },
     eyebrow: "Notifications",
     heading: "You set the volume.",
-    intro: "The inbox is always here. Push to your phone only happens if you switch it on, and never more often than you allow.",
+    intro: "Push only if you switch it on.",
     needsBackend: "Settings need the live backend.",
     push: "Push notifications",
     pushOn: "On for this device.",
@@ -101,14 +101,13 @@ export const pl: Shape<typeof en> = {
   whyPinged: "Dlaczego (nie) powiadomiliśmy",
   eyebrow: "Proaktywna skrzynka",
   heading: "My pilnujemy. Ty decydujesz.",
-  intro:
-    "Codziennie TripAI porównuje Twój wolny czas ze świeżymi cenami i daje znać tylko wtedy, gdy coś się zmienia: nowy #1, spadek ceny obserwowanego wyjazdu albo nadchodzący długi weekend. Każda liczba pochodzi z podanego źródła.",
+  intro: "Sprawdzamy codziennie, piszemy tylko przy zmianie.",
+  introMore:
+    "Codziennie TripAI porównuje Twój wolny czas ze świeżymi cenami i daje znać tylko wtedy, gdy coś się zmienia: nowy #1, spadek ceny obserwowanego wyjazdu albo nadchodzący długi weekend. Każda liczba pochodzi z podanego źródła. Skan obejmuje najbliższe 90 dni, jak codzienny skan o 07:00.",
   needsBackendA: "Skrzynka wymaga działającego backendu (ustaw ",
   needsBackendB: "). Dane demo nie pozwalają uruchomić skanu.",
   runNow: "Uruchom skan teraz",
-  runNowSub: "Ten sam proces co codzienny skan o 07:00, na najbliższe 90 dni.",
   scanning: "Skanuję",
-  scanButton: "Skanuj",
   loading: "Ładowanie…",
   empty: "Nie ma jeszcze powiadomień. Uruchom skan, aby zobaczyć, co byśmy wysłali.",
   open: {
@@ -123,7 +122,7 @@ export const pl: Shape<typeof en> = {
     },
     eyebrow: "Powiadomienia",
     heading: "Ty ustawiasz głośność.",
-    intro: "Skrzynka jest zawsze dostępna. Powiadomienia push na telefon pojawią się tylko po ich włączeniu i nigdy częściej, niż pozwolisz.",
+    intro: "Push tylko po włączeniu.",
     needsBackend: "Ustawienia wymagają działającego backendu.",
     push: "Powiadomienia push",
     pushOn: "Włączone na tym urządzeniu.",

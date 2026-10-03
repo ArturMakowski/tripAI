@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell, PageTitle } from "@/components/shell";
+import { AppShell, ModeBadge, PageTitle } from "@/components/shell";
 import { DNA_DECK } from "@/lib/dna";
 import { useT, type Lang } from "@/lib/i18n";
 import { allCityPhotos, type PhotoCredit } from "@/lib/photos";
@@ -55,6 +55,9 @@ export default function Credits() {
       <PageTitle eyebrow={t.credits.eyebrow} title={t.credits.title}>
         {t.credits.intro}
       </PageTitle>
+      <p className="mb-5 flex items-center gap-2 text-sm text-ink-soft">
+        {t.common.dataSource}: <ModeBadge />
+      </p>
       <h2 className="mt-2 mb-1 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.credits.destinations}</h2>
       <CreditList rows={CITY_ROWS} />
       <h2 className="mt-8 mb-1 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.credits.dnaCards}</h2>
