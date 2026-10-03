@@ -1,4 +1,4 @@
-import { plural, type Shape } from "../types";
+import type { Shape } from "../types";
 
 export const en = {
   photos: { lisbon: "Alfama rooftops in Lisbon", rome: "Colosseum in Rome", athens: "Acropolis in Athens" },
@@ -15,14 +15,9 @@ export const en = {
   /** the returning user's "today" summary (T16) */
   today: {
     label: "Today",
-    top: "Your #1 right now",
-    checked: (ago: string) => `checked ${ago}`,
-    free: "Next time off",
+    top: "Your #1",
     yourDates: "Your dates",
-    longWeekend: "Long weekend",
     myTrips: "My trips",
-    inbox: "Inbox",
-    unread: (n: number) => `${n} new`,
   },
 } as const;
 
@@ -38,13 +33,8 @@ export const pl: Shape<typeof en> = {
   demoProfile: "Profil demo",
   today: {
     label: "Dziś",
-    top: "Twój nr 1 teraz",
-    checked: (ago) => `sprawdzone ${ago}`,
-    free: "Najbliższe wolne",
+    top: "Twój nr 1",
     yourDates: "Twoje terminy",
-    longWeekend: "Długi weekend",
     myTrips: "Moje podróże",
-    inbox: "Powiadomienia",
-    unread: (n) => `${n} ${plural("pl", n, { one: "nowe", few: "nowe", many: "nowych", other: "nowych" })}`,
   },
 };

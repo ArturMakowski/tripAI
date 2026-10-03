@@ -7,7 +7,8 @@ import { ArrowRight, BadgeCheck, Hand, Receipt } from "lucide-react";
 import { LangSwitch } from "@/components/lang-switch";
 import { Logo } from "@/components/shell";
 import { Chip } from "@/components/declutter";
-import { HomeToday } from "@/components/home-today";
+import { HomeToday, MyTripsLink } from "@/components/home-today";
+import { InboxBell } from "@/components/inbox-bell";
 import { Button } from "@/components/ui/button";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { useT } from "@/lib/i18n";
@@ -40,7 +41,7 @@ export default function Welcome() {
   const setProfile = useTrip((s) => s.setProfile);
   const reset = useTrip((s) => s.reset);
   const t = useT().t.home;
-  // the returning view makes room for the "today" summary: smaller collage, one row of chips, sticky CTA
+  // the returning view makes room for the "today" summary: smaller collage, no promise chips, sticky CTA
   const returning = hydrated && !!profile;
 
   return (
@@ -48,6 +49,13 @@ export default function Welcome() {
       <div className="flex items-center justify-between">
         <Logo />
         <div className="flex items-center gap-2">
+          {/* returning: planned trips + unread notifications as header icons, not more words on the page */}
+          {returning && (
+            <>
+              <MyTripsLink />
+              <InboxBell />
+            </>
+          )}
           <LangSwitch />
         </div>
       </div>
@@ -80,15 +88,18 @@ export default function Welcome() {
         </p>
       </motion.div>
 
-      <ul className={cn("flex flex-wrap", returning ? "mt-4 gap-1.5" : "mt-5 gap-2")}>
-        {PROMISES.map(({ icon: Icon, key }) => (
-          <li key={key}>
-            <Chip icon={<Icon className="size-3.5 text-pine" aria-hidden />} className={returning ? "px-2 py-1 text-xs" : "px-2.5 py-1 text-[13px]"}>
-              {t.promises[key]}
-            </Chip>
-          </li>
-        ))}
-      </ul>
+      {/* the trust promises are for newcomers; a returning user sees their #1 and next time off instead (≤ 25 words) */}
+      {!returning && (
+        <ul className="mt-5 flex flex-wrap gap-2">
+          {PROMISES.map(({ icon: Icon, key }) => (
+            <li key={key}>
+              <Chip icon={<Icon className="size-3.5 text-pine" aria-hidden />} className="px-2.5 py-1 text-[13px]">
+                {t.promises[key]}
+              </Chip>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {/* returning user: their #1 trip and the next time off (the first-run welcome stays as it is) */}
       {returning && <HomeToday />}

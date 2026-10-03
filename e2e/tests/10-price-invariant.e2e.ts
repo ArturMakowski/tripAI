@@ -1,9 +1,10 @@
 import { test } from '@e2e-dev/web';
 import { expect } from 'e2e';
-import { guard } from './support/tripai.ts';
+import { guard, useDemoProfile } from './support/tripai.ts';
 
 /**
  * Invariant for the top 3 trips: card total == receipt total == confirm total == flight + hotel (one traveller),
+ * and the returning home's "Twój nr 1" (T16) is the /trips #1 with the same total and the same estimate label,
  * on every screen, and the hotel nights shown match the trip dates. It holds for exact prices AND for honest
  * estimates ("~1 650 zł · szacunek", e.g. when the SerpApi daily cap is used up): an estimate must read as one
  * ("~" + the word "szacunek"/"estimate") on all three screens, never as an exact price on any of them.
@@ -21,7 +22,7 @@ interface Seen {
 }
 
 /** Runs in the page: reads the numbers off one screen of one trip. */
-function readScreen(arg: { screen: 'card' | 'receipt' | 'confirm'; id: string }) {
+function readScreen(arg: { screen: 'home' | 'card' | 'receipt' | 'confirm'; id: string }) {
   const amount = (raw: string | null | undefined): number | null => {
     if (!raw) return null;
     const m = raw.replace(/[  ]/g, ' ').match(/(\d[\d ,.]*)\s*(PLN|zł)/i);
@@ -46,7 +47,11 @@ function readScreen(arg: { screen: 'card' | 'receipt' | 'confirm'; id: string })
     return v == null ? null : Number(v);
   };
   const root =
-    arg.screen === 'card' ? document.querySelector(`main li article:has(a[href="/trips/${arg.id}"])`) : document.querySelector('main');
+    arg.screen === 'home'
+      ? document.querySelector(`a[data-testid="home-top-pick"][href="/trips/${arg.id}"]`)
+      : arg.screen === 'card'
+        ? document.querySelector(`main li article:has(a[href="/trips/${arg.id}"])`)
+        : document.querySelector('main');
   if (!root) return null;
   const total = root.querySelector('[data-testid="trip-total"]');
   // the visible number must agree with its data-amount (a stale hook would hide a display bug)
@@ -56,7 +61,7 @@ function readScreen(arg: { screen: 'card' | 'receipt' | 'confirm'; id: string })
   const totalText = textOf(total);
   // Card: the word sits in the total itself ("~1 650 zł · szacunek"); receipt/confirm: in the row label
   // ("Razem (szacunek) ~1 650 zł").
-  const wordIn = arg.screen === 'card' ? totalText : textOf(total?.closest('div.py-1\\.5') ?? root);
+  const wordIn = arg.screen === 'card' || arg.screen === 'home' ? totalText : textOf(total?.closest('div.py-1\\.5') ?? root);
   return {
     total: shown != null && shown === num(total) ? shown : null,
     estimate: totalText.includes('~') && /szacunek|estimate/i.test(wordIn),
@@ -79,7 +84,9 @@ function nightsFromId(id: string): number | null {
 for (const lang of ['English', 'Polski'] as const) {
 test(`Price invariant (${lang}): top 3 trips add up the same on card, receipt and confirm, and nights match the dates`, { timeout: 240_000 }, async ({ app, screen, browser }) => {
   await guard(browser, app.baseUrl);
-  await app.open('/trips');
+  // A saved profile makes / the returning home (T16), checked against the /trips #1 below.
+  await useDemoProfile(browser, screen);
+  await browser.goto('/trips');
   // The app-wide PL/EN switch in the header (stored, so it holds across the page loads below).
   await screen.getByRole('radio', lang).tap();
   // /trips opens on the swipe view until a view is picked; this test reads the ranked list (the pick is remembered for the page loads below).
@@ -100,11 +107,19 @@ test(`Price invariant (${lang}): top 3 trips add up the same on card, receipt an
   )) as string[];
   expect(hrefs.length, 'trips on screen').toBe(3);
 
+  // The home "#1" (T16) is the first card on /trips: same trip, and (via `seen.home` below) the same total and label.
+  await browser.goto('/');
+  const homePick = browser.locator('[data-testid="home-top-pick"]');
+  await expect(homePick).toBeVisible({ timeout: 30_000 });
+  expect(await homePick.getAttribute('href'), 'home #1 = /trips #1').toBe(hrefs[0]);
+  const home = (await browser.evaluate(readScreen, { screen: 'home', id: hrefs[0].replace('/trips/', '') })) as Seen | null;
+
   const problems: string[] = [];
   for (const href of hrefs) {
     const id = href.replace('/trips/', '');
     const expectedNights = nightsFromId(id);
     const seen: Record<string, Seen | null> = {};
+    if (href === hrefs[0]) seen.home = home;
 
     await browser.goto('/trips');
     await expect(browser.locator(`main li article a[href="${href}"]`)).toBeVisible({ timeout: 60_000 });

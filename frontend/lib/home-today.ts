@@ -1,6 +1,7 @@
 /**
- * The returning-user home's "today" summary (T16): the #1 trip from the ranking already on the device and
- * the next free window / długi weekend. Pure functions over stored data: nothing here fetches.
+ * The returning-user home's "today" summary (T16): the next free window, from the user's picked dates and
+ * the długi weekend radar. The "#1" comes from the same selector as /trips (lib/trip-list.ts). Pure
+ * functions over stored data: nothing here fetches.
  */
 import {
   type DateRange,
@@ -13,18 +14,14 @@ import {
   monthEnd,
   monthsAhead,
   rangeDays,
+  usableRanges,
 } from "./date-range";
-import type { BridgeWindow, RankedRecommendation } from "./types";
-
-/** The best-ranked stored trip that hasn't started yet (a ranking from last week may hold past windows). */
-export function topPick(recs: RankedRecommendation[], today: ISODate): RankedRecommendation | null {
-  return recs.filter((r) => r.window.start >= today).reduce<RankedRecommendation | null>((best, r) => (!best || r.rank < best.rank ? r : best), null);
-}
+import type { BridgeWindow } from "./types";
 
 export interface NextWindow {
   start: ISODate;
   end: ISODate;
-  /** days in the window */
+  /** days in the window (an "any N days" range: N, or fewer if fewer are left) */
   total: number;
   /** working days to take off (0 for dates the user picked) */
   leave: number;
@@ -49,22 +46,18 @@ export function nextLongWeekend(radar: BridgeWindow[], today: ISODate): NextWind
   };
 }
 
-/** The user's next picked range that hasn't ended ("any N days" ranges count as N days). */
+/** The user's next picked range that /trips still searches (usableRanges: clipped to today, long enough). */
 export function nextPicked(ranges: DateRange[], today: ISODate): NextWindow | null {
-  const r = ranges.filter((x) => x.end >= today).sort((a, b) => a.start.localeCompare(b.start))[0];
+  const r = usableRanges(ranges, today).sort((a, b) => a.start.localeCompare(b.start))[0];
   if (!r) return null;
-  const start = r.start < today ? today : r.start;
-  return { start, end: r.end, total: r.anyDays ?? rangeDays({ start, end: r.end }), leave: 0, kind: "picked" };
+  const days = rangeDays(r);
+  return { start: r.start, end: r.end, total: r.anyDays ? Math.min(r.anyDays, days) : days, leave: 0, kind: "picked" };
 }
 
-/**
- * At most two rows: the user's own dates (they drive the ranking) and the next long weekend, unless it
- * starts inside the picked range anyway.
- */
-export function freeWindows(ranges: DateRange[], radar: BridgeWindow[], today: ISODate): NextWindow[] {
+/** One row: whichever comes first, the user's own dates or the next long weekend. */
+export function nextFreeWindow(ranges: DateRange[], radar: BridgeWindow[], today: ISODate): NextWindow | null {
   const picked = nextPicked(ranges, today);
   const long = nextLongWeekend(radar, today);
-  const out = picked ? [picked] : [];
-  if (long && !(picked && long.start <= picked.end && picked.start <= long.end)) out.push(long);
-  return out;
+  if (!picked || !long) return picked ?? long;
+  return long.start < picked.start ? long : picked;
 }

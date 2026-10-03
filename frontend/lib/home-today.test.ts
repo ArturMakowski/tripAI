@@ -1,22 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { freeWindows, nextLongWeekend, nextPicked, topPick } from "./home-today";
-import type { BridgeWindow, RankedRecommendation } from "./types";
-
-const rec = (id: string, rank: number, start: string, end: string) => ({ id, rank, window: { start, end, source: "gcal" } }) as RankedRecommendation;
-
-describe("topPick", () => {
-  it("picks the best rank among trips that haven't started", () => {
-    const recs = [rec("a", 2, "2026-11-11", "2026-11-15"), rec("b", 1, "2026-10-01", "2026-10-05"), rec("c", 3, "2027-01-14", "2027-01-19")];
-    // b ranked #1 but already started: a is the #1 still bookable
-    expect(topPick(recs, "2026-10-04")?.id).toBe("a");
-    expect(topPick(recs, "2026-09-30")?.id).toBe("b");
-  });
-
-  it("is null without a stored ranking (no search is triggered for it)", () => {
-    expect(topPick([], "2026-10-04")).toBeNull();
-    expect(topPick([rec("a", 1, "2026-01-01", "2026-01-03")], "2026-10-04")).toBeNull();
-  });
-});
+import { nextFreeWindow, nextLongWeekend, nextPicked } from "./home-today";
+import type { BridgeWindow } from "./types";
 
 describe("nextLongWeekend", () => {
   it("finds 11 Nov from the local PL holidays (Wed → take Thu+Fri off → 5 days)", () => {
@@ -41,21 +25,30 @@ describe("nextLongWeekend", () => {
         label: "",
       },
     ];
-    const w = nextLongWeekend(radar, "2026-10-04");
-    expect(w).toMatchObject({ start: "2026-11-07", end: "2026-11-11", leave: 2, total: 5, holiday: { key: "independence" } });
+    expect(nextLongWeekend(radar, "2026-10-04")).toMatchObject({ start: "2026-11-07", end: "2026-11-11", leave: 2, total: 5, holiday: { key: "independence" } });
   });
 });
 
-describe("free windows", () => {
-  it("shows the user's next picked dates, clipped to today", () => {
+describe("nextPicked (the ranges /trips still searches)", () => {
+  it("clips to today", () => {
     expect(nextPicked([{ start: "2026-10-02", end: "2026-10-06" }], "2026-10-04")).toMatchObject({ start: "2026-10-04", total: 3, kind: "picked" });
-    expect(nextPicked([{ start: "2026-11-01", end: "2026-11-30", anyDays: 5 }], "2026-10-04")?.total).toBe(5);
-    expect(nextPicked([{ start: "2026-09-01", end: "2026-09-03" }], "2026-10-04")).toBeNull();
   });
 
-  it("lists at most two rows and drops a long weekend inside the picked dates", () => {
-    expect(freeWindows([], [], "2026-10-04").map((w) => w.kind)).toEqual(["longWeekend"]);
-    expect(freeWindows([{ start: "2027-01-14", end: "2027-01-19" }], [], "2026-10-04").map((w) => w.kind)).toEqual(["picked", "longWeekend"]);
-    expect(freeWindows([{ start: "2026-11-10", end: "2026-11-16" }], [], "2026-10-04").map((w) => w.kind)).toEqual(["picked"]);
+  it("an 'any N days' range clipped to today counts only the days left", () => {
+    expect(nextPicked([{ start: "2026-11-01", end: "2026-11-30", anyDays: 5 }], "2026-10-04")?.total).toBe(5);
+    expect(nextPicked([{ start: "2026-10-01", end: "2026-10-06", anyDays: 5 }], "2026-10-04")?.total).toBe(3);
+  });
+
+  it("drops ended ranges and a tail shorter than a trip", () => {
+    expect(nextPicked([{ start: "2026-09-01", end: "2026-09-03" }], "2026-10-04")).toBeNull();
+    expect(nextPicked([{ start: "2026-10-01", end: "2026-10-04" }], "2026-10-04")).toBeNull();
+  });
+});
+
+describe("nextFreeWindow", () => {
+  it("shows whichever comes first: the user's dates or the next long weekend", () => {
+    expect(nextFreeWindow([], [], "2026-10-04")?.kind).toBe("longWeekend");
+    expect(nextFreeWindow([{ start: "2026-10-20", end: "2026-10-25" }], [], "2026-10-04")?.kind).toBe("picked");
+    expect(nextFreeWindow([{ start: "2027-01-14", end: "2027-01-19" }], [], "2026-10-04")?.start).toBe("2026-11-11");
   });
 });

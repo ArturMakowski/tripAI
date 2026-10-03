@@ -18,13 +18,14 @@ import { TripLoader, type Stage } from "@/components/trip-loader";
 import { HiddenTrips, SwipeMode, TripsViewToggle, useHiddenIds } from "@/components/trips-swipe";
 import { useSwipe } from "@/lib/use-reactions";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
-import { PickedDatesEmpty, PickedDatesHeader } from "@/components/date-picker/free-dates-planner";
+import { PickedDatesEmpty, PickedDatesHeader, useClientToday } from "@/components/date-picker/free-dates-planner";
 import { AppShell, PageTitle } from "@/components/shell";
 import { useT } from "@/lib/i18n";
 import { useTrip } from "@/lib/store";
 import type { RankedRecommendation } from "@/lib/types";
 import { bridgeFor, useWindows } from "@/lib/windows";
 import { useRecommendations } from "@/lib/use-recommendations";
+import { listedTrips } from "@/lib/trip-list";
 
 /** The proactive moment: a push-style card the scan would send. */
 function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () => void }) {
@@ -107,7 +108,9 @@ function Trips() {
   const list = matching.filter((r) => !hidden.has(r.id));
   const budget = (profile ?? DEMO_PROFILE).budget_pln;
   const [withinFirst, setWithinFirst] = useState(false);
-  const ranks = list.filter((r) => r.fit?.label !== "poor_fit");
+  // the same selector as the home "#1" (lib/trip-list.ts), so the two can't disagree
+  const today = useClientToday();
+  const ranks = listedTrips(matching, hidden, today);
   const fitting = withinFirst ? withinBudgetFirst(ranks, budget) : ranks;
   // Never let an over-budget trip sit at #1 without saying so (cheapest/fit counts come from every trip).
   const banner = budgetBanner(fitting, budget, list);

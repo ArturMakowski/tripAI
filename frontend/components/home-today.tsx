@@ -1,22 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, CalendarHeart, ChevronRight, Luggage } from "lucide-react";
-import { useMemo, useState } from "react";
+import { CalendarHeart, ChevronRight, Luggage } from "lucide-react";
+import { useMemo } from "react";
 import { PriceInline } from "@/components/money";
 import { CityPhoto } from "@/components/rec-card";
 import { useClientToday } from "@/components/date-picker/free-dates-planner";
 import { formatDates } from "@/components/date-picker/date-range-calendar";
-import { dayCount } from "@/lib/format";
+import { nextFreeWindow, type NextWindow } from "@/lib/home-today";
+import { useLang, useT } from "@/lib/i18n";
+import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { moneyOf } from "@/lib/money";
-import { freeWindows, topPick, type NextWindow } from "@/lib/home-today";
-import { useT } from "@/lib/i18n";
-import { useInbox } from "@/lib/notify";
 import { useHydrated, useTrip } from "@/lib/store";
+import { rankedView, topTrip } from "@/lib/trip-list";
 import type { RankedRecommendation } from "@/lib/types";
+import { hiddenIds, useSwipe } from "@/lib/use-reactions";
 import { useDates } from "@/lib/windows-store";
+import { cn } from "@/lib/utils";
 
-const card = "rounded-2xl border border-line bg-card shadow-soft transition-shadow hover:shadow-lift";
+const card = "group flex items-center gap-3 rounded-2xl border border-line bg-card shadow-soft transition-shadow hover:shadow-lift";
+// two text styles per card (docs/DECLUTTER.md): a small line and a display line
+const small = "truncate text-[13px] text-ink-soft";
+const big = "font-display text-lg leading-tight";
+
+/** The #1 on /trips, from the stored ranking: same weights, hidden trips and fit filter (lib/trip-list.ts). */
+export function useTopPick(today: string | null): RankedRecommendation | null {
+  const recs = useTrip((s) => s.recs);
+  const weights = useTrip((s) => s.weights);
+  const fixture = useTrip((s) => s.modes.recs === "fixture");
+  const stored = useTrip((s) => s.profile);
+  const lang = useLang();
+  const log = useSwipe((s) => s.log);
+  return useMemo(() => {
+    if (!today || !recs.length) return null;
+    return topTrip(rankedView(recs, weights, { fixture, profile: stored ?? DEMO_PROFILE, lang }), hiddenIds(log), today);
+  }, [recs, weights, fixture, stored, lang, log, today]);
+}
 
 /**
  * The returning user's home (T16): their #1 trip and the next time off, from what is already on the device.
@@ -25,116 +44,90 @@ const card = "rounded-2xl border border-line bg-card shadow-soft transition-shad
 export function HomeToday() {
   const hydrated = useHydrated();
   const today = useClientToday();
-  const recs = useTrip((s) => s.recs);
-  const recsAt = useTrip((s) => s.recsMeta?.at ?? null);
-  const longWeekends = useTrip((s) => s.longWeekends);
-  const watched = useTrip((s) => s.approved.length);
+  const top = useTopPick(today);
   const ranges = useDates((s) => s.ranges);
-  const unread = useInbox((s) => s.unread);
-  const [now] = useState(() => Date.now()); // "checked 2 h ago" is judged once per visit
-  const top = useMemo(() => (today ? topPick(recs, today) : null), [recs, today]);
-  const free = useMemo(() => (today ? freeWindows(ranges, longWeekends, today) : []), [ranges, longWeekends, today]);
+  const longWeekends = useTrip((s) => s.longWeekends);
+  const free = useMemo(() => (today ? nextFreeWindow(ranges, longWeekends, today) : null), [ranges, longWeekends, today]);
   // client-only: today's date and localStorage differ from the prerendered HTML
   if (!hydrated || !today) return null;
-  return <TodaySummary top={top} checkedAt={recsAt} free={free} watched={watched} unread={unread} now={now} />;
+  return <TodaySummary top={top} free={free} />;
 }
 
-export function TodaySummary({
-  top,
-  checkedAt,
-  free,
-  watched,
-  unread,
-  now,
-}: {
-  top: RankedRecommendation | null;
-  /** when the stored ranking was fetched (ms) */
-  checkedAt: number | null;
-  free: NextWindow[];
-  watched: number;
-  unread: number;
-  now: number;
-}) {
+export function TodaySummary({ top, free }: { top: RankedRecommendation | null; free: NextWindow | null }) {
   const { t, fmt } = useT();
   const th = t.home.today;
-  if (!top && !free.length && !watched && !unread) return null;
+  if (!top && !free) return null;
   return (
-    <section aria-label={th.label} className="mt-5 space-y-2">
+    <section aria-label={th.label} className="mt-6 space-y-2">
       {top && (
         <Link
           href={`/trips/${top.id}`}
           data-testid="home-top-pick"
-          className={`${card} group flex items-center gap-3 p-2.5 pr-3 focus-visible:outline-2 focus-visible:outline-pine`}
+          className={cn(card, "p-2.5 pr-3 focus-visible:outline-2 focus-visible:outline-pine")}
         >
           <CityPhoto rec={top} thumb className="size-14 shrink-0 rounded-xl" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-pine">{th.top}</p>
-            <p className="truncate font-display text-xl leading-tight text-ink">{top.city}</p>
-            <p className="truncate text-[13px] text-ink-soft">
-              {fmt.range(top.window)} · {t.trips.card.nights(dayCount(top.window) - 1)}
+            <p className={small}>
+              {th.top} · {fmt.range(top.window)}
             </p>
-            {checkedAt != null && (
-              <p className="truncate text-[11px] text-muted-foreground">{th.checked(fmt.relative(new Date(checkedAt).toISOString(), now))}</p>
-            )}
+            <p className={cn(big, "truncate text-ink")}>{top.city}</p>
           </div>
-          <div className="max-w-[45%] shrink-0 text-right text-sm leading-snug">
-            {/* an estimate stays muted and italic, as on the card ("~1 718 zł · szacunek") */}
-            <PriceInline rec={top} className={moneyOf(top).status === "estimate" ? undefined : "font-semibold text-ink"} />
-          </div>
+          {/* the card's own price component: an estimate stays "~1 718 zł · szacunek", muted and italic */}
+          <PriceInline
+            rec={top}
+            className={cn(big, "max-w-[45%] shrink-0 text-right", moneyOf(top).status !== "estimate" && "text-ink")}
+          />
           <ChevronRight className="size-5 shrink-0 text-pine transition-transform group-hover:translate-x-0.5" aria-hidden />
         </Link>
       )}
 
-      {free.length > 0 && (
-        <Link href="/windows" data-testid="home-free" className={`${card} group flex items-center gap-3 px-3.5 py-3`}>
-          <CalendarHeart className="size-5 shrink-0 text-clay" aria-hidden />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-pine">{th.free}</p>
-            {free.map((w) => (
-              <WindowLine key={w.kind} w={w} />
-            ))}
-          </div>
-          <ChevronRight className="size-5 shrink-0 text-pine transition-transform group-hover:translate-x-0.5" aria-hidden />
-        </Link>
-      )}
-
-      {(watched > 0 || unread > 0) && (
-        <p className="flex items-center justify-center gap-3 text-sm text-ink-soft">
-          {watched > 0 && (
-            <Link href="/my-trips" className="inline-flex min-h-10 items-center gap-1.5 hover:text-ink">
-              <Luggage className="size-4 text-pine" aria-hidden /> {th.myTrips} <span className="tabular font-semibold text-ink">{watched}</span>
-            </Link>
-          )}
-          {watched > 0 && unread > 0 && <span aria-hidden className="text-line">·</span>}
-          {unread > 0 && (
-            <Link href="/inbox" className="inline-flex min-h-10 items-center gap-1.5 hover:text-ink">
-              <Bell className="size-4 text-clay" aria-hidden /> {th.inbox} <span className="font-semibold text-ink">{th.unread(unread)}</span>
-            </Link>
-          )}
-        </p>
-      )}
+      {free && <FreeWindowCard w={free} />}
     </section>
   );
 }
 
-/** "11–15 lis · Święto Niepodległości" + "Weź 2 dni urlopu → 5 dni"; picked dates: "14–19 sty · 6 dni". */
-function WindowLine({ w }: { w: NextWindow }) {
+/** "11–15 lis" + "Weź 2 dni urlopu → 5 dni"; picked dates: "14–19 sty" + "Twoje terminy · 6 dni". */
+function FreeWindowCard({ w }: { w: NextWindow }) {
   const { t } = useT();
   const tc = t.calendar;
+  const th = t.home.today;
   const dates = formatDates(w, tc.locale);
-  if (w.kind === "picked")
-    return (
-      <p className="truncate text-[15px] text-ink">
-        <span className="text-muted-foreground">{t.home.today.yourDates}:</span> {dates} · {tc.dayCount(w.total)}
-      </p>
-    );
-  const name = w.holiday ? ("key" in w.holiday ? tc.holidays[w.holiday.key] : w.holiday.name) : t.home.today.longWeekend;
+  const holiday = w.holiday ? ("key" in w.holiday ? tc.holidays[w.holiday.key] : w.holiday.name) : null;
+  const line = w.kind === "picked" ? `${th.yourDates} · ${tc.dayCount(w.total)}` : tc.suggestionLine(w.leave, w.total);
   return (
-    <div className="mt-0.5 first:mt-0">
-      <p className="truncate text-[15px] text-ink">
-        <span className="font-display">{dates}</span> · {name}
-      </p>
-      <p className="text-[13px] text-ink-soft">{tc.suggestionLine(w.leave, w.total)}</p>
-    </div>
+    <Link
+      href="/windows"
+      data-testid="home-free"
+      // the holiday's name is read out and shown on hover, not another line on the card
+      aria-label={[dates, holiday, line].filter(Boolean).join(", ")}
+      title={holiday ?? undefined}
+      className={cn(card, "px-3.5 py-3")}
+    >
+      <CalendarHeart className="size-5 shrink-0 text-clay" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <p className={cn(big, "text-ink")}>{dates}</p>
+        <p className={small}>{line}</p>
+      </div>
+      <ChevronRight className="size-5 shrink-0 text-pine transition-transform group-hover:translate-x-0.5" aria-hidden />
+    </Link>
+  );
+}
+
+/** Header icon for the returning view: "Moje podróże" with the number of planned trips (only when there are some). */
+export function MyTripsLink() {
+  const { t } = useT();
+  const watched = useTrip((s) => s.approved.length);
+  if (!watched) return null;
+  return (
+    <Link
+      href="/my-trips"
+      aria-label={`${t.home.today.myTrips}: ${watched}`}
+      className="relative grid size-8 place-items-center rounded-full text-ink-soft hover:bg-paper-deep"
+    >
+      <Luggage className="size-[18px]" aria-hidden />
+      <span className="absolute -top-0.5 -right-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-pine px-1 text-[10px] leading-none font-semibold text-paper tabular">
+        {watched > 9 ? "9+" : watched}
+      </span>
+    </Link>
   );
 }

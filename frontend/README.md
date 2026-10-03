@@ -346,18 +346,19 @@ no contract changes.
 
 ## Returning-user home (`/`, T16)
 Once a profile exists, `/` stops being an empty welcome and shows what the product promises, where **and** when, from data already on
-the device. Nothing on this screen fetches (no search and no SerpApi call):
-- **Your #1 right now / Twój nr 1 teraz.** A compact preview of the best-ranked trip in the stored ranking (`useTrip().recs`) whose dates
-  haven't started yet. It shows the photo thumbnail, city, dates · nights and the price via `PriceInline`, so an estimate reads
-  "~X zł · szacunek", muted, exactly as on the card. It also shows "sprawdzone 2 godz. temu" from `recsMeta.at`. Tapping it opens
-  `/trips/[id]`. Without a stored ranking the block is not shown.
-- **Next time off / Najbliższe wolne.** The user's next picked dates (`useDates`) plus the next długi weekend: the backend radar if it is
-  already in the store, otherwise the local PL holidays + bridge days (`localBridges`), for example "11–15 lis · Święto Niepodległości ·
-  Weź 2 dni urlopu → 5 dni". Tapping it opens `/windows`.
-- **My trips / unread.** One line of links that appears only when there are approved trips or unread notifications (the count the
-  inbox bell already holds).
-- The returning view uses a smaller collage, wrapping chips and a sticky CTA, so "Zobacz swoje wyjazdy" stays above the fold on an
-  iPhone 14. The first-run welcome only gets the restored headline ("Powiedz, kiedy masz wolne." + "Podpowiemy, **dokąd** i **kiedy**
-  jechać — z dowodami.").
-- **Code.** The logic lives in `lib/home-today.ts` (`topPick`, `nextLongWeekend`, `freeWindows`) and the UI in `components/home-today.tsx`.
-  Tests: `lib/home-today.test.ts` and `components/home-today.test.tsx` (PL + EN, estimate labelling, no "%").
+the device. Nothing on this screen starts a search or calls SerpApi:
+- **Twój nr 1 / Your #1.** This is exactly the #1 on `/trips`. Both screens read one selector, `lib/trip-list.ts`: `rankedView` reranks the
+  stored recs by the *current* weights (slider/survey, no refetch needed), with fit verdicts. `listedTrips` / `topTrip` then drop trips
+  swiped "Nie dla mnie", `poor_fit` ("not my style") and trips that already started. The card shows the thumbnail, "Twój nr 1 · dates", the
+  city and the price via `PriceInline`, so an estimate stays "~X zł · szacunek", muted, exactly as on the card. Tapping it opens
+  `/trips/[id]`. Without a stored ranking the card is not shown.
+- **Next time off.** One card for whichever comes first: the user's picked dates (`usableRanges`, the same ranges `/trips` searches)
+  or the next długi weekend (the stored backend radar, else local PL holidays + bridge days). Examples: "11–15 lis · Weź 2 dni urlopu →
+  5 dni" and "20–25 paź · Twoje terminy · 6 dni". The holiday name is in the aria-label and the tooltip. Tapping it opens `/windows`.
+- **Header icons.** The "Moje podróże" icon carries the number of planned trips. The inbox bell is the same one as on every other screen.
+- **Declutter.** The returning view has no promise chips, a smaller collage and a sticky CTA. Each card uses two text styles, and the view
+  stays within 25 words above the fold, headline and lead included (`components/home-today.test.tsx` checks this in PL and EN). The
+  first-run welcome only gets the restored headline ("Powiedz, kiedy masz wolne." + "Podpowiemy, **dokąd** i **kiedy** jechać — z dowodami.").
+- **Tests.** `lib/trip-list.test.ts` covers the hidden, weight-change, poor_fit and started cases. `lib/home-today.test.ts` and
+  `components/home-today.test.tsx` cover the rest. In e2e, 09 revisits `/` as a returning user, and 10 checks that the home card is
+  `/trips` #1 with the same total and estimate label.
