@@ -73,6 +73,8 @@ test(`Price invariant (${lang}): top 3 trips add up the same on card, receipt an
   await app.open('/trips');
   // The app-wide PL/EN switch in the header (stored, so it holds across the page loads below).
   await screen.getByRole('radio', lang).tap();
+  // /trips opens on the swipe view until a view is picked; this test reads the ranked list (the pick is remembered for the page loads below).
+  await screen.getByRole('button', /^(List|Lista)$/).tap();
   const cards = browser.locator('main li:has(article a[href^="/trips/"])');
   await expect(cards.first()).toBeVisible({ timeout: 60_000 });
   // Wait for final prices: while refining, totals read "~1,096 PLN" (cached estimate).

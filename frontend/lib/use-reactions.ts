@@ -31,7 +31,9 @@ export interface SwipeEntry {
 }
 
 interface SwipeState {
+  /** Swipe ("Karty") until the user picks a view; then their choice is remembered. */
   view: TripsView;
+  viewChosen: boolean;
   log: SwipeEntry[];
   /** learned profile/weights not yet pushed into the trip store (deck open) */
   pending: { profile: TasteProfile; weights: Weights; weightsChanged: boolean } | null;
@@ -45,10 +47,11 @@ interface SwipeState {
 export const useSwipe = create<SwipeState>()(
   persist(
     (set) => ({
-      view: "list",
+      view: "swipe",
+      viewChosen: false,
       log: [],
       pending: null,
-      setView: (view) => set({ view }),
+      setView: (view) => set({ view, viewChosen: true }),
       push: (e, learned) =>
         set((s) => ({
           log: [...s.log.filter((x) => x.rec.id !== e.rec.id), e],
@@ -57,10 +60,19 @@ export const useSwipe = create<SwipeState>()(
       drop: (recId, learned) =>
         set((s) => ({ log: s.log.filter((x) => x.rec.id !== recId), pending: { ...learned, weightsChanged: true } })),
       clearPending: () => set({ pending: null }),
-      reset: () => set({ view: "list", log: [], pending: null }),
+      reset: () => set({ view: "swipe", viewChosen: false, log: [], pending: null }),
     }),
     // the log keeps whole cards so "hidden" can show them; cap it so localStorage stays small
-    { name: "tripai-swipe-v1", storage: createJSONStorage(() => localStorage), partialize: (s) => ({ ...s, log: capLog(s.log) }) },
+    {
+      name: "tripai-swipe-v1",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (s) => ({ ...s, log: capLog(s.log) }),
+      // Saved before views were "chosen" (the old default was the list): open swipe until a real pick.
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<SwipeState>;
+        return { ...current, ...p, view: p.viewChosen ? (p.view ?? current.view) : "swipe", viewChosen: !!p.viewChosen };
+      },
+    },
   ),
 );
 

@@ -12,9 +12,9 @@ export const en = {
   /** gesture/answer labels: 1..5 on the statement scale */
   answers: { 1: "Not me", 2: "Not really", 3: "Depends", 4: "That's me", 5: "So me!" },
   yesNo: { yes: "Yes", no: "No" },
-  // --- step 1: dates, party, airports (before any price question) ---
+  // --- step 2 (after the deck): dates, party, airports ---
   tripTitle: "When, and who's coming?",
-  tripSub: "Dates and people first, then your taste.",
+  tripSub: "Dates, people and your airport.",
   datesLabel: "When are you free?",
   datesHint: "Add more dates in the calendar later.",
   step: (n: number, total: number) => `${n} / ${total}`,
@@ -92,7 +92,7 @@ export const pl: Shape<typeof en> = {
   answers: { 1: "Nie ja", 2: "Raczej nie", 3: "Zależy", 4: "To ja", 5: "Bardzo ja!" },
   yesNo: { yes: "Tak", no: "Nie" },
   tripTitle: "Kiedy i z kim?",
-  tripSub: "Najpierw termin i liczba osób, potem gust.",
+  tripSub: "Termin, liczba osób i lotnisko.",
   datesLabel: "Kiedy masz wolne?",
   datesHint: "Więcej terminów dodasz później w kalendarzu.",
   step: (n, total) => `${n} / ${total}`,

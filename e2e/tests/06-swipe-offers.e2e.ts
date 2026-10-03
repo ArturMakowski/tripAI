@@ -5,12 +5,10 @@ import { guard } from './support/tripai.ts';
 test('Swipe on offers: liking a card shows what was learned, and undo brings it back', async ({ app, agent, screen, browser }) => {
   await guard(browser, app.baseUrl);
   await app.open('/trips');
-  await expect(browser.locator('main li:has(a[href^="/trips/"])').first()).toBeVisible({ timeout: 60_000 });
-
-  await screen.getByRole('button', 'Swipe').tap();
+  // The swipe view ("Karty") is the default on a first visit (no toggle tap needed).
   const deck = screen.getByRole('region', 'Swipe');
   const topCard = deck.getByRole('group').first();
-  await expect(topCard).toBeVisible({ timeout: 30_000 });
+  await expect(topCard).toBeVisible({ timeout: 60_000 });
   const city = ((await topCard.getAttribute('aria-label')) ?? '').split(',')[0];
 
   await agent.act('on the swipe deck, say you want to go to the offer on top (the like / "I want to go" / "Chcę tam" choice)');

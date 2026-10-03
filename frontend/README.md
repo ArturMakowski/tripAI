@@ -28,14 +28,16 @@ Demo script: interview → windows → trips → drag the slider to **Price** (A
 → "Fill demo answers" → crowd weight goes up → Rome goes back to #1.
 
 ## Travel DNA swipe onboarding (`/onboarding`)
-**Order (user testing, docs/USER_TESTING.md): dates and party size come before any price question.**
-- **Step 1, "Kiedy i z kim?"** has three parts:
+**Order: the swipe deck first** (it's the part people love), then one quick step, then the result.
+- **Step 1** is the swipe deck below.
+- **Step 2, "Kiedy i z kim?"** has three parts:
   - quick date chips (this weekend, next long weekend, any 5 days next month), which feed the same store as `/windows`;
   - a party stepper, 1–12 people;
   - home-airport chips.
-- **Step 2** is the swipe deck below. Its price statements (q9/q10) come only here.
-- **No budget step.** Price sensitivity comes from DNA q9/q10. A hard limit is optional in Profile (docs/BUDGET.md), shown per person and per trip.
-- **When the deck ends,** the result is computed and shown. "Looks right" goes to `/trips` if dates were picked, otherwise to `/windows`.
+
+  "Pokaż moje DNA" computes the result; "Wstecz" undoes the last swipe.
+- **No budget question in onboarding.** Price sensitivity comes from DNA q9/q10. A hard limit is optional in Profile (docs/BUDGET.md).
+- **"Looks right"** goes to `/trips` if dates were picked, otherwise to `/windows`.
 
 The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12 statements (q1–q12) and 2 yes/no cards
 (y1, y2). Copy is Polish first, with an EN toggle.
@@ -97,7 +99,7 @@ overall rating is half stars with the exact value in small text (`★★★★½
   and confirm (`MoneyLines`) all render through it, so the same trip shows the same total everywhere, in both loading phases
   and both languages. `components/money-consistency.test.tsx` renders all three for solo, party, exact, partial and estimate
   trips and compares them.
-- **Party size.** An "Ile osób?" stepper (1–12) on onboarding's first step and in the Trips header writes `adults` (rooms
+- **Party size.** An "Ile osób?" stepper (1–12) on onboarding's "Kiedy i z kim?" step and in the Trips header writes `adults` (rooms
   default to ceil(people / 2)). Cards say "2 osoby · 2 480 zł razem · 1 240 zł/os." from `party_total_pln` / `per_person_pln`;
   the receipt and confirm show "Loty × 2", "Nocleg, 4 noce × 2 pokoje", "Razem za 3 os." and "na osobę".
 - **Hotel line says what was priced:** "Hotel Raphael, 4 noce" for a specific hotel (`rec.hotel.name`), "Nocleg, 4 noce ·
@@ -178,7 +180,8 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
   in-browser mocks already answer in the chosen language.
 
 ## Swipe on offers (`/trips`, T6)
-- **Toggle.** "Lista / Swipe" under the slider. Swipe mode shows the ranked cards you haven't reacted to as a deck (photo, dates, all-in
+- **Toggle.** "Lista / Karty" under the slider. **The swipe view ("Karty") opens by default** until the user picks a view;
+  after that the choice is remembered (`tripai-swipe-v1`, `viewChosen`). Swipe mode shows the ranked cards you haven't reacted to as a deck (photo, dates, all-in
   PLN, score ring, tags, fit badge). It reuses the Travel DNA deck's swipe physics and stamps (`components/offer-deck.tsx`).
 - **Gestures.** → "Chcę tam" (like, and the trip is watched for price drops via T5b `POST /picks`), ← "Nie dla mnie" (hidden), ↑ "Super!"
   (strong like). The same choices are available as buttons and arrow keys. Backspace or the button undoes (`DELETE /reactions/{id}`, and

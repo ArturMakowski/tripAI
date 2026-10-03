@@ -7,6 +7,8 @@ import { guard } from './support/tripai.ts';
 test('Receipt: every price row shows its source and fetch time, and the inputs hash is one tap away', async ({ app, agent, screen, browser }) => {
   await guard(browser, app.baseUrl);
   await app.open('/trips');
+  // /trips opens on the swipe view until a view is picked; this test reads the ranked list.
+  await screen.getByRole('button', /^(List|Lista)$/).tap();
   const top = browser.locator('main li article a[href^="/trips/"]').first();
   await expect(top).toBeVisible({ timeout: 60_000 });
   // Deterministic: open the top-ranked trip (the whole card is one link).
