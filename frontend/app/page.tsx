@@ -8,21 +8,22 @@ import { LangSwitch } from "@/components/lang-switch";
 import { Logo, ModeBadge, PhotoCreditsLink } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
+import { useT } from "@/lib/i18n";
 import { useHydrated, useTrip } from "@/lib/store";
 
 // The photos are landscape (about 1.5:1) in 3:4 frames, so each keeps half its width: `focus` (object-position)
 // picks the half with the landmark (Panteão dome, Colosseum's lit arcades, Parthenon).
 const PHOTOS = [
-  { src: "/cities/lisbon.jpg", alt: "Alfama rooftops in Lisbon", focus: "20% 50%", className: "left-0 top-8 -rotate-6 w-[42%]" },
-  { src: "/cities/rome.jpg", alt: "Colosseum in Rome", focus: "30% 50%", className: "left-[29%] top-0 z-10 w-[44%]" },
-  { src: "/cities/athens.jpg", alt: "Acropolis in Athens", focus: "62% 50%", className: "right-0 top-10 rotate-6 w-[40%]" },
-];
+  { src: "/cities/lisbon.jpg", key: "lisbon", focus: "20% 50%", className: "left-0 top-8 -rotate-6 w-[42%]" },
+  { src: "/cities/rome.jpg", key: "rome", focus: "30% 50%", className: "left-[29%] top-0 z-10 w-[44%]" },
+  { src: "/cities/athens.jpg", key: "athens", focus: "62% 50%", className: "right-0 top-10 rotate-6 w-[40%]" },
+] as const;
 
 const PROMISES = [
-  { icon: Receipt, text: "Every price and fact shows its source and when it was fetched." },
-  { icon: BadgeCheck, text: "A transparent scoring formula ranks your options. The AI explains, it doesn't decide." },
-  { icon: Hand, text: "Nothing gets booked until you say so." },
-];
+  { icon: Receipt, key: "sources" },
+  { icon: BadgeCheck, key: "formula" },
+  { icon: Hand, key: "noBooking" },
+] as const;
 
 export default function Welcome() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function Welcome() {
   const profile = useTrip((s) => s.profile);
   const setProfile = useTrip((s) => s.setProfile);
   const reset = useTrip((s) => s.reset);
+  const t = useT().t.home;
 
   return (
     <div className="flex min-h-dvh flex-col px-6 pt-5 pb-8 sm:min-h-0 sm:flex-1">
@@ -51,7 +53,7 @@ export default function Welcome() {
             transition={{ delay: 0.1 + i * 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.src} alt={p.alt} className="size-full object-cover" style={{ objectPosition: p.focus }} />
+            <img src={p.src} alt={t.photos[p.key]} className="size-full object-cover" style={{ objectPosition: p.focus }} />
           </motion.div>
         ))}
         <motion.div
@@ -60,25 +62,28 @@ export default function Welcome() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
         >
-          e.g. &ldquo;You&rsquo;re free 14–19 Jan → Rome&rdquo;
+          {t.example}
         </motion.div>
       </div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.6 }}>
         <h1 className="mt-12 font-display text-[2.4rem] leading-[1.04] font-medium text-ink">
-          Tell us who you are and when you&rsquo;re free.
+          {t.title}
         </h1>
         <p className="mt-3 text-[17px] leading-relaxed text-ink-soft">
-          We&rsquo;ll tell you <em className="font-display text-ink not-italic">where</em> and{" "}
-          <em className="font-display text-ink not-italic">when</em> to go, and show how we got there.
+          {t.lead.before}
+          <em className="font-display text-ink not-italic">{t.lead.where}</em>
+          {t.lead.and}
+          <em className="font-display text-ink not-italic">{t.lead.when}</em>
+          {t.lead.after}
         </p>
       </motion.div>
 
       <ul className="mt-7 space-y-3">
-        {PROMISES.map(({ icon: Icon, text }) => (
-          <li key={text} className="flex gap-3 text-sm leading-snug text-ink-soft">
+        {PROMISES.map(({ icon: Icon, key }) => (
+          <li key={key} className="flex gap-3 text-sm leading-snug text-ink-soft">
             <Icon className="mt-0.5 size-4 shrink-0 text-pine" aria-hidden />
-            {text}
+            {t.promises[key]}
           </li>
         ))}
       </ul>
@@ -87,7 +92,7 @@ export default function Welcome() {
         {hydrated && profile ? (
           <>
             <Button size="lg" className="h-13 w-full rounded-2xl text-base" onClick={() => router.push("/trips")}>
-              See your trips <ArrowRight data-icon="inline-end" />
+              {t.seeTrips} <ArrowRight data-icon="inline-end" />
             </Button>
             <button
               className="w-full py-2 text-sm text-muted-foreground hover:text-ink"
@@ -96,18 +101,18 @@ export default function Welcome() {
                 router.push("/onboarding");
               }}
             >
-              Start over
+              {t.startOver}
             </button>
           </>
         ) : (
           <>
             <Button asChild size="lg" className="h-13 w-full rounded-2xl text-base">
               <Link href="/onboarding">
-                Swipe your Travel DNA <ArrowRight data-icon="inline-end" />
+                {t.swipe} <ArrowRight data-icon="inline-end" />
               </Link>
             </Button>
             <Link href="/onboarding/chat" className="block w-full py-1 text-center text-sm text-ink-soft hover:text-ink">
-              or chat with TripAI instead
+              {t.chatInstead}
             </Link>
             <button
               className="w-full py-2 text-sm text-muted-foreground hover:text-ink"
@@ -116,7 +121,7 @@ export default function Welcome() {
                 router.push("/profile");
               }}
             >
-              Skip and use the demo profile
+              {t.demoProfile}
             </button>
           </>
         )}

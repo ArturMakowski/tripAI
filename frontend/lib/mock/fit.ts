@@ -4,7 +4,51 @@
  * Every point cites DNA card ids and/or evidence indexes that exist, and uses only
  * numbers that appear in the cited evidence.
  */
+import type { Lang } from "../i18n/types";
 import type { FitPoint, FitVerdict, Recommendation, TasteProfile } from "../types";
+
+/**
+ * Mock "AI" text in the UI language (the real agent answers in the request's `lang`).
+ * Numbers are the cited evidence values verbatim (decimal comma in Polish).
+ */
+const TEXT = {
+  en: {
+    food: "Food among the top sights, and you said you love local food",
+    tempIn: (t: string) => `Around ${t} °C, inside your comfortable range`,
+    offSeason: "Off-season: crowds are low, as you prefer",
+    cheaperMedian: "Cheaper than the seasonal median for this trip",
+    belowFare: "Flight below the typical fare range for this route",
+    active: "Good for being active outdoors",
+    crowdsSaid: (c: string) => `Crowd index ${c} of peak, and you said you like travelling away from crowds`,
+    crowdsDisliked: (c: string) => `Crowd index ${c} of peak, and you listed crowds as a dislike`,
+    nightlife: "Known for nightlife, but you're mostly after rest",
+    tempOut: (t: string) => `Around ${t} °C, outside your comfortable range`,
+    rain: (n: string) => `About ${n} rainy days expected in the window`,
+    overBudget: "Over your budget",
+    scoresWellBut: (concern: string) => `Scores well, but ${concern.charAt(0).toLowerCase() + concern.slice(1)}.`,
+    sentence: (s: string) => `${s}.`,
+    noSignals: "No strong signals either way from your Travel DNA.",
+    neutral: (s: string) => `${s} (Checked against neutral DNA.)`,
+  },
+  pl: {
+    food: "Jedzenie wśród głównych atrakcji, a lokalna kuchnia to Twoja rzecz",
+    tempIn: (t: string) => `Około ${t} °C, w Twoim komfortowym zakresie`,
+    offSeason: "Poza sezonem: tłok jest mały, tak jak lubisz",
+    cheaperMedian: "Taniej niż sezonowa mediana dla tego wyjazdu",
+    belowFare: "Lot poniżej typowego przedziału cen na tej trasie",
+    active: "Dobre miejsce na aktywność na świeżym powietrzu",
+    crowdsSaid: (c: string) => `Wskaźnik tłoku ${c} szczytu, a lubisz podróżować z dala od tłumów`,
+    crowdsDisliked: (c: string) => `Wskaźnik tłoku ${c} szczytu, a tłok jest na Twojej liście rzeczy do unikania`,
+    nightlife: "Słynie z nocnego życia, a Ty szukasz głównie odpoczynku",
+    tempOut: (t: string) => `Około ${t} °C, poza Twoim komfortowym zakresem`,
+    rain: (n: string) => `W tym terminie spodziewanych jest około ${n} deszczowych dni`,
+    overBudget: "Powyżej Twojego budżetu",
+    scoresWellBut: (concern: string) => `Wysoki wynik, ale: ${concern.charAt(0).toLowerCase() + concern.slice(1)}.`,
+    sentence: (s: string) => `${s}.`,
+    noSignals: "Twoje DNA podróżnika nie daje tu wyraźnych sygnałów w żadną stronę.",
+    neutral: (s: string) => `${s} (Sprawdzone na neutralnym DNA.)`,
+  },
+};
 
 export const CLIENT_PREVIEW_MODEL = "rules:client-preview";
 
@@ -21,7 +65,9 @@ const ACTIVE = /hik|trail|surf|cycl|kayak|climb|ridge/i;
 
 const num = (v: number | string | undefined) => (typeof v === "number" ? v : Number.NaN);
 
-export function rulesFit(rec: Recommendation, profile: TasteProfile, model = "rules"): FitVerdict {
+export function rulesFit(rec: Recommendation, profile: TasteProfile, model = "rules", lang: Lang = "en"): FitVerdict {
+  const T = TEXT[lang];
+  const dec = (n: number) => (lang === "pl" ? String(n).replace(".", ",") : String(n));
   const t = profile.traits ?? {};
   // Personalize = No: verdict is computed against neutral DNA (all answers 3).
   const neutral = profile.personalize === false;
@@ -47,11 +93,11 @@ export function rulesFit(rec: Recommendation, profile: TasteProfile, model = "ru
 
   // --- matches -----------------------------------------------------------------------
   if (high("q5").length && FOOD.test(sights))
-    matches.push({ text: "Food among the top sights, and you said you love local food", dna: ["q5"], evidence: cite(["attraction"]) });
+    matches.push({ text: T.food, dna: ["q5"], evidence: cite(["attraction"]) });
   if (Number.isFinite(temp) && temp >= lo && temp <= hi)
-    matches.push({ text: `Around ${temp} °C, inside your comfortable range`, dna: [], evidence: cite(["weather"]) });
+    matches.push({ text: T.tempIn(dec(temp)), dna: [], evidence: cite(["weather"]) });
   if (Number.isFinite(crowd) && crowd <= 0.35 && crowdHaters.length)
-    matches.push({ text: "Off-season: crowds are low, as you prefer", dna: crowdHaters, evidence: cite(["crowds"]) });
+    matches.push({ text: T.offSeason, dna: crowdHaters, evidence: cite(["crowds"]) });
   const base = ev("price_baseline");
   if (base) {
     // Compare like with like: a fare range vs the flight, a trip-total median vs the total.
@@ -60,29 +106,27 @@ export function rulesFit(rec: Recommendation, profile: TasteProfile, model = "ru
     const mine = isTotal ? rec.total_cost_pln : rec.flight_cost_pln;
     if (Number.isFinite(low) && mine < low)
       matches.push({
-        text: isTotal ? "Cheaper than the seasonal median for this trip" : "Flight below the typical fare range for this route",
+        text: isTotal ? T.cheaperMedian : T.belowFare,
         dna: high("q9"),
         evidence: cite(isTotal ? ["flight", "hotel", "price_baseline"] : ["flight", "price_baseline"]),
       });
   }
   if (high("q7").length && (tags.has("hiking") || ACTIVE.test(sights)))
-    matches.push({ text: "Good for being active outdoors", dna: ["q7"], evidence: tags.has("hiking") ? [] : cite(["attraction"]) });
+    matches.push({ text: T.active, dna: ["q7"], evidence: tags.has("hiking") ? [] : cite(["attraction"]) });
 
   // --- concerns ----------------------------------------------------------------------
   if (Number.isFinite(crowd) && crowd >= 0.45 && (crowdHaters.length || dislikesCrowds))
     concerns.push({
-      text: crowdHaters.length
-        ? `Crowd index ${crowd} of peak, and you said you like travelling away from crowds`
-        : `Crowd index ${crowd} of peak, and you listed crowds as a dislike`,
+      text: crowdHaters.length ? T.crowdsSaid(dec(crowd)) : T.crowdsDisliked(dec(crowd)),
       dna: crowdHaters,
       evidence: cite(["crowds"]),
       severity: 2,
     });
   if (high("q6").length && tags.has("nightlife"))
-    concerns.push({ text: "Known for nightlife, but you're mostly after rest", dna: ["q6"], evidence: cite(["attraction"]), severity: 2 });
+    concerns.push({ text: T.nightlife, dna: ["q6"], evidence: cite(["attraction"]), severity: 2 });
   if (Number.isFinite(temp) && (temp < lo || temp > hi))
     concerns.push({
-      text: `Around ${temp} °C, outside your comfortable range`,
+      text: T.tempOut(dec(temp)),
       dna: [],
       evidence: cite(["weather"]),
       severity: temp < lo - 4 || temp > hi + 4 ? 2 : 1,
@@ -90,10 +134,10 @@ export function rulesFit(rec: Recommendation, profile: TasteProfile, model = "ru
   const rainIdx = rec.evidence.findIndex((e) => e.kind === "weather" && e.unit === "days");
   const rain = rainIdx >= 0 ? num(rec.evidence[rainIdx].value) : Number.NaN;
   if (Number.isFinite(rain) && rain >= 5)
-    concerns.push({ text: `About ${rain} rainy days expected in the window`, dna: high("q7"), evidence: [rainIdx], severity: 1 });
+    concerns.push({ text: T.rain(dec(rain)), dna: high("q7"), evidence: [rainIdx], severity: 1 });
   if (profile.budget_pln != null && rec.total_cost_pln > profile.budget_pln)
     concerns.push({
-      text: "Over your budget",
+      text: T.overBudget,
       dna: high("q9"),
       evidence: cite(["flight", "hotel"]),
       severity: high("q9").length ? 2 : 1,
@@ -109,15 +153,15 @@ export function rulesFit(rec: Recommendation, profile: TasteProfile, model = "ru
 
   const scoreHigh = rec.score.total >= 0.75;
   let summary: string;
-  if (scoreHigh && level <= 1 && concerns[0]) summary = `Scores well, but ${lowerFirst(concerns[0].text)}.`;
-  else if (level >= 2 && matches[0]) summary = `${matches[0].text}.`;
-  else if (concerns[0]) summary = `${concerns[0].text}.`;
-  else summary = "No strong signals either way from your Travel DNA.";
+  if (scoreHigh && level <= 1 && concerns[0]) summary = T.scoresWellBut(concerns[0].text);
+  else if (level >= 2 && matches[0]) summary = T.sentence(matches[0].text);
+  else if (concerns[0]) summary = T.sentence(concerns[0].text);
+  else summary = T.noSignals;
 
   return {
     label,
     confidence: 0.6,
-    summary: neutral ? `${summary} (Checked against neutral DNA.)` : summary,
+    summary: neutral ? T.neutral(summary) : summary,
     matches: matches.filter((m) => m.dna.length || m.evidence.length),
     concerns: concerns.filter((c) => c.dna.length || c.evidence.length).map((c) => ({ text: c.text, dna: c.dna, evidence: c.evidence })),
     model,
@@ -126,9 +170,7 @@ export function rulesFit(rec: Recommendation, profile: TasteProfile, model = "ru
   };
 }
 
-const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
-
 /** Attach a verdict where the backend didn't send one (fixture mode, or until the fit agent ships). */
-export function withFit<T extends Recommendation>(recs: T[], profile: TasteProfile, model: string): T[] {
-  return recs.map((r) => (r.fit ? r : { ...r, fit: rulesFit(r, profile, model) }));
+export function withFit<T extends Recommendation>(recs: T[], profile: TasteProfile, model: string, lang: Lang = "en"): T[] {
+  return recs.map((r) => (r.fit ? r : { ...r, fit: rulesFit(r, profile, model, lang) }));
 }

@@ -7,7 +7,11 @@ export function originOf(rec: Recommendation, fallback = "KRK"): string {
 }
 
 /** Partner deep links with dates pre-filled. Nothing is booked by TripAI. */
-export function handoffLinks(rec: Recommendation, fallbackOrigin?: string): { label: string; url: string }[] {
+export function handoffLinks(
+  rec: Recommendation,
+  fallbackOrigin?: string,
+  labels: { flights: string; hotels: string } = { flights: "Flights on Google Flights", hotels: "Hotels on Booking.com" },
+): { label: string; url: string }[] {
   const { start, end } = rec.window;
   const origin = originOf(rec, fallbackOrigin);
   const evidenceLinks = rec.evidence
@@ -15,11 +19,11 @@ export function handoffLinks(rec: Recommendation, fallbackOrigin?: string): { la
     .map((e) => ({ label: e.label, url: e.url! }));
   return [
     {
-      label: "Flights on Google Flights",
+      label: labels.flights,
       url: `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${origin} to ${rec.iata} on ${start} through ${end}`)}`,
     },
     {
-      label: "Hotels on Booking.com",
+      label: labels.hotels,
       url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(rec.city)}&checkin=${start}&checkout=${end}&group_adults=1`,
     },
     ...evidenceLinks,

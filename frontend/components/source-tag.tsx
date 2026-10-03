@@ -1,17 +1,19 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
-import { formatTimestamp, isSampleSource, sourceName } from "@/lib/format";
+import { isSampleSource, sourceNameFor } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import type { Evidence } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 /** "Source · fetched at" caption shown under every number. */
 export function SourceTag({ e }: { e: Pick<Evidence, "source" | "fetched_at" | "url"> }) {
+  const { t, fmt } = useT();
   const inner = (
     <>
-      {sourceName(e.source)}
+      {sourceNameFor(e.source, t.receipt.source)}
       {/* sample data was never fetched, so no "fetched at" time */}
-      {!isSampleSource(e.source) && <> · {formatTimestamp(e.fetched_at)}</>}
+      {!isSampleSource(e.source) && <> · {fmt.timestamp(e.fetched_at)}</>}
       {e.url && <ExternalLink className="size-3" aria-hidden />}
     </>
   );

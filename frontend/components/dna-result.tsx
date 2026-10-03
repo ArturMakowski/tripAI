@@ -3,46 +3,13 @@
 import { motion } from "motion/react";
 import { Ban, Compass, Footprints, Hotel, Pencil, Plane, Sparkles, Wallet } from "lucide-react";
 import { FACTOR_COLOR, FACTOR_ICON } from "@/components/factor-bars";
-import { ANSWER_LABEL, DNA_CARD, DNA_DECK, UI, YESNO_LABEL, type CardId, type DnaAnswers, type Lang } from "@/lib/dna";
+import { DNA_CARD, DNA_DECK, type CardId, type DnaAnswers, type Lang } from "@/lib/dna";
+import { fmtFor, messagesFor } from "@/lib/i18n";
+import { nameOf } from "@/lib/i18n/messages/profile";
 import { FACTORS } from "@/lib/scoring";
 import type { DnaReason, DnaResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const FACTOR_NAME: Record<Lang, Record<string, string>> = {
-  pl: { price: "Cena", weather: "Pogoda", crowds: "Tłumy", taste: "Dopasowanie do gustu" },
-  en: { price: "Price", weather: "Weather", crowds: "Crowds", taste: "Taste fit" },
-};
-const TAG_NAME: Record<Lang, Record<string, string>> = {
-  pl: {
-    food: "jedzenie",
-    culture: "kultura",
-    history: "historia",
-    beach: "plaża",
-    wellness: "wellness",
-    hiking: "wędrówki",
-    nature: "natura",
-    offbeat: "poza szlakiem",
-    discovery: "odkrywanie",
-  },
-  en: {},
-};
-const LUXURY_NAME: Record<Lang, Record<string, string>> = {
-  pl: { budget: "budżetowo", standard: "standard", comfort: "komfortowo", luxury: "luksusowo" },
-  en: { budget: "budget", standard: "standard", comfort: "comfort", luxury: "luxury" },
-};
-const PACE_NAME: Record<Lang, Record<string, string>> = {
-  pl: { structured: "zaplanowane", spontaneous: "spontaniczne", balanced: "zrównoważone" },
-  en: { structured: "structured", spontaneous: "spontaneous", balanced: "balanced" },
-};
-const STYLE_LABEL: Record<Lang, Record<string, string>> = {
-  pl: { luxury: "Nocleg", pace: "Tempo", daily: "Codziennie coś nowego", avoid: "Unikasz", yes: "tak", no: "nie", budget: "Budżet", from: "Wylot z", change: "zmień", flexible: "bez limitu", none: "nic szczególnego", notForYou: "Raczej nie dla Ciebie" },
-  en: { luxury: "Stay", pace: "Pace", daily: "Something new every day", avoid: "You avoid", yes: "yes", no: "no", budget: "Budget", from: "Flying from", change: "change", flexible: "no limit", none: "nothing in particular", notForYou: "Not really for you" },
-};
-
-const DISLIKE_NAME: Record<Lang, Record<string, string>> = {
-  pl: { crowds: "tłumów", heat: "upałów", cold: "zimna", nightlife: "nocnego życia", "long flights": "długich lotów" },
-  en: {},
-};
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** Server reason -> "because you swiped “So me!” on price driving your choices, “Not me” on …" */
@@ -51,18 +18,19 @@ export function becauseLine(because: string[], collected: DnaAnswers, lang: Lang
     .map((id) => DNA_CARD[id as CardId])
     .filter(Boolean)
     .map((card) => {
+      const t = messagesFor(lang).onboarding;
       let label: string;
       if (card.kind === "yesno") {
         const v = collected.yes_no[card.id as "y1" | "y2"];
-        label = v == null ? "–" : v ? YESNO_LABEL[lang].yes : YESNO_LABEL[lang].no;
+        label = v == null ? "–" : v ? t.yesNo.yes : t.yesNo.no;
       } else {
-        const v = collected.answers[card.id];
-        label = v == null ? ANSWER_LABEL[lang][3] : ANSWER_LABEL[lang][v];
+        const v = collected.answers[card.id] ?? 3;
+        label = t.answers[v as 1 | 2 | 3 | 4 | 5];
       }
-      return lang === "pl" ? `„${label}” ${UI[lang].on} ${card.short[lang]}` : `“${label}” ${UI[lang].on} ${card.short[lang]}`;
+      return t.becausePart(label, card.short[lang]);
     });
   if (!parts.length) return "";
-  return lang === "pl" ? `na podstawie: ${parts.join(", ")}` : `because you swiped ${parts.join(", ")}`;
+  return messagesFor(lang).onboarding.because(parts.join(", "));
 }
 
 function Why({ reason, collected, lang }: { reason?: DnaReason; collected: DnaAnswers; lang: Lang }) {
@@ -88,8 +56,8 @@ function DotScale({ id, value, lang, onChange }: { id: CardId; value?: number; l
           key={n}
           role="radio"
           aria-checked={value === n}
-          aria-label={`${n}: ${ANSWER_LABEL[lang][n]}`}
-          title={ANSWER_LABEL[lang][n]}
+          aria-label={`${n}: ${messagesFor(lang).onboarding.answers[n as 1]}`}
+          title={messagesFor(lang).onboarding.answers[n as 1]}
           onClick={() => onChange(n)}
           className="grid size-9 place-items-center rounded-full"
         >
@@ -127,8 +95,11 @@ export function DnaResult({
   onEdit: (cardId: string, value: number | boolean) => void;
   onEditStep: (step: "budget" | "airport") => void;
 }) {
-  const t = UI[lang];
-  const s = STYLE_LABEL[lang];
+  const all = messagesFor(lang);
+  const t = all.onboarding;
+  const fmt = fmtFor(lang);
+  const tagName = (tag: string) => nameOf(all.profile.tags, tag);
+  const s = t.styleRows;
   const reason = (field: string) => result.reasons.find((r) => r.field === field);
   const { profile, weights } = result;
   const personalize = profile.personalize !== false;
@@ -167,7 +138,7 @@ export function DnaResult({
               <li key={f}>
                 <div className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2 font-medium text-ink">
-                    <Icon className="size-4" style={{ color: FACTOR_COLOR[f] }} /> {FACTOR_NAME[lang][f]}
+                    <Icon className="size-4" style={{ color: FACTOR_COLOR[f] }} /> {all.trips.factors[f]}
                   </span>
                   <span className="tabular font-mono text-ink">{Math.round(weights[f] * 100)}%</span>
                 </div>
@@ -192,7 +163,7 @@ export function DnaResult({
           {liked.map(([tag, v]) => (
             <li key={tag} className="rounded-2xl border border-line bg-card px-4 py-3 shadow-soft">
               <div className="flex items-center justify-between gap-3">
-                <span className="font-medium text-ink">{cap(TAG_NAME[lang][tag] ?? tag)}</span>
+                <span className="font-medium text-ink">{cap(tagName(tag))}</span>
                 <span className="flex items-center gap-2">
                   <span className="h-1.5 w-20 overflow-hidden rounded-full bg-paper-deep">
                     <motion.span
@@ -211,7 +182,7 @@ export function DnaResult({
         </ul>
         {meh.length > 0 && (
           <p className="mt-3 text-sm text-muted-foreground">
-            {s.notForYou}: {meh.map(([tag]) => TAG_NAME[lang][tag] ?? tag).join(", ")}
+            {s.notForYou}: {meh.map(([tag]) => tagName(tag)).join(", ")}
           </p>
         )}
       </Section>
@@ -219,8 +190,8 @@ export function DnaResult({
       <Section title={t.style}>
         <ul className="divide-y divide-line rounded-3xl border border-line bg-card px-4 shadow-soft">
           {[
-            { icon: Hotel, label: s.luxury, value: LUXURY_NAME[lang][profile.luxury], r: reason("luxury") },
-            { icon: Footprints, label: s.pace, value: PACE_NAME[lang][paceKey], r: reason("traits.pace") },
+            { icon: Hotel, label: s.luxury, value: all.profile.luxury[profile.luxury], r: reason("luxury") },
+            { icon: Footprints, label: s.pace, value: t.pace[paceKey], r: reason("traits.pace") },
             {
               icon: Compass,
               label: s.daily,
@@ -230,7 +201,7 @@ export function DnaResult({
             {
               icon: Ban,
               label: s.avoid,
-              value: profile.dislikes.length ? profile.dislikes.map((d) => DISLIKE_NAME[lang][d] ?? d).join(", ") : s.none,
+              value: profile.dislikes.length ? profile.dislikes.map((d) => nameOf(t.avoid, d)).join(", ") : s.none,
               r: reason("dislikes"),
             },
           ].map(({ icon: Icon, label, value, r }) => (
@@ -250,7 +221,7 @@ export function DnaResult({
                 <Wallet className="size-4 text-pine" /> {s.budget}
               </span>
               <button onClick={() => onEditStep("budget")} className="flex items-center gap-1.5 font-medium text-ink">
-                {budget == null ? s.flexible : `${new Intl.NumberFormat("pl-PL").format(budget)} zł`}
+                {budget == null ? s.flexible : fmt.pln(budget)}
                 <Pencil className="size-3.5 text-muted-foreground" aria-label={s.change} />
               </button>
             </div>
@@ -269,10 +240,10 @@ export function DnaResult({
         </ul>
       </Section>
 
-      <Section title={t.answers}>
+      <Section title={t.answersTitle}>
         <p className="-mt-1 mb-3 flex items-center gap-1.5 text-xs text-muted-foreground">
           <Sparkles className="size-3.5" />
-          {lang === "pl" ? "Dotknij kropki, aby zmienić odpowiedź (1 = nie ja, 5 = bardzo ja)." : "Tap a dot to change an answer (1 = not me, 5 = so me)."}
+          {t.editHint}
         </p>
         <ul className="space-y-2">
           {DNA_DECK.map((card) => (
@@ -288,7 +259,7 @@ export function DnaResult({
                     <>
                       <DotScale id={card.id} value={collected.answers[card.id]} lang={lang} onChange={(v) => onEdit(card.id, v)} />
                       <span className="text-xs text-muted-foreground">
-                        {ANSWER_LABEL[lang][collected.answers[card.id] ?? 3]}
+                        {t.answers[(collected.answers[card.id] ?? 3) as 1]}
                       </span>
                     </>
                   ) : (
@@ -306,7 +277,7 @@ export function DnaResult({
                               on ? (v ? "border-pine bg-pine text-paper" : "border-clay bg-clay text-paper") : "border-line text-ink-soft",
                             )}
                           >
-                            {v ? YESNO_LABEL[lang].yes : YESNO_LABEL[lang].no}
+                            {v ? t.yesNo.yes : t.yesNo.no}
                           </button>
                         );
                       })}

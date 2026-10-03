@@ -3,7 +3,8 @@
 import { AnimatePresence, motion, useMotionValue, useTransform, type PanInfo } from "motion/react";
 import { Check, ChevronsDown, RotateCcw, Star, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { ANSWER_LABEL, gesturesFor, YESNO_LABEL, type DnaCard, type Gesture, type Lang, UI } from "@/lib/dna";
+import { gesturesFor, type DnaCard, type Gesture, type Lang } from "@/lib/dna";
+import { messagesFor } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 /** Swipe physics shared with the offer deck (components/offer-deck.tsx). */
@@ -19,8 +20,9 @@ export const VELOCITY = 650;
 
 /** What each gesture means on this card, for stamps, buttons and aria labels. */
 export function gestureLabel(card: DnaCard, g: Gesture, lang: Lang): string {
-  if (card.kind === "yesno") return g === "right" ? YESNO_LABEL[lang].yes : YESNO_LABEL[lang].no;
-  return ANSWER_LABEL[lang][{ left: 1, down: 3, right: 4, up: 5 }[g]];
+  const t = messagesFor(lang).onboarding;
+  if (card.kind === "yesno") return g === "right" ? t.yesNo.yes : t.yesNo.no;
+  return t.answers[({ left: 1, down: 3, right: 4, up: 5 } as const)[g]];
 }
 
 const STAMP_STYLE: Record<Gesture, string> = {
@@ -55,7 +57,7 @@ function CardFace({ card, lang, index, total }: { card: DnaCard; lang: Lang; ind
           {index + 1} / {total}
         </span>
         {card.kind === "yesno" && (
-          <span className="rounded-full bg-paper/90 px-2.5 py-1 text-ink">{lang === "pl" ? "Tak / Nie" : "Yes / No"}</span>
+          <span className="rounded-full bg-paper/90 px-2.5 py-1 text-ink">{messagesFor(lang).onboarding.yesNoBadge}</span>
         )}
       </div>
       <div className="absolute inset-x-0 bottom-0 p-6 text-white">
@@ -67,7 +69,7 @@ function CardFace({ card, lang, index, total }: { card: DnaCard; lang: Lang; ind
           onPointerDown={(e) => e.stopPropagation()}
           className="mt-3 inline-block text-xs text-white/60 underline-offset-2 hover:text-white hover:underline"
         >
-          {UI[lang].credit}: {card.credit.author} · {card.credit.license}
+          {messagesFor(lang).onboarding.credit}: {card.credit.author} · {card.credit.license}
         </a>
       </div>
     </>
@@ -242,11 +244,11 @@ export function DnaDeck({
             onClick={undo}
             disabled={position === 0}
             className="grid size-11 place-items-center rounded-full border border-line bg-card text-ink-soft shadow-soft transition hover:bg-paper-deep disabled:opacity-35"
-            aria-label={UI[lang].undo}
+            aria-label={messagesFor(lang).onboarding.undo}
           >
             <RotateCcw className="size-4" />
           </button>
-          <span className="text-xs text-muted-foreground">{UI[lang].undo}</span>
+          <span className="text-xs text-muted-foreground">{messagesFor(lang).onboarding.undo}</span>
         </div>
         {BUTTONS.filter((b) => gestures.includes(b.g)).map(({ g, icon: Icon, tone, big }) => (
           <div key={g} className="flex w-16 flex-col items-center gap-1.5">

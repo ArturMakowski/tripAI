@@ -1,6 +1,130 @@
-import type { Shape } from "../types";
+import { plural, type Shape } from "../types";
 
-// Namespace "inbox": fill in during the i18n pass. EN is the source of truth; PL must match its shape exactly.
-export const en = {} as const;
+// Namespace "inbox": proactive inbox, scan summary, push landing page, notification settings, header bell.
+export const en = {
+  title: "Inbox",
+  bellAria: (unread: number) => (unread ? `Inbox, ${unread} unread` : "Inbox"),
+  settingsAria: "Notification settings",
+  kinds: { new_top: "New #1", price_drop: "Price drop", long_weekend: "Długi weekend" },
+  unread: "unread",
+  pushWorthy: "Push-worthy",
+  inboxOnly: "Inbox only",
+  gateTitle: (source: string) => `Jev notification gate (${source}): push only if P(worth interrupting) >= 0.80`,
+  watchPrice: "Watch price",
+  watching: "Watching price",
+  watchFailed: "Couldn't watch",
+  scanDurable: "Durable scan (DBOS)",
+  scan: "Scan",
+  scanSummary: (windows: number, candidates: number) => `${windows} free windows, ${candidates} options scored`,
+  scanTop: (city: string) => `, #1 ${city}`,
+  scanFresh: (n: number) => (n ? `${n} new notification${n > 1 ? "s" : ""}.` : "Nothing new worth a ping."),
+  scanNeutral: " Neutral weights (personalisation is off).",
+  whyPinged: "Why (not) pinged",
+  eyebrow: "Proactive inbox",
+  heading: "We watch. You decide.",
+  intro:
+    "Every day TripAI re-checks your free time against fresh prices and pings you only when something changes: a new #1, a price drop on a trip you watch, or a long weekend coming up. Every number is from a cited source.",
+  needsBackendA: "The inbox needs the live backend (set ",
+  needsBackendB: "). Demo fixtures can’t run a scan.",
+  runNow: "Run the scan now",
+  runNowSub: "Same workflow as the daily 07:00 scan, next 90 days.",
+  scanning: "Scanning",
+  scanButton: "Scan",
+  loading: "Loading…",
+  empty: "No notifications yet. Run a scan to see what we’d send.",
+  open: {
+    gone: "That notification isn’t available any more. Open the inbox.",
+    opening: "Opening your trip…",
+  },
+  settings: {
+    eyebrow: "Notifications",
+    heading: "You set the volume.",
+    intro: "The inbox is always here. Push to your phone only happens if you switch it on, and never more often than you allow.",
+    needsBackend: "Settings need the live backend.",
+    push: "Push notifications",
+    pushOn: "On for this device.",
+    pushOff: "Off. Your browser will ask for permission when you switch this on.",
+    pushUnsupported: "Not supported here. On iPhone, add TripAI to the Home Screen first.",
+    oftenTitle: "How often, at most",
+    oftenHint: "Price drops on trips you watch go first, then long weekends, then a new #1.",
+    perWeek: (n: number) => (n >= 7 ? "Daily" : `${n} / week`),
+    mutedTitle: "Muted cities",
+    mutedHint: "We still rank them; we just won't ping you about them.",
+    unmute: (city: string) => `Unmute ${city}`,
+    cityPlaceholder: "City or airport code",
+    mute: "Mute",
+    snoozeTitle: "Snooze",
+    snoozedUntil: (when: string) => `Quiet until ${when}. Scans keep running; nothing is sent.`,
+    snoozeFor: (days: number) => (days === 1 ? "1 day" : days === 7 ? "1 week" : days === 30 ? "1 month" : `${days} days`),
+    wakeUp: "Wake up now",
+    footer:
+      "A notification is only sent when the deterministic score (or the fit check) says the trip is good for you, and its numbers are copied from cited sources. If you turned personalisation off, scans use neutral weights.",
+  },
+} as const;
 
-export const pl: Shape<typeof en> = {};
+export const pl: Shape<typeof en> = {
+  title: "Skrzynka",
+  bellAria: (unread) =>
+    unread ? `Skrzynka, ${unread} ${plural("pl", unread, { one: "nieprzeczytane", few: "nieprzeczytane", many: "nieprzeczytanych", other: "nieprzeczytanych" })}` : "Skrzynka",
+  settingsAria: "Ustawienia powiadomień",
+  kinds: { new_top: "Nowy #1", price_drop: "Spadek ceny", long_weekend: "Długi weekend" },
+  unread: "nieprzeczytane",
+  pushWorthy: "Warte powiadomienia",
+  inboxOnly: "Tylko w skrzynce",
+  gateTitle: (source) => `Bramka powiadomień Jev (${source}): push tylko gdy P(warto przeszkodzić) >= 0,80`,
+  watchPrice: "Obserwuj cenę",
+  watching: "Obserwujemy cenę",
+  watchFailed: "Nie udało się obserwować",
+  scanDurable: "Trwały skan (DBOS)",
+  scan: "Skan",
+  scanSummary: (windows, candidates) =>
+    `${windows} ${plural("pl", windows, { one: "wolny termin", few: "wolne terminy", many: "wolnych terminów", other: "wolnych terminów" })}, ${candidates} ${plural("pl", candidates, { one: "opcja oceniona", few: "opcje ocenione", many: "opcji ocenionych", other: "opcji ocenionych" })}`,
+  scanTop: (city) => `, #1 ${city}`,
+  scanFresh: (n) =>
+    n
+      ? `${n} ${plural("pl", n, { one: "nowe powiadomienie", few: "nowe powiadomienia", many: "nowych powiadomień", other: "nowych powiadomień" })}.`
+      : "Nic nowego, co warto zgłosić.",
+  scanNeutral: " Neutralne wagi (personalizacja wyłączona).",
+  whyPinged: "Dlaczego (nie) powiadomiliśmy",
+  eyebrow: "Proaktywna skrzynka",
+  heading: "My pilnujemy. Ty decydujesz.",
+  intro:
+    "Codziennie TripAI porównuje Twój wolny czas ze świeżymi cenami i daje znać tylko wtedy, gdy coś się zmienia: nowy #1, spadek ceny obserwowanego wyjazdu albo nadchodzący długi weekend. Każda liczba pochodzi z podanego źródła.",
+  needsBackendA: "Skrzynka wymaga działającego backendu (ustaw ",
+  needsBackendB: "). Dane demo nie pozwalają uruchomić skanu.",
+  runNow: "Uruchom skan teraz",
+  runNowSub: "Ten sam proces co codzienny skan o 07:00, na najbliższe 90 dni.",
+  scanning: "Skanuję",
+  scanButton: "Skanuj",
+  loading: "Ładowanie…",
+  empty: "Nie ma jeszcze powiadomień. Uruchom skan, aby zobaczyć, co byśmy wysłali.",
+  open: {
+    gone: "To powiadomienie nie jest już dostępne. Otwórz skrzynkę.",
+    opening: "Otwieram wyjazd…",
+  },
+  settings: {
+    eyebrow: "Powiadomienia",
+    heading: "Ty ustawiasz głośność.",
+    intro: "Skrzynka jest zawsze dostępna. Powiadomienia push na telefon pojawią się tylko po ich włączeniu i nigdy częściej, niż pozwolisz.",
+    needsBackend: "Ustawienia wymagają działającego backendu.",
+    push: "Powiadomienia push",
+    pushOn: "Włączone na tym urządzeniu.",
+    pushOff: "Wyłączone. Po włączeniu przeglądarka poprosi o zgodę.",
+    pushUnsupported: "Tu nieobsługiwane. Na iPhonie najpierw dodaj TripAI do ekranu początkowego.",
+    oftenTitle: "Jak często, najwyżej",
+    oftenHint: "Najpierw spadki cen obserwowanych wyjazdów, potem długie weekendy, potem nowy #1.",
+    perWeek: (n) => (n >= 7 ? "Codziennie" : `${n} / tydz.`),
+    mutedTitle: "Wyciszone miasta",
+    mutedHint: "Nadal je oceniamy, tylko nie wysyłamy o nich powiadomień.",
+    unmute: (city) => `Wyłącz wyciszenie: ${city}`,
+    cityPlaceholder: "Miasto lub kod lotniska",
+    mute: "Wycisz",
+    snoozeTitle: "Drzemka",
+    snoozedUntil: (when) => `Cisza do ${when}. Skany działają dalej, nic nie jest wysyłane.`,
+    snoozeFor: (days) =>
+      days === 7 ? "1 tydzień" : days === 30 ? "1 miesiąc" : `${days} ${plural("pl", days, { one: "dzień", few: "dni", many: "dni", other: "dni" })}`,
+    wakeUp: "Obudź teraz",
+    footer:
+      "Powiadomienie wysyłamy tylko wtedy, gdy deterministyczny wynik (lub sprawdzenie dopasowania) uznaje wyjazd za dobry dla Ciebie, a jego liczby są skopiowane z podanych źródeł. Przy wyłączonej personalizacji skany używają neutralnych wag.",
+  },
+};

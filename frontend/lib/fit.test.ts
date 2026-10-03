@@ -87,6 +87,13 @@ describe("rules fit (docs/FIT_VERDICT.md fallback)", () => {
 });
 
 describe("presentation", () => {
+  it("rule texts, labels and model names come back in Polish when asked", () => {
+    const athens = recs.find((r) => r.city === "Athens")!;
+    const fit = rulesFit(athens, DEMO_PROFILE, "rules", "pl");
+    expect(fit.concerns[0].text).toMatch(/^Wskaźnik tłoku 0,46 szczytu/);
+    expect(modelLabel(fit, "pl")).toBe("Sprawdzenie regułami");
+  });
+
   it("labels rule-based verdicts plainly", () => {
     const f = rulesFit(recs[0], DEMO_PROFILE);
     expect(modelLabel(f)).toBe("Rule-based check");
@@ -94,7 +101,7 @@ describe("presentation", () => {
     expect(modelLabel({ ...f, model: "anthropic:claude" })).toBe("AI check · anthropic:claude");
   });
   it("quotes the DNA card and the swiped answer", () => {
-    expect(dnaQuotes(["q11"], DEMO_PROFILE, "pl")).toEqual(["you swiped „Bardzo ja!” on: Lubię podróżować z dala od tłumów."]);
+    expect(dnaQuotes(["q11"], DEMO_PROFILE, "pl")).toEqual(["przesunięto „Bardzo ja!” przy: Lubię podróżować z dala od tłumów."]);
     expect(dnaQuotes(["q8"], DEMO_PROFILE, "en")).toEqual(["you swiped “That's me” on: I often pick less touristy places."]);
   });
 });

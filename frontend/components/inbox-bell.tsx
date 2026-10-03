@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { useEffect } from "react";
+import { useT } from "@/lib/i18n";
 import { NOTIFY_AVAILABLE, refreshUnread, registerServiceWorker, useInbox } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,7 @@ const POLL_MS = 60_000;
  * the permission prompt only appears when the user taps "Enable push" in /inbox/settings. */
 export function InboxBell() {
   const unread = useInbox((s) => s.unread);
+  const { t } = useT();
 
   useEffect(() => {
     if (!NOTIFY_AVAILABLE) return;
@@ -30,7 +32,7 @@ export function InboxBell() {
     <Link
       href="/inbox"
       className="relative grid size-8 place-items-center rounded-full text-ink-soft hover:bg-paper-deep"
-      aria-label={unread ? `Inbox, ${unread} unread` : "Inbox"}
+      aria-label={t.inbox.bellAria(unread)}
     >
       <Bell className="size-[18px]" aria-hidden />
       {unread > 0 && (

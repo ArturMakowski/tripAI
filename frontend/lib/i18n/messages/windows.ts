@@ -1,6 +1,46 @@
-import type { Shape } from "../types";
+import { plural, type Shape } from "../types";
 
-// Namespace "windows": fill in during the i18n pass. EN is the source of truth; PL must match its shape exactly.
-export const en = {} as const;
+export const en = {
+  eyebrow: "Free time",
+  title: "When you could go.",
+  intro: "From your Google Calendar plus Polish public holidays. You never have to type a date.",
+  radarTitle: "Długi weekend radar",
+  radarIntro: "Polish public holidays. Take a day or two off around one and you get a much longer trip.",
+  takeOff: (n: number) => `${n} day${n > 1 ? "s" : ""} off`,
+  takePrefix: "Take",
+  totalDays: (n: number) => `${n} days`,
+  bestRatio: "Best ratio",
+  tripsForWindow: "Trips for this window",
+  showFewer: "Show fewer",
+  showAllBridges: (n: number) => `Show all ${n} bridge options`,
+  alreadyFree: "Already free, no days off needed",
+  days: (n: number) => `${n} days`,
+  googleCalendar: "Google Calendar",
+  plusWeekends: (n: number) => `Plus ${n} free regular weekends.`,
+  showAllTrips: "Show trips for all windows",
+  dayTitle: { off: "Take this day off", weekend: "weekend", free: "free" },
+  legend: { holiday: "Public holiday", weekend: "Weekend", off: "Day off to take", free: "Free in calendar" },
+} as const;
 
-export const pl: Shape<typeof en> = {};
+export const pl: Shape<typeof en> = {
+  eyebrow: "Wolny czas",
+  title: "Kiedy możesz jechać.",
+  intro: "Z Twojego Kalendarza Google i polskich świąt. Nie musisz wpisywać żadnej daty.",
+  radarTitle: "Radar długich weekendów",
+  radarIntro: "Polskie święta. Weź dzień lub dwa urlopu wokół jednego z nich, a wyjazd będzie dużo dłuższy.",
+  takeOff: (n: number) => `${n} ${plural("pl", n, { one: "dzień", few: "dni", many: "dni", other: "dnia" })} urlopu`,
+  takePrefix: "Weź",
+  totalDays: (n: number) => `${n} ${plural("pl", n, { one: "dzień", few: "dni", many: "dni", other: "dnia" })}`,
+  bestRatio: "Najlepszy stosunek",
+  tripsForWindow: "Wyjazdy na ten termin",
+  showFewer: "Pokaż mniej",
+  showAllBridges: (n: number) => `Pokaż wszystkie opcje (${n})`,
+  alreadyFree: "Już wolne, bez brania urlopu",
+  days: (n: number) => `${n} ${plural("pl", n, { one: "dzień", few: "dni", many: "dni", other: "dnia" })}`,
+  googleCalendar: "Kalendarz Google",
+  plusWeekends: (n: number) =>
+    `Do tego ${n} ${plural("pl", n, { one: "zwykły wolny weekend", few: "zwykłe wolne weekendy", many: "zwykłych wolnych weekendów", other: "zwykłego wolnego weekendu" })}.`,
+  showAllTrips: "Pokaż wyjazdy na wszystkie terminy",
+  dayTitle: { off: "Weź ten dzień wolnego", weekend: "weekend", free: "wolne" },
+  legend: { holiday: "Święto", weekend: "Weekend", off: "Dzień urlopu do wzięcia", free: "Wolne w kalendarzu" },
+};

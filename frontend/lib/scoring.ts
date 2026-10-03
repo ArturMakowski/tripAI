@@ -43,10 +43,10 @@ export function rerank<T extends Recommendation & { rank?: number }>(recs: T[], 
 // --- Slider: price <-> comfort <-> experience -------------------------------
 
 /** Anchor presets for the single slider (0 = price, 50 = comfort, 100 = experience). */
-export const SLIDER_PRESETS: { at: number; label: string; weights: Weights }[] = [
-  { at: 0, label: "Price", weights: { price: 0.6, weather: 0.15, crowds: 0.1, taste: 0.15 } },
-  { at: 50, label: "Comfort", weights: { price: 0.25, weather: 0.3, crowds: 0.25, taste: 0.2 } },
-  { at: 100, label: "Experience", weights: { price: 0.12, weather: 0.13, crowds: 0.15, taste: 0.6 } },
+export const SLIDER_PRESETS: { at: number; key: "price" | "comfort" | "experience"; label: string; weights: Weights }[] = [
+  { at: 0, key: "price", label: "Price", weights: { price: 0.6, weather: 0.15, crowds: 0.1, taste: 0.15 } },
+  { at: 50, key: "comfort", label: "Comfort", weights: { price: 0.25, weather: 0.3, crowds: 0.25, taste: 0.2 } },
+  { at: 100, key: "experience", label: "Experience", weights: { price: 0.12, weather: 0.13, crowds: 0.15, taste: 0.6 } },
 ];
 
 export function weightsFromSlider(pos: number): Weights {

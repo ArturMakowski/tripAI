@@ -11,23 +11,13 @@ import { AppShell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { api, USER_ID } from "@/lib/api";
-import { collectAnswers, DNA_DECK, STATEMENT_ANSWER, UI, YESNO_ANSWER, type DnaCard, type Gesture } from "@/lib/dna";
-import { useLang } from "@/lib/i18n";
+import { collectAnswers, DNA_DECK, STATEMENT_ANSWER, YESNO_ANSWER, type DnaCard, type Gesture } from "@/lib/dna";
+import { useT } from "@/lib/i18n";
 import { useHydrated, useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-const AIRPORTS: [string, string][] = [
-  ["KRK", "Kraków"],
-  ["KTW", "Katowice"],
-  ["WAW", "Warszawa"],
-  ["WMI", "Modlin"],
-  ["GDN", "Gdańsk"],
-  ["WRO", "Wrocław"],
-  ["POZ", "Poznań"],
-  ["RZE", "Rzeszów"],
-];
+const AIRPORTS = ["KRK", "KTW", "WAW", "WMI", "GDN", "WRO", "POZ", "RZE"] as const;
 const BUDGET_MAX = 6000;
-const fmtPLN = (n: number) => `${new Intl.NumberFormat("pl-PL").format(n)} zł`;
 
 
 function Dots({ total, done }: { total: number; done: number }) {
@@ -67,8 +57,8 @@ export default function SwipeOnboarding() {
   const hydrated = useHydrated();
   const { deck, setDeck, setProfile, setWeights, setMode } = useTrip();
   const { swipes, step, budget, airports, result } = deck;
-  const lang = useLang();
-  const t = UI[lang];
+  const { t: all, fmt, lang } = useT();
+  const t = all.onboarding;
   const advance = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [busy, setBusy] = useState(false);
   const reqId = useRef(0);
@@ -155,14 +145,14 @@ export default function SwipeOnboarding() {
               href="/onboarding/chat"
               className="mt-6 flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-ink"
             >
-              <MessageCircle className="size-4" /> {lang === "pl" ? "Wolisz rozmowę? Porozmawiaj z TripAI" : "Prefer talking? Chat with TripAI"}
+              <MessageCircle className="size-4" /> {t.preferChat}
             </Link>
           </motion.section>
         )}
 
         {step === "budget" && (
           <motion.section key="budget" {...slide} className="flex min-h-[70dvh] flex-col pt-6 pb-8">
-            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">2 / 3</p>
+            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.step(2, 3)}</p>
             <h1 className="mt-1 font-display text-[2rem] leading-tight text-ink">{t.budgetTitle}</h1>
             <p className="mt-2 text-[15px] text-ink-soft">{t.budgetSub}</p>
             <motion.p
@@ -171,7 +161,7 @@ export default function SwipeOnboarding() {
               animate={{ scale: 1, opacity: 1 }}
               className="tabular mt-10 text-center font-display text-[3.4rem] leading-none text-ink"
             >
-              {budget == null ? t.flexible : fmtPLN(budget)}
+              {budget == null ? t.flexible : fmt.pln(budget)}
             </motion.p>
             <Slider
               className="mt-8 py-2 [&_[data-slot=slider-thumb]]:size-7 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-pine [&_[data-slot=slider-track]]:h-2"
@@ -192,7 +182,7 @@ export default function SwipeOnboarding() {
                     budget === v ? "border-pine bg-pine text-primary-foreground" : "border-line bg-card text-ink-soft",
                   )}
                 >
-                  {v == null ? t.flexible : fmtPLN(v)}
+                  {v == null ? t.flexible : fmt.pln(v)}
                 </button>
               ))}
             </div>
@@ -209,11 +199,12 @@ export default function SwipeOnboarding() {
 
         {step === "airport" && (
           <motion.section key="airport" {...slide} className="flex min-h-[70dvh] flex-col pt-6 pb-8">
-            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">3 / 3</p>
+            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.step(3, 3)}</p>
             <h1 className="mt-1 font-display text-[2rem] leading-tight text-ink">{t.airportTitle}</h1>
             <p className="mt-2 text-[15px] text-ink-soft">{t.airportSub}</p>
             <div className="mt-8 grid grid-cols-2 gap-2.5">
-              {AIRPORTS.map(([code, city]) => {
+              {AIRPORTS.map((code) => {
+                const city = t.airports[code];
                 const on = airports.includes(code);
                 return (
                   <motion.button
@@ -238,7 +229,7 @@ export default function SwipeOnboarding() {
             </div>
             <div className="mt-auto flex gap-3 pt-10">
               <Button variant="outline" size="lg" className="h-12 rounded-2xl" onClick={() => setDeck({ step: "budget" })}>
-                {lang === "pl" ? "Wstecz" : "Back"}
+                {t.back}
               </Button>
               <Button
                 size="lg"

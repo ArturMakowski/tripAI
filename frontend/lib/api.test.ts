@@ -37,3 +37,23 @@ describe("X-TripAI-Session", () => {
     await expect(api.health()).rejects.toMatchObject({ status: 422 });
   });
 });
+
+describe("language reaches the backend", () => {
+  it("sends Accept-Language on every call and a lang field in POST bodies", async () => {
+    const { setApiLang } = await import("./api");
+    const calls: RequestInit[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init: RequestInit) => {
+        calls.push(init);
+        return new Response("{}", { status: 200 });
+      }),
+    );
+    setApiLang("pl");
+    await api.health();
+    expect(new Headers(calls[0].headers).get("accept-language")).toMatch(/^pl-PL/);
+    setApiLang("en");
+    await api.health();
+    expect(new Headers(calls[1].headers).get("accept-language")).toMatch(/^en/);
+  });
+});

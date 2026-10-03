@@ -8,20 +8,23 @@ import { useCallback, useEffect, useState } from "react";
 import { AppShell, PageTitle } from "@/components/shell";
 import { SourceTag } from "@/components/source-tag";
 import { Button } from "@/components/ui/button";
-import { formatTimestamp } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import { NOTIFY_AVAILABLE, notifyApi, openNotification, refreshUnread } from "@/lib/notify";
 import type { AppNotification, NotificationKind, ScanResult } from "@/lib/notify-types";
 import { useTrip } from "@/lib/store";
+import { fitMeta } from "@/lib/fit";
 import { cn } from "@/lib/utils";
 
-const KIND: Record<NotificationKind, { label: string; icon: typeof Crown; tone: string }> = {
-  new_top: { label: "New #1", icon: Crown, tone: "bg-pine-soft text-pine-deep" },
-  price_drop: { label: "Price drop", icon: TrendingDown, tone: "bg-clay-soft text-clay" },
-  long_weekend: { label: "Długi weekend", icon: CalendarHeart, tone: "bg-sun-soft text-ink" },
+const KIND: Record<NotificationKind, { icon: typeof Crown; tone: string }> = {
+  new_top: { icon: Crown, tone: "bg-pine-soft text-pine-deep" },
+  price_drop: { icon: TrendingDown, tone: "bg-clay-soft text-clay" },
+  long_weekend: { icon: CalendarHeart, tone: "bg-sun-soft text-ink" },
 };
 
 function NotificationCard({ n, onOpen, busy }: { n: AppNotification; onOpen: (n: AppNotification) => void; busy: boolean }) {
   const k = KIND[n.kind];
+  const { t, fmt, lang } = useT();
+  const ib = t.inbox;
   const flight = n.evidence.find((e) => e.kind === "flight");
   const [watch, setWatch] = useState<"idle" | "busy" | "done" | "error">("idle");
   return (
@@ -34,13 +37,13 @@ function NotificationCard({ n, onOpen, busy }: { n: AppNotification; onOpen: (n:
       <button onClick={() => onOpen(n)} className="block w-full text-left">
         <div className="flex items-center gap-2 text-xs">
           <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold", k.tone)}>
-            <k.icon className="size-3.5" aria-hidden /> {k.label}
+            <k.icon className="size-3.5" aria-hidden /> {ib.kinds[n.kind]}
           </span>
           {n.fit_label && (
-            <span className="rounded-full border border-line px-2 py-0.5 text-ink-soft">{n.fit_label.replace("_", " ")}</span>
+            <span className="rounded-full border border-line px-2 py-0.5 text-ink-soft">{fitMeta(n.fit_label, lang).label}</span>
           )}
-          <span className="ml-auto text-muted-foreground">{formatTimestamp(n.created_at)}</span>
-          {!n.read_at && <span className="size-2 rounded-full bg-clay" aria-label="unread" />}
+          <span className="ml-auto text-muted-foreground">{fmt.timestamp(n.created_at)}</span>
+          {!n.read_at && <span className="size-2 rounded-full bg-clay" aria-label={ib.unread} />}
         </div>
         <p className="mt-2 text-[15px] leading-snug font-semibold text-ink">{n.title}</p>
         <p className="mt-1 text-sm leading-relaxed text-ink-soft">{n.body}</p>
@@ -61,10 +64,10 @@ function NotificationCard({ n, onOpen, busy }: { n: AppNotification; onOpen: (n:
         {n.interrupt_p != null && (
           <span
             className={cn("inline-flex items-center gap-1 text-[11px]", n.interrupt_ok ? "text-pine" : "text-muted-foreground")}
-            title={`Jev notification gate (${n.interrupt_source ?? "?"}): push only if P(worth interrupting) >= 0.80`}
+            title={ib.gateTitle(n.interrupt_source ?? "?")}
           >
             {n.interrupt_ok ? <BellRing className="size-3" aria-hidden /> : <BellOff className="size-3" aria-hidden />}
-            {n.interrupt_ok ? "Push-worthy" : "Inbox only"} · p {n.interrupt_p.toFixed(2)}
+            {n.interrupt_ok ? ib.pushWorthy : ib.inboxOnly} · p {fmt.num(n.interrupt_p, 2)}
           </span>
         )}
         <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground" title={`inputs_hash ${n.inputs_hash}`}>
@@ -80,7 +83,7 @@ function NotificationCard({ n, onOpen, busy }: { n: AppNotification; onOpen: (n:
             className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-pine hover:underline disabled:opacity-60"
           >
             <Eye className="size-3.5" aria-hidden />
-            {watch === "done" ? "Watching price" : watch === "error" ? "Couldn't watch" : "Watch price"}
+            {watch === "done" ? ib.watching : watch === "error" ? ib.watchFailed : ib.watchPrice}
           </button>
         )}
       </div>
@@ -91,21 +94,23 @@ function NotificationCard({ n, onOpen, busy }: { n: AppNotification; onOpen: (n:
 function ScanSummary({ res }: { res: ScanResult }) {
   const r = res.run;
   const fresh = res.notifications.length;
+  const { t } = useT();
+  const ib = t.inbox;
   return (
     <div className="mt-3 rounded-xl bg-paper-deep p-3 text-[13px] text-ink-soft">
       <p>
-        {r.mode === "dbos" ? "Durable scan (DBOS)" : "Scan"}: {r.windows} free windows, {r.candidates} options scored
-        {r.top_city ? `, #1 ${r.top_city}` : ""}. {fresh ? `${fresh} new notification${fresh > 1 ? "s" : ""}.` : "Nothing new worth a ping."}
-        {!r.personalized && " Neutral weights (personalisation is off)."}
+        {r.mode === "dbos" ? ib.scanDurable : ib.scan}: {ib.scanSummary(r.windows, r.candidates)}
+        {r.top_city ? ib.scanTop(r.top_city) : ""}. {ib.scanFresh(fresh)}
+        {!r.personalized && ib.scanNeutral}
       </p>
       <details className="mt-1.5">
-        <summary className="cursor-pointer text-xs font-medium text-pine">Why (not) pinged</summary>
+        <summary className="cursor-pointer text-xs font-medium text-pine">{ib.whyPinged}</summary>
         <ul className="mt-1.5 space-y-1 text-xs">
           {r.decisions.map((d, i) => (
             <li key={i} className="flex gap-1.5">
               <span className={d.notify ? "text-pine" : "text-muted-foreground"}>{d.notify ? "✓" : "–"}</span>
               <span>
-                <b className="font-medium text-ink">{KIND[d.kind].label}</b>
+                <b className="font-medium text-ink">{ib.kinds[d.kind]}</b>
                 {d.recommendation_id ? ` ${d.recommendation_id}` : ""}: {d.reason}
               </span>
             </li>
@@ -125,6 +130,8 @@ export default function InboxPage() {
   const [scanning, setScanning] = useState(false);
   const [scan, setScan] = useState<ScanResult | null>(null);
   const [opening, setOpening] = useState<string | null>(null);
+  const { t } = useT();
+  const ib = t.inbox;
 
   const load = useCallback(async () => {
     try {
@@ -168,19 +175,20 @@ export default function InboxPage() {
   return (
     <AppShell
       action={
-        <Link href="/inbox/settings" className="grid size-8 place-items-center rounded-full text-ink-soft hover:bg-paper-deep" aria-label="Notification settings">
+        <Link href="/inbox/settings" className="grid size-8 place-items-center rounded-full text-ink-soft hover:bg-paper-deep" aria-label={ib.settingsAria}>
           <Settings2 className="size-[18px]" aria-hidden />
         </Link>
       }
     >
-      <PageTitle eyebrow="Proactive inbox" title="We watch. You decide.">
-        Every day TripAI re-checks your free time against fresh prices and pings you only when something changes: a new #1, a
-        price drop on a trip you watch, or a long weekend coming up. Every number is from a cited source.
+      <PageTitle eyebrow={ib.eyebrow} title={ib.heading}>
+        {ib.intro}
       </PageTitle>
 
       {!NOTIFY_AVAILABLE ? (
         <p className="rounded-xl bg-paper-deep p-4 text-sm text-ink-soft">
-          The inbox needs the live backend (set <code>NEXT_PUBLIC_API_URL</code>). Demo fixtures can&rsquo;t run a scan.
+          {ib.needsBackendA}
+          <code>NEXT_PUBLIC_API_URL</code>
+          {ib.needsBackendB}
         </p>
       ) : (
         <>
@@ -190,12 +198,12 @@ export default function InboxPage() {
                 <Radar className="size-5" aria-hidden />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-ink">Run the scan now</p>
-                <p className="text-xs text-muted-foreground">Same workflow as the daily 07:00 scan, next 90 days.</p>
+                <p className="font-semibold text-ink">{ib.runNow}</p>
+                <p className="text-xs text-muted-foreground">{ib.runNowSub}</p>
               </div>
               <Button onClick={runScan} disabled={scanning} className="h-10 rounded-xl px-4">
                 {scanning ? <Loader2 className="animate-spin" aria-hidden /> : <BellRing aria-hidden />}
-                {scanning ? "Scanning" : "Scan"}
+                {scanning ? ib.scanning : ib.scanButton}
               </Button>
             </div>
             {scan && <ScanSummary res={scan} />}
@@ -210,9 +218,9 @@ export default function InboxPage() {
               ))}
             </AnimatePresence>
           </ul>
-          {items === null && <p className="mt-6 text-center text-sm text-muted-foreground">Loading…</p>}
+          {items === null && <p className="mt-6 text-center text-sm text-muted-foreground">{ib.loading}</p>}
           {items?.length === 0 && !error && (
-            <p className="mt-6 text-center text-sm text-muted-foreground">No notifications yet. Run a scan to see what we&rsquo;d send.</p>
+            <p className="mt-6 text-center text-sm text-muted-foreground">{ib.empty}</p>
           )}
         </>
       )}

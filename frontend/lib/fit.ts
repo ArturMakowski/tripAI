@@ -1,21 +1,29 @@
 /** Presentation helpers for Recommendation.fit (docs/FIT_VERDICT.md). */
 import { ANSWER_LABEL, DNA_CARD, YESNO_LABEL, type CardId, type Lang } from "./dna";
+import * as copy from "./i18n/messages/receipt";
 import { CLIENT_PREVIEW_MODEL } from "./mock/fit";
 import type { FitVerdict, Recommendation, TasteProfile } from "./types";
 
-export const FIT_META: Record<string, { label: string; tone: string; dot: string }> = {
-  great_fit: { label: "Great fit", tone: "bg-pine text-paper", dot: "bg-paper" },
-  good_fit: { label: "Good fit", tone: "bg-pine-soft text-pine-deep", dot: "bg-pine" },
-  mixed: { label: "Mixed fit", tone: "bg-sun-soft text-ink", dot: "bg-sun" },
-  poor_fit: { label: "Not your style", tone: "bg-clay-soft text-ink", dot: "bg-clay" },
+const FIT_TONE: Record<string, { tone: string; dot: string }> = {
+  great_fit: { tone: "bg-pine text-paper", dot: "bg-paper" },
+  good_fit: { tone: "bg-pine-soft text-pine-deep", dot: "bg-pine" },
+  mixed: { tone: "bg-sun-soft text-ink", dot: "bg-sun" },
+  poor_fit: { tone: "bg-clay-soft text-ink", dot: "bg-clay" },
 };
 
-export const fitMeta = (label: string) => FIT_META[label] ?? { label, tone: "bg-paper-deep text-ink", dot: "bg-ink" };
+const fitCopy = (lang: Lang) => (lang === "pl" ? copy.pl : copy.en).fit;
 
-export function modelLabel(fit: FitVerdict): string {
-  if (fit.model === CLIENT_PREVIEW_MODEL) return "Rule-based check · preview computed on this device";
-  if (fit.model === "rules" || fit.model.startsWith("rules")) return "Rule-based check";
-  return `AI check · ${fit.model}`;
+export const fitMeta = (label: string, lang: Lang = "en") => {
+  const names = fitCopy(lang).labels as Record<string, string>;
+  const tone = FIT_TONE[label] ?? { tone: "bg-paper-deep text-ink", dot: "bg-ink" };
+  return { label: names[label] ?? label, ...tone };
+};
+
+export function modelLabel(fit: FitVerdict, lang: Lang = "en"): string {
+  const c = fitCopy(lang);
+  if (fit.model === CLIENT_PREVIEW_MODEL) return c.modelPreview;
+  if (fit.model === "rules" || fit.model.startsWith("rules")) return c.modelRules;
+  return c.modelAi(fit.model);
 }
 
 /** Score and verdict pointing in different directions: shown openly, never smoothed over. */
@@ -47,8 +55,6 @@ export function dnaQuotes(ids: string[], profile: TasteProfile | null, lang: Lan
         if (typeof v !== "number" || !ANSWER_LABEL[lang][v]) return []; // never answered: never quoted
         answer = ANSWER_LABEL[lang][v];
       }
-      // English frame (the app UI), answer + statement in the deck language the user swiped in.
-      const q = lang === "pl" ? `„${answer}”` : `“${answer}”`;
-      return [`you swiped ${q} on: ${card.text[lang]}`];
+      return [fitCopy(lang).swiped(answer, card.text[lang])];
     });
 }

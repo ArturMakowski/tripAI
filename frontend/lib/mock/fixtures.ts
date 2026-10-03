@@ -348,3 +348,35 @@ export const PAST_TRIP = {
   dates: "12–17 Aug 2026",
   photo_url: "/cities/barcelona.jpg",
 };
+
+/**
+ * Polish versions of the demo data the mock "backend" returns when the UI asks for `lang: "pl"`
+ * (the real backend generates its text in the requested language).
+ */
+export const PL_LOCAL: Record<string, { city: string; country: string; why: string }> = {
+  FCO: {
+    city: "Rzym",
+    country: "Włochy",
+    why: "Masz wolne 14–19 stycznia. Loty w obie strony z Krakowa kosztują 262 zł, mniej niż typowe 310–480 zł na tej trasie, a pięć nocy przy Zatybrzu kosztuje 1180 zł, o 44% mniej niż taki sam pobyt w lipcu. W połowie stycznia obłożenie to 41% sierpniowego szczytu, a norma klimatyczna to 13,8 °C i około 2 deszczowe dni. Pasuje do Twoich głównych zainteresowań: jedzenia, historii i sztuki.",
+  },
+  LIS: {
+    city: "Lizbona",
+    country: "Portugalia",
+    why: "Masz wolne 14–19 stycznia. Lizbona to najcieplejsza opcja (15,1 °C), a pięć nocy kosztuje 960 zł. Loty kosztują 548 zł, blisko dolnej granicy typowego przedziału 520–790 zł. Obłożenie to 48% letniego szczytu.",
+  },
+  ATH: {
+    city: "Ateny",
+    country: "Grecja",
+    why: "Weź wolne 7–8 stycznia, a Trzech Króli da Ci 5 dni. Ateny to tutaj najtańszy wyjazd, 1104 zł łącznie, a styczniowe obłożenie to 46% letniego szczytu, więc na Akropolu jest dużo spokojniej niż w lipcu. Dobrze pasuje do Twojego zainteresowania historią, a nieco słabiej do jedzenia.",
+  },
+  VCE: {
+    city: "Wenecja",
+    country: "Włochy",
+    why: "W styczniu Wenecja jest najbardziej pusta, obłożenie to 29% szczytu. Jest jednak 7 °C i wilgotno, poniżej Twojego ulubionego przedziału 12–24 °C. Hotele są tu najdroższe: 1420 zł za pięć nocy.",
+  },
+  OPO: {
+    city: "Porto",
+    country: "Portugalia",
+    why: "Porto ma tutaj najtańsze hotele, 690 zł za pięć nocy, a kuchnia pasuje do Twojego profilu. Lot kosztuje 612 zł, a w połowie stycznia typowo pada przez około 6 dni.",
+  },
+};
