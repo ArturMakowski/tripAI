@@ -18,7 +18,9 @@ class TasteProfile(BaseModel):
     origin_airports: list[str] = Field(default_factory=lambda: ["KRK"])
     budget_pln: int | None = None  # total per person
     luxury: LuxuryLevel = LuxuryLevel.standard
-    interests: dict[str, float] = Field(default_factory=dict)  # tag -> weight 0..1, e.g. {"food": 0.9}
+    interests: dict[str, float] = Field(
+        default_factory=dict
+    )  # tag -> weight 0..1, e.g. {"food": 0.9}
     dislikes: list[str] = Field(default_factory=list)  # e.g. ["crowds", "heat"]
     preferred_temp_c: tuple[float, float] = (15.0, 26.0)
     trip_length_days: tuple[int, int] = (3, 7)
