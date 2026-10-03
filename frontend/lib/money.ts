@@ -3,9 +3,11 @@
  * card == receipt == confirm, in both phases and both languages. All three render through
  * moneyOf(); nothing else should compute a trip total.
  *
- * Party pricing: flights are per traveller, the stay per room. party = flight × travellers +
- * hotel × rooms; per person = party / travellers (the backend's party_total_pln / per_person_pln
- * win when present). For one traveller in one room this is simply flight + hotel.
+ * Party pricing (backend semantics): flight_cost_pln is per traveller, hotel_cost_pln is the whole
+ * stay for all rooms. The lines on screen are flight × travellers and hotel, and the total shown is
+ * ALWAYS their sum, so lines and total can never disagree. party_total_pln / per_person_pln are
+ * used only when they agree with the lines (± 1 PLN); otherwise `mismatch` is set and the lines win.
+ * For one traveller this is simply flight + hotel.
  */
 import type { Recommendation } from "./types";
 
@@ -15,11 +17,15 @@ export type PriceStatus = "exact" | "partial" | "estimate";
 export interface MoneyView {
   travelers: number;
   rooms: number;
-  /** per traveller, as shown on the flight line */
+  /** per traveller */
   flight: number;
-  /** per room, as shown on the stay line */
+  /** the whole stay, all rooms (backend hotel_cost_pln) */
   hotel: number;
-  /** what the whole party pays */
+  /** the flight line on screen: flight × travellers */
+  flightLine: number;
+  /** the stay line on screen: the whole stay */
+  hotelLine: number;
+  /** what the whole party pays == flightLine + hotelLine, always */
   partyTotal: number;
   /** partyTotal / travelers: the headline number on cards, the receipt and confirm */
   perPerson: number;
@@ -28,7 +34,7 @@ export interface MoneyView {
   status: PriceStatus;
   /** which legs are priced from other dates / a city average (never shown as this trip's price) */
   estimated: { flight: boolean; hotel: boolean };
-  /** the backend's per-person total disagreed with its own lines by ≥ 1 PLN (we show the lines' math) */
+  /** the backend's party/per-person totals disagreed with its own lines by ≥ 1 PLN (we show the lines' math) */
   mismatch: boolean;
 }
 
@@ -64,8 +70,15 @@ export function moneyOf(rec: Priced, party?: { travelers: number; rooms: number 
   const rooms = Math.max(1, party?.rooms ?? Math.ceil(travelers / 2));
   const flight = r(rec.flight_cost_pln);
   const hotel = r(rec.hotel_cost_pln);
-  const partyTotal = r(rec.party_total_pln ?? flight * travelers + hotel * (travelers > 1 ? rooms : 1));
-  const perPerson = r(rec.per_person_pln ?? partyTotal / travelers);
+  const flightLine = flight * travelers;
+  const hotelLine = hotel;
+  // The total shown is the sum of the lines shown, full stop (the Palma bug: lines 1 410 + 848 next to a
+  // total of "od ~1 553" taken from another field).
+  const partyTotal = flightLine + hotelLine;
+  const perPerson = r(partyTotal / travelers);
+  const off = (x: number | null | undefined, want: number) => x != null && Math.abs(r(x) - want) >= 1;
+  const mismatch =
+    off(rec.party_total_pln, partyTotal) || off(rec.per_person_pln, perPerson) || (travelers === 1 && off(rec.total_cost_pln, perPerson));
   const estimated = { flight: legEstimated(rec, "flight"), hotel: legEstimated(rec, "hotel") };
   const declared = (["exact", "partial", "estimate"] as const).find((x) => x === rec.price_status) ?? "exact";
   const detected: PriceStatus =
@@ -78,12 +91,14 @@ export function moneyOf(rec: Priced, party?: { travelers: number; rooms: number 
     rooms,
     flight,
     hotel,
+    flightLine,
+    hotelLine,
     partyTotal,
     perPerson,
     basis: hotelIsPerRoom(rec) && travelers === 1 ? "perRoom" : "perPerson",
     status,
     estimated: status === "estimate" ? { flight: true, hotel: true } : estimated,
-    mismatch: Math.abs(r(rec.total_cost_pln) - perPerson) >= 1,
+    mismatch,
   };
 }
 

@@ -28,9 +28,12 @@ describe("party pricing", () => {
     expect(m.partyTotal).toBe(262 * 2 + 1180);
     expect(m.perPerson).toBe(Math.round((262 * 2 + 1180) / 2));
   });
-  it("backend party figures win", () => {
-    const m = moneyOf({ ...rec, travelers: 2, party_total_pln: 2480, per_person_pln: 1240 });
-    expect([m.partyTotal, m.perPerson]).toEqual([2480, 1240]);
+  it("the total is always the sum of the lines; backend totals that disagree are flagged, not shown", () => {
+    const ok = moneyOf({ ...rec, travelers: 2, party_total_pln: 262 * 2 + 1180, per_person_pln: Math.round((262 * 2 + 1180) / 2) });
+    expect(ok.mismatch).toBe(false);
+    const bad = moneyOf({ ...rec, travelers: 2, party_total_pln: 2480, per_person_pln: 1240 });
+    expect([bad.partyTotal, bad.perPerson, bad.mismatch]).toEqual([262 * 2 + 1180, Math.round((262 * 2 + 1180) / 2), true]);
+    expect(bad.flightLine + bad.hotelLine).toBe(bad.partyTotal);
   });
 });
 

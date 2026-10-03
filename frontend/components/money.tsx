@@ -50,7 +50,7 @@ export function TripPrice({
           data-amount={m.perPerson}
           className={cn("tabular text-sm italic", light ? "text-white/75" : "text-muted-foreground")}
         >
-          {t.money.fromEstimate(fmt.pln(m.perPerson))}
+          {m.travelers > 1 ? t.money.fromEstimateParty(fmt.pln(m.partyTotal), fmt.pln(m.perPerson)) : t.money.fromEstimate(fmt.pln(m.perPerson))}
         </span>
       </span>
     );
@@ -79,8 +79,9 @@ export function TripPrice({
  */
 export function priceText(rec: Priced, t: Messages, fmt: Fmt): string {
   const m = moneyOf(rec);
-  if (m.status === "estimate") return t.money.fromEstimate(fmt.pln(m.perPerson));
-  return m.travelers > 1 ? `${fmt.pln(m.perPerson)}${t.money.perPersonShort}` : fmt.pln(m.perPerson);
+  if (m.status === "estimate")
+    return m.travelers > 1 ? t.money.fromEstimateParty(fmt.pln(m.partyTotal), fmt.pln(m.perPerson)) : t.money.fromEstimate(fmt.pln(m.perPerson));
+  return m.travelers > 1 ? t.money.partyShort(fmt.pln(m.partyTotal), fmt.pln(m.perPerson)) : fmt.pln(m.perPerson);
 }
 
 /** Inline headline price (receipt hero, swipe cards): same number as the card, estimates muted. */
@@ -156,7 +157,7 @@ export function MoneyLines({
       e: flightEv,
       icon: icons?.flight,
       label: flightLabel ? (m.travelers > 1 ? `${flightLabel} × ${m.travelers}` : flightLabel) : t.money.flight(m.travelers),
-      value: m.flight * m.travelers,
+      value: m.flightLine,
       est: m.estimated.flight,
       leg: t.money.legFlight,
     },
@@ -174,7 +175,7 @@ export function MoneyLines({
       ) : (
         t.money.hotel(nights, rooms)
       ),
-      value: m.hotel * rooms,
+      value: m.hotelLine,
       est: m.estimated.hotel,
       leg: t.money.legHotel,
     },
@@ -200,39 +201,45 @@ export function MoneyLines({
         </div>
       ))}
       <div className="my-1.5 border-t border-dashed border-ink/25" />
-      {estimate ? (
-        <MoneyRow
-          label={t.money.estimateTitle}
-          value={
-            <span data-testid="trip-total" data-amount={m.perPerson} className="text-muted-foreground italic">
-              {t.money.fromEstimate(fmt.pln(m.perPerson))}
-            </span>
-          }
-          sub={<InfoTip label={t.money.estimateTitle}>{t.money.estimateTip}</InfoTip>}
-        />
-      ) : m.travelers > 1 ? (
-        <>
-          <MoneyRow label={t.money.total(m.travelers)} value={<span data-testid="party-total">{fmt.pln(m.partyTotal)}</span>} strong />
+      {/* Totals are the sum of the lines above (moneyOf), whatever the backend's own total fields say. */}
+      {(() => {
+        const cls = estimate ? "text-muted-foreground italic" : undefined;
+        const amt = (n: number) => (estimate ? `~${fmt.pln(n)}` : fmt.pln(n));
+        const note = estimate ? <InfoTip label={t.money.estimateTitle}>{t.money.estimateTip}</InfoTip> : undefined;
+        return m.travelers > 1 ? (
+          <>
+            <MoneyRow
+              label={estimate ? `${t.money.total(m.travelers)} · ${t.money.est}` : t.money.total(m.travelers)}
+              value={
+                <span data-testid="party-total" data-amount={m.partyTotal} className={cls}>
+                  {amt(m.partyTotal)}
+                </span>
+              }
+              sub={note}
+              strong
+            />
+            <MoneyRow
+              label={t.money.perPerson}
+              value={
+                <span data-testid="trip-total" data-amount={m.perPerson} className={cls}>
+                  {amt(m.perPerson)}
+                </span>
+              }
+            />
+          </>
+        ) : (
           <MoneyRow
-            label={t.money.perPerson}
+            label={estimate ? `${t.money.total(1)} · ${t.money.est}` : t.money.total(1)}
             value={
-              <span data-testid="trip-total" data-amount={m.perPerson}>
-                {fmt.pln(m.perPerson)}
+              <span data-testid="trip-total" data-amount={m.perPerson} className={cls}>
+                {amt(m.perPerson)}
               </span>
             }
+            sub={note}
+            strong
           />
-        </>
-      ) : (
-        <MoneyRow
-          label={t.money.total(1)}
-          value={
-            <span data-testid="trip-total" data-amount={m.perPerson}>
-              {fmt.pln(m.perPerson)}
-            </span>
-          }
-          strong
-        />
-      )}
+        );
+      })()}
     </div>
   );
 }

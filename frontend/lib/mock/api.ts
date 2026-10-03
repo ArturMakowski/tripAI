@@ -317,14 +317,19 @@ export function withPriceStatus(recs: RankedRecommendation[]): RankedRecommendat
   });
 }
 
-/** Party pricing: flights × travellers, hotel × rooms (rooms = ceil(people / 2) unless set). */
+/**
+ * Party pricing, same semantics as the backend: flight_cost_pln per traveller, hotel_cost_pln the whole
+ * stay for all rooms (rooms = ceil(people / 2) unless set), party = flight × travellers + hotel,
+ * per person = party / travellers; total_cost_pln stays the per-person figure.
+ */
 export function withParty(recs: RankedRecommendation[], profile: TasteProfile): RankedRecommendation[] {
   const travelers = Math.max(1, (profile.adults ?? 1) + (profile.children ?? 0));
   const rooms = profile.rooms ?? Math.ceil(travelers / 2);
   return recs.map((r) => {
-    const party = Math.round(r.flight_cost_pln * travelers + r.hotel_cost_pln * (travelers > 1 ? rooms : 1));
+    const hotel = Math.round(r.hotel_cost_pln * rooms);
+    const party = Math.round(r.flight_cost_pln) * travelers + hotel;
     const per = Math.round(party / travelers);
-    return { ...r, travelers, party_total_pln: party, per_person_pln: per, total_cost_pln: per };
+    return { ...r, travelers, hotel_cost_pln: hotel, party_total_pln: party, per_person_pln: per, total_cost_pln: per };
   });
 }
 
@@ -345,6 +350,34 @@ const PL_EVIDENCE: Record<string, (label: string) => string> = {
 };
 
 /** The real backend answers in the requested language; the mock does the same for its demo text. */
+/** Polish names for the fixture sights: a PL screen never shows an English name when a Polish one exists. */
+const PL_SIGHTS: Record<string, string> = {
+  "Trastevere food walk": "Spacer kulinarny po Zatybrzu",
+  "Vatican Museums (no queue in Jan)": "Muzea Watykańskie (w styczniu bez kolejki)",
+  "Galleria Borghese": "Galeria Borghese",
+  "Testaccio market": "Targ na Testaccio",
+  "Alfama miradouros": "Punkty widokowe Alfamy",
+  "Time Out Market": "Time Out Market",
+  "Belém pastries": "Ciastka z Belém",
+  "LX Factory": "LX Factory",
+  "Acropolis at opening time": "Akropol o otwarciu",
+  "Plaka tavernas": "Tawerny w Pladze",
+  "National Archaeological Museum": "Narodowe Muzeum Archeologiczne",
+  "Lycabettus sunset": "Zachód słońca na Likawitosie",
+  "Empty San Marco at dawn": "Pusty plac św. Marka o świcie",
+  "Cicchetti bars in Cannaregio": "Bary z cicchetti w Cannaregio",
+  "Gallerie dell'Accademia": "Galeria Akademii",
+  "Ribeira riverside": "Nabrzeże Ribeira",
+  "Port lodges in Gaia": "Piwnice porto w Gaia",
+  "Livraria Lello": "Księgarnia Lello",
+  "Francesinha crawl": "Degustacja francesinhy",
+};
+export const plSights = (list: string) =>
+  list
+    .split(", ")
+    .map((x) => PL_SIGHTS[x] ?? x)
+    .join(", ");
+
 function localize(recs: RankedRecommendation[], lang: Lang): RankedRecommendation[] {
   if (lang !== "pl") return recs;
   return recs.map((r) => {
@@ -358,8 +391,9 @@ function localize(recs: RankedRecommendation[], lang: Lang): RankedRecommendatio
         const label = f(e.label)
           .replace(r.city, loc?.city ?? r.city)
           .replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g, (m) => PL_MONTH[m] ?? m);
-        return { ...e, label };
+        return { ...e, label, ...(e.kind === "attraction" && typeof e.value === "string" ? { value: plSights(e.value) } : {}) };
       }),
+      highlights: r.highlights.map((h) => PL_SIGHTS[h] ?? h),
     };
   });
 }

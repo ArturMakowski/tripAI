@@ -153,7 +153,11 @@ export interface Recommendation {
   highlights: string[];
   why: string;
   fit?: FitVerdict | null;
-  /** Party pricing (docs/BUDGET.md): total_cost_pln stays per person; these cover the whole group. */
+  /**
+   * Party pricing (docs/BUDGET.md): flight_cost_pln is per traveller, hotel_cost_pln the whole stay for all
+   * rooms, total_cost_pln stays per person; party_total_pln / per_person_pln cover the group (the UI shows
+   * the sum of its lines and only cross-checks these).
+   */
   travelers?: number;
   party_total_pln?: number | null;
   per_person_pln?: number | null;

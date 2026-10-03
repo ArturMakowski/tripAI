@@ -195,8 +195,8 @@ export function RecCard({
           </span>
           <span data-line="hotel" data-amount={Math.round(rec.hotel_cost_pln)} className={cn("flex min-w-0 items-center gap-1", detailRow)}>
             <BedDouble className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">
+              {/* the whole stay, all rooms (backend semantics); flights are per person */}
               {fmt.pln(rec.hotel_cost_pln)}
-              {money.travelers > 1 && t.money.perRoomShort}
             </span>
             {money.estimated.hotel && <span className="shrink-0 italic">{t.money.est}</span>}
             {hotelParts && (

@@ -10,6 +10,10 @@ export const en = {
   party: (n: number, total: string, per: string) => `${n} ${plural("en", n, { one: "person", other: "people" })} · ${total} total · ${per}/person`,
   /** "from ~1,718 PLN (other dates)" */
   fromEstimate: (amount: string) => `from ~${amount} (other dates)`,
+  /** party headline: "2,480 PLN total · 1,240 PLN/person" */
+  partyShort: (total: string, per: string) => `${total} total · ${per}/person`,
+  /** party estimate: "from ~2,258 PLN total · ~1,129 PLN/person (other dates)" */
+  fromEstimateParty: (total: string, per: string) => `from ~${total} total · ~${per}/person (other dates)`,
   estimateTitle: "Estimate, not this trip's price",
   estimateTip:
     "We couldn't price these exact dates. This comes from other dates or a city-average hotel, so it isn't used for ranking, budget or value badges.",
@@ -52,6 +56,8 @@ export const pl: Shape<typeof en> = {
   party: (n, total, per) =>
     `${n} ${plural("pl", n, { one: "osoba", few: "osoby", many: "osób", other: "osoby" })} · ${total} razem · ${per}/os.`,
   fromEstimate: (amount) => `od ~${amount} (inne daty)`,
+  partyShort: (total, per) => `${total} razem · ${per}/os.`,
+  fromEstimateParty: (total, per) => `od ~${total} razem · ~${per}/os. (inne daty)`,
   estimateTitle: "Szacunek, nie cena tego wyjazdu",
   estimateTip:
     "Nie udało się wycenić tych dokładnych dat. Kwota pochodzi z innych terminów albo ze średniej hotelowej dla miasta, więc nie liczy się do rankingu, budżetu ani odznak.",

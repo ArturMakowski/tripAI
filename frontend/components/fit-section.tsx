@@ -47,8 +47,8 @@ function Claim({ p, rec, profile, lang, tone }: { p: FitPoint; rec: RankedRecomm
       <p className="flex gap-2 text-sm leading-snug font-semibold text-ink">
         <Icon className={cn("mt-0.5 size-4 shrink-0", tone === "match" ? "text-pine" : "text-clay")} aria-hidden />
         <span>
-          <span className="sr-only">{tone === "match" ? c.match : c.concern}: </span>
-          {p.text}
+          {/* the space is its own text node: "Pasuje: Jedzenie…", never "Pasuje:Jedzenie" */}
+          <span className="sr-only">{tone === "match" ? c.match : c.concern}:</span> {p.text}
         </span>
       </p>
       {hasDetail && (
