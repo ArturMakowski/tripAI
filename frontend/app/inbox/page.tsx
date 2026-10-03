@@ -193,7 +193,7 @@ export default function InboxPage() {
         </p>
       ) : (
         <>
-          <div className="rounded-2xl border border-line bg-card p-4">
+          <div data-tour="scan" className="rounded-2xl border border-line bg-card p-4">
             <div className="flex items-center gap-3">
               <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-pine text-paper">
                 <Radar className="size-5" aria-hidden />

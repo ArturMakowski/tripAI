@@ -5,6 +5,7 @@ import { ArrowRight, Languages, Lock } from "lucide-react";
 import { LangSwitch } from "@/components/lang-switch";
 import { ProfileChips } from "@/components/profile-chips";
 import { AppShell, PageTitle } from "@/components/shell";
+import { HowItWorksButton } from "@/components/tutorial/how-it-works";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 import { useHydrated, useTrip } from "@/lib/store";
@@ -52,6 +53,8 @@ export default function ProfilePage() {
           {t.continue} <ArrowRight data-icon="inline-end" />
         </Link>
       </Button>
+
+      <HowItWorksButton className="mt-8" />
     </AppShell>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { LangSync } from "@/components/lang-sync";
 import { MotionProvider } from "@/components/motion-provider";
+import { TutorialHost } from "@/components/tutorial/tutorial-host";
 import "./globals.css";
 
 const sans = Geist({ variable: "--font-sans", subsets: ["latin", "latin-ext"] });
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <MotionProvider>
             <LangSync />
             {children}
+            <TutorialHost />
           </MotionProvider>
         </div>
       </body>

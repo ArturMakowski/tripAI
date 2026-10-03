@@ -22,7 +22,7 @@ export function PrioritySlider({
   const pos = value ?? 50;
   const nearest = SLIDER_PRESETS.reduce((a, b) => (Math.abs(b.at - pos) < Math.abs(a.at - pos) ? b : a));
   return (
-    <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
+    <div data-tour="slider" className="rounded-3xl border border-line bg-card p-4 shadow-soft">
       <div className="mb-3 flex items-baseline justify-between">
         <p className="text-sm font-semibold text-ink">{ts.question}</p>
         {value === null && <span className="text-xs font-medium text-clay">{ts.setByProfile}</span>}
