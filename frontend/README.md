@@ -151,8 +151,8 @@ A new user should get what TripAI does in under 30 seconds.
   - Targets are at least 40px.
   - With `prefers-reduced-motion`: no loops, slides or drag, and each illustration shows its final frame.
 - **Copy.** Follows docs/DECLUTTER.md: a headline of at most 6 words and one line of at most 10, enforced by
-  `lib/tutorial-store.test.ts`. PL + EN live in `components/tutorial/strings.ts`, ready to move into `lib/i18n` (#22).
-  - Until #22 lands, the intro follows the Travel DNA language. Coach marks are EN, like the screens they sit on.
+  `lib/tutorial-store.test.ts`. PL + EN are in the i18n namespace `tutorial` (`lib/i18n/messages/tutorial.ts`) and follow the
+  app-wide language setting.
 - **Code.** `lib/tutorial-store.ts` holds the flags, routing and step logic. `components/tutorial/*` holds the UI. Pages only get
   `data-tour` attributes, plus `<TutorialHost />` in the layout and `<HowItWorksButton />` on Profile.
 

@@ -3,13 +3,12 @@
 import { ChevronRight, CircleHelp } from "lucide-react";
 import { useTutorial } from "@/lib/tutorial-store";
 import { cn } from "@/lib/utils";
-import { useTutorialLang } from "./a11y";
-import { TUTORIAL_COPY } from "./strings";
+import { useT } from "@/lib/i18n";
 
 /** "Jak to działa?" row: replays the intro, and the coach marks come back on each screen. */
 export function HowItWorksButton({ className }: { className?: string }) {
   const replay = useTutorial((s) => s.replay);
-  const t = TUTORIAL_COPY[useTutorialLang("screen")];
+  const t = useT().t.tutorial;
   return (
     <button
       type="button"

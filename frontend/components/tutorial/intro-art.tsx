@@ -10,15 +10,15 @@ import { motion, type Transition } from "motion/react";
 import { BellRing, CalendarHeart, Check, ChevronLeft, ChevronRight, ExternalLink, Hand, Sun } from "lucide-react";
 import { ScoreRing } from "@/components/score-ring";
 import { cn } from "@/lib/utils";
-import { TUTORIAL_COPY, type IntroStepId, type TutorialLang } from "./strings";
+import type { Messages } from "@/lib/i18n";
+import type { IntroStepId } from "./strings";
 
-type ArtProps = { lang: TutorialLang; reduced: boolean };
+type ArtProps = { art: Messages["tutorial"]["art"]; reduced: boolean };
 
 const loop = (reduced: boolean, t: Transition): Transition => (reduced ? { duration: 0 } : { repeat: Infinity, ...t });
 
 /** Step 1: a Travel DNA card swiping right with the "That's me" stamp, then coming back. */
-function DnaArt({ lang, reduced }: ArtProps) {
-  const a = TUTORIAL_COPY[lang].art;
+function DnaArt({ art: a, reduced }: ArtProps) {
   return (
     <div className="relative mx-auto h-60 w-48">
       <div className="absolute inset-0 translate-y-3 scale-[0.92] rounded-3xl bg-paper-deep shadow-soft" />
@@ -60,8 +60,7 @@ const HOLIDAYS = new Set([1, 3, 27]);
 const BRIDGE = [27, 28, 29, 30];
 
 /** Step 2: a month with holiday dots; the long weekend fills in and the radar chip pops up. */
-function CalendarArt({ lang, reduced }: ArtProps) {
-  const a = TUTORIAL_COPY[lang].art;
+function CalendarArt({ art: a, reduced }: ArtProps) {
   const cells = [...Array(MAY_OFFSET).fill(null), ...Array.from({ length: 31 }, (_, i) => i + 1)];
   return (
     <div className="relative mx-auto w-64 rounded-3xl border border-line bg-card p-3.5 shadow-lift">
@@ -114,8 +113,7 @@ const ROWS = [
 ];
 
 /** Step 3: ranked trip rows slide in; the top one shows its source tag and fit badge. */
-function ProofArt({ lang, reduced }: ArtProps) {
-  const a = TUTORIAL_COPY[lang].art;
+function ProofArt({ art: a, reduced }: ArtProps) {
   return (
     <div className="mx-auto w-72 space-y-2">
       {ROWS.map((r, i) => (
@@ -158,8 +156,7 @@ function ProofArt({ lang, reduced }: ArtProps) {
 }
 
 /** Step 4: an offer waiting for your approval, plus a rare, relevant alert. */
-function DecideArt({ lang, reduced }: ArtProps) {
-  const a = TUTORIAL_COPY[lang].art;
+function DecideArt({ art: a, reduced }: ArtProps) {
   return (
     <div className="relative mx-auto w-64 pt-10">
       <motion.div

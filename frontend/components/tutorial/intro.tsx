@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { useTrip } from "@/lib/store";
 import { stepTo, useTutorial } from "@/lib/tutorial-store";
 import { cn } from "@/lib/utils";
-import { useFocusTrap, useTutorialLang } from "./a11y";
+import { useT } from "@/lib/i18n";
+import { useFocusTrap } from "./a11y";
 import { IntroArt } from "./intro-art";
-import { INTRO_STEPS, TUTORIAL_COPY } from "./strings";
+import { INTRO_STEPS } from "./strings";
 
 const SWIPE_PX = 60;
 
@@ -22,8 +23,7 @@ const SWIPE_PX = 60;
 export function TutorialIntro() {
   const close = useTutorial((s) => s.closeIntro);
   const hasProfile = useTrip((s) => !!s.profile);
-  const lang = useTutorialLang();
-  const t = TUTORIAL_COPY[lang];
+  const t = useT().t.tutorial;
   const router = useRouter();
   const path = usePathname();
   const reduced = !!useReducedMotion();
@@ -125,7 +125,7 @@ export function TutorialIntro() {
               onDragEnd={onDragEnd}
             >
               <div className="flex flex-1 items-center justify-center pt-2">
-                <IntroArt step={id} lang={lang} reduced={reduced} />
+                <IntroArt step={id} art={t.art} reduced={reduced} />
               </div>
               <div className="pb-4">
                 <h2 ref={headingRef} tabIndex={-1} className="font-display text-[1.9rem] leading-[1.08] font-medium text-ink outline-none">

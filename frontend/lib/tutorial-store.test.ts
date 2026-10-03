@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { INTRO_STEPS, TOURS, TUTORIAL_COPY } from "@/components/tutorial/strings";
+import { INTRO_STEPS, TOURS } from "@/components/tutorial/strings";
+import { MESSAGES } from "@/lib/i18n";
 import {
   EMPTY_FLAGS,
   loadFlags,
@@ -130,11 +131,11 @@ describe("store", () => {
 describe("copy", () => {
   it("has every intro step and coach mark in PL and EN", () => {
     for (const lang of ["pl", "en"] as const) {
-      const t = TUTORIAL_COPY[lang];
+      const t = MESSAGES[lang].tutorial;
       for (const id of INTRO_STEPS) expect(t.steps[id].title && t.steps[id].body).toBeTruthy();
       for (const k of TOUR_KEYS) for (const { anchor } of TOURS[k]) expect(t.coach.marks[anchor]?.title).toBeTruthy();
     }
-    expect(TUTORIAL_COPY.pl.skip).toBe("Pomiń");
+    expect(MESSAGES.pl.tutorial.skip).toBe("Pomiń");
   });
 });
 
@@ -142,7 +143,7 @@ describe("declutter budget (docs/DECLUTTER.md)", () => {
   const words = (s: string) => s.split(/\s+/).filter((w) => /[\p{L}\d]/u.test(w)).length;
   it("keeps headlines ≤ 6 words and sublines / tips ≤ 10 words", () => {
     for (const lang of ["pl", "en"] as const) {
-      const t = TUTORIAL_COPY[lang];
+      const t = MESSAGES[lang].tutorial;
       for (const id of INTRO_STEPS) {
         expect(words(t.steps[id].title), t.steps[id].title).toBeLessThanOrEqual(6);
         expect(words(t.steps[id].body), t.steps[id].body).toBeLessThanOrEqual(10);

@@ -5,8 +5,9 @@ import { X } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTutorial, type TourKey } from "@/lib/tutorial-store";
-import { useFocusTrap, useTutorialLang } from "./a11y";
-import { TOURS, TUTORIAL_COPY } from "./strings";
+import { useT } from "@/lib/i18n";
+import { useFocusTrap } from "./a11y";
+import { TOURS } from "./strings";
 
 /** How long to wait for an anchor: the first one may sit behind a loader, later ones are already on screen. */
 const FIRST_WAIT_MS = 15_000;
@@ -49,8 +50,7 @@ type Rect = { top: number; left: number; width: number; height: number };
 export function CoachMarks({ tour }: { tour: TourKey }) {
   const steps = TOURS[tour];
   const markSeen = useTutorial((s) => s.markTourSeen);
-  const lang = useTutorialLang("screen");
-  const t = TUTORIAL_COPY[lang].coach;
+  const t = useT().t.tutorial.coach;
   const reduced = !!useReducedMotion();
   const [index, setIndex] = useState(-1);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);

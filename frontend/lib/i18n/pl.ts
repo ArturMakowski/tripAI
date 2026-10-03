@@ -12,6 +12,7 @@ import * as credits from "./messages/credits";
 import * as survey from "./messages/survey";
 import * as swipeOffers from "./messages/swipeOffers";
 import * as inbox from "./messages/inbox";
+import * as tutorial from "./messages/tutorial";
 import type { Messages } from "./en";
 
 export const pl: Messages = {
@@ -28,4 +29,5 @@ export const pl: Messages = {
   survey: survey.pl,
   swipeOffers: swipeOffers.pl,
   inbox: inbox.pl,
+  tutorial: tutorial.pl,
 };
