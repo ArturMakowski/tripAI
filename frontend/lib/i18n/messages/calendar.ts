@@ -26,7 +26,7 @@ export const en = {
   pickEnd: "Now tap the last day",
   pickEndHint: "Esc cancels",
   cancel: "Cancel",
-  addWholeSuggestion: (range: string, days: number) => `Add the whole long weekend ${range} (${days} days)`,
+  addWholeSuggestion: (range: string, days: number) => `Add the whole long weekend ${range} (${days} ${days === 1 ? "day" : "days"})`,
   today: "today",
   holiday: "public holiday",
   suggestion: "long weekend suggestion",

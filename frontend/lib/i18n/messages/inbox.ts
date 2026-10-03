@@ -15,7 +15,8 @@ export const en = {
   watchFailed: "Couldn't watch",
   scanDurable: "Durable scan (DBOS)",
   scan: "Scan",
-  scanSummary: (windows: number, candidates: number) => `${windows} free windows, ${candidates} options scored`,
+  scanSummary: (windows: number, candidates: number) =>
+    `${windows} ${plural("en", windows, { one: "free window", other: "free windows" })}, ${candidates} ${plural("en", candidates, { one: "option scored", other: "options scored" })}`,
   scanTop: (city: string) => `, #1 ${city}`,
   scanFresh: (n: number) => (n ? `${n} new notification${n > 1 ? "s" : ""}.` : "Nothing new worth a ping."),
   scanNeutral: " Neutral weights (personalisation is off).",
@@ -37,6 +38,11 @@ export const en = {
     opening: "Opening your trip…",
   },
   settings: {
+    pushErrors: {
+      unsupported: "This browser doesn't support web push. On iPhone, add TripAI to the Home Screen first.",
+      notConfigured: "Push isn't set up on the server yet.",
+      blocked: "Notifications are blocked for this site in your browser settings.",
+    },
     eyebrow: "Notifications",
     heading: "You set the volume.",
     intro: "The inbox is always here. Push to your phone only happens if you switch it on, and never more often than you allow.",
@@ -65,7 +71,14 @@ export const en = {
 export const pl: Shape<typeof en> = {
   title: "Skrzynka",
   bellAria: (unread) =>
-    unread ? `Skrzynka, ${unread} ${plural("pl", unread, { one: "nieprzeczytane", few: "nieprzeczytane", many: "nieprzeczytanych", other: "nieprzeczytanych" })}` : "Skrzynka",
+    unread
+      ? `Skrzynka, ${unread} ${plural("pl", unread, {
+          one: "nieprzeczytane powiadomienie",
+          few: "nieprzeczytane powiadomienia",
+          many: "nieprzeczytanych powiadomień",
+          other: "nieprzeczytanego powiadomienia",
+        })}`
+      : "Skrzynka",
   settingsAria: "Ustawienia powiadomień",
   kinds: { new_top: "Nowy #1", price_drop: "Spadek ceny", long_weekend: "Długi weekend" },
   unread: "nieprzeczytane",
@@ -103,6 +116,11 @@ export const pl: Shape<typeof en> = {
     opening: "Otwieram wyjazd…",
   },
   settings: {
+    pushErrors: {
+      unsupported: "Ta przeglądarka nie obsługuje powiadomień push. Na iPhonie najpierw dodaj TripAI do ekranu początkowego.",
+      notConfigured: "Powiadomienia push nie są jeszcze skonfigurowane na serwerze.",
+      blocked: "Powiadomienia dla tej strony są zablokowane w ustawieniach przeglądarki.",
+    },
     eyebrow: "Powiadomienia",
     heading: "Ty ustawiasz głośność.",
     intro: "Skrzynka jest zawsze dostępna. Powiadomienia push na telefon pojawią się tylko po ich włączeniu i nigdy częściej, niż pozwolisz.",

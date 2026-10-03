@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppShell, PageTitle } from "@/components/shell";
 import { SourceTag } from "@/components/source-tag";
 import { Button } from "@/components/ui/button";
+import { errorText } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
 import { NOTIFY_AVAILABLE, notifyApi, openNotification, refreshUnread } from "@/lib/notify";
 import type { AppNotification, NotificationKind, ScanResult } from "@/lib/notify-types";
@@ -140,10 +141,10 @@ export default function InboxPage() {
       setError(null);
       refreshUnread();
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(e, t));
       setItems([]);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial fetch on mount
@@ -157,7 +158,7 @@ export default function InboxPage() {
       setScan(await notifyApi.runScan(profile, weights));
       await load();
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(e, t));
     } finally {
       setScanning(false);
     }

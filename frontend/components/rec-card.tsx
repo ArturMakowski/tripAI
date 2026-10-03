@@ -12,6 +12,7 @@ import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
 import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation, Weights } from "@/lib/types";
+import { peakMonth } from "@/lib/counterfactual";
 import { cn } from "@/lib/utils";
 
 /** English country names from the backend -> ISO 3166 codes, so Intl can name them in the UI language. */
@@ -35,8 +36,6 @@ export function localCountry(name: string, locale: string): string {
   }
 }
 
-/** Backend month abbreviation ("Jul") -> 1..12, so the UI can name the month in its own language. */
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** Illustrated stand-in for a city without a bundled photo: dusk sky, sun, hills and the city name. Never blank. */
 export function CityIllustration({ city, className, label = true }: { city: string; className?: string; label?: boolean }) {
@@ -140,10 +139,10 @@ export function RecCard({
   const rank = rec.rank;
   const split = disagreement(rec);
   const peak = rec.counterfactuals.find((c) => c.kind === "peak_season");
-  const peakIdx = MONTHS.indexOf(peak?.label.match(/in (\w{3})/)?.[1] ?? "");
-  const peakMonth = peakIdx >= 0 ? fmt.monthName(peakIdx + 1, lang === "pl" ? "long" : "short") : null;
+  const peakM = peak ? peakMonth(peak.label) : null;
+  const peakMonthName = peakM ? fmt.monthName(peakM, lang === "pl" ? "long" : "short") : null;
   const [showPeak, setShowPeak] = useState(false);
-  const peakNote = peak ? tc.peakNote(peakMonth, fmt.pln(peak.total_cost_pln), fmt.pln(rec.total_cost_pln), rec.scoring_version) : "";
+  const peakNote = peak ? tc.peakNote(peakMonthName, fmt.pln(peak.total_cost_pln), fmt.pln(rec.total_cost_pln), rec.scoring_version) : "";
   const nights = dayCount(rec.window) - 1;
 
   return (

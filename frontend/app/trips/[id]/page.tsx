@@ -19,7 +19,7 @@ import { FactorBars } from "@/components/factor-bars";
 import { CityPhoto } from "@/components/rec-card";
 import { ScoreRing } from "@/components/score-ring";
 import { LangSwitch } from "@/components/lang-switch";
-import { ModeBadge } from "@/components/shell";
+import { AppShell, ModeBadge } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { dayCount } from "@/lib/format";
 import { flipConditions, inputsHash } from "@/lib/scoring";
@@ -31,9 +31,9 @@ import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { useT } from "@/lib/i18n";
 import { useTrip } from "@/lib/store";
 import { originOf } from "@/lib/handoff";
+import { capitalise, peakMonth } from "@/lib/counterfactual";
 import { cn } from "@/lib/utils";
 
-const EN_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function Section({ title, icon: Icon, children, className }: { title: string; icon: typeof Bot; children: React.ReactNode; className?: string }) {
   return (
@@ -145,10 +145,13 @@ export default function ReceiptPage() {
   }, [rec, rival, rank, weights]);
 
   if (!rec) {
+    // Keep the shared header (language switch, back) even on a stale/shared link or while loading.
     return (
-      <div className="grid flex-1 place-items-center p-10 text-sm text-muted-foreground">
-        {loading ? r.loading : <Link href="/trips">{r.notFound}</Link>}
-      </div>
+      <AppShell back="/trips" title={t.common.nav.trips}>
+        <div className="grid place-items-center py-24 text-sm text-muted-foreground">
+          {loading ? r.loading : <Link href="/trips" className="text-pine underline-offset-2 hover:underline">{r.notFound}</Link>}
+        </div>
+      </AppShell>
     );
   }
 
@@ -165,11 +168,12 @@ export default function ReceiptPage() {
   const flipHi = rank === 0 ? rec.city : rival?.city;
   const flipLo = rank === 0 ? rival?.city : rec.city;
   const nightsText = r.nights(nights);
-  // Counterfactual labels come from the scorer in English; rebuild the known kinds in the UI language.
+  // Rebuild the known counterfactual kinds in the UI language; if the month can't be read from the
+  // scorer's (already localised) label, show that label instead of dropping the month.
   const cfLabel = (c: (typeof counterfactuals)[number]) => {
     if (c.kind === "peak_season") {
-      const m = EN_MONTHS.indexOf(c.label.match(/\bin (\w{3})/)?.[1] ?? "");
-      return r.peakSeason(m >= 0 ? fmt.monthName(m + 1, "long") : null);
+      const m = peakMonth(c.label);
+      return m ? r.peakSeason(fmt.monthName(m, "long")) : capitalise(c.label);
     }
     if (c.kind === "next_window" && c.window) return r.nextWindow(fmt.range(c.window));
     return c.label.charAt(0).toUpperCase() + c.label.slice(1);

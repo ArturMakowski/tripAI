@@ -357,7 +357,7 @@ export const PL_LOCAL: Record<string, { city: string; country: string; why: stri
   FCO: {
     city: "Rzym",
     country: "Włochy",
-    why: "Masz wolne 14–19 stycznia. Loty w obie strony z Krakowa kosztują 262 zł, mniej niż typowe 310–480 zł na tej trasie, a pięć nocy przy Zatybrzu kosztuje 1180 zł, o 44% mniej niż taki sam pobyt w lipcu. W połowie stycznia obłożenie to 41% sierpniowego szczytu, a norma klimatyczna to 13,8 °C i około 2 deszczowe dni. Pasuje do Twoich głównych zainteresowań: jedzenia, historii i sztuki.",
+    why: "Masz wolne 14–19 stycznia. Loty w obie strony z Krakowa kosztują 262 zł, mniej niż typowe 310–480 zł na tej trasie, a pięć nocy przy Zatybrzu kosztuje 1 180 zł, o 44% mniej niż taki sam pobyt w lipcu. W połowie stycznia obłożenie to 41% sierpniowego szczytu, a norma klimatyczna to 13,8 °C i około 2 deszczowe dni. Pasuje do Twoich głównych zainteresowań: jedzenia, historii i sztuki.",
   },
   LIS: {
     city: "Lizbona",
@@ -367,12 +367,12 @@ export const PL_LOCAL: Record<string, { city: string; country: string; why: stri
   ATH: {
     city: "Ateny",
     country: "Grecja",
-    why: "Weź wolne 7–8 stycznia, a Trzech Króli da Ci 5 dni. Ateny to tutaj najtańszy wyjazd, 1104 zł łącznie, a styczniowe obłożenie to 46% letniego szczytu, więc na Akropolu jest dużo spokojniej niż w lipcu. Dobrze pasuje do Twojego zainteresowania historią, a nieco słabiej do jedzenia.",
+    why: "Weź wolne 7–8 stycznia, a Trzech Króli da Ci 5 dni. Ateny to tutaj najtańszy wyjazd, 1 104 zł łącznie, a styczniowe obłożenie to 46% letniego szczytu, więc na Akropolu jest dużo spokojniej niż w lipcu. Dobrze pasuje do Twojego zainteresowania historią, a nieco słabiej do jedzenia.",
   },
   VCE: {
     city: "Wenecja",
     country: "Włochy",
-    why: "W styczniu Wenecja jest najbardziej pusta, obłożenie to 29% szczytu. Jest jednak 7 °C i wilgotno, poniżej Twojego ulubionego przedziału 12–24 °C. Hotele są tu najdroższe: 1420 zł za pięć nocy.",
+    why: "W styczniu Wenecja jest najbardziej pusta, obłożenie to 29% szczytu. Jest jednak 7 °C i wilgotno, poniżej Twojego ulubionego przedziału 12–24 °C. Hotele są tu najdroższe: 1 420 zł za pięć nocy.",
   },
   OPO: {
     city: "Porto",

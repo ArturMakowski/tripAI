@@ -147,12 +147,23 @@ export async function currentSubscription(): Promise<PushSubscription | null> {
  * Must run inside a user tap: asks the browser for permission (the only place we ever do),
  * subscribes with the backend's VAPID key and registers the subscription = explicit opt-in.
  */
+/** Client-side push failures carry a code so the UI can say it in the user's language. */
+export type PushErrorCode = "unsupported" | "notConfigured" | "blocked";
+export class PushError extends Error {
+  constructor(
+    readonly code: PushErrorCode,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
 export async function enablePush(): Promise<NotificationPrefs> {
-  if (!pushSupported()) throw new Error("This browser doesn't support web push (on iPhone: add TripAI to the Home Screen first).");
+  if (!pushSupported()) throw new PushError("unsupported", "This browser doesn't support web push.");
   const key = await notifyApi.vapidKey();
-  if (!key.enabled || !key.public_key) throw new Error("Push isn't configured on the server yet (VAPID keys missing).");
+  if (!key.enabled || !key.public_key) throw new PushError("notConfigured", "Push isn't configured on the server yet (VAPID keys missing).");
   const permission = await Notification.requestPermission();
-  if (permission !== "granted") throw new Error("Notifications are blocked for this site in your browser settings.");
+  if (permission !== "granted") throw new PushError("blocked", "Notifications are blocked for this site.");
   const reg = (await registerServiceWorker()) ?? (await navigator.serviceWorker.ready);
   await navigator.serviceWorker.ready;
   const sub =

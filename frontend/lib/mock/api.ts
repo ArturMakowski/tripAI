@@ -64,7 +64,7 @@ const INTERVIEW: Record<
     chips: {
       interests: ["Jedzenie i targi", "Historia i muzea", "Sztuka i architektura", "Plaże", "Życie nocne", "Wędrówki"],
       avoid: ["Tłumy", "Upał", "Zimno", "Długie przesiadki", "Właściwie nic"],
-      budget: ["Poniżej 1500 zł", "Około 1800 zł", "Około 3000 zł", "Nie wiem"],
+      budget: ["Poniżej 1 500 zł", "Około 1 800 zł", "Około 3 000 zł", "Nie wiem"],
       origin: ["KRK, wystarczy prosto", "KRK, wygodnie", "KTW, budżetowo", "WAW, chcę się rozpieścić"],
       comfort: ["Budżetowo", "Standard", "Komfortowo", "Luksusowo"],
       climate: ["Łagodnie, 15–24 °C", "Ciepło, 22–30 °C", "Chłód mi nie przeszkadza", "Bez upałów"],

@@ -51,7 +51,7 @@ export const en = {
 export const pl: Shape<typeof en> = {
   eyebrow: "Po wyjeździe",
   title: (city) => `Jak było: ${city}?`,
-  intro: "Cztery stuknięcia. Odpowiedzi zmienią wagi rankingu, a my pokażemy dokładnie jak.",
+  intro: "Cztery dotknięcia. Odpowiedzi zmienią wagi rankingu, a my pokażemy dokładnie jak.",
   noTailorBold: "Wybrano brak dopasowania",
   noTailorRest: " w Twoim DNA podróżnika, więc ta opinia nie zmieni Twojego profilu ani wag.",
   changeThat: "Zmień to",
@@ -68,7 +68,7 @@ export const pl: Shape<typeof en> = {
     history: "historia",
     architecture: "architektura",
     beach: "plaża",
-    nightlife: "nocne życie",
+    nightlife: "życie nocne",
     art: "sztuka",
     walking: "spacery",
   },

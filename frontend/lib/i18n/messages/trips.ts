@@ -49,7 +49,7 @@ export const en = {
 
   loader: {
     title: "Finding trips for your free time",
-    foundWindows: (n: number) => `Found ${n} free windows and long weekends`,
+    foundWindows: (n: number) => `Found ${n} ${plural("en", n, { one: "free window or long weekend", other: "free windows and long weekends" })}`,
     findingWindows: "Finding your free windows",
     scanning: (origin: string) => `Scanning destinations from ${origin}`,
     flightsHotels: "Checking flight and hotel prices",
@@ -93,7 +93,7 @@ export const en = {
     youreFree: "You’re free",
     bridge: (off: number, total: number) => `${off}d off → ${total}d`,
     when: "When",
-    nights: (n: number) => `${n} nights`,
+    nights: (n: number) => `${n} ${plural("en", n, { one: "night", other: "nights" })}`,
     allIn: "All-in, per person",
     cachedEstimate: "Cached estimate",
     overBudget: (amount: string) => `Over budget +${amount}`,
@@ -204,7 +204,7 @@ export const pl: Shape<typeof en> = {
     allIn: "Łącznie, za osobę",
     cachedEstimate: "Zapisana szacunkowa cena",
     overBudget: (amount: string) => `Ponad budżet +${amount}`,
-    vsPeak: (pct: number) => `−${pct}% względem sezonu`,
+    vsPeak: (pct: number) => `−${pct}% względem szczytu sezonu`,
     peakNote: (month: string | null, peak: string, now: string, version: string) =>
       `Ten sam wyjazd w szczycie sezonu w tym mieście${month ? ` (${month})` : ""}: ${peak} wobec ${now} teraz · algorytm TripAI ${version}`,
     disagree: "Wynik i dopasowanie się różnią.",

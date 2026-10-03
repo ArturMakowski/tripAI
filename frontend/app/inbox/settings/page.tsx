@@ -3,6 +3,7 @@
 import { BellOff, BellRing, Loader2, MoonStar, Plus, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell, PageTitle } from "@/components/shell";
+import { errorText } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
 import { NOTIFY_AVAILABLE, currentSubscription, disablePush, enablePush, notifyApi, pushSupported } from "@/lib/notify";
 import type { NotificationPrefs } from "@/lib/notify-types";
@@ -54,16 +55,16 @@ export default function NotificationSettingsPage() {
 
   useEffect(() => {
     if (!NOTIFY_AVAILABLE) return;
-    notifyApi.prefs().then(setPrefs, (e: Error) => setError(e.message));
+    notifyApi.prefs().then(setPrefs, (e: unknown) => setError(errorText(e, t)));
     currentSubscription().then((s) => setSubscribed(!!s), () => {});
-  }, []);
+  }, [t]);
 
   const save = async (patch: Parameters<typeof notifyApi.savePrefs>[0]) => {
     setError(null);
     try {
       setPrefs(await notifyApi.savePrefs(patch));
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(e, t));
     }
   };
 
@@ -80,7 +81,7 @@ export default function NotificationSettingsPage() {
         setSubscribed(true);
       }
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(e, t));
     } finally {
       setBusy(false);
     }
