@@ -121,7 +121,16 @@ def _raw(name: str) -> dict[str, Any]:
 
 
 def clear_cache() -> None:
-    for fn in (_raw, cities, _city_index, crowds, public_holidays, school_breaks, _attractions):
+    for fn in (
+        _raw,
+        cities,
+        _city_index,
+        crowds,
+        public_holidays,
+        school_breaks,
+        _attractions,
+        _climate,
+    ):
         fn.cache_clear()
 
 
@@ -303,3 +312,36 @@ def attractions(
     if tags:
         items.sort(key=lambda a: (-sum(tags.get(t, 0.0) for t in a.tags), -a.popularity))
     return items[:limit] if limit else items
+
+
+# --- climate --------------------------------------------------------------------------------
+
+
+class MonthClimate(BaseModel):
+    month: int
+    temp_max_c: float | None
+    temp_min_c: float | None
+    precipitation_mm: float | None
+    rainy_day_share: float | None
+    sunshine_h: float | None
+
+
+class CityClimate(BaseModel):
+    city_id: str
+    iata: str
+    years: list[int]
+    months: list[MonthClimate]  # Jan..Dec
+
+
+@cache
+def _climate() -> dict[str, CityClimate]:
+    try:
+        rows = _raw("climate.json")["climate"]
+    except FileNotFoundError:
+        return {}
+    return {r["city_id"]: CityClimate.model_validate(r) for r in rows}
+
+
+def climate(key: str) -> CityClimate | None:
+    """Monthly climate normals (Open-Meteo ERA5 snapshot), or None if the city has none."""
+    return _climate().get(city(key).id)

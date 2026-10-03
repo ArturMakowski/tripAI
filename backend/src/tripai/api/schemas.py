@@ -1,11 +1,13 @@
 from datetime import date
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 from tripai.agents.interview import ChatMessage
 from tripai.models import FreeWindow, TasteProfile, Weights
+from tripai.scoring.budget_fit import BudgetStatus
 from tripai.scoring.feedback import Change
+from tripai.scoring.types import RankedRecommendation
 from tripai.scoring.windows import MAX_LEAVE_DAYS, BusyInterval
 
 
@@ -53,3 +55,17 @@ class FeedbackResponse(TasteProfile):
     diff: list[Change]
     note: str | None = None  # e.g. why nothing changed (personalize=False)
     profile: TasteProfile
+
+
+Phase = Literal["fast", "full"]
+
+
+class ApiRecommendation(RankedRecommendation):
+    """What POST /recommendations returns: the ranked recommendation plus API-layer status.
+    (Proposed for the shared contract; until then it lives here and in frontend types.)"""
+
+    budget: BudgetStatus | None = None  # None when the profile has no budget_pln
+    # issue #18: total - budget when positive, 0 within budget, None without a budget
+    over_budget_pln: float | None = None
+    phase: Phase = "full"  # "fast": cache/Travelpayouts/seed estimates; "full": final answer
+    refined: bool = False  # flight/hotel verified with exact-date Google prices (SerpApi)

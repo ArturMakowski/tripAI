@@ -62,9 +62,12 @@ def test_live_candidates_from_seed_and_connectors(prof):
     p = live()
     cands = run(p, prof)
     cities = {c.city for c in cands}
-    assert len(cands) == 10 and "Paris" not in cities  # no Paris fixtures -> dropped, no error
-    assert p.last_stats["uncovered"]["open_meteo"] >= 1  # no Paris recording: not available
-    assert p.last_stats["failures"] == []  # ...and not a failure
+    assert len(cands) == 11 and "Paris" in cities  # no Paris Open-Meteo fixture...
+    paris = next(c for c in cands if c.city == "Paris")
+    weather = next(e for e in paris.evidence if e.kind == "weather")
+    assert weather.source.startswith("seed:climate")  # ...-> committed climate snapshot
+    assert "open_meteo" not in p.last_stats["uncovered"]  # cheap pass: climate snapshot only
+    assert p.last_stats["failures"] == []
     for c in cands:
         assert c.crowd == pytest.approx(c.crowd) and 0 <= c.crowd <= 1
         assert c.highlights and c.tags
@@ -117,7 +120,7 @@ def test_failing_flights_connector_degrades(prof, monkeypatch):
     monkeypatch.setattr(SerpApiFlights, "price_insights", boom)
     p = live(top_n=2)
     cands = run(p, prof)
-    assert len(cands) == 10
+    assert len(cands) == 11
     assert not any(e.source.startswith("serpapi:google_flights") for c in cands for e in c.evidence)
     assert any("google_flights" in f for f in p.last_stats["failures"])
     refined = [
@@ -129,7 +132,14 @@ def test_failing_flights_connector_degrades(prof, monkeypatch):
         assert 0 < conf.value < 1 and "flight: Aviasales" in conf.label
 
 
-def test_nothing_available_falls_back_to_labelled_fixtures(prof):
+@pytest.fixture
+def no_climate_snapshot(monkeypatch):
+    from tripai.live import provider
+
+    monkeypatch.setattr(provider, "_seed_climate", lambda *a: None)
+
+
+def test_nothing_available_falls_back_to_labelled_fixtures(prof, no_climate_snapshot):
     windows = [FreeWindow(start=date(2027, 5, 1), end=date(2027, 5, 4))]  # no fixtures for May
     assert run(live(), prof, windows) == []
     p = live(use_fallback=True)
@@ -361,7 +371,7 @@ def test_env_driven_provider_runs_offline_without_keys(prof, monkeypatch):
     p = LiveProvider(today=TODAY, city_ids=FIXTURE_CITIES, use_fallback=False)
     assert set(p.source_modes().values()) == {"fixture"}
     cands = run(p, prof)
-    assert len(cands) == 10 and p.last_stats["serpapi_calls"] == 0
+    assert len(cands) == 11 and p.last_stats["serpapi_calls"] == 0
     for c in cands:
         for e in c.evidence:
             if sources.source_of_evidence(e.source):
@@ -387,7 +397,7 @@ def test_mixed_live_and_fixture_sources(prof, monkeypatch):
     flight = next(e for e in cands[0].evidence if e.kind == "flight")
     assert flight.source == "travelpayouts:grouped_prices"  # live: no fixture tag
     weather = next(e for e in cands[0].evidence if e.kind == "weather")
-    assert weather.source == "open-meteo:archive" + RECORDED_TAG
+    assert weather.source == "seed:climate (open-meteo:archive ERA5)"  # snapshot, not a fixture
     assert (
         "(fixture)" in conf(cands[0]).label
         and "flight: Aviasales cached fare;" in conf(cands[0]).label
@@ -541,13 +551,13 @@ def test_one_bad_city_or_option_is_dropped_alone(prof, monkeypatch):
     monkeypatch.setattr(LiveProvider, "_candidate", candidate)
     p = live()
     cands = run(p, prof)
-    assert len(cands) == 8 and not {"Rome", "Naples"} & {c.city for c in cands}
+    assert len(cands) == 9 and not {"Rome", "Naples"} & {c.city for c in cands}
     assert {"city rome: RuntimeError", "candidate naples 2027-01-14: KeyError"} <= set(
         p.last_stats["failures"]
     )
 
 
-def test_no_live_data_is_503_not_synthetic(prof):
+def test_no_live_data_is_503_not_synthetic(prof, no_climate_snapshot):
     c = TestClient(create_app(provider=live()))
     req = {"profile": prof.model_dump(mode="json"),
            "windows": [{"start": "2027-05-01", "end": "2027-05-04"}]}  # fmt: skip
