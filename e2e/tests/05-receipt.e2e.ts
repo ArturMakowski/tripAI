@@ -4,12 +4,14 @@ import { guard } from './support/tripai.ts';
 
 // Receipt after the declutter (PR #31, round 3 #41): the money lines sit above the fold; their compact source
 // chips ("Source · 3 Oct", full fetch time in the tooltip) are behind one "ⓘ Sources / Źródła" toggle; the
-// inputs hash lives in the collapsed "Audit" row.
-test('Receipt: every price row shows its source and fetch time, and the inputs hash is one tap away', async ({ app, agent, screen, browser }) => {
+// exact score math (factor bars, the total out of 100, the formula) lives in the collapsed "Audit" row.
+test('Receipt: every price row shows its source and fetch time, and the exact score math is one tap away', async ({ app, agent, screen, browser }) => {
   await guard(browser, app.baseUrl);
   await app.open('/trips');
   // /trips opens on the swipe view until a view is picked; this test reads the ranked list.
-  await screen.getByRole('button', /^(List|Lista)$/).tap();
+  const listToggle = screen.getByRole('button', /^(List|Lista)$/);
+  await expect(listToggle).toBeVisible({ timeout: 60_000 }); // the view toggle renders once /trips has loaded
+  await listToggle.tap();
   const top = browser.locator('main li article a[href^="/trips/"]').first();
   await expect(top).toBeVisible({ timeout: 60_000 });
   // Deterministic: open the top-ranked trip (the whole card is one link).
@@ -36,8 +38,10 @@ test('Receipt: every price row shows its source and fetch time, and the inputs h
     expect(l.title, `fetch time in the source tooltip: ${l.text}`).toMatch(/\d{1,2}:\d{2}/);
   }
 
-  // The inputs hash: collapsed under "Audit" (DECLUTTER: one tap away).
+  // The exact score: collapsed under "Audit" (DECLUTTER: one tap away). Since cda3b78 Audit holds only the
+  // factor bars, the total out of 100 and the formula (no inputs hash, engine line or data confidence).
   await screen.getByRole('button', /^(audit|audyt)/i).tap();
-  await expect(screen.getByText(/^[0-9a-f]{8,}…[0-9a-f]{6,}$/)).toBeVisible();
+  await expect(screen.getByText(/^\d{1,3}([.,]\d)?\s*\/\s*100$/).first()).toBeVisible();
+  await expect(screen.getByText(/[0-9a-f]{8,}…[0-9a-f]{6,}/)).toHaveCount(0);
   await agent.assert('on the receipt, the flight and the hotel price lines each name their data source and when it was fetched');
 });

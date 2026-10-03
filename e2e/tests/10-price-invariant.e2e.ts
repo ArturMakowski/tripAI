@@ -4,13 +4,17 @@ import { guard } from './support/tripai.ts';
 
 /**
  * Invariant for the top 3 trips: card total == receipt total == confirm total == flight + hotel (one traveller),
- * on every screen, and the hotel nights shown match the trip dates.
+ * on every screen, and the hotel nights shown match the trip dates. It holds for exact prices AND for honest
+ * estimates ("~1 650 zł · szacunek", e.g. when the SerpApi daily cap is used up): an estimate must read as one
+ * ("~" + the word "szacunek"/"estimate") on all three screens, never as an exact price on any of them.
  * Fully deterministic (DOM reads, no model calls). Numbers are parsed in both formats:
  * "1,096 PLN" (EN) and "1 096 zł" (PL, with NBSP / narrow NBSP).
  */
 
 interface Seen {
   total: number | null;
+  /** the total reads as an estimate ("~", with "szacunek"/"estimate" on the screen) */
+  estimate: boolean;
   flight: number | null;
   hotel: number | null;
   nights: number | null;
@@ -49,8 +53,13 @@ function readScreen(arg: { screen: 'card' | 'receipt' | 'confirm'; id: string })
   const shown = amount(textOf(total));
   const flightLine = root.querySelector('[data-line="flight"]');
   const hotelLine = root.querySelector('[data-line="hotel"]');
+  const totalText = textOf(total);
+  // Card: the word sits in the total itself ("~1 650 zł · szacunek"); receipt/confirm: in the row label
+  // ("Razem (szacunek) ~1 650 zł").
+  const wordIn = arg.screen === 'card' ? totalText : textOf(total?.closest('div.py-1\\.5') ?? root);
   return {
     total: shown != null && shown === num(total) ? shown : null,
+    estimate: totalText.includes('~') && /szacunek|estimate/i.test(wordIn),
     flight: amount(textOf(flightLine)) ?? num(flightLine),
     hotel: amount(textOf(hotelLine)) ?? num(hotelLine),
     // card: "6–10 Jan · 4 nights"; receipt: the stay line; confirm: the hero "… · 5 nights"
@@ -74,11 +83,14 @@ test(`Price invariant (${lang}): top 3 trips add up the same on card, receipt an
   // The app-wide PL/EN switch in the header (stored, so it holds across the page loads below).
   await screen.getByRole('radio', lang).tap();
   // /trips opens on the swipe view until a view is picked; this test reads the ranked list (the pick is remembered for the page loads below).
-  await screen.getByRole('button', /^(List|Lista)$/).tap();
+  const listToggle = screen.getByRole('button', /^(List|Lista)$/);
+  await expect(listToggle).toBeVisible({ timeout: 60_000 }); // the view toggle renders once /trips has loaded
+  await listToggle.tap();
   const cards = browser.locator('main li:has(article a[href^="/trips/"])');
   await expect(cards.first()).toBeVisible({ timeout: 60_000 });
-  // Wait for final prices: while refining, totals read "~1,096 PLN" (cached estimate).
-  await expect(browser.locator('main li article [data-testid="trip-total"]').first()).not.toContainText('~', { timeout: 60_000 });
+  // Wait for the final ranking (the list is aria-busy while loading or refining). Prices may still be
+  // honest estimates afterwards ("~… · szacunek"); the invariant below holds for both.
+  await expect(browser.locator('main ul[aria-busy="true"]')).toHaveCount(0, { timeout: 90_000 });
 
   // The numbers below are parsed in this screen's own format: "1,096 PLN" (EN) or "1 096 zł" (PL).
   await expect(browser.locator('main li article [data-testid="trip-total"]').first()).toContainText(lang === 'Polski' ? /zł/ : /PLN/);
@@ -109,9 +121,14 @@ test(`Price invariant (${lang}): top 3 trips add up the same on card, receipt an
     const confirmBad = check(id, 'confirm', seen.confirm, expectedNights);
     const cardBad = check(id, 'card', seen.card, expectedNights);
 
-    const totals = Object.entries(seen).map(([k, v]) => `${k}=${v?.total ?? '?'}`);
+    const totals = Object.entries(seen).map(([k, v]) => `${k}=${v?.total ?? '?'}${v?.estimate ? ' (est.)' : ''}`);
     const distinct = new Set(Object.values(seen).map((v) => v?.total));
-    const crossBad = distinct.size !== 1 ? [`${id}: totals differ across screens (${totals.join(', ')})`] : [];
+    const estimateFlags = new Set(Object.values(seen).map((v) => v?.estimate));
+    const crossBad = [
+      ...(distinct.size !== 1 ? [`${id}: totals differ across screens (${totals.join(', ')})`] : []),
+      // an estimate on one screen must be labelled an estimate on all of them
+      ...(estimateFlags.size !== 1 ? [`${id}: estimate label differs across screens (${totals.join(', ')})`] : []),
+    ];
     const bad = [...cardBad, ...receiptBad, ...confirmBad, ...crossBad];
     if (bad.length) {
       problems.push(...bad);

@@ -11,7 +11,8 @@ npm install && npx playwright install chromium
 npm run e2e          # whole suite except @live, against E2E_BASE_URL (default: the live Railway app)
 npm run e2e:prod     # whole suite incl. @live, against $E2E_PROD_URL (set in ../.env)
 npm run e2e:local    # against http://localhost:3000 (frontend from ../frontend), except @live
-npm run e2e:replay   # strict replay: fails (REPLAY_STALE) instead of paying for a model call when a recording went stale
+npm run e2e:replay   # strict replay, except @live: fails (REPLAY_STALE) instead of paying for a model call when a recording went stale
+npm run e2e:replay:live  # the same incl. @live (runs the real inbox scan: SerpApi; only with budget to spare)
 npx e2e run tests/05-receipt.e2e.ts --headed   # one file, watch it
 ```
 
@@ -40,15 +41,15 @@ errors land here in production) and unhandled rejections. The framework has no c
 | File | Flow | Agent | Deterministic checks |
 |---|---|---|---|
 | `01-travel-dna` | Dates + party + airports (step 1) → swipe all 14 Travel DNA cards → result | none (deterministic steps) | step 1 comes first; "2 people"; the deck follows; the result's "Why these weights" ⓘ shows "because you swiped" reasons |
-| `02-language` | PL/EN switch on each main screen (one test per screen) | find + use the switch; judge "no PL/EN mix" | page title text actually changes |
+| `02-language` | PL/EN switch on each main screen (one test per screen) | judge "no PL/EN mix" | taps the unselected language in the header switch; page title text actually changes |
 | `03-pick-dates` | Pick 1–3 Jan 2027 in the Free time calendar → Trips | pick the range | Trips header "For your dates: 1–3 Jan" |
 | `04-trips-budget` | Profile: switch on "Never show trips over…" (off by default) and set 1,000 PLN → trip cards | judge photo/price/badge (vision) | every card: PLN price, fit badge, photo decodes; no in-budget card below an over-budget one |
-| `05-receipt` | Open the top trip's receipt | none (deterministic) | each money line has a `Source · 3 Oct` chip with the time in its tooltip (demo data excepted); inputs hash under "Audit" |
+| `05-receipt` | Open the top trip's receipt | none (deterministic) | after "Sources / Źródła", each money line has a `Source · 3 Oct` chip with the time in its tooltip (demo data excepted); "Audit" shows the total out of 100 and no inputs hash |
 | `06-swipe-offers` | Swipe mode → like → undo | like; undo | "Learned: … {city}" toast; "Undone" toast; the same card is back on top |
 | `07-survey` | Post-trip survey → profile update | answer + submit | "Ranking weights" with `x% → y%` lines |
-| `08-inbox` `@live` | Run the proactive scan | run it | scan finishes; "N new notifications" or "Nothing new worth a ping" |
+| `08-inbox` `@live` | Run the proactive scan | none (taps "Run scan now") | scan finishes; "N new notifications" or "Nothing new worth a ping" |
 | `09-console` | Every route + a receipt | none | no console/page/hydration errors; no "Application error" |
-| `10-price-invariant` | Top 3 trips, EN and PL | none | card total = receipt total = confirm total = flight + hotel, read from the `data-testid="trip-total"` / `data-line` hooks (and checked against the visible text); nights shown = nights from the dates; screenshots on mismatch |
+| `10-price-invariant` | Top 3 trips, EN and PL | none | waits for the final ranking (list not `aria-busy`); exact or honest-estimate prices alike: card total = receipt total = confirm total = flight + hotel, and an estimate ("~… · szacunek") is labelled one on all three screens; read from the `data-testid="trip-total"` / `data-line` hooks (and checked against the visible text); nights shown = nights from the dates; screenshots on mismatch |
 
 Run output (report, screenshots, traces) goes to `.e2e/` and is not committed. `report/2026-10-03/` keeps the first runs' summaries and the
 screenshots attached to the T9 PR.

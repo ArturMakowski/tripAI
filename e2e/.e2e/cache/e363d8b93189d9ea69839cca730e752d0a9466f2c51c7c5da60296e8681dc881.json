@@ -1,15 +1,15 @@
 {
   "schemaVersion": "trace-1",
-  "createdAt": "2026-10-03T16:39:48.261Z",
+  "createdAt": "2026-10-03T22:19:27.269Z",
   "payload": {
     "actions": [
       {
         "name": "tap",
-        "summary": "tap button \"Cofnij (Backspace)\" in \"Przesuń w prawo, w lewo lub w górę. Str…\"",
+        "summary": "tap button \"Undo (Backspace)\" in \"Swipe right, left or up. Arrow keys wor…\"",
         "target": {
           "role": "button",
-          "name": "Cofnij (Backspace)",
-          "within": "Przesuń w prawo, w lewo lub w górę. Strzałki też działają, Backspace cofa."
+          "name": "Undo (Backspace)",
+          "within": "Swipe right, left or up. Arrow keys work too, Backspace undoes."
         }
       }
     ],
@@ -22,35 +22,41 @@
       "targetId": "iphone14",
       "instructionDigest": "cf539e8b6b2cdd2ff0337ac161e632b2db7769251c0f36567e508d83df211f7b"
     },
-    "summary": "Undid the last swipe. The deck returned to Málaga (1–3 Jan), and the app confirmed “Cofnięte: Málaga.”",
+    "summary": "Tapped Undo. The deck returned to Nice (1 of 10), and the status confirms “Undone: Nice.”",
     "startPath": "/trips",
     "endPath": "/trips",
     "endAnchors": [
       {
         "role": "image",
-        "name": "Málaga, Spain"
+        "name": "Nice, France"
       },
       {
-        "text": "1 z 10"
+        "text": "1 of 10"
       },
       {
-        "text": "Málaga"
+        "text": "Nice"
       },
       {
-        "text": "1,096 PLN"
+        "name": "No live price for these exact dates yet: the flight is a fare seen for different dates and the stay is a city average, not a specific hotel. Estimates never count toward ranking, budget or value badges.",
+        "text": "~1,650 PLN · estimate",
+        "testId": "trip-total"
       },
       {
         "role": "listitem",
-        "name": "historia"
+        "name": "nature"
       },
       {
-        "text": "Cofnięte: Málaga"
+        "text": "Undone: Nice"
+      },
+      {
+        "role": "image",
+        "name": "Score 78 of 100"
       },
       {
         "role": "status",
-        "name": "Cofnięte: Málaga"
+        "name": "Undone: Nice"
       }
     ],
-    "endWaitMs": 12773
+    "endWaitMs": 12788
   }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "trace-1",
-  "createdAt": "2026-10-03T16:39:22.806Z",
+  "createdAt": "2026-10-03T22:19:06.443Z",
   "payload": {
     "actions": [
       {
@@ -43,14 +43,10 @@
       "targetId": "iphone14",
       "instructionDigest": "891a1659977779824aeb92c7fd94242a99f1f601a17d103075035cb003b7b6f1"
     },
-    "summary": "Selected January 1, 2027 as the start and January 3, 2027 as the end. The calendar confirms “Added 1–3 Jan,” and Your dates now lists 1–3 Jan · 3 days.",
+    "summary": "The January 2027 calendar shows 1–3 January selected, with the confirmation “Added 1–3 Jan” and a saved date range of 1–3 Jan · 3 days.",
     "startPath": "/windows",
     "endPath": "/windows",
     "endAnchors": [
-      {
-        "name": "Answers come from the TripAI backend",
-        "text": "Live API"
-      },
       {
         "role": "heading",
         "name": "January 2027"
@@ -66,6 +62,10 @@
         "text": "Add"
       },
       {
+        "role": "heading",
+        "name": "Your dates"
+      },
+      {
         "text": "Your dates take priority over the calendar and the radar."
       },
       {
@@ -76,6 +76,6 @@
         "text": "Best ratio"
       }
     ],
-    "endWaitMs": 13919
+    "endWaitMs": 27527
   }
 }

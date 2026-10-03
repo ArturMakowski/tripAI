@@ -1,6 +1,6 @@
 {
   "schemaVersion": "trace-1",
-  "createdAt": "2026-10-03T16:42:43.580Z",
+  "createdAt": "2026-10-03T22:19:39.492Z",
   "payload": {
     "actions": [
       {
@@ -29,14 +29,10 @@
       "targetId": "iphone14",
       "instructionDigest": "e11625e98f918d68855c30e232f450a56ffd94806306df8669dd126830a5342d"
     },
-    "summary": "The demo survey submission took effect. The confirmation shows updated ranking weights (including Crowds 25%→35%) and re-ranked trips, with Málaga as the new top pick.",
+    "summary": "The survey submission took effect. The results screen confirms “Your weights changed” and shows updated ranking weights and trip recommendations based on the Barcelona feedback.",
     "startPath": "/survey",
     "endPath": "/survey",
     "endAnchors": [
-      {
-        "name": "Answers come from the TripAI backend",
-        "text": "Live API"
-      },
       {
         "text": "Learning from your trip"
       },
@@ -59,8 +55,11 @@
       },
       {
         "text": "25%"
+      },
+      {
+        "text": "19%"
       }
     ],
-    "endWaitMs": 27256
+    "endWaitMs": 39764
   }
 }
