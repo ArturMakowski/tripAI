@@ -1,0 +1,142 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * TripAI palette: paper, pine and clay. Calm, warm and editorial, like a
+ * well-made travel guide rather than a chatbot. One light theme, because the demo is
+ * presented on a phone frame.
+ */
+:root {
+  --paper: oklch(0.968 0.012 85);
+  --paper-deep: oklch(0.935 0.018 82);
+  --card: oklch(0.993 0.006 85);
+  --ink: oklch(0.24 0.025 165);
+  --ink-soft: oklch(0.42 0.02 165);
+  --muted-ink: oklch(0.56 0.015 140);
+  --line: oklch(0.9 0.016 82);
+
+  --pine: oklch(0.43 0.07 168);
+  --pine-deep: oklch(0.32 0.055 168);
+  --pine-soft: oklch(0.93 0.03 165);
+  --clay: oklch(0.62 0.13 42);
+  --clay-soft: oklch(0.94 0.035 50);
+  --sun: oklch(0.76 0.13 75);
+  --sun-soft: oklch(0.95 0.045 85);
+  --sky: oklch(0.6 0.08 235);
+  --sky-soft: oklch(0.94 0.025 230);
+
+  /* shadcn tokens mapped onto the palette */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card-foreground: var(--ink);
+  --popover: var(--card);
+  --popover-foreground: var(--ink);
+  --primary: var(--pine);
+  --primary-foreground: oklch(0.985 0.01 85);
+  --secondary: var(--pine-soft);
+  --secondary-foreground: var(--pine-deep);
+  --muted: var(--paper-deep);
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--clay-soft);
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.577 0.2 27);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--pine);
+  --radius: 0.9rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+  --font-heading: var(--font-serif);
+
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-pine: var(--pine);
+  --color-pine-deep: var(--pine-deep);
+  --color-pine-soft: var(--pine-soft);
+  --color-clay: var(--clay);
+  --color-clay-soft: var(--clay-soft);
+  --color-sun: var(--sun);
+  --color-sun-soft: var(--sun-soft);
+  --color-sky: var(--sky);
+  --color-sky-soft: var(--sky-soft);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --shadow-soft: 0 1px 2px oklch(0.3 0.03 80 / 0.06), 0 8px 24px -12px oklch(0.3 0.03 80 / 0.18);
+  --shadow-lift: 0 2px 4px oklch(0.3 0.03 80 / 0.06), 0 18px 40px -18px oklch(0.3 0.04 80 / 0.35);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-paper-deep text-foreground;
+  }
+  ::selection {
+    background: var(--clay-soft);
+  }
+}
+
+@utility font-display {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Receipt paper: subtle zig-zag tear at the bottom edge */
+@utility receipt-edge {
+  --tooth: 10px;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / var(--tooth) 51% repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth) / 2) no-repeat;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
