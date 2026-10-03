@@ -13,6 +13,7 @@ from tripai.agents.fit import fit, fit_engine
 from tripai.agents.interview import InterviewResult, interview
 from tripai.agents.jev import jev_enabled, jev_model_name
 from tripai.agents.llm import llm_enabled, model_name
+from tripai.api.lang import LanguageMiddleware, use_lang
 from tripai.api.notify import install_notifications
 from tripai.api.schemas import (
     ApiRecommendation,
@@ -67,12 +68,13 @@ def create_app(
     store = store or MemoryStore()
 
     app = FastAPI(title="TripAI", version="0.1.0")
+    app.add_middleware(LanguageMiddleware)  # Accept-Language / ?lang= -> i18n context
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
-        expose_headers=[SESSION_HEADER],
+        expose_headers=[SESSION_HEADER, "Content-Language"],
     )
     User = Annotated[str, Depends(session_user)]  # server-issued; client `user_id`s are ignored
     app.state.provider, app.state.calendar, app.state.store = provider, calendar, store
@@ -101,6 +103,7 @@ def create_app(
 
     @app.post("/interview")
     async def post_interview(req: InterviewRequest, uid: User) -> InterviewResult:
+        use_lang(req.lang)
         result = await interview(req.messages, user_id=uid)
         if result.profile is not None:
             result.profile.user_id = uid
@@ -110,6 +113,7 @@ def create_app(
     @app.post("/interview/dna")
     async def post_interview_dna(req: InterviewRequest) -> DnaChatResult:
         """Chat -> Travel DNA answers (Jev). When `done`, POST `answers`/`yes_no` to /profile/dna."""
+        use_lang(req.lang)
         return await chat_dna(req.messages)
 
     @app.get("/windows")
@@ -134,6 +138,7 @@ def create_app(
         start: Annotated[date, Query(alias="from")],
         end: Annotated[date, Query(alias="to")],
         max_leave: Annotated[int, Query(ge=0, le=MAX_LEAVE_DAYS)] = 2,
+        lang: str | None = None,  # also read by LanguageMiddleware; listed for the docs
     ) -> list[BridgeWindow]:
         """Długi weekend radar: PL holidays + bridge days ('take 1 day off -> 4 days')."""
         _check_range(start, end)
@@ -146,6 +151,7 @@ def create_app(
         """phase=fast: < ~2 s answer from cache + Travelpayouts + seed (no exact-date SerpApi
         checks, no LLM), every rec `refined=false`; phase=full (default): the final answer.
         The frontend shows fast first and swaps in full when it arrives."""
+        use_lang(req.lang)
         fast = phase == "fast"
         profile = req.profile.model_copy(update={"user_id": uid})
         # personalize=False: neutral defaults unless the user moves the slider explicitly
@@ -204,6 +210,7 @@ def create_app(
     @app.post("/profile/dna")
     async def post_profile_dna(req: DnaRequest, uid: User) -> DnaResult:
         """Travel DNA swipe answers -> profile + weights + reasons (docs/TRAVEL_DNA.md)."""
+        use_lang(req.lang)
         result = map_dna(req.model_copy(update={"user_id": uid}), base=await store.get_profile(uid))
         await store.save_profile(result.profile)
         await store.save_weights(uid, result.weights)
@@ -211,6 +218,7 @@ def create_app(
 
     @app.post("/feedback")
     async def post_feedback(req: FeedbackRequest, uid: User) -> FeedbackResponse:
+        use_lang(req.lang)
         profile = req.profile or await store.get_profile(uid) or TasteProfile(user_id=uid)
         profile = profile.model_copy(update={"user_id": uid})
         weights = req.weights or await store.get_weights(uid) or Weights()

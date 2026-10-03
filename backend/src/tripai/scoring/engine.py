@@ -6,6 +6,7 @@ import math
 from collections.abc import Sequence
 from datetime import timedelta
 
+from tripai import i18n
 from tripai.models import LuxuryLevel, ScoreBreakdown, TasteProfile, Weights
 from tripai.scoring.types import (
     Candidate,
@@ -152,16 +153,13 @@ def interest_filter(
     dropped = sorted({c.city for c in candidates} - {c.city for c in kept})
     shown = ", ".join(liked)
     if not liked:
-        text = "Personalisation is off and no interests are set, so nothing was filtered."
+        text = i18n.t("filter.none_set")
     elif applied:
-        text = (
-            f"Personalisation is off: showing only cities matching your interests ({shown}); "
-            f"filtered out: {', '.join(dropped)}."
-        )
+        text = i18n.t("filter.applied", liked=shown, dropped=", ".join(dropped))
     elif not matching:
-        text = f"Personalisation is off: no city matches your interests ({shown}), so none were filtered."
+        text = i18n.t("filter.no_match", liked=shown)
     else:
-        text = f"Personalisation is off: every city matches your interests ({shown})."
+        text = i18n.t("filter.all_match", liked=shown)
     return kept, InterestFilter(liked=liked, dropped_cities=dropped, applied=applied, text=text)
 
 
@@ -185,10 +183,11 @@ def inputs_hash(candidates: Sequence[Candidate], profile: TasteProfile, weights:
 
 
 def fmt_window(c: Candidate) -> str:
+    """'7-11 Nov' / '7-11 lis' (current language)."""
     s, e = c.window.start, c.window.end
     if s.month == e.month:
-        return f"{s.day}-{e.day} {MONTHS[s.month - 1]}"
-    return f"{s.day} {MONTHS[s.month - 1]}-{e.day} {MONTHS[e.month - 1]}"
+        return f"{s.day}-{e.day} {i18n.month(s.month)}"
+    return f"{s.day} {i18n.month(s.month)}-{e.day} {i18n.month(e.month)}"
 
 
 def _months(w) -> set[int]:
@@ -223,11 +222,11 @@ def _counterfactual(
     pct = round(100 * cost_delta / other.total_cost_pln) if other.total_cost_pln else 0
     score_delta = round(this_score - other_score, 4)
     if cost_delta >= 0:
-        cost_txt = f"{cost_delta} PLN ({pct}%) cheaper"
+        cost_txt = i18n.t("cf.cheaper", amount=i18n.fmt_pln(cost_delta), pct=pct)
     else:
-        cost_txt = f"{-cost_delta} PLN ({-pct}%) more expensive"
+        cost_txt = i18n.t("cf.pricier", amount=i18n.fmt_pln(-cost_delta), pct=-pct)
     pts = round(100 * score_delta)
-    text = f"{cost_txt} than {label}; score {'+' if pts >= 0 else ''}{pts} pts"
+    text = i18n.t("cf.line", cost=cost_txt, label=label, pts=f"{'+' if pts >= 0 else ''}{pts}")
     return Counterfactual(
         kind=kind,
         label=label,
@@ -264,6 +263,12 @@ def _overtakes(lo_c: Candidate, hi_c: Candidate, profile: TasteProfile, weights:
     """Strictly higher total (as displayed, 4 dp), so the swap never relies on a tie-break."""
     lo = score_candidate(lo_c, profile, weights).total
     return lo > score_candidate(hi_c, profile, weights).total
+
+
+def _w(x: float) -> str:
+    """Weight as shown in a flip hint: 2 dp, decimal comma in Polish."""
+    s = f"{x:.2f}"
+    return s.replace(".", ",") if i18n.current() == "pl" else s
 
 
 def _flip(
@@ -329,13 +334,20 @@ def _flip(
     if best is not None:
         _, factor, weight_to = best
         weight_from = getattr(w, factor)
-        parts.append(f"{factor} weight {weight_from:.2f} -> {weight_to:.2f}")
+        parts.append(
+            i18n.t(
+                "flip.weight",
+                factor=i18n.t(f"factor.{factor}"),
+                a=_w(weight_from),
+                b=_w(weight_to),
+            )
+        )
     if price_inc is not None:
-        parts.append(f"{hi_c.city} costing {price_inc:.0f} PLN more")
+        parts.append(i18n.t("flip.price", city=hi_c.city, amount=i18n.fmt_pln(price_inc)))
     if parts:
-        text = f"{lo_name} would overtake {hi_name} with: " + " or ".join(parts)
+        text = i18n.t("flip.text", lo=lo_name, hi=hi_name, parts=i18n.t("flip.or").join(parts))
     else:
-        text = f"No single weight or price change makes {lo_name} overtake {hi_name}"
+        text = i18n.t("flip.none", lo=lo_name, hi=hi_name)
     return FlipHint(
         rival_id=candidate_id(rival),
         rival_city=rival.city,
@@ -354,8 +366,23 @@ def rank(
     *,
     limit: int = 10,
     one_per_city: bool = True,
+    lang: str | None = None,
 ) -> list[RankedRecommendation]:
-    """Score every candidate, keep the best window per city, attach the receipt."""
+    """Score every candidate, keep the best window per city, attach the receipt.
+    Receipt texts (counterfactuals, flip, filter) are written in `lang` (default: the request's).
+    Scores and `inputs_hash` don't depend on the language."""
+    with i18n.using(i18n.pick(lang)):
+        return _rank(candidates, profile, weights, limit=limit, one_per_city=one_per_city)
+
+
+def _rank(
+    candidates: Sequence[Candidate],
+    profile: TasteProfile,
+    weights: Weights | None,
+    *,
+    limit: int,
+    one_per_city: bool,
+) -> list[RankedRecommendation]:
     weights = normalise_weights(weights)
     candidates = list({candidate_id(c): c for c in reversed(candidates)}.values())  # first wins
     # hash the inputs *before* filtering: the filter is a deterministic function of them
@@ -379,7 +406,7 @@ def rank(
         peak = _peak_candidate(c)
         if peak is not None and c.peak.month not in _months(c.window):
             peak_sb = score_candidate(peak, profile, weights)
-            label = f"same trip in {MONTHS[c.peak.month - 1]} (peak season)"
+            label = i18n.t("cf.peak", month=i18n.month_in(c.peak.month))
             cfs.append(_counterfactual("peak_season", label, c, sb.total, peak, peak_sb.total))
         alt = next(
             (
@@ -390,12 +417,12 @@ def rank(
             None,
         )
         if alt is not None:
-            label = f"next-best window {fmt_window(alt[0])}"
+            label = i18n.t("cf.next_window", dates=fmt_window(alt[0]))
             cfs.append(_counterfactual("next_window", label, c, sb.total, alt[0], alt[1].total))
         flip = None
         if i + 1 < len(picked):
             nxt = picked[i + 1]
-            label = f"runner-up {nxt[0].city} {fmt_window(nxt[0])}"
+            label = i18n.t("cf.runner_up", city=nxt[0].city, dates=fmt_window(nxt[0]))
             cfs.append(_counterfactual("runner_up", label, c, sb.total, nxt[0], nxt[1].total))
         if i == 0 and len(picked) > 1:
             flip = _flip(c, sb, picked[1][0], picked[1][1], profile, weights, rival_above=False)

@@ -12,6 +12,7 @@ from tripai.scoring.windows import MAX_LEAVE_DAYS, BusyInterval
 
 
 class InterviewRequest(BaseModel):
+    lang: str | None = None  # "pl" | "en" (else Accept-Language, else en)
     messages: list[ChatMessage] = Field(default_factory=list)
     user_id: str = "demo"  # ignored: the server-issued session decides (tripai.api.session)
 
@@ -26,6 +27,7 @@ class WindowsRequest(BaseModel):
 
 
 class RecommendationsRequest(BaseModel):
+    lang: str | None = None  # "pl" | "en" (else Accept-Language, else en)
     profile: TasteProfile
     # None -> calendar free windows + long-weekend radar
     windows: list[FreeWindow] | None = Field(None, max_length=60)
@@ -39,6 +41,7 @@ class RecommendationsRequest(BaseModel):
 
 
 class FeedbackRequest(BaseModel):
+    lang: str | None = None  # "pl" | "en" (else Accept-Language, else en)
     trip_id: str
     answers: dict[str, Any]  # {"crowds": 2, "food": 5, "loved": ["food"], "disliked": ["heat"]}
     user_id: str = "demo"  # ignored: the server-issued session decides (tripai.api.session)

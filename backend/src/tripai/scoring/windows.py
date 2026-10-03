@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, Field
 
+from tripai import i18n
 from tripai.models import FreeWindow
 
 TZ = ZoneInfo("Europe/Warsaw")
@@ -213,19 +214,20 @@ def trip_windows(
 # ---------------------------------------------------------------- długi weekend radar
 
 
-def _fmt(d: date) -> str:
-    return f"{DAY_NAMES[d.weekday()]} {d.day} {MONTHS[d.month - 1]}"
-
-
 MAX_LEAVE_DAYS = 4  # span search below covers up to this many leave days
 
 
 def long_weekends(
-    start: date, end: date, max_leave: int = 2, holidays: Sequence[Holiday] | None = None
+    start: date,
+    end: date,
+    max_leave: int = 2,
+    holidays: Sequence[Holiday] | None = None,
+    lang: str | None = None,
 ) -> list[BridgeWindow]:
     """For every PL holiday in range: the longest fully-off stretch around it for 0..max_leave days
     of leave ('take 1 day off -> 4 days'). A stretch is reported only if it gives at least
     3 days off beyond the leave taken."""
+    lg = i18n.pick(lang)
     pad = timedelta(days=10)
     hols = list(holidays) if holidays is not None else pl_holidays(start - pad, end + pad)
     hol_by_date = {h.date: h for h in hols}
@@ -267,14 +269,30 @@ def long_weekends(
                 in_span = [hol_by_date[d] for d in span if d in hol_by_date]
                 names = ", ".join(dict.fromkeys(x.name for x in in_span))
                 if leave:
-                    days_txt = ", ".join(_fmt(d) for d in leave)
-                    plural = "s" if len(leave) > 1 else ""
-                    label = (
-                        f"Take {len(leave)} day{plural} off ({days_txt}) "
-                        f"-> {total} days: {_fmt(s)} - {_fmt(e)} ({names})"
+                    n = len(leave)
+                    label = i18n.t(
+                        "radar.leave",
+                        lg,
+                        n=n,
+                        s="s" if n > 1 else "",
+                        dni_wolnego=i18n.plural_pl(
+                            n, "dzień wolnego", "dni wolnego", "dni wolnego"
+                        ),
+                        days=", ".join(i18n.fmt_day(d, lg) for d in leave),
+                        total=total,
+                        start=i18n.fmt_day(s, lg),
+                        end=i18n.fmt_day(e, lg),
+                        names=names,
                     )
                 else:
-                    label = f"{total} days off with no leave: {_fmt(s)} - {_fmt(e)} ({names})"
+                    label = i18n.t(
+                        "radar.free",
+                        lg,
+                        total=total,
+                        start=i18n.fmt_day(s, lg),
+                        end=i18n.fmt_day(e, lg),
+                        names=names,
+                    )
                 results[(s, e)] = BridgeWindow(
                     window=FreeWindow(start=s, end=e, source="manual"),
                     total_days=total,

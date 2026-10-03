@@ -13,9 +13,9 @@ User control: muted cities, snooze, max N per week, and one notification per ded
 
 from datetime import date, datetime, timedelta
 
+from tripai import i18n
 from tripai.agents.explain import template_why
 from tripai.notify.models import Decision, Notification, NotificationKind, NotificationPrefs
-from tripai.scoring.engine import MONTHS
 from tripai.scoring.types import RankedRecommendation
 from tripai.scoring.windows import BridgeWindow
 
@@ -37,10 +37,11 @@ def gate(rec: RankedRecommendation, min_score: float) -> tuple[bool, str]:
 
 
 def when(rec: RankedRecommendation) -> str:
+    """'7-11 Nov' / '7-11 lis' (current language)."""
     s, e = rec.window.start, rec.window.end
     if s.month == e.month:
-        return f"{s.day}-{e.day} {MONTHS[s.month - 1]}"
-    return f"{s.day} {MONTHS[s.month - 1]}-{e.day} {MONTHS[e.month - 1]}"
+        return f"{s.day}-{e.day} {i18n.month(s.month)}"
+    return f"{s.day} {i18n.month(s.month)}-{e.day} {i18n.month(e.month)}"
 
 
 def pts(score: float) -> int:
@@ -48,9 +49,12 @@ def pts(score: float) -> int:
 
 
 def cost_line(rec: RankedRecommendation) -> str:
-    return (
-        f"{rec.total_cost_pln:.0f} PLN total (flight {rec.flight_cost_pln:.0f} + "
-        f"hotel {rec.hotel_cost_pln:.0f}), score {pts(rec.score.total)}/100"
+    return i18n.t(
+        "n.cost",
+        total=i18n.fmt_pln(rec.total_cost_pln),
+        flight=i18n.fmt_int(rec.flight_cost_pln),
+        hotel=i18n.fmt_int(rec.hotel_cost_pln),
+        pts=pts(rec.score.total),
     )
 
 
@@ -78,11 +82,12 @@ def draft_new_top(
     ok, why = gate(top, NEW_TOP_MIN_SCORE)
     if not ok:
         return None, Decision(kind="new_top", recommendation_id=top.id, notify=False, reason=why)
-    was = f" Previous #1: {prev_top_city}." if prev_top_city and prev_top_city != top.city else ""
+    changed = prev_top_city and prev_top_city != top.city
+    was = i18n.t("n.new_top.prev", city=prev_top_city) if changed else ""
     d = Draft(
         "new_top",
         top,
-        f"New #1: {top.city}, {when(top)}",
+        i18n.t("n.new_top.title", city=top.city, dates=when(top)),
         f"{cost_line(top)}.{was}",
     )
     return d, Decision(kind="new_top", recommendation_id=top.id, notify=True, reason=why)
@@ -104,9 +109,14 @@ def draft_price_drop(
     d = Draft(
         "price_drop",
         rec,
-        f"Price drop: {rec.city} {when(rec)} -{drop:.0%}",
-        f"Now {now:.0f} PLN, was {baseline_pln:.0f} PLN when you saved it "
-        f"(flight {rec.flight_cost_pln:.0f} + hotel {rec.hotel_cost_pln:.0f}).",
+        i18n.t("n.drop.title", city=rec.city, dates=when(rec), pct=round(drop * 100)),
+        i18n.t(
+            "n.drop.body",
+            now=i18n.fmt_pln(now),
+            was=i18n.fmt_pln(baseline_pln),
+            flight=i18n.fmt_int(rec.flight_cost_pln),
+            hotel=i18n.fmt_int(rec.hotel_cost_pln),
+        ),
     ).with_key(f"price_drop:{rec.id}:{now:.0f}")
     return d, Decision(
         kind="price_drop", recommendation_id=rec.id, notify=True, reason=f"-{drop:.0%}; {why}"
@@ -133,7 +143,7 @@ def draft_long_weekend(
     d = Draft(
         "long_weekend",
         best,
-        f"Długi weekend: {best.city}, {when(best)}",
+        i18n.t("n.lw.title", city=best.city, dates=when(best)),
         f"{bridge.label}. {cost_line(best)}.",
     )
     return d, Decision(kind="long_weekend", recommendation_id=best.id, notify=True, reason=why)
@@ -187,7 +197,7 @@ def to_notification(
         recommendation_id=rec.id,
         inputs_hash=rec.inputs_hash,
         scoring_version=rec.scoring_version,
-        why=rec.why or template_why(rec, interests),
+        why=rec.why or template_why(rec, interests),  # rec.why is already in the scan's language
         evidence=rec.evidence,
         score=rec.score,
         fit_label=fit.label if fit else None,

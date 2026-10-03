@@ -27,6 +27,7 @@ from pydantic import AfterValidator, BaseModel, Field, WithJsonSchema
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
+from tripai import i18n
 from tripai.models import TasteProfile
 
 log = logging.getLogger(__name__)
@@ -341,8 +342,8 @@ class GuardResult(BaseModel):
     reply: str | None = None  # what to tell the user instead, when blocked
 
 
-INJECTION_REPLY = "I can only help plan your trips. Tell me how you like to travel?"
-OFF_TOPIC_REPLY = "Let's stick to travel: what do you love doing on a trip?"
+INJECTION_REPLY = i18n.MESSAGES["guard.injection"]["en"]  # en form; replies follow the request
+OFF_TOPIC_REPLY = i18n.MESSAGES["guard.off_topic"]["en"]
 
 
 def _guard_rules(text: str) -> GuardResult:
@@ -352,7 +353,7 @@ def _guard_rules(text: str) -> GuardResult:
         prompt_injection=inj,
         off_topic=False,
         engine="rules",
-        reply=INJECTION_REPLY if inj else None,
+        reply=i18n.t("guard.injection") if inj else None,
     )
 
 
@@ -381,8 +382,16 @@ async def guard(text: str, model: Model | None = None) -> GuardResult:
         off_topic=d.output.off_topic,
         confidence=d.confidence,
         engine=d.model,
-        reply=INJECTION_REPLY if inj else OFF_TOPIC_REPLY if off else None,
+        reply=i18n.t("guard.injection") if inj else i18n.t("guard.off_topic") if off else None,
     )
+
+
+def _localised(g: GuardResult) -> GuardResult:
+    """A cached verdict's reply in the current request's language (the decision is language-free)."""
+    if not g.blocked:
+        return g
+    key = "guard.injection" if g.prompt_injection else "guard.off_topic"
+    return g.model_copy(update={"reply": i18n.t(key)})
 
 
 _SCREENED: "OrderedDict[tuple[str, str], GuardResult]" = OrderedDict()  # (engine, text) -> result
@@ -405,7 +414,7 @@ async def screen(texts: list[str], model: Model | None = None) -> list[GuardResu
         key = (engine, text)
         if key in _SCREENED:
             _SCREENED.move_to_end(key)
-            return _SCREENED[key]
+            return _localised(_SCREENED[key])
         g = await guard(text, model=model)
         if g.engine != "rules" or engine == "rules":  # don't pin a Jev outage's regex result
             _SCREENED[key] = g
