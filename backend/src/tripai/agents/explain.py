@@ -29,7 +29,8 @@ Rules:
 - No markdown, no lists, no emojis. Prices in PLN."""
 
 
-def _numbers(text: str) -> list[str]:
+def numbers_in(text: str) -> list[str]:
+    """Every number in `text` (thousand separators and decimal commas normalised)."""
     return _NUMBER.findall(_THOUSANDS.sub("", _DECIMAL_COMMA.sub(".", text)))
 
 
@@ -63,7 +64,7 @@ def allowed_numbers(rec: RankedRecommendation) -> set[float]:
         vals += [x for x in (c.crowd, c.temp_c) if x is not None]
         texts.append(c.text)
     for t in texts:
-        vals += [float(n) for n in _numbers(t)]
+        vals += [float(n) for n in numbers_in(t)]
     out = set(_ALWAYS_OK)
     for v in vals:
         out |= {abs(v), abs(round(v)), abs(round(v, 1))}
@@ -71,7 +72,7 @@ def allowed_numbers(rec: RankedRecommendation) -> set[float]:
 
 
 def ungrounded_numbers(text: str, allowed: set[float]) -> list[str]:
-    return [n for n in _numbers(text) if not any(abs(float(n) - a) < 0.051 for a in allowed)]
+    return [n for n in numbers_in(text) if not any(abs(float(n) - a) < 0.051 for a in allowed)]
 
 
 def evidence_payload(rec: RankedRecommendation, interests: dict[str, float] | None = None) -> str:

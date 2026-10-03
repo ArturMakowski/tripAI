@@ -60,6 +60,13 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   with normalised weights. Each card carries counterfactuals (vs the same trip in peak season, the
   next-best window, the runner-up), a "what would flip it" hint and an `inputs_hash`: sha256 of the
   canonical inputs plus the scoring version.
+- Fit verdict (docs/FIT_VERDICT.md, `tripai.agents.fit`): `POST /recommendations` attaches `fit` to the top
+  `fit_top` cards (default 5, max 10), an AI second opinion against the
+  user's Travel DNA. Each match/concern must cite existing DNA card ids and/or evidence indexes, and may only use
+  numbers from the evidence it cites. Otherwise the agent retries, then falls back to deterministic rules
+  (`model: "rules"`). Verdicts are cached by (model, inputs_hash, profile hash, card). With `personalize=false`
+  the verdict is computed against a neutral DNA and labelled so. Agreement with 20 labelled cases:
+  `uv run python -m tripai.agents.fit_eval` (`--no-llm` for rules only).
 - The explain agent may only use numbers that appear in the evidence. An output validator rejects any
   other number (`ModelRetry`), and after the retries run out it falls back to the template.
 - Flip hints are checked before they are shown: the suggested weight (2 dp, rounded away from the current

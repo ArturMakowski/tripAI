@@ -29,7 +29,10 @@ class RecommendationsRequest(BaseModel):
     windows: list[FreeWindow] | None = Field(None, max_length=60)
     weights: Weights | None = None
     limit: int = Field(10, ge=1, le=50)
-    explain_top: int = Field(3, ge=0, le=10)  # LLM explanations for the top N (template for rest)
+    explain_top: int = Field(3, ge=0, le=10)
+    fit_top: int = Field(
+        5, ge=0, le=10
+    )  # AI fit verdict for the top N (docs/FIT_VERDICT.md)  # LLM explanations for the top N (template for rest)
     today: date | None = None  # pin "now" for reproducible demos
     horizon_days: int = Field(120, ge=1, le=400)
     max_leave_days: int = Field(2, ge=0, le=MAX_LEAVE_DAYS)
