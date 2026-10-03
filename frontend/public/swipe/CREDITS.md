@@ -13,6 +13,6 @@
 | q9 | `/swipe/price.jpg` | Spielvogel | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:1984_in_Merida_station._Spielvogel_Archiv2.jpg |
 | q10 | `/swipe/wine.jpg` | Aciarium | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:DSC06590_Vineyard_at_Sunset,_Gumpoldskirchen,_2023-10.jpg |
 | q11 | `/swipe/nature.jpg` | King of Hearts | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Lake_Mary_Mammoth_September_2016.jpg |
-| q12 | `/cities/rome.jpg` | Unsplash contributor | Unsplash License | https://images.unsplash.com/photo-1552832230-c0197dd311b5 |
-| y1 | `/cities/lisbon.jpg` | Unsplash contributor | Unsplash License | https://images.unsplash.com/photo-1585208798174-6cedd86e019a |
-| y2 | `/cities/porto.jpg` | Unsplash contributor | Unsplash License | https://images.unsplash.com/photo-1555881400-74d7acaacd8b |
+| q12 | `/cities/rome.jpg` | Diliff | CC BY-SA 2.5 | https://commons.wikimedia.org/wiki/File:Colosseum_in_Rome-April_2007-1-_copie_2B.jpg |
+| y1 | `/cities/lisbon.jpg` | Jakub Hałun | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:View_from_Miradouro_de_Santa_Luzia,_Lisbon,_20250603_2015_9043.jpg |
+| y2 | `/cities/porto.jpg` | Michael Gaylard | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:A_vibrant_panorama_of_Porto,_Portugal,_showcasing_the_Douro_River,_historic_Ribeira_district,_and_the_Dom_Lu%C3%ADs_I_Bridge._(55247151390).jpg |

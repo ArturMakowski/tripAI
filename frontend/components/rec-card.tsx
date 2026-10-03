@@ -9,22 +9,85 @@ import { ScoreRing } from "@/components/score-ring";
 import { dayCount, formatPLN, formatRange } from "@/lib/format";
 import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
-import { cityPhoto } from "@/lib/photos";
+import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation, Weights } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const FALLBACK_BG = "linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 60%, var(--clay) 140%)";
-
-export function CityPhoto({ rec, className, children }: { rec: Recommendation; className?: string; children?: React.ReactNode }) {
-  const photo = cityPhoto(rec.iata);
+/** Illustrated stand-in for a city without a bundled photo: dusk sky, sun, hills and the city name. Never blank. */
+export function CityIllustration({ city, className, label = true }: { city: string; className?: string; label?: boolean }) {
+  const hue = fallbackHue(city);
   return (
-    <div className={cn("relative overflow-hidden", className)} style={{ background: FALLBACK_BG }}>
-      {photo && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={photo} alt={`${rec.city}, ${rec.country}`} className="absolute inset-0 size-full object-cover" />
+    <div
+      aria-hidden
+      className={cn("absolute inset-0 overflow-hidden", className)}
+      style={{
+        background: `radial-gradient(circle at 72% 38%, oklch(0.97 0.05 85 / 0.95) 0 7%, oklch(0.9 0.08 70 / 0.35) 12%, transparent 28%),
+          linear-gradient(180deg, oklch(0.45 0.08 ${hue}) 0%, oklch(0.68 0.1 ${hue + 30}) 60%, oklch(0.84 0.08 ${hue + 50}) 100%)`,
+      }}
+    >
+      <svg viewBox="0 0 400 200" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-3/5 w-full">
+        <path d="M0 120 C60 80 110 95 160 105 S260 70 320 90 S380 100 400 95 V200 H0Z" fill={`oklch(0.42 0.06 ${hue + 150} / 0.55)`} />
+        <path d="M0 150 C70 120 130 140 200 135 S320 115 400 130 V200 H0Z" fill={`oklch(0.3 0.05 ${hue + 160} / 0.8)`} />
+      </svg>
+      {label && (
+        <span className="absolute inset-x-4 top-1/4 truncate text-center font-display text-[clamp(1.5rem,9cqw,4rem)] leading-none font-medium text-white/25 italic">
+          {city}
+        </span>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/0" />
+    </div>
+  );
+}
+
+export function CityPhoto({
+  rec,
+  className,
+  children,
+  credit,
+  thumb,
+}: {
+  rec: Pick<Recommendation, "iata" | "city"> & { country?: string };
+  className?: string;
+  children?: React.ReactNode;
+  /**
+   * Photo attribution (author · license). "link" links to the Commons page (receipt hero); "inline" is plain text for
+   * photos that sit inside another link, such as recommendation cards.
+   */
+  credit?: "link" | "inline";
+  /** Small square thumbnail: no shade and no city name on the fallback illustration. */
+  thumb?: boolean;
+}) {
+  const photo = cityPhoto(rec.iata);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const showPhoto = photo !== null && failedSrc !== photo;
+  const info = showPhoto && credit ? cityPhotoCredit(rec.iata) : null;
+  const creditText = info && `Photo: ${info.author} · ${info.license}`;
+  return (
+    <div className={cn("@container relative overflow-hidden", className)}>
+      <CityIllustration city={rec.city} label={!thumb} />
+      {showPhoto && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={photo}
+          alt={thumb ? "" : [rec.city, rec.country].filter(Boolean).join(", ")}
+          onError={() => setFailedSrc(photo)}
+          className="absolute inset-0 size-full object-cover"
+        />
+      )}
+      {!thumb && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/0" />}
       {children}
+      {info && credit === "link" && (
+        <a
+          href={info.source}
+          target="_blank"
+          rel="noreferrer"
+          className="absolute top-16 right-4 max-w-[60%] truncate rounded-full bg-black/25 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-sm hover:text-white"
+        >
+          {creditText}
+        </a>
+      )}
+      {info && credit === "inline" && (
+        <span className="absolute right-3 bottom-1.5 max-w-[55%] truncate text-[9px] leading-none text-white/60">{creditText}</span>
+      )}
     </div>
   );
 }
@@ -61,7 +124,7 @@ export function RecCard({
       href={`/trips/${rec.id}`}
       className="group block overflow-hidden rounded-[1.75rem] border border-line bg-card shadow-soft transition-shadow hover:shadow-lift"
     >
-      <CityPhoto rec={rec} className={featured ? "h-60" : "h-40"}>
+      <CityPhoto rec={rec} className={featured ? "h-60" : "h-40"} credit="inline">
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <motion.span
             key={rank}
@@ -86,7 +149,7 @@ export function RecCard({
         <div className="absolute top-3 right-3">
           <ScoreRing value={rec.score.total} size={featured ? 58 : 48} stroke={4} tone="light" />
         </div>
-        <div className="absolute right-4 bottom-3.5 left-4 text-white">
+        <div className="absolute right-4 bottom-5 left-4 text-white">
           <p className="text-xs font-medium tracking-wide text-white/80 uppercase">
             {rec.country} · {rec.iata}
           </p>

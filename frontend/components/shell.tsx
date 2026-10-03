@@ -106,9 +106,25 @@ export function AppShell({
           <ModeBadge />
         </div>
       </header>
-      <main className="flex-1 px-5 pb-10">{children}</main>
+      <main className="flex-1 px-5 pb-10">
+        {children}
+        <PhotoCreditsLink className="mt-10" />
+      </main>
       {nav && <BottomNav />}
     </>
+  );
+}
+
+/** Footer link to /credits: CC BY / BY-SA photos need visible attribution wherever they are shown. */
+export function PhotoCreditsLink({ className }: { className?: string }) {
+  const path = usePathname();
+  if (path === "/credits") return null;
+  return (
+    <p className={cn("text-center text-xs", className)}>
+      <Link href="/credits" className="text-muted-foreground underline decoration-line underline-offset-2 hover:text-ink">
+        Photo credits
+      </Link>
+    </p>
   );
 }
 

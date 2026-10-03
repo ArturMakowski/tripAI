@@ -5,6 +5,7 @@ import { LayoutGroup, motion } from "motion/react";
 import { ArrowDown, ArrowRight, ArrowUp, Bell, Minus, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FACTOR_COLOR, FACTOR_ICON } from "@/components/factor-bars";
+import { CityPhoto } from "@/components/rec-card";
 import { AppShell, PageTitle } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -12,7 +13,6 @@ import { formatPLN, formatRange, pct } from "@/lib/format";
 import { DEMO_PROFILE, PAST_TRIP } from "@/lib/mock/fixtures";
 import { FACTORS, FACTOR_LABEL, normalise, rerank, type Factor } from "@/lib/scoring";
 import { useTrip, type FeedbackDiff } from "@/lib/store";
-import { cityPhoto } from "@/lib/photos";
 import type { Change } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { cn } from "@/lib/utils";
@@ -169,7 +169,6 @@ function Rerank({ diff }: { diff: FeedbackDiff }) {
           if (!r) return null;
           const was = beforeIdx(id);
           const move = Number.isFinite(was) ? was - diff.after.ranking.indexOf(id) : null;
-          const photo = cityPhoto(r.iata);
           return (
             <motion.li
               key={id}
@@ -180,12 +179,7 @@ function Rerank({ diff }: { diff: FeedbackDiff }) {
                 settled && i === 0 ? "border-pine" : "border-line",
               )}
             >
-              {photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photo} alt="" className="size-11 rounded-xl object-cover" />
-              ) : (
-                <span className="size-11 rounded-xl bg-pine-soft" />
-              )}
+              <CityPhoto rec={r} thumb className="size-11 shrink-0 rounded-xl" />
               <div className="min-w-0 flex-1">
                 <p className="font-display text-lg leading-tight text-ink">{r.city}</p>
                 <p className="text-xs text-muted-foreground">

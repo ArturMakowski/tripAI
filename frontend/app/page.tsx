@@ -4,15 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { ArrowRight, BadgeCheck, Hand, Receipt } from "lucide-react";
-import { Logo, ModeBadge } from "@/components/shell";
+import { Logo, ModeBadge, PhotoCreditsLink } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { useHydrated, useTrip } from "@/lib/store";
 
+// The photos are landscape (about 1.5:1) in 3:4 frames, so each keeps half its width: `focus` (object-position)
+// picks the half with the landmark (Panteão dome, Colosseum's lit arcades, Parthenon).
 const PHOTOS = [
-  { src: "/cities/lisbon.jpg", alt: "Tram in Lisbon", className: "left-0 top-8 -rotate-6 w-[42%]" },
-  { src: "/cities/rome.jpg", alt: "Colosseum in Rome", className: "left-[29%] top-0 z-10 w-[44%]" },
-  { src: "/cities/athens.jpg", alt: "Acropolis in Athens", className: "right-0 top-10 rotate-6 w-[40%]" },
+  { src: "/cities/lisbon.jpg", alt: "Alfama rooftops in Lisbon", focus: "20% 50%", className: "left-0 top-8 -rotate-6 w-[42%]" },
+  { src: "/cities/rome.jpg", alt: "Colosseum in Rome", focus: "30% 50%", className: "left-[29%] top-0 z-10 w-[44%]" },
+  { src: "/cities/athens.jpg", alt: "Acropolis in Athens", focus: "62% 50%", className: "right-0 top-10 rotate-6 w-[40%]" },
 ];
 
 const PROMISES = [
@@ -45,7 +47,7 @@ export default function Welcome() {
             transition={{ delay: 0.1 + i * 0.12, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.src} alt={p.alt} className="size-full object-cover" />
+            <img src={p.src} alt={p.alt} className="size-full object-cover" style={{ objectPosition: p.focus }} />
           </motion.div>
         ))}
         <motion.div
@@ -114,6 +116,7 @@ export default function Welcome() {
             </button>
           </>
         )}
+        <PhotoCreditsLink className="pt-1" />
       </div>
     </div>
   );

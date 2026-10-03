@@ -43,8 +43,8 @@ Profile creation is a swipe deck built from the team questionnaire in `docs/TRAV
     and the mock feedback keeps the profile unchanged.
 - **Hand-off.** "Looks right" stores the profile (with budget and airports) and the DNA weights, then continues to free windows.
   "Fine-tune by chat" opens the earlier LLM interview, now at `/onboarding/chat`.
-- **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA) or Unsplash (CC0). Three cards reuse the
-  bundled Unsplash city photos. Every card shows its photo credit, and the full list is in `public/swipe/CREDITS.md`.
+- **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA) or Unsplash (CC0). Three cards reuse
+  bundled city photos and their credits. Every card shows its photo credit, and the full list is in `public/swipe/CREDITS.md`.
 
 ## Loading and budget on `/trips`
 - **Loading.** The backend contract is in issue #18.
@@ -78,8 +78,21 @@ The receipt shows the scorer's counterfactuals (peak season, next-best window), 
 runner-up comparison and the weight-based "what would flip it" are computed for the current slider position with exact algebra on the
 weighted sum.
 
-City photos are bundled in `public/cities/`, so the demo works offline. Rome, Lisbon, Athens, Venice, Porto and Barcelona come from
-Unsplash. Naples, Valletta, Málaga, Paris, Copenhagen and Edinburgh are lead images from Wikimedia Commons (CC BY-SA).
+## City photos
+Every one of the 36 cities in `data/cities.json`, plus Edinburgh from the backend scorer catalogue, has a bundled hero photo in `public/cities/<city id>.jpg`, so the demo works offline.
+The photos are landscape Wikimedia Commons images (CC0, public domain, CC BY or CC BY-SA), 1200 px wide and under 250 KB each.
+- **Lookup.** `lib/photos.ts` maps every city code and airport code (for example LHR/LGW/STN/LTN → London, PMI → Palma) to a photo
+  and its credit (author, license, source URL).
+- **Credits.** Recommendation cards show a small "Photo: author · license" line, and the receipt hero shows the same credit as a
+  link to the source. Every screen built on `AppShell`, and the landing page, has a "Photo credits" link to `/credits`. That
+  page lists every city photo and Travel DNA card photo with its author, license link and source. The same list is in
+  `public/cities/CREDITS.md`.
+- **Landing collage.** The photos are landscape but the frames are 3:4, so each image sets an `object-position` that keeps
+  its landmark in frame.
+- **Fallback.** Unknown codes, or a file that fails to load (cards, receipt and survey thumbnails), get an illustrated dusk gradient with hills and the city name, never a blank card.
+  The hue comes from the city name, so it stays the same across renders.
+- **Guard.** `lib/photos.test.ts` reads `data/cities.json` and checks that every city and airport code resolves to an existing file
+  under 250 KB that has a credit and a row in `CREDITS.md`. It runs the same check on every code in `scoring/provider.py`. If a city is added without a photo, the test fails.
 
 ## Deploy (Railway)
 Create a service with root directory `frontend/`. Set `NEXT_PUBLIC_API_URL` to the backend URL. It is inlined at **build** time, so
