@@ -42,6 +42,7 @@ export const DATE_PICKER_STRINGS = {
     // chips
     quickTitle: "Szybki wybór",
     chipThisWeekend: "Ten weekend",
+    chipNextWeekend: "Następny weekend",
     chipNextLongWeekend: "Najbliższy długi weekend",
     chipAnyDays: (n: number, month: number) =>
       `Dowolne ${n} dni w ${["styczniu", "lutym", "marcu", "kwietniu", "maju", "czerwcu", "lipcu", "sierpniu", "wrześniu", "październiku", "listopadzie", "grudniu"][month]}`,
@@ -53,7 +54,7 @@ export const DATE_PICKER_STRINGS = {
     added: "Dodano",
     // flexibility
     flexLabel: "Elastyczne daty",
-    flexHint: (n: number) => `± ${n} ${plural(n, "dzień", "dni", "dni")} wokół każdego terminu`,
+    flexHint: (n: number) => `Wyjazd może zacząć się do ${n} ${plural(n, "dnia", "dni", "dni")} wcześniej lub później`,
     flexOff: "Dokładnie te daty",
     flexDays: (n: number) => `± ${n}`,
     // list
@@ -71,6 +72,11 @@ export const DATE_PICKER_STRINGS = {
     // trips header
     forYourDates: "Na Twoje terminy:",
     edit: "Zmień",
+    emptyTitle: (dates: string) => `Brak podróży na ${dates}`,
+    emptyBody: "Na te dokładne daty nie znaleźliśmy lotów i noclegów, które się wyceniają. Daj sobie trochę luzu albo dodaj inny termin.",
+    emptyFlex: (n: number) => `Pokaż też ± ${n} ${plural(n, "dzień", "dni", "dni")}`,
+    emptyAddSuggestion: (range: string) => `Dodaj najbliższy długi weekend · ${range}`,
+    emptyEdit: "Zmień terminy",
     sampleOnly: "Dane demo wyceniają tylko kilka terminów ze stycznia 2027, więc widzisz te podróże. Z danymi na żywo trafią w Twoje daty.",
     flexSuffix: (n: number) => `± ${n} ${plural(n, "dzień", "dni", "dni")}`,
     holidays: {
@@ -116,6 +122,7 @@ export const DATE_PICKER_STRINGS = {
     legendToday: "Today",
     quickTitle: "Quick picks",
     chipThisWeekend: "This weekend",
+    chipNextWeekend: "Next weekend",
     chipNextLongWeekend: "Next long weekend",
     chipAnyDays: (n: number, month: number) =>
       `Any ${n} days in ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month]}`,
@@ -125,7 +132,7 @@ export const DATE_PICKER_STRINGS = {
     add: "Add",
     added: "Added",
     flexLabel: "I'm flexible",
-    flexHint: (n: number) => `± ${n} day${n > 1 ? "s" : ""} around each range`,
+    flexHint: (n: number) => `Trips may start up to ${n} day${n > 1 ? "s" : ""} earlier or later`,
     flexOff: "Exact dates",
     flexDays: (n: number) => `± ${n}`,
     listTitle: "Your dates",
@@ -141,6 +148,11 @@ export const DATE_PICKER_STRINGS = {
     announceAnchor: (day: string) => `Start: ${day}. Pick the last day.`,
     forYourDates: "For your dates:",
     edit: "Edit",
+    emptyTitle: (dates: string) => `No trips for ${dates} yet`,
+    emptyBody: "We couldn't price flights and stays for these exact dates. Give yourself some slack or add another range.",
+    emptyFlex: (n: number) => `Also try ± ${n} day${n > 1 ? "s" : ""}`,
+    emptyAddSuggestion: (range: string) => `Add the next long weekend · ${range}`,
+    emptyEdit: "Edit dates",
     sampleOnly: "The demo data only prices a few January 2027 dates, so you're seeing those trips. With live data they land on your dates.",
     flexSuffix: (n: number) => `± ${n} day${n > 1 ? "s" : ""}`,
     holidays: {

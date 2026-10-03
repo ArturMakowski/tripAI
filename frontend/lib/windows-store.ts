@@ -7,7 +7,7 @@
  */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { activeRanges, addRange, type DateRange, removeRange, toFreeWindows, toISO } from "./date-range";
+import { addRange, type DateRange, removeRange, toFreeWindows, toISO, usableRanges } from "./date-range";
 import { useTrip } from "./store";
 import type { FreeWindow } from "./types";
 
@@ -17,6 +17,8 @@ interface DatesState {
   ranges: DateRange[];
   /** "I'm flexible ± N days"; 0 = exact dates. */
   flexDays: number;
+  /** Windows the cached ranking was requested for (JSON); see datesChanged(). */
+  sentKey: string | null;
   add: (r: DateRange) => void;
   remove: (r: Pick<DateRange, "start" | "end">) => void;
   clear: () => void;
@@ -31,6 +33,7 @@ export const useDates = create<DatesState>()(
     (set) => ({
       ranges: [],
       flexDays: 0,
+      sentKey: null,
       add: (r) => {
         set((s) => ({ ranges: addRange(s.ranges, r) }));
         invalidateRecs();
@@ -54,15 +57,27 @@ export const useDates = create<DatesState>()(
 
 export const todayISO = () => toISO(new Date());
 
+const currentWindows = () => {
+  const { ranges, flexDays } = useDates.getState();
+  return toFreeWindows(ranges, flexDays, todayISO());
+};
+export const datesKey = () => JSON.stringify(currentWindows());
+
 /** Request fragment for POST /recommendations: `{ windows }` when the user picked dates, else nothing. */
 export function pickedWindows(): { windows?: FreeWindow[] } {
-  const { ranges, flexDays } = useDates.getState();
-  const windows = toFreeWindows(ranges, flexDays, todayISO());
+  const windows = currentWindows();
+  useDates.setState({ sentKey: JSON.stringify(windows) });
   return windows.length ? { windows } : {};
 }
 
-/** Picked ranges that haven't ended yet. */
-export function useActiveRanges(): DateRange[] {
+/**
+ * The windows we'd send now differ from the ones the cached ranking was requested for: a picked range
+ * ended or got clipped by a new day, or the dates were edited while a request was in flight.
+ */
+export const datesChanged = () => useDates.getState().sentKey !== datesKey();
+
+/** Picked ranges that can still become a trip (what /recommendations actually gets). */
+export function useUsableRanges(): DateRange[] {
   const ranges = useDates((s) => s.ranges);
-  return activeRanges(ranges, todayISO());
+  return usableRanges(ranges, todayISO());
 }

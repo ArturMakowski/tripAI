@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  addDays,
   addMonths,
+  MAX_WINDOWS,
+  rangeDays,
+  usableRanges,
   anyDaysNextMonth,
   activeRanges,
   addRange,
@@ -41,9 +45,9 @@ describe("tap-tap range selection", () => {
     expect(b.ranges).toEqual([{ start: "2026-11-10", end: "2026-11-14" }]);
   });
 
-  it("tapping the anchor again picks a single day", () => {
+  it("tapping the anchor again cancels it (a one-day trip is too short)", () => {
     const b = tapDay(tapDay(empty, "2026-12-01", TODAY), "2026-12-01", TODAY);
-    expect(b.ranges).toEqual([{ start: "2026-12-01", end: "2026-12-01" }]);
+    expect(b).toEqual({ ranges: [], anchor: null });
   });
 
   it("ignores past days", () => {
@@ -98,16 +102,35 @@ describe("to FreeWindow(source='manual')", () => {
     ]);
   });
 
-  it("widens by ± N days, never into the past, merging what now overlaps", () => {
-    const w = toFreeWindows(
-      [
-        { start: "2026-10-04", end: "2026-10-05" },
-        { start: "2026-10-09", end: "2026-10-10" },
-      ],
-      2,
-      TODAY,
-    );
-    expect(w).toEqual([{ start: TODAY, end: "2026-10-12", source: "manual" }]);
+  it("flexible ± N adds same-length trips shifted earlier and later, exact dates first, never in the past", () => {
+    const w = toFreeWindows([{ start: "2026-11-11", end: "2026-11-15" }], 2, TODAY).map((x) => `${x.start}_${x.end}`);
+    expect(w).toEqual([
+      "2026-11-11_2026-11-15",
+      "2026-11-10_2026-11-14",
+      "2026-11-12_2026-11-16",
+      "2026-11-09_2026-11-13",
+      "2026-11-13_2026-11-17",
+    ]);
+    const near = toFreeWindows([{ start: "2026-10-04", end: "2026-10-06" }], 2, TODAY).map((x) => x.start);
+    expect(near).toEqual(["2026-10-04", "2026-10-03", "2026-10-05", "2026-10-06"]); // 2 Oct is in the past
+  });
+
+  it("any N days in a month: exact N-day trips across the whole month", () => {
+    const w = toFreeWindows([anyDaysNextMonth(TODAY, 5)], 0, TODAY);
+    expect(w.every((x) => rangeDays(x) === 5)).toBe(true);
+    expect(w[0]).toEqual({ start: "2026-11-01", end: "2026-11-05", source: "manual" });
+    expect(w.at(-1)).toEqual({ start: "2026-11-26", end: "2026-11-30", source: "manual" });
+    expect(w).toHaveLength(14); // starts 1, 3, …, 25 + the last one ending 30 Nov
+  });
+
+  it("never sends windows too short for a trip (the backend drops them)", () => {
+    expect(toFreeWindows([{ start: "2026-10-01", end: "2026-10-03" }], 0, TODAY)).toEqual([]); // clipped to 1 day
+    expect(usableRanges([{ start: "2026-10-01", end: "2026-10-04" }], TODAY)).toEqual([{ start: TODAY, end: "2026-10-04" }]);
+  });
+
+  it("caps the request at 60 windows", () => {
+    const many = Array.from({ length: 20 }, (_, i) => ({ start: addDays("2026-11-01", i * 10), end: addDays("2026-11-01", i * 10 + 3) }));
+    expect(toFreeWindows(many, 3, TODAY)).toHaveLength(MAX_WINDOWS);
   });
 });
 
@@ -202,7 +225,7 @@ describe("long-weekend suggestions + quick chips", () => {
   it("quick chips: this weekend, next long weekend, any 5 days next month", () => {
     expect(thisWeekend(TODAY)).toEqual({ start: "2026-10-03", end: "2026-10-04" });
     expect(thisWeekend("2026-10-07")).toEqual({ start: "2026-10-10", end: "2026-10-11" });
-    expect(thisWeekend("2026-10-04")).toEqual({ start: "2026-10-04", end: "2026-10-04" });
+    expect(thisWeekend("2026-10-04")).toEqual({ start: "2026-10-10", end: "2026-10-11" }); // Sunday -> next weekend
     expect(nextSuggestion(bridges, TODAY)?.holidays).toContain("2026-11-11"); // 1 Nov 2026 is a Sunday
     expect(anyDaysNextMonth(TODAY)).toEqual({ start: "2026-11-01", end: "2026-11-30", anyDays: 5 });
   });

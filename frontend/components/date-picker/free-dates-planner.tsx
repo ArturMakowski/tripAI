@@ -17,11 +17,12 @@ import {
   overlaps,
   rangeDays,
   thisWeekend,
+  weekendIsNext,
   toFreeWindows,
 } from "@/lib/date-range";
 import { useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { FLEX_OPTIONS, todayISO, useActiveRanges, useDates } from "@/lib/windows-store";
+import { FLEX_OPTIONS, todayISO, useDates, useUsableRanges } from "@/lib/windows-store";
 import { useWindows } from "@/lib/windows";
 import { CalendarLegend, DateRangeCalendar, formatDates } from "./date-range-calendar";
 import { DATE_PICKER_STRINGS, type DatePickerStrings } from "./strings";
@@ -35,9 +36,18 @@ export function useDatesHydrated() {
   );
 }
 
+/**
+ * Today's date on the client only. /windows and /trips are prerendered at build time, so a date computed
+ * during render would differ from the server HTML from the day after a deploy (React #418).
+ */
+const noSubscribe = () => () => {};
+export function useClientToday(): string | null {
+  return useSyncExternalStore(noSubscribe, todayISO, () => null);
+}
+
+/** EN for now, like the rest of the app; the i18n pass switches DATE_PICKER_STRINGS by the user's language. */
 export function useDatePickerStrings(): DatePickerStrings {
-  const lang = useTrip((s) => s.deck.lang);
-  return DATE_PICKER_STRINGS[lang] ?? DATE_PICKER_STRINGS.pl;
+  return DATE_PICKER_STRINGS.en;
 }
 
 function Chip({
@@ -69,16 +79,22 @@ function Chip({
 
 /** The Free time date picker: quick chips, the calendar, flexibility, suggestions and the picked list. */
 export function FreeDatesPlanner() {
+  const today = useClientToday();
+  const hydrated = useDatesHydrated();
+  // Everything below depends on today's date and the stored picks: render it on the client only.
+  if (!today || !hydrated)
+    return <div aria-hidden className="h-[38rem] animate-pulse rounded-3xl border border-line bg-card motion-reduce:animate-none" />;
+  return <Planner today={today} />;
+}
+
+function Planner({ today }: { today: string }) {
   const t = useDatePickerStrings();
   const reduce = useReducedMotion();
-  const hydrated = useDatesHydrated();
-  const [today] = useState(todayISO);
   const months = useMemo(() => monthsAhead(today, 12), [today]);
   const [month, setMonth] = useState(months[0]);
 
   const { add, remove, clear, flexDays, setFlex } = useDates();
-  const active = useActiveRanges();
-  const ranges = hydrated ? active : [];
+  const ranges = useUsableRanges();
   const { longWeekends } = useWindows();
 
   const horizonEnd = monthEnd(months[months.length - 1]);
@@ -111,7 +127,7 @@ export function FreeDatesPlanner() {
       {/* quick chips */}
       <div role="group" aria-label={t.quickTitle} className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
         <Chip onClick={() => pick(weekend)} icon={<Zap className="size-4 text-sun" aria-hidden />} done={has(weekend)}>
-          {t.chipThisWeekend}
+          {weekendIsNext(today) ? t.chipNextWeekend : t.chipThisWeekend}
         </Chip>
         {nextLong && (
           <Chip
@@ -137,10 +153,7 @@ export function FreeDatesPlanner() {
           month={month}
           onMonthChange={setMonth}
           ranges={ranges}
-          onAdd={(r) => {
-            add(r);
-            setAnnounce(t.announceAdded(formatDates(r, t.locale)));
-          }}
+          onAdd={add}
           holidays={holidays}
           suggestions={suggestions}
           today={today}
@@ -309,12 +322,13 @@ export function FreeDatesPlanner() {
 export function PickedDatesHeader() {
   const t = useDatePickerStrings();
   const hydrated = useDatesHydrated();
-  const active = useActiveRanges();
+  const today = useClientToday();
+  const active = useUsableRanges();
   const flexDays = useDates((s) => s.flexDays);
   const recs = useTrip((s) => s.recs);
   const fixture = useTrip((s) => s.modes.recs) === "fixture";
-  if (!hydrated || !active.length) return null;
-  const windows = toFreeWindows(active, flexDays, todayISO());
+  if (!hydrated || !today || !active.length) return null;
+  const windows = toFreeWindows(active, flexDays, today);
   // Sample data can't price arbitrary dates (lib/mock/api.ts): say so instead of implying a match.
   const offDates = fixture && recs.length > 0 && !recs.some((r) => windows.some((w) => overlaps(r.window, w)));
   return (
@@ -336,6 +350,57 @@ export function PickedDatesHeader() {
         </Link>
       </div>
       {offDates && <p className="mt-1.5 px-1 text-xs leading-snug text-muted-foreground">{t.sampleOnly}</p>}
+    </div>
+  );
+}
+
+/**
+ * Trips page, nothing came back: for picked dates explain why and offer a way out (flexibility, the next
+ * long weekend, edit). Without picked dates it renders `children` (the page's generic empty state).
+ */
+export function PickedDatesEmpty({ children }: { children: React.ReactNode }) {
+  const t = useDatePickerStrings();
+  const hydrated = useDatesHydrated();
+  const today = useClientToday();
+  const active = useUsableRanges();
+  const { flexDays, setFlex, add } = useDates();
+  const { longWeekends } = useWindows();
+  if (!hydrated || !today || !active.length) return <>{children}</>;
+  const horizonEnd = monthEnd(monthsAhead(today, 12)[11]);
+  const next = nextSuggestion(mergeSuggestions(longWeekends, localBridges(today, horizonEnd)), today);
+  const nextNew = next && !active.some((r) => overlaps(r, next)) ? next : undefined;
+  const dates = active.map((r) => formatDates(r, t.locale)).join(", ");
+  return (
+    <div role="status" className="mt-6 rounded-3xl border border-line bg-card p-5 text-center shadow-soft">
+      <CalendarHeart className="mx-auto size-7 text-clay" aria-hidden />
+      <p className="mt-2 font-display text-xl text-ink">{t.emptyTitle(dates)}</p>
+      <p className="mt-1 text-sm leading-snug text-ink-soft">{t.emptyBody}</p>
+      <div className="mt-4 flex flex-col gap-2">
+        {flexDays < 3 && (
+          <button
+            type="button"
+            onClick={() => setFlex(flexDays + 2 > 3 ? 3 : flexDays + 2)}
+            className="flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-pine px-4 text-sm font-medium text-primary-foreground"
+          >
+            <Shuffle className="size-4" aria-hidden /> {t.emptyFlex(flexDays + 2 > 3 ? 3 : flexDays + 2)}
+          </button>
+        )}
+        {nextNew && (
+          <button
+            type="button"
+            onClick={() => add({ start: nextNew.start, end: nextNew.end })}
+            className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-dashed border-sun bg-sun-soft px-4 text-sm font-medium text-ink"
+          >
+            <Plus className="size-4 text-clay" aria-hidden /> {t.emptyAddSuggestion(formatDates(nextNew, t.locale))}
+          </button>
+        )}
+        <Link
+          href="/windows#pick"
+          className="flex min-h-11 items-center justify-center rounded-2xl px-4 text-sm font-medium text-pine hover:underline"
+        >
+          {t.emptyEdit}
+        </Link>
+      </div>
     </div>
   );
 }

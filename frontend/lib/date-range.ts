@@ -91,11 +91,13 @@ export type TapResult = Selection & { added?: DateRange };
 
 /**
  * Tap-tap range selection. The first tap sets the anchor, the second one adds anchor..day
- * (either order). Tapping the anchor again adds a one-day range. Past days are ignored.
+ * (either order). Tapping the anchor again cancels it. Past days are ignored.
  */
 export function tapDay(sel: Selection, day: ISODate, today: ISODate): TapResult {
   if (day < today) return sel;
   if (!sel.anchor) return { ...sel, anchor: day };
+  // Tapping the anchor again un-taps it: a one-day "trip" is too short for the scorer (MIN_TRIP_DAYS).
+  if (sel.anchor === day) return { ...sel, anchor: null };
   const added = sel.anchor <= day ? { start: sel.anchor, end: day } : { start: day, end: sel.anchor };
   return { ranges: addRange(sel.ranges, added), anchor: null, added };
 }
@@ -135,18 +137,50 @@ export function moveFocus(iso: ISODate, key: string): ISODate | null {
 
 // --- to the API -------------------------------------------------------------------------
 
+/** The backend drops windows shorter than this (scoring/windows.py trip_windows). */
+export const MIN_TRIP_DAYS = 2;
+/** POST /recommendations accepts at most this many windows (api/schemas.py). */
+export const MAX_WINDOWS = 60;
+/** "Any N days in <month>": an N-day trip starting every this many days across the month. */
+export const ANY_DAYS_STEP = 2;
+
+/** Picked ranges that can still become a trip: not over yet and at least MIN_TRIP_DAYS long from today. */
+export const usableRanges = (ranges: DateRange[], today: ISODate) =>
+  activeRanges(ranges, today).filter((r) => rangeDays(r) >= MIN_TRIP_DAYS);
+
 /**
- * Selected ranges -> FreeWindow(source="manual") for POST /recommendations. "I'm flexible ± N"
- * widens every range by N days each side (never into the past); the scorer then picks the best
- * trip-length sub-window inside it.
+ * Selected ranges -> concrete FreeWindow(source="manual") list for POST /recommendations. Every window is
+ * an exact trip, so the scorer prices what the UI promised:
+ *  - a range is sent as is;
+ *  - "I'm flexible ± N" adds the same-length trip shifted 1..N days earlier and later (never into the past);
+ *  - "any N days in <month>" sends N-day trips starting every ANY_DAYS_STEP days, the last one ending on the
+ *    month's last day.
+ * Exact dates come first, then the smallest shifts, capped at MAX_WINDOWS.
  */
 export function toFreeWindows(ranges: DateRange[], flexDays: number, today: ISODate): FreeWindow[] {
   const flex = Math.max(0, Math.round(flexDays));
-  const widened = activeRanges(ranges, today).map((r) => {
-    const start = addDays(r.start, -flex);
-    return { start: start < today ? today : start, end: addDays(r.end, flex) };
-  });
-  return normalizeRanges(widened).map(({ start, end }) => ({ start, end, source: "manual" }));
+  const tiers: { start: ISODate; end: ISODate }[][] = Array.from({ length: flex + 1 }, () => []);
+  const slices: { start: ISODate; end: ISODate }[] = [];
+  for (const r of usableRanges(ranges, today)) {
+    if (r.anyDays) {
+      const n = Math.min(r.anyDays, rangeDays(r));
+      const lastStart = addDays(r.end, -(n - 1));
+      for (let s = r.start; s <= lastStart; s = addDays(s, ANY_DAYS_STEP)) slices.push({ start: s, end: addDays(s, n - 1) });
+      if (!slices.some((x) => x.start === lastStart)) slices.push({ start: lastStart, end: r.end });
+      continue;
+    }
+    tiers[0].push(r);
+    for (let k = 1; k <= flex; k++)
+      for (const shift of [-k, k]) {
+        const start = addDays(r.start, shift);
+        if (start >= today) tiers[k].push({ start, end: addDays(r.end, shift) });
+      }
+  }
+  const seen = new Set<string>();
+  return [...tiers[0], ...slices, ...tiers.slice(1).flat()]
+    .filter((w) => !seen.has(w.start + w.end) && !!seen.add(w.start + w.end))
+    .slice(0, MAX_WINDOWS)
+    .map(({ start, end }) => ({ start, end, source: "manual" }));
 }
 
 // --- Polish public holidays ---------------------------------------------------------------
@@ -255,8 +289,9 @@ export function localBridges(from: ISODate, to: ISODate, maxLeave = 2): Suggesti
     const days = Array.from({ length: rangeDays({ start, end }) }, (_, i) => addDays(start, i));
     const leave = days.filter((x) => !off(x));
     if (leave.length > maxLeave || rangeDays({ start, end }) < 3) continue;
-    if (out.some((s) => s.start === start && s.end === end)) continue;
-    out.push({ start: start < from ? from : start, end, leave, holidays: days.filter((x) => hol.has(x)) });
+    const clipped = start < from ? from : start;
+    if (out.some((s) => s.start === clipped && s.end === end)) continue;
+    out.push({ start: clipped, end, leave, holidays: days.filter((x) => hol.has(x)) });
   }
   return out;
 }
@@ -278,12 +313,14 @@ export function mergeSuggestions(radar: BridgeWindow[], local: Suggestion[]): Su
 
 // --- quick chips --------------------------------------------------------------------------
 
-/** Saturday–Sunday of this week (Sunday only if today is Sunday). */
+/** Saturday–Sunday of this week; on a Sunday (one day left, too short for a trip) next weekend. */
 export function thisWeekend(today: ISODate): DateRange {
-  const dow = dowMon(today);
-  const sat = addDays(today, 5 - dow);
-  return { start: dow === 6 ? today : sat, end: addDays(today, 6 - dow) };
+  const sat = addDays(today, dowMon(today) === 6 ? 6 : 5 - dowMon(today));
+  return { start: sat < today ? today : sat, end: addDays(sat, 1) };
 }
+
+/** True when thisWeekend() had to jump to next week (the chip then says "Next weekend"). */
+export const weekendIsNext = (today: ISODate) => dowMon(today) === 6;
 
 export const nextSuggestion = (s: Suggestion[], today: ISODate) => s.find((x) => x.start >= today);
 

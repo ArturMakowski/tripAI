@@ -127,7 +127,8 @@ export function DateRangeCalendar({
     const next = moveFocus(iso, e.key);
     if (!next) return;
     e.preventDefault();
-    if (next < first || next > lastDay) return;
+    // past days are disabled (can't take focus), so arrows stop at today
+    if (next < first || next < today || next > lastDay) return;
     wantFocus.current = true;
     if (anchor) setHover(next);
     if (monthKey(next) !== month) go(monthKey(next), { focusDay: next });
@@ -156,7 +157,7 @@ export function DateRangeCalendar({
         >
           <ChevronLeft className="size-5" aria-hidden />
         </button>
-        <h3 id={`cal-${month}`} className="font-display text-xl text-ink" aria-live="polite">
+        <h3 id={`cal-${month}`} className="font-display text-xl text-ink">
           {monthTitle(month, t.locale)}
         </h3>
         <button
@@ -353,7 +354,7 @@ export function DateRangeCalendar({
       </div>
 
       {/* status bar: what the next tap does */}
-      <div className="min-h-11" aria-live="polite">
+      <div className="min-h-11">
         <AnimatePresence initial={false}>
           {anchor && (
             <motion.div

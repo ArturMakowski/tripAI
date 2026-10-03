@@ -8,7 +8,7 @@ import { DEMO_PROFILE } from "./mock/fixtures";
 import { normalise, rerank } from "./scoring";
 import { profileKey, RECS_TTL_MS, useHydrated, useTrip } from "./store";
 import type { Weights } from "./types";
-import { pickedWindows } from "./windows-store";
+import { datesChanged, pickedWindows, useDates } from "./windows-store";
 
 export function sameWeights(a: Weights | undefined | null, b: Weights | undefined | null): boolean {
   if (!a || !b) return false;
@@ -28,9 +28,13 @@ export function useRecommendations() {
   const { profile, weights, recs, recsMeta, setRecs, modes } = useTrip();
   const seq = useRef(0);
   const [now] = useState(() => Date.now()); // staleness is judged once per mount
+  // Picked dates (T4f): an edit refetches even while a request is in flight (that one is dropped).
+  const pickedRanges = useDates((s) => s.ranges);
+  const pickedFlex = useDates((s) => s.flexDays);
 
   // An empty answer is still an answer: show the empty state instead of loading forever.
-  const fresh = !!recsMeta && recsMeta.profileKey === profileKey(profile) && now - recsMeta.at < RECS_TTL_MS;
+  const fresh =
+    !!recsMeta && recsMeta.profileKey === profileKey(profile) && now - recsMeta.at < RECS_TTL_MS && !datesChanged();
   // Receipts (flip hint, counterfactual score deltas, hash) were computed at these weights.
   const scoredAtCurrentWeights = sameWeights(recsMeta?.weights, weights);
 
@@ -47,7 +51,7 @@ export function useRecommendations() {
     const req = { profile: profile ?? DEMO_PROFILE, weights, ...pickedWindows() };
     const single = () =>
       api.recommendations(req, ctrl.signal).then(({ data, mode }) => {
-        if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "full" });
+        if (id === seq.current && !datesChanged()) setRecs(data, { profile, weights, mode, phase: "full" });
       });
     api.capabilities().then(({ phases }) => {
       if (id !== seq.current) return;
@@ -56,7 +60,7 @@ export function useRecommendations() {
       return api
         .recommendationsPhase(req, "fast", ctrl.signal)
         .then(({ data, mode }) => {
-          if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "fast" });
+          if (id === seq.current && !datesChanged()) setRecs(data, { profile, weights, mode, phase: "fast" });
         })
         .catch(() => {
           if (!ctrl.signal.aborted) return single();
@@ -65,7 +69,7 @@ export function useRecommendations() {
     return () => ctrl.abort();
     // weights intentionally excluded: slider moves are handled below
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, fresh, profile]);
+  }, [hydrated, fresh, profile, pickedRanges, pickedFlex]);
 
   // Phase 2: exact live prices + explanations; cards update and re-order in place.
   // If it fails, the fast list stays (marked final) rather than swapping in fixtures.
@@ -77,7 +81,7 @@ export function useRecommendations() {
     api
       .recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights, ...pickedWindows() }, "full", ctrl.signal)
       .then(({ data, mode }) => {
-        if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "full" });
+        if (id === seq.current && !datesChanged()) setRecs(data, { profile, weights, mode, phase: "full" });
       })
       .catch(() => {
         if (!ctrl.signal.aborted && id === seq.current)
