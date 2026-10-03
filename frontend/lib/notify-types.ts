@@ -34,7 +34,10 @@ export interface AppNotification {
   created_at: string;
   read_at: string | null;
   pushed_at: string | null;
-  push_status: string | null;
+  push_status: string | null; // "sent:N" | "inbox_only" (Jev gate) | "not_opted_in" | ...
+  interrupt_p: number | null; // Jev: P(worth interrupting); push only if interrupt_ok (p >= 0.8)
+  interrupt_ok: boolean | null;
+  interrupt_source: string | null; // "jev" | "rules"
 }
 
 export interface Inbox {

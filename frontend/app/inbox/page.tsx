@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { BellRing, CalendarHeart, Crown, Eye, Fingerprint, Loader2, Radar, Settings2, TrendingDown, TriangleAlert } from "lucide-react";
+import { BellOff, BellRing, CalendarHeart, Crown, Eye, Fingerprint, Loader2, Radar, Settings2, TrendingDown, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { AppShell, PageTitle } from "@/components/shell";
 import { SourceTag } from "@/components/source-tag";
@@ -58,6 +58,15 @@ function NotificationCard({ n, onOpen, busy }: { n: AppNotification; onOpen: (n:
       </button>
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line pt-2.5">
         {flight && <SourceTag e={flight} />}
+        {n.interrupt_p != null && (
+          <span
+            className={cn("inline-flex items-center gap-1 text-[11px]", n.interrupt_ok ? "text-pine" : "text-muted-foreground")}
+            title={`Jev notification gate (${n.interrupt_source ?? "?"}): push only if P(worth interrupting) >= 0.80`}
+          >
+            {n.interrupt_ok ? <BellRing className="size-3" aria-hidden /> : <BellOff className="size-3" aria-hidden />}
+            {n.interrupt_ok ? "Push-worthy" : "Inbox only"} · p {n.interrupt_p.toFixed(2)}
+          </span>
+        )}
         <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground" title={`inputs_hash ${n.inputs_hash}`}>
           <Fingerprint className="size-3" aria-hidden /> {n.inputs_hash.slice(0, 10)}
         </span>

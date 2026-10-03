@@ -227,8 +227,15 @@ When does it ping? (all numbers in title/body are copied from the ranked card an
 Fit verdict (docs/FIT_VERDICT.md): the scan asks T1c's `tripai.agents.fit.fit` (LLM, or its deterministic rules
 fallback) for a verdict on each notification candidate: the #1, the best trip per soon long weekend, and each watched
 pick. When there is a verdict, it replaces the score gate: only `good_fit`/`great_fit` notify, and `fit.summary` +
-`concerns` travel with the notification. Until T1c (PR #9) is merged that module doesn't exist, so the score
-thresholds above apply. No code change is needed when it lands. User control: in-app inbox always on, push only
+`concerns` travel with the notification.
+
+**Push gate (Jev):** before every push, a separate DBOS step `interrupt_gate` asks
+`tripai.agents.jev.jev_worth_interrupting(rec, profile)` for P(worth interrupting). It pushes only if Jev allows it
+(p ≥ 0.8, `NOTIFY_MIN_P`). Otherwise the notification stays in the in-app inbox only (`push_status: "inbox_only"`).
+Every notification records `interrupt_p`, `interrupt_ok` and `interrupt_source` (`jev`, or `rules` when Jev isn't
+configured, in which case the fit label decides: great_fit 0.85 pushes, good_fit 0.7 doesn't). The answer is
+checkpointed, so a replayed scan never asks twice. A gate error never pushes. The inbox shows "Push-worthy" or
+"Inbox only" with p. User control: in-app inbox always on, push only
 after an explicit opt-in tap, max N per week (price drops first, then long weekends, then new #1), muted cities
 (name or IATA), snooze, one notification per dedupe key. `personalize=False` still notifies, but ranks on neutral
 default weights. Every rule evaluation, including the ones that didn't fire, is kept on the scan run (`GET /scan/last`).

@@ -62,9 +62,11 @@ SCAN_HORIZON_DAYS = 90
 MAX_LEAVE_DAYS = 2
 TOP_N = 10
 PAID_STEPS = frozenset({"rank_trips", "rank_long_weekends", "price_picks"})  # never retried
+# interrupt_gate (Jev LLM) is retried: Jev falls back to rules itself and never raises
 
 RunStep = Callable[..., Awaitable[Any]]
 FitFn = Callable[[RankedRecommendation, TasteProfile], Awaitable[FitVerdict]]
+GateFn = Callable[[RankedRecommendation, TasteProfile], Awaitable[tuple[bool, float]]]
 
 
 def _env_int(name: str, default: int) -> int:
@@ -94,6 +96,21 @@ def default_fit() -> FitFn | None:
         return None
 
 
+def default_gate() -> GateFn | None:
+    """Jev's notification gate (`tripai.agents.jev.jev_worth_interrupting`)."""
+    try:
+        return importlib.import_module("tripai.agents.jev").jev_worth_interrupting
+    except (ImportError, AttributeError):
+        return None
+
+
+def gate_source() -> str:
+    try:
+        return "jev" if importlib.import_module("tripai.agents.jev").jev_enabled() else "rules"
+    except (ImportError, AttributeError):
+        return "none"
+
+
 @dataclass
 class ScanDeps:
     provider: TripDataProvider
@@ -102,6 +119,7 @@ class ScanDeps:
     notify: NotifyStore  # sync: always called from a worker thread
     pusher: WebPusher
     fit: FitFn | None = field(default_factory=default_fit)
+    gate: GateFn | None = field(default_factory=default_gate)
     limits: ScanLimits = field(default_factory=ScanLimits)
 
 
@@ -262,6 +280,28 @@ class Scan:
             self.deps.notify.save_pick(SavedPick.model_validate(raw))
         return {"updated": len(updates)}
 
+    async def interrupt_gate(self, user_id: str, notification_id: str, profile: dict) -> dict:
+        """Ask Jev whether this notification is worth interrupting the user for; record p on it.
+        Its own step, so a replay reuses the checkpointed answer instead of asking again."""
+        n_store = self.deps.notify
+        n = await asyncio.to_thread(n_store.get_notification, notification_id)
+        if n is None:
+            return {"ok": False, "p": None, "source": None}
+        if n.interrupt_p is not None:  # retried step
+            return {"ok": bool(n.interrupt_ok), "p": n.interrupt_p, "source": n.interrupt_source}
+        if self.deps.gate is None:  # no gate installed: never interrupt on our own say-so
+            ok, p, source = False, 0.0, "none"
+        else:
+            try:
+                ok, p = await self.deps.gate(n.recommendation, TasteProfile.model_validate(profile))
+                source = gate_source()
+            except Exception as exc:  # noqa: BLE001 - never push on an error
+                log.warning("notification gate failed for %s: %s", n.id, exc)
+                ok, p, source = False, 0.0, "error"
+        n.interrupt_ok, n.interrupt_p, n.interrupt_source = bool(ok), round(float(p), 3), source
+        await asyncio.to_thread(n_store.update_notification, n)
+        return {"ok": n.interrupt_ok, "p": n.interrupt_p, "source": source}
+
     def push(self, user_id: str, notification_id: str) -> dict:
         d = self.deps
         n = d.notify.get_notification(notification_id)
@@ -272,7 +312,9 @@ class Scan:
             return {"push_status": n.push_status, "pushed_at": n.pushed_at.isoformat()}
         prefs = d.notify.get_prefs(user_id)
         subs = d.notify.subscriptions(user_id)
-        if not prefs.push_opt_in:
+        if not n.interrupt_ok:  # Jev: not worth interrupting -> in-app inbox only
+            status = "inbox_only"
+        elif not prefs.push_opt_in:
             status = "not_opted_in"
         elif not subs:
             status = "no_subscription"
@@ -436,7 +478,15 @@ async def _scan(deps, user_id, today_iso, run_step, mode, trigger, workflow_id) 
     if pick_updates:
         await run_step("update_pick_baselines", s.update_pick_baselines, user_id,
                        _dump(pick_updates))  # fmt: skip
-    pushed = {nid: await run_step("push", s.push, user_id, nid) for nid in saved["ids"]}
+    pushed = {}
+    for nid in saved["ids"]:
+        g = await run_step("interrupt_gate", s.interrupt_gate, user_id, nid, ctx["profile"])
+        pushed[nid] = {
+            **await run_step("push", s.push, user_id, nid),
+            "interrupt_p": g["p"],
+            "interrupt_ok": g["ok"],
+            "interrupt_source": g["source"],
+        }
 
     recs = ranked["recs"]
     run.windows = len(win["windows"])

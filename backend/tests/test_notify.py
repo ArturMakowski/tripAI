@@ -79,6 +79,14 @@ def uid(c) -> str:
     return c.get("/session").json()["user_id"]
 
 
+async def allow_gate(rec, profile):
+    return True, 0.9
+
+
+async def deny_gate(rec, profile):
+    return False, 0.42
+
+
 def make(provider=None, sender=None, vapid_on=True):
     notify = MemoryNotifyStore()
     pub, priv = generate_vapid_keys()
@@ -86,6 +94,7 @@ def make(provider=None, sender=None, vapid_on=True):
     pusher = WebPusher(cfg, sender=sender or FakeSender())
     app = create_app(provider=provider, notify_store=notify, pusher=pusher)
     app.state.scan_deps.fit = None  # score gate; fit-gate tests inject their own verdicts
+    app.state.scan_deps.gate = allow_gate  # Jev gate tests below swap in deny / the real Jev
     return TestClient(app), notify, pusher
 
 
@@ -679,3 +688,83 @@ def test_supabase_insert_conflict_means_not_sent():
 
     n = to_notification(Draft("new_top", rec, "t", "b"), "u1", {}, None)
     assert store.add_notification(n) is False and store.get_notification(n.id) is None
+
+
+# ---------------------------------------------------------------------------- Jev notification gate
+
+
+def test_jev_gate_blocks_push_but_keeps_inbox():
+    """Not worth interrupting -> no push, still in the inbox, p recorded on the notification."""
+    sender = FakeSender()
+    c, _, _ = make(sender=sender)
+    c.app.state.scan_deps.gate = deny_gate
+    c.post("/push/subscribe", json=_sub())
+    out = scan(c)
+    assert out["notifications"] and sender.calls == []
+    for n in out["notifications"]:
+        assert n["push_status"] == "inbox_only" and n["pushed_at"] is None
+        assert n["interrupt_p"] == 0.42 and n["interrupt_ok"] is False
+    inbox = c.get("/notifications").json()
+    assert inbox["unread"] == len(out["notifications"])
+    assert all(i["interrupt_p"] == 0.42 for i in inbox["items"])
+
+
+def test_jev_gate_allows_push_and_records_p():
+    sender = FakeSender()
+    c, _, _ = make(sender=sender)
+    c.post("/push/subscribe", json=_sub())
+    n = scan(c)["notifications"][0]
+    assert n["push_status"] == "sent:1" and n["interrupt_p"] == 0.9 and n["interrupt_ok"] is True
+    assert sender.calls
+
+
+def test_jev_gate_is_asked_before_every_push_with_the_card(monkeypatch):
+    seen = []
+
+    async def spy(rec, profile):
+        seen.append((rec.id, profile.user_id))
+        return True, 0.95
+
+    c, _, _ = make()
+    c.app.state.scan_deps.gate = spy
+    out = scan(c)
+    assert [r for r, _ in seen] == [n["recommendation_id"] for n in out["notifications"]]
+    assert {u for _, u in seen} == {uid(c)}
+
+
+def test_jev_gate_error_never_pushes():
+    async def boom(rec, profile):
+        raise RuntimeError("jev down")
+
+    sender = FakeSender()
+    c, _, _ = make(sender=sender)
+    c.app.state.scan_deps.gate = boom
+    c.post("/push/subscribe", json=_sub())
+    n = scan(c)["notifications"][0]
+    assert sender.calls == [] and n["push_status"] == "inbox_only" and n["interrupt_ok"] is False
+
+
+def test_real_jev_rules_gate(monkeypatch):
+    """Without a Jev key: the fit label decides (great_fit 0.85 pushes, good_fit 0.7 doesn't)."""
+    from tripai.agents import jev
+    from tripai.workflows.scan import default_gate, gate_source
+
+    monkeypatch.setattr(jev, "jev_enabled", lambda: False)
+    assert default_gate() is jev.jev_worth_interrupting and gate_source() == "rules"
+
+    def verdict(label):
+        async def f(rec, profile):
+            return FitVerdict(label=label, confidence=0.8, summary="s", model="rules")
+
+        return f
+
+    for label, pushed, p in (("great_fit", True, 0.85), ("good_fit", False, 0.7)):
+        sender = FakeSender()
+        c, _, _ = make(sender=sender)
+        c.app.state.scan_deps.fit = verdict(label)
+        c.app.state.scan_deps.gate = jev.jev_worth_interrupting
+        c.post("/push/subscribe", json=_sub())
+        n = next(x for x in scan(c)["notifications"] if x["kind"] == "new_top")
+        assert n["interrupt_p"] == p and n["interrupt_source"] == "rules"
+        assert bool(sender.calls) is pushed
+        assert n["push_status"] == ("sent:1" if pushed else "inbox_only")

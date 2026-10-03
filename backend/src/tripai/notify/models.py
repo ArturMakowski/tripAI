@@ -76,7 +76,12 @@ class Notification(BaseModel):
     created_at: UTCDateTime = Field(default_factory=now_utc)
     read_at: UTCDateTime | None = None
     pushed_at: UTCDateTime | None = None
-    push_status: str | None = None  # "sent:2" | "no_subscription" | "not_opted_in" | "error:..."
+    push_status: str | None = None  # "sent:2" | "inbox_only" | "not_opted_in" | "error:..."
+    # Jev notification gate (tripai.agents.jev.jev_worth_interrupting): P(worth interrupting);
+    # push only if interrupt_ok (p >= NOTIFY_MIN_P), otherwise the notification stays in the inbox
+    interrupt_p: float | None = None
+    interrupt_ok: bool | None = None
+    interrupt_source: str | None = None  # "jev" | "rules" (Jev unavailable: fit label decides)
 
 
 class SavedPick(BaseModel):
