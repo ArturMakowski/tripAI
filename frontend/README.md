@@ -99,6 +99,20 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
   - `components/date-picker/` holds the UI. Every string, in PL and EN, is in `components/date-picker/strings.ts`. It shows EN, like the
     rest of the app, until the i18n pass.
 
+## Swipe on offers (`/trips`, T6)
+- **Toggle.** "Lista / Swipe" under the slider. Swipe mode shows the ranked cards you haven't reacted to as a deck (photo, dates, all-in
+  PLN, score ring, tags, fit badge). It reuses the Travel DNA deck's swipe physics and stamps (`components/offer-deck.tsx`).
+- **Gestures.** → "Chcę tam" (like, and the trip is watched for price drops via T5b `POST /picks`), ← "Nie dla mnie" (hidden), ↑ "Super!"
+  (strong like). The same choices are available as buttons and arrow keys. Backspace or the button undoes (`DELETE /reactions/{id}`, and
+  the watch is dropped).
+- **Toast.** After each swipe a toast says what was learned, built from the backend `diff`: "Zapamiętane: lubisz Rzym: jedzenie, historia ·
+  obserwujemy cenę". With personalisation off, it says the profile stays as is.
+- **One re-rank.** Learning is buffered while the deck is open and committed when you go back to the list (or leave the page). That
+  triggers one `/recommendations` call with the new profile, not one per swipe.
+- **Hidden trips.** In list mode they sit under "Ukryte · pokaż", each with "Przywróć".
+- **Fixture mode.** `lib/reactions.ts` mirrors the backend rules, and `lib/reactions.test.ts` pins them to the backend test cases. Copy is
+  one PL + EN object (`SWIPE_COPY`), ready to move into `lib/i18n`. The language follows the Travel DNA toggle.
+
 ## Data: live vs fixture
 `lib/api.ts` implements API v0 exactly as `backend/src/tripai/api/app.py` serves it: `POST /interview`, `GET /windows`,
 `GET /windows/long-weekends`, `POST /recommendations` (→ `RankedRecommendation[]`), and `POST /feedback` (→ the profile plus `weights`

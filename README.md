@@ -54,6 +54,7 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
 | `POST /feedback` `{trip_id, answers, user_id?, profile?, weights?}` | the updated `TasteProfile` (top-level fields, as in the spec), plus `weights`, a `diff` saying what changed and why, and `profile` nested. With `personalize=false`, nothing changes: the `diff` is empty and `note` explains why |
 | `POST /profile/dna` `{user_id, answers: {q1..q12: 1..5}, yes_no: {y1, y2}}` | Travel DNA (docs/TRAVEL_DNA.md): `{profile, weights, reasons[]}`. Deterministic; each reason lists its `because` card ids; a missing answer counts as 3 |
 | `GET /health`, `GET /cities` | status / candidate cities |
+| `POST /reactions` `{recommendation_id, reaction: like\|dislike\|love}` · `GET /reactions` · `DELETE /reactions/{id}` | T6 swipe on offers: small, deterministic profile nudges with a `diff` (same shape as `/feedback`), see "Swipe on offers (T6)" |
 
 - `tripai.scoring.rank()` is deterministic. Price (vs budget and vs the seasonal median), weather fit vs
   `preferred_temp_c`, crowds (lower is better) and taste fit (interests vs city tags) are combined
@@ -333,3 +334,25 @@ evidence source is `seed:climate (open-meteo:archive ERA5)`. Live Open-Meteo is 
 - the exact-window weather of refined cards, capped at 6 s; past that, the month normals stay
 
 Per-source concurrency limits: Travelpayouts 8, Open-Meteo 16, SerpApi 4, Serper 4. Per-city fetches all run concurrently.
+
+
+## Swipe on offers (T6): `tripai.scoring.reactions`
+
+`POST /reactions` `{recommendation_id, reaction, profile?, weights?}` acts for the session user (a client `user_id` is ignored) on a
+recommendation that `/recommendations` stored for that session (404 otherwise). It returns `{profile, weights, diff, note, hidden, learned}`.
+A swipe is a weak signal, so every step is small, clamped to 0..1 and explained in `diff[].reason`:
+
+| Swipe | Interests (city's tags) | Weights |
+|---|---|---|
+| → like "Chcę tam" | +0.05 each (a new tag starts at 0.5) | unchanged |
+| ↑ love "Super!" | +0.10 each | +0.03 on the card's best of price/weather/crowds if it scored ≥ 0.8, then re-normalised |
+| ← dislike "Nie dla mnie" | −0.05, only on tags you already have | +0.03 on its worst of price/weather/crowds if it scored < 0.4 |
+
+A dislike never invents an interest: a new tag at 0.45 would add interest mass the city matches and *raise* its taste score.
+A disliked city+dates (the recommendation id) is left out of later `/recommendations` for that user. The same city on other dates
+still shows. `personalize=false` records the reaction (and still hides a dislike, which is a list filter, not learning), but changes
+nothing, and `note` says so. Re-swiping a card replaces the old reaction. `DELETE /reactions/{id}` (undo) reverts exactly what the
+swipe changed, unless that field changed again since (`note` names it), and unhides the trip. `GET /reactions` lists the session's swipes.
+
+Storage: `SupabaseStore` upserts into `reactions` (`supabase/migrations/0004_reactions.sql`, RLS on, no anon policy;
+**the president applies it**). Until then, writes are logged and ignored, and memory serves.

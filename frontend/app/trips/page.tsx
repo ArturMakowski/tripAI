@@ -11,6 +11,8 @@ import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { PrioritySlider } from "@/components/priority-slider";
 import { RecCard } from "@/components/rec-card";
 import { RefiningStrip, TripLoader, type Stage } from "@/components/trip-loader";
+import { HiddenTrips, SwipeMode, TripsViewToggle, useHiddenIds } from "@/components/trips-swipe";
+import { useSwipe } from "@/lib/use-reactions";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
 import { PickedDatesEmpty, PickedDatesHeader } from "@/components/date-picker/free-dates-planner";
 import { AppShell, PageTitle } from "@/components/shell";
@@ -82,7 +84,10 @@ function Trips() {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowFilter, loading, matching.length]);
-  const list = matching;
+  // T6: city+dates swiped "Nie dla mnie" are hidden (listed under "Hidden" below)
+  const hidden = useHiddenIds();
+  const view = useSwipe((s) => s.view);
+  const list = matching.filter((r) => !hidden.has(r.id));
   const budget = (profile ?? DEMO_PROFILE).budget_pln;
   const [withinFirst, setWithinFirst] = useState(false);
   const ranks = list.filter((r) => r.fit?.label !== "poor_fit");
@@ -161,6 +166,7 @@ function Trips() {
       <PickedDatesHeader />
 
       <PrioritySlider value={slider} weights={weights} onChange={setSlider} />
+      <TripsViewToggle className="mt-4" />
 
       {windowFilter && (
         <div className="mt-4 flex items-center justify-between rounded-xl bg-pine-soft px-3 py-2 text-sm text-pine-deep">
@@ -235,7 +241,7 @@ function Trips() {
           </div>
         )}
 
-        {banner && (
+        {banner && view === "list" && (
           <div role="note" className="flex gap-2.5 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm leading-snug text-ink">
             <Wallet className="mt-0.5 size-4 shrink-0 text-clay" aria-hidden />
             {banner.kind === "none_fit" ? (
@@ -278,7 +284,7 @@ function Trips() {
             )}
           </div>
         )}
-        {withinFirst && !banner && (
+        {withinFirst && !banner && view === "list" && (
           <p className="flex items-center justify-between rounded-xl bg-paper-deep px-3 py-2 text-sm text-ink-soft">
             Showing trips within your budget first
             <button onClick={() => setWithinFirst(false)} className="font-medium text-pine underline-offset-2 hover:underline">
@@ -288,6 +294,9 @@ function Trips() {
         )}
       </div>
 
+      {view === "swipe" && list.length > 0 && <SwipeMode ranked={list} refining={refining} />}
+      {/* list mode (inner block kept at its old indentation to keep this diff small) */}
+      {view === "list" && (
       <LayoutGroup>
         <ul className="mt-4 space-y-4" aria-busy={loading || refining}>
           {fitting.map((rec, i) => (
@@ -343,6 +352,8 @@ function Trips() {
           </motion.div>
         )}
       </LayoutGroup>
+      )}
+      {view === "list" && <HiddenTrips />}
       {!loading && !list.length && (
         <PickedDatesEmpty>
           <p className="mt-6 text-center text-sm text-muted-foreground">No trips fit this window yet. We&rsquo;ll keep watching.</p>
