@@ -572,19 +572,38 @@ class _Deadline:
         return await asyncio.wait_for(aw, timeout=self.left())
 
 
+def speculate_after_s() -> float:
+    """Start the LLM's own decision only if Jev hasn't answered by then (TRIPAI_SPECULATE_AFTER_S,
+    default 1 s): a quick, sure Jev costs no LLM call at all, a slow Jev overlaps with it."""
+    try:
+        return max(0.0, float(os.getenv("TRIPAI_SPECULATE_AFTER_S") or 1.0))
+    except ValueError:
+        return 1.0
+
+
 async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool, spec, deadline):
-    """Jev decides when sure; else the LLM decides. `spec` is the LLM's own decision, started
-    speculatively in parallel with Jev (so an escalation costs max(Jev, LLM), not the sum); it
-    is cancelled when Jev is sure.
+    """Jev decides when sure; else the LLM decides. `spec["task"]` is the LLM's own decision,
+    started speculatively when Jev is slow (so an escalation costs ~max(Jev, LLM), not the sum),
+    cancelled when Jev turns out sure, and started now when a quick Jev is unsure.
 
     -> (verdict, cost, Jev decision, escalated, degraded)."""
-    d = await deadline.wait(
+    jev_task = asyncio.ensure_future(
         decide(fit_decision_agent, "FIT INPUT:\n" + fit_payload(rec, profile), model=jev)
     )
+    try:
+        wait = min(speculate_after_s(), deadline.left())
+        d = await asyncio.wait_for(asyncio.shield(jev_task), timeout=wait)
+    except TimeoutError:
+        if use_llm and spec["task"] is None:
+            spec["task"] = asyncio.ensure_future(_run_llm(rec, profile, model))
+        d = await deadline.wait(jev_task)
+    except BaseException:
+        jev_task.cancel()
+        raise
     p = d.conf("label")
     if p >= escalate_below():
-        if spec is not None:
-            spec.cancel()  # Jev is sure: the speculative LLM decision isn't needed
+        if spec["task"] is not None:
+            spec["task"].cancel()  # Jev is sure: the speculative LLM decision isn't needed
         jf = jev_fit(d, rec, profile)
         draft, phraser, cost = jf.draft, "template", d.cost_usd
         if phrase:
@@ -598,10 +617,12 @@ async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool, sp
         return _finish(draft, name, rec, profile), cost, d, False, run_degraded
 
     # System 2: the LLM makes the decision itself, under the same grounding validator
-    if not use_llm or spec is None:
+    if not use_llm:
         raise EscalationFailed(f"jev unsure (p={p:.2f}) and no LLM configured")
+    if spec["task"] is None:  # a quick, unsure Jev: no speculation happened, ask the LLM now
+        spec["task"] = asyncio.ensure_future(_run_llm(rec, profile, model))
     try:
-        draft, llm_cost = await deadline.wait(spec)
+        draft, llm_cost = await deadline.wait(spec["task"])
     except Exception as exc:
         raise EscalationFailed(f"jev unsure (p={p:.2f}) and the LLM failed: {exc!r}") from exc
     if draft.confidence < LOW_CONFIDENCE:  # GPT is the final engine and unsure itself
@@ -658,8 +679,8 @@ async def _fit_run(
         return FitRun(verdict, used, (time.perf_counter() - t0) * 1000, cost)
 
     deadline = _Deadline(llm_timeout_s() if deadline_s is None else deadline_s)
-    # the LLM's own decision runs speculatively next to Jev; used if Jev is unsure or fails
-    spec = asyncio.ensure_future(_run_llm(rec, profile, model)) if use_jev and use_llm else None
+    # the LLM's own decision, started by the cascade when Jev is slow (see speculate_after_s)
+    spec: dict = {"task": None}
     try:
         if use_jev:
             try:
@@ -677,15 +698,15 @@ async def _fit_run(
                 log.warning("jev fit failed for %s, falling back: %r", rec.id, exc)
         if use_llm:
             try:
-                task = spec if spec is not None else _run_llm(rec, profile, model)
+                task = spec["task"] if spec["task"] is not None else _run_llm(rec, profile, model)
                 draft, cost = await deadline.wait(task)
                 return done(_finish(draft, _llm_name(model), rec, profile), "llm")
             except Exception as exc:  # noqa: BLE001 - fall back to rules, never break ranking
                 log.warning("fit agent failed for %s, using rules: %r", rec.id, exc)
         return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
     finally:
-        if spec is not None and not spec.done():
-            spec.cancel()
+        if spec["task"] is not None and not spec["task"].done():
+            spec["task"].cancel()
 
 
 _CACHE: "OrderedDict[str, FitVerdict]" = OrderedDict()  # in-process layer over llm_cache
@@ -738,7 +759,8 @@ async def fit(
     # load or a language switch-back reuses the verdict, and any changed input is a miss
     with i18n.using(lg):
         key = llm_cache.digest("fit", _engine_key(engine, model, jev), lg, rec.id,
-                               fit_payload(rec, profile), profile_hash(profile))  # fmt: skip
+                               fit_payload(rec, profile), profile_hash(profile),
+                               INSTRUCTIONS, PHRASE_INSTRUCTIONS)  # fmt: skip
     hit = _CACHE.get(key)
     if hit is None and engine != "rules":
         stored = await llm_cache.get(llm_cache.FIT, key)
@@ -770,7 +792,7 @@ async def fit(
         with i18n.using(lg):
             return _finish(rules_verdict(rec, profile), "rules", rec, profile)
 
-    return await llm_cache.within(compute(), late)
+    return await llm_cache.within(key, compute, late)
 
 
 def _remember(key: str, verdict: FitVerdict) -> None:

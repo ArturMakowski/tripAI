@@ -84,7 +84,11 @@ def reset() -> None:
 # ---------------------------------------------------------------- finish in the background
 
 DEFAULT_BACKGROUND_S = 20.0
-_background: set[asyncio.Task] = set()
+DEFAULT_MAX_BACKGROUND = 16
+# key -> the one running LLM call for it: a reload within the background window joins it
+# instead of starting a duplicate; holding the task here also keeps it alive if the request
+# that started it goes away (client disconnect) and lets `drain()` see it
+_inflight: dict[str, asyncio.Task] = {}
 
 
 def background_limit_s() -> float:
@@ -95,26 +99,54 @@ def background_limit_s() -> float:
         return DEFAULT_BACKGROUND_S
 
 
-async def within(coro, fallback):
-    """Run `coro` (which caches its own result) as a task and wait at most `llm_timeout_s()`.
-    On time: its result. Late: `fallback()` now, while the task finishes (up to
-    `background_limit_s()`) and fills the cache, so the next load gets the real answer."""
-    task = asyncio.ensure_future(asyncio.wait_for(coro, timeout=background_limit_s()))
+def max_background() -> int:
+    try:
+        return max(0, int(os.getenv("TRIPAI_LLM_MAX_BACKGROUND") or DEFAULT_MAX_BACKGROUND))
+    except ValueError:
+        return DEFAULT_MAX_BACKGROUND
+
+
+async def within(key: str, factory, fallback):
+    """The LLM answer for `key` within `llm_timeout_s()`, else `fallback()` now.
+
+    `factory()` makes the coroutine (it caches its own result). It runs as a task that may keep
+    going for up to `background_limit_s()` to fill the cache for the next load; concurrent
+    callers with the same key share it. At most `max_background()` such tasks run at once;
+    past that a call simply times out (no background run)."""
+    task = _inflight.get(key)
+    if task is None:
+        if len(_inflight) >= max_background():
+            try:
+                return await asyncio.wait_for(factory(), timeout=llm_timeout_s())
+            except TimeoutError:
+                return fallback()
+        task = asyncio.ensure_future(asyncio.wait_for(factory(), timeout=background_limit_s()))
+        _inflight[key] = task
+        task.add_done_callback(lambda t, k=key: _settle(k, t))
     try:
         return await asyncio.wait_for(asyncio.shield(task), timeout=llm_timeout_s())
     except TimeoutError:
-        _background.add(task)
-        task.add_done_callback(_settle)
         return fallback()
 
 
-def _settle(task: asyncio.Task) -> None:
-    _background.discard(task)
+def _settle(key: str, task: asyncio.Task) -> None:
+    if _inflight.get(key) is task:
+        del _inflight[key]
     if not task.cancelled() and task.exception() is not None:
         log.info("background LLM call ended without an answer: %r", task.exception())
 
 
-async def drain() -> None:
-    """Wait for background LLM calls (tests; graceful shutdown)."""
-    while _background:
-        await asyncio.gather(*list(_background), return_exceptions=True)
+async def drain(timeout: float | None = None) -> None:
+    """Wait for running LLM calls (tests; shutdown). With `timeout`, cancel what's left after it."""
+    try:
+        async with asyncio.timeout(timeout):
+            while _inflight:
+                await asyncio.gather(*list(_inflight.values()), return_exceptions=True)
+    except TimeoutError:
+        for t in list(_inflight.values()):
+            t.cancel()
+        await asyncio.gather(*list(_inflight.values()), return_exceptions=True)
+
+
+def inflight() -> int:
+    return len(_inflight)

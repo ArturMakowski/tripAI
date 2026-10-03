@@ -159,6 +159,8 @@ class SerpApiBudget:
             lock = self._locks[loop] = asyncio.Lock()
         async with lock:
             day = self._today()
+            if self._exhausted == (day, self.daily_cap):  # set while we waited for the lock
+                raise BudgetExhausted(f"SerpApi daily cap reached ({self._used}/{self.daily_cap})")
             if day != self._day:
                 self._day, self._used = day, 0
             remote = await self._read_remote(day)

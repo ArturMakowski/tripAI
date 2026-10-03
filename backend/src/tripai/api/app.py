@@ -3,6 +3,7 @@
 import asyncio
 import inspect
 import logging
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from typing import Annotated
 
@@ -10,6 +11,7 @@ from fastapi import Depends, FastAPI, HTTPException, Path, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from tripai import i18n
+from tripai.agents import llm_cache
 from tripai.agents.dna_chat import DnaChatResult, chat_dna
 from tripai.agents.explain import explain, template_why
 from tripai.agents.fit import fit, fit_engine
@@ -91,6 +93,17 @@ def create_app(
     store = store or MemoryStore()
 
     app = FastAPI(title="TripAI", version="0.1.0")
+    _inner_lifespan = app.router.lifespan_context
+
+    @asynccontextmanager
+    async def _llm_lifespan(a: FastAPI):
+        try:
+            async with _inner_lifespan(a) as state:
+                yield state
+        finally:
+            await llm_cache.drain(timeout=3.0)  # let late LLM answers land, then cancel cleanly
+
+    app.router.lifespan_context = _llm_lifespan
     key = internal_key()
     require_key_when_deployed(key)
     app.add_middleware(LanguageMiddleware)  # Accept-Language / ?lang= -> i18n context

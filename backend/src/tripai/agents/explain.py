@@ -279,7 +279,7 @@ async def explain(
         return template_why(rec, interests, lg)
 
     try:
-        return await llm_cache.within(from_llm(), late)
+        return await llm_cache.within(key, from_llm, late)
     except Exception as exc:  # noqa: BLE001 - never break ranking on LLM trouble
         log.warning("explain agent failed for %s: %s", rec.id, exc)
         return template_why(rec, interests, lg)
