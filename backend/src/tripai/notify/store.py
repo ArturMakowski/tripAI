@@ -347,9 +347,9 @@ class SupabaseNotifyStore(MemoryNotifyStore):
         return out
 
     def user_ids(self) -> list[str]:
-        """Users the daily scan visits: anyone with prefs (in-app inbox is on by default)."""
+        """Users the daily scan visits: anyone who set prefs, subscribed, watches a pick or ran a scan."""
         ids = set(super().user_ids())
-        for table in ("notification_prefs", "push_subscriptions", "saved_picks"):
+        for table in ("notification_prefs", "push_subscriptions", "saved_picks", "scan_runs"):
             rows = self._select(table, {"select": "user_id"}) or []
             ids |= {r["user_id"] for r in rows if r.get("user_id")}
         return sorted(ids)
