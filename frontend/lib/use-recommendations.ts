@@ -8,6 +8,7 @@ import { DEMO_PROFILE } from "./mock/fixtures";
 import { normalise, rerank } from "./scoring";
 import { profileKey, RECS_TTL_MS, useHydrated, useTrip } from "./store";
 import type { Weights } from "./types";
+import { pickedWindows } from "./windows-store";
 
 export function sameWeights(a: Weights | undefined | null, b: Weights | undefined | null): boolean {
   if (!a || !b) return false;
@@ -43,7 +44,7 @@ export function useRecommendations() {
     if (!hydrated || fresh) return;
     const id = ++seq.current;
     const ctrl = new AbortController();
-    const req = { profile: profile ?? DEMO_PROFILE, weights };
+    const req = { profile: profile ?? DEMO_PROFILE, weights, ...pickedWindows() };
     const single = () =>
       api.recommendations(req, ctrl.signal).then(({ data, mode }) => {
         if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "full" });
@@ -74,7 +75,7 @@ export function useRecommendations() {
     const ctrl = new AbortController();
     const current = () => useTrip.getState().recs;
     api
-      .recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights }, "full", ctrl.signal)
+      .recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights, ...pickedWindows() }, "full", ctrl.signal)
       .then(({ data, mode }) => {
         if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "full" });
       })
@@ -92,7 +93,7 @@ export function useRecommendations() {
     const ctrl = new AbortController();
     const t = setTimeout(() => {
       const id = ++seq.current;
-      api.recommendations({ profile: profile ?? DEMO_PROFILE, weights, explain_top: 0 }, ctrl.signal).then(({ data, mode }) => {
+      api.recommendations({ profile: profile ?? DEMO_PROFILE, weights, explain_top: 0, ...pickedWindows() }, ctrl.signal).then(({ data, mode }) => {
         if (id !== seq.current || mode !== "live") return; // a newer request won, or backend dropped out
         const whyById = new Map(useTrip.getState().recs.map((r) => [r.id, r.why]));
         setRecs(
