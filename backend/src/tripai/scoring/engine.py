@@ -267,8 +267,7 @@ def _overtakes(lo_c: Candidate, hi_c: Candidate, profile: TasteProfile, weights:
 
 def _w(x: float) -> str:
     """Weight as shown in a flip hint: 2 dp, decimal comma in Polish."""
-    s = f"{x:.2f}"
-    return s.replace(".", ",") if i18n.current() == "pl" else s
+    return i18n.fmt_fixed(x, 2)
 
 
 def _flip(

@@ -75,7 +75,7 @@ def test_formatters():
     assert i18n.fmt_temp(18.5, "pl") == "18,5 °C" and i18n.fmt_temp(18.0, "en") == "18 °C"
     assert i18n.fmt_dates(date(2027, 1, 14), date(2027, 1, 18), "pl") == "14–18 sty"
     assert i18n.fmt_dates(date(2026, 12, 30), date(2027, 1, 2), "pl") == "30 gru–2 sty"
-    assert i18n.fmt_day(date(2027, 5, 28), "pl") == "pt 28 maj"
+    assert i18n.fmt_day(date(2027, 5, 28), "pl") == "pt 28 maja"  # genitive
     assert [i18n.plural_pl(n, "dzień", "dni", "dni") for n in (1, 2, 5, 12, 22)] == [
         "dzień", "dni", "dni", "dni", "dni"]  # fmt: skip
     assert i18n.tag("food", "pl") == "jedzenie" and i18n.tag("food", "en") == "food"
@@ -138,7 +138,7 @@ def test_radar_labels():
     labels = [b.label for b in pl]
     assert any(lbl.startswith("Weź 2 dni wolnego (pon 9 lis, wt 10 lis) → 5 dni: sob 7 lis – śr 11 lis")
                for lbl in labels)  # fmt: skip
-    assert any(lbl.startswith("Weź 1 dzień wolnego (pt 28 maj) → 4 dni") for lbl in labels)
+    assert any(lbl.startswith("Weź 1 dzień wolnego (pt 28 maja) → 4 dni") for lbl in labels)
     assert any("dni wolnego bez urlopu" in lbl for lbl in labels)
     assert any(b.label.startswith("Take 1 day off (Fri 28 May) -> 4 days") for b in en)
     assert [b.window for b in pl] == [b.window for b in en]
@@ -215,8 +215,8 @@ def test_feedback_reasons_polish():
     res = apply_feedback(PROFILE, Weights(), {"crowds": 2, "food": 5, "disliked": ["heat"]},
                          trip_tags=["food"], trip_label="Neapol", lang="pl")  # fmt: skip
     reasons = [c.reason for c in res.diff]
-    assert "tłumy: ocena 2/5 w: Neapol" in reasons
-    assert "jedzenie: ocena 5/5 w: Neapol" in reasons
+    assert "tłumy: ocena 2/5 (Neapol)" in reasons
+    assert "jedzenie: ocena 5/5 (Neapol)" in reasons
     assert "nie spodobało Ci się: upał" in reasons
     off = apply_feedback(PROFILE.model_copy(update={"personalize": False}), Weights(),
                          {"crowds": 1}, lang="pl")  # fmt: skip
@@ -310,6 +310,38 @@ def test_notifications_written_in_saved_language(monkeypatch):
     assert c.put("/notifications/prefs", json={"lang": "en"}).json()["lang"] == "en"
 
 
+def test_scan_without_explicit_lang_keeps_saved_language(monkeypatch):
+    """Review #1: a scan with no body `lang` (only a header, or nothing) must not reset prefs."""
+    monkeypatch.setenv("TRIPAI_SCAN_MIN_INTERVAL_S", "0")
+    monkeypatch.setenv("TRIPAI_SCAN_PER_MIN", "1000")
+    from test_notify import make, scan
+
+    c, notify, _ = make()
+    assert c.put("/notifications/prefs", json={"lang": "pl"}).json()["lang"] == "pl"
+    sid = c.get("/session").json()["user_id"]
+    out = scan(c)  # no lang, no Accept-Language (-> en for the response only)
+    assert notify.get_prefs(sid).lang == "pl"
+    assert any(n["title"].startswith(("Nowe #1", "Długi weekend")) for n in out["notifications"])
+    r = c.post("/scan/run", json={"today": "2026-10-20"},
+               headers={"Accept-Language": "en-US,en;q=0.9,pl;q=0.8"})  # fmt: skip
+    assert r.status_code == 200 and notify.get_prefs(sid).lang == "pl"
+    scan(c, lang="en")  # an explicit body lang does switch it
+    assert notify.get_prefs(sid).lang == "en"
+
+
+@pytest.mark.parametrize(
+    ("answer", "level"),
+    [("około 3000 zł, luksusowo", "luxury"), ("2500 zł, komfortowo proszę", "comfort"),
+     ("1500 zł, budżetowo", "budget"), ("2000 zł, comfort", "comfort"), ("2000 zł", "standard")],
+)  # fmt: skip
+async def test_scripted_interview_understands_polish_comfort_words(answer, level):
+    turns = []
+    for a in ("jedzenie", answer, "22 stopni"):
+        turns += [ChatMessage(role="assistant", content="?"), ChatMessage(role="user", content=a)]
+    res = await interview(turns, lang="pl")
+    assert res.profile is not None and res.profile.luxury.value == level
+
+
 async def test_fit_llm_prompt_carries_language_rule():
     from pydantic_ai.messages import ToolCallPart
 
@@ -325,3 +357,12 @@ async def test_fit_llm_prompt_carries_language_rule():
 
     v = await fit(rec, PROFILE, model=FunctionModel(model_fn), engine="llm", lang="pl")
     assert v.summary == "Dobre miejsce dla Ciebie." and "Polish" in prompts[0]
+
+
+def test_budget_labels():
+    from tripai.scoring.budget_fit import budget_status
+
+    assert budget_status(1629, 1000).label == "Over budget: +629 PLN (62.9%)"
+    with i18n.using("pl"):
+        assert budget_status(1629, 1000).label == "Ponad budżet: +629 zł (62,9%)"
+        assert budget_status(900, 1000).label == "W ramach budżetu 1 000 zł"

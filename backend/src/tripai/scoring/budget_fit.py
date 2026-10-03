@@ -14,6 +14,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from tripai import i18n
 from tripai.models import TasteProfile, Weights
 from tripai.scoring.engine import candidate_id, inputs_hash, interest_filter, rank
 from tripai.scoring.types import Candidate, RankedRecommendation
@@ -38,11 +39,13 @@ def budget_status(total: float, budget: float) -> BudgetStatus:
     over = total - budget
     pct = round(100 * over / budget, 1) if budget > 0 else 0.0
     if over <= 0:
-        status, label = "within", f"Within your {budget:.0f} PLN budget"
+        status, label = "within", i18n.t("budget.within", amount=i18n.fmt_pln(budget))
     elif total <= budget * (1 + TOLERANCE):
-        status, label = "slightly_over", f"Slightly over budget: +{over:.0f} PLN ({pct:g}%)"
+        status, label = "slightly_over", i18n.t("budget.slightly", amount=i18n.fmt_pln(over),
+                                                pct=i18n.fmt_dec(pct))  # fmt: skip
     else:
-        status, label = "over", f"Over budget: +{over:.0f} PLN ({pct:g}%)"
+        status, label = "over", i18n.t("budget.over", amount=i18n.fmt_pln(over),
+                                       pct=i18n.fmt_dec(pct))  # fmt: skip
     return BudgetStatus(
         status=status,
         budget_pln=budget,

@@ -84,7 +84,8 @@ def using(lang: Lang) -> Iterator[None]:
 
 MONTHS = {
     "en": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "pl": ["sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru"],
+    # day-month contexts ("28 maja"): May is not abbreviated, so it takes the genitive
+    "pl": ["sty", "lut", "mar", "kwi", "maja", "cze", "lip", "sie", "wrz", "paź", "lis", "gru"],
 }
 MONTHS_LONG = {
     "en": ["January", "February", "March", "April", "May", "June", "July", "August",
@@ -129,6 +130,12 @@ def fmt_int(v: float, lang: str | None = None) -> str:
 def fmt_dec(v: float, lang: str | None = None, digits: int = 1) -> str:
     """18.5 -> '18.5' / '18,5'; 18.0 -> '18'."""
     s = f"{round(v, digits):g}"
+    return s.replace(".", ",") if pick(lang) == "pl" else s
+
+
+def fmt_fixed(v: float, digits: int = 2, lang: str | None = None) -> str:
+    """Fixed decimals: 0.21 -> '0.21' / '0,21' (weights in reasons and flip hints)."""
+    s = f"{v:.{digits}f}"
     return s.replace(".", ",") if pick(lang) == "pl" else s
 
 
@@ -365,9 +372,9 @@ MESSAGES: dict[str, dict[str, str]] = {
         "pl": "Personalizacja jest wyłączona (Twój wybór w DNA Podróżnika), więc opinia nie "
         "zmienia Twojego profilu ani wag.",
     },
-    "fb.loved": {"en": "you loved {tag} on {trip}", "pl": "{tag} bardzo Ci się podobało w: {trip}"},
+    "fb.loved": {"en": "you loved {tag} on {trip}", "pl": "{tag}: bardzo Ci się podobało ({trip})"},
     "fb.disliked": {"en": "you disliked {tag}", "pl": "nie spodobało Ci się: {tag}"},
-    "fb.rated": {"en": "{what} rated {r}/5 on {trip}", "pl": "{what}: ocena {r}/5 w: {trip}"},
+    "fb.rated": {"en": "{what} rated {r}/5 on {trip}", "pl": "{what}: ocena {r}/5 ({trip})"},
     "fb.crowds_one": {"en": "crowds rated 1/5", "pl": "tłumy oceniono na 1/5"},
     "fb.weather_narrow": {
         "en": "weather rated {r}/5 at {temp}",
@@ -377,7 +384,17 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "re-normalised after another weight changed",
         "pl": "przeliczona po zmianie innej wagi",
     },
-    "fb.this_trip": {"en": "this trip", "pl": "tym wyjeździe"},
+    "fb.this_trip": {"en": "this trip", "pl": "ten wyjazd"},
+    # ---- budget (two-phase /recommendations)
+    "budget.within": {"en": "Within your {amount} budget", "pl": "W ramach budżetu {amount}"},
+    "budget.slightly": {
+        "en": "Slightly over budget: +{amount} ({pct}%)",
+        "pl": "Nieco ponad budżet: +{amount} ({pct}%)",
+    },
+    "budget.over": {
+        "en": "Over budget: +{amount} ({pct}%)",
+        "pl": "Ponad budżet: +{amount} ({pct}%)",
+    },
     # ---- notifications
     "n.cost": {
         "en": "{total} total (flight {flight} + hotel {hotel}), score {pts}/100",

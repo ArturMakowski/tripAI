@@ -114,6 +114,12 @@ _KEYWORDS = {
     "design": ["design"],
     "festivals": ["festival", "festiwal", "concert", "koncert"],
 }
+_LUXURY_WORDS = {  # checked in this order (en + pl stems)
+    LuxuryLevel.luxury: ["luxury", "luksus"],
+    LuxuryLevel.comfort: ["comfort", "komfort", "wygod"],
+    LuxuryLevel.budget: ["budget", "budżet", "budzet", "tanio", "cheap"],
+    LuxuryLevel.standard: ["standard"],
+}
 _DISLIKES = {
     "crowds": ["crowd", "tłum", "tlum"],
     "heat": ["heat", "upał", "upal", "too hot"],
@@ -137,7 +143,10 @@ def _rule_based(messages: list[ChatMessage], user_id: str) -> InterviewResult:
     else:
         amounts = (int(re.sub(r"\s", "", x)) for x in re.findall(r"\d[\d ]*\d", text))
         budget = next((a for a in amounts if a >= 300), None)
-    luxury = next((lv for lv in LuxuryLevel if lv.value in text), LuxuryLevel.standard)
+    luxury = next(
+        (lv for lv, words in _LUXURY_WORDS.items() if any(w in text for w in words)),
+        LuxuryLevel.standard,
+    )
     lo, hi = 15.0, 26.0
     temps = [int(t) for t in re.findall(r"(-?\d{1,2})\s*(?:°|stopni|deg|c\b)", text)]
     if temps:

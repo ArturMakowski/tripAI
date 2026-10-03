@@ -25,11 +25,11 @@ You explain one travel recommendation to the user in 2-3 short, warm sentences (
 Rules:
 - Use ONLY facts from the EVIDENCE JSON. Never invent or compute new numbers: every number you
   write must appear verbatim in the evidence (prices, °C, crowds, dates, deltas, score points).
-- Write numbers exactly as their `display` strings are given (e.g. "1–3 Jan", "33% of peak",
-  "1014 PLN", "15 °C"). Never write ISO dates or raw 0-1 indexes.
+- Write numbers exactly as their `display` strings are given (dates, prices with their currency
+  word, °C, "% of peak"). Never write ISO dates or raw 0-1 indexes.
 - Mention why this place AND why these dates (e.g. cheaper than peak season, fewer crowds).
 - Mention which of the user's interests it matches, using the tag/highlight words given.
-- No markdown, no lists, no emojis. Prices in PLN."""
+- No markdown, no lists, no emojis. Prices as in the display strings."""
 
 
 def numbers_in(text: str) -> list[str]:

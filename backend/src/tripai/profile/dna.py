@@ -139,9 +139,7 @@ def _swiped(cards: list[str], a: dict[str, int], given: set[str]) -> str:
 
 
 def _v(x: float) -> str:
-    """0.21 / 0,21 (2 dp, decimal comma in Polish)."""
-    s = f"{x:.2f}"
-    return s.replace(".", ",") if i18n.current() == "pl" else s
+    return i18n.fmt_fixed(x, 2)
 
 
 DNA_OWNED_DISLIKES = {"crowds"}
