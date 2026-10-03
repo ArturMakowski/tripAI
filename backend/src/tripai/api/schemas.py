@@ -65,5 +65,7 @@ class ApiRecommendation(RankedRecommendation):
     (Proposed for the shared contract; until then it lives here and in frontend types.)"""
 
     budget: BudgetStatus | None = None  # None when the profile has no budget_pln
+    # issue #18: total - budget when positive, 0 within budget, None without a budget
+    over_budget_pln: float | None = None
     phase: Phase = "full"  # "fast": cache/Travelpayouts/seed estimates; "full": final answer
     refined: bool = False  # flight/hotel verified with exact-date Google prices (SerpApi)

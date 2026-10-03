@@ -313,7 +313,8 @@ because the user chose that trip and the alert is about its price.
 - the seed, including the climate snapshot
 
 There is no exact-date refinement and no LLM: `why` comes from the template and `fit` is null. `phase=full`, the default, is the final answer.
-Every recommendation has `phase` and `refined`. `refined` means the flight and hotel were checked for the exact dates on Google (SerpApi).
+`GET /health` advertises `"phases": ["fast", "full"]`; the frontend (#15) sends `?phase=` only when it sees that (issue #18).
+Every recommendation has `phase`, `refined` and `over_budget_pln` (total − budget when positive, 0 within budget, null without a budget). `refined` means the flight and hotel were checked for the exact dates on Google (SerpApi).
 The frontend should render `fast` and swap in `full` when it arrives. The fast phase persists nothing. With `TRIPAI_LIVE_FALLBACK=1`
 and a cold cache where every city misses the deadline, the fast answer is labelled `FixtureProvider` sample data.
 

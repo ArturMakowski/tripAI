@@ -91,6 +91,8 @@ def create_app(
             "jev": f"typesafe:{jev_model_name()}" if jev_enabled() else None,
             "fit_engine": fit_engine(),
             "scoring_version": SCORING_VERSION,
+            # issue #18: the frontend sends ?phase=fast|full only when this is advertised
+            "phases": ["fast", "full"],
         }
 
     @app.get("/cities")
@@ -170,7 +172,11 @@ def create_app(
         ranked = rank_within_budget(candidates, profile, weights, limit=req.limit)
         recs = [
             ApiRecommendation(
-                **r.model_dump(), budget=status, phase=phase, refined=not fast and _refined(r)
+                **r.model_dump(),
+                budget=status,
+                over_budget_pln=None if status is None else status.overage_pln,
+                phase=phase,
+                refined=not fast and _refined(r),
             )
             for r, status in ranked
         ]

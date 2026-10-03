@@ -303,3 +303,14 @@ def test_fast_phase_does_not_persist():
 def test_status_uses_exact_precision():
     assert budget_status(1000.4, 1000).status == "slightly_over"  # was labelled within
     assert budget_status(1000.0, 1000).status == "within"
+
+
+def test_health_advertises_phases_and_recs_carry_over_budget_pln():
+    """Issue #18: the frontend only sends ?phase= when /health lists both phases."""
+    c = TestClient(create_app())
+    assert c.get("/health").json()["phases"] == ["fast", "full"]
+    over = post(500)
+    assert [r["over_budget_pln"] for r in over] == [r["total_cost_pln"] - 500 for r in over]
+    fits = [r for r in post(1000) if r["budget"]["status"] == "within"]
+    assert fits and all(r["over_budget_pln"] == 0 for r in fits)
+    assert post(None)[0]["over_budget_pln"] is None
