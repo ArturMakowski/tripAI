@@ -361,3 +361,32 @@ Agentic E2E tests for the critical demo flows, run on the live Railway app at iP
 agent model OpenAI `gpt-6-luna`). Replays are committed, so reruns mostly skip model calls. Tests never trigger SerpApi:
 `/recommendations` is forced to `phase=fast` except in tests tagged `@live`.
 `cd e2e && npm install && npx playwright install chromium && npm run e2e` (or `npm run e2e:prod` / `npm run e2e:local`). See [e2e/README.md](e2e/README.md).
+
+## Trip details (T5c): which flight, which hotel, how to get there
+
+Fills `Recommendation.flight` (`FlightDetails`) and `Recommendation.hotel` (`HotelDetails`), as described in `docs/TRIP_DETAILS.md`.
+The core rule: **what is shown is what was priced.**
+
+**Refined cards (top N, full phase).**
+- **Flight:** `flight_cost_pln` is Google's cheapest listed itinerary for the exact dates, and that same itinerary is shown:
+  airline, flight numbers, local times, duration, stops and the Google Flights link. Round-trip searches only list the outbound
+  legs, so `inbound` stays empty rather than costing a second, per-itinerary SerpApi search.
+- **Hotel:** `hotel_cost_pln` is a **real property**: the offer at the luxury quantile (nearest rank), priced at its own
+  total stay. That property is shown with name, address (when Google gives it), GPS, rating, reviews, stars, link and photo.
+- **Distance:** `distance_to_center_km` is a straight-line haversine to the city point in `data/cities.json`.
+- **Airport pin:** comes from `data/airports.json` (OurAirports) for the airport the priced flight lands at. That's Google's itinerary, else
+  the Travelpayouts/Explore one. It is never the city's main code by default: an unknown landing means no pin and no OSRM.
+- **Transfers:** Google's own travel times from that airport. A place only counts if it is Google's name for the landing airport, or carries
+  a word distinctive to it (not the city name, and not shared with the city's other airports). So "Milan Linate" is never shown for a
+  Bergamo landing.
+- **Hotel search:** queried as "City, Country". Offers more than 75 km from the city centre are dropped: the recorded "Naples hotels"
+  search returned Naples, Florida. If Google
+  gave none, the driving time comes from **OSRM** (`tripai.connectors.osrm`). That's cached for about 10 years per pair, limited
+  to 1 request per second process-wide, has a 5 s cap, and is labelled "by car, estimate". Public transport is never invented.
+
+**Cheap pass / `phase=fast`.** Only the Travelpayouts airline code, stops, price and Aviasales link of the fare that was used
+(times null), or Explore's airline. A month-median price has no single itinerary, so `flight` is null. `hotel` is null until
+refined.
+
+**Cost.** No extra SerpApi calls: everything comes from the searches pricing already makes. Fixture-served details are tagged
+`[recorded fixture]` / `[synthetic fixture]` like evidence.

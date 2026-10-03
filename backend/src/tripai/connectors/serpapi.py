@@ -197,6 +197,20 @@ class SerpApiExplore(_SerpApi):
 # ---------------------------------------------------------------- flights
 
 
+class FlightSegment(BaseModel):
+    """One leg of an itinerary as Google Flights lists it (times are local, "YYYY-MM-DD HH:MM")."""
+
+    airline: str
+    flight_number: str | None = None
+    from_iata: str | None = None
+    from_name: str | None = None
+    to_iata: str | None = None
+    to_name: str | None = None
+    depart: str | None = None
+    arrive: str | None = None
+    duration_min: int | None = None
+
+
 class FlightOption(BaseModel):
     price: float | None
     airlines: list[str]
@@ -205,6 +219,7 @@ class FlightOption(BaseModel):
     total_duration_min: int | None = None
     departure_time: str | None = None  # local "YYYY-MM-DD HH:MM"
     arrival_time: str | None = None
+    legs: list[FlightSegment] = Field(default_factory=list)  # outbound legs (round trips too)
 
 
 class FlightPriceInsights(SourcedResult):
@@ -264,6 +279,20 @@ def _option(item: dict) -> FlightOption:
         total_duration_min=item.get("total_duration"),
         departure_time=(legs[0].get("departure_airport") or {}).get("time") if legs else None,
         arrival_time=(legs[-1].get("arrival_airport") or {}).get("time") if legs else None,
+        legs=[
+            FlightSegment(
+                airline=leg.get("airline", "?"),
+                flight_number=leg.get("flight_number"),
+                from_iata=(leg.get("departure_airport") or {}).get("id"),
+                from_name=(leg.get("departure_airport") or {}).get("name"),
+                to_iata=(leg.get("arrival_airport") or {}).get("id"),
+                to_name=(leg.get("arrival_airport") or {}).get("name"),
+                depart=(leg.get("departure_airport") or {}).get("time"),
+                arrive=(leg.get("arrival_airport") or {}).get("time"),
+                duration_min=leg.get("duration"),
+            )
+            for leg in legs
+        ],
     )
 
 
@@ -344,6 +373,16 @@ class SerpApiFlights(_SerpApi):
 # ---------------------------------------------------------------- hotels
 
 
+class Transportation(BaseModel):
+    type: str  # Google's label: "Taxi" | "Public transport" | "Walking" | ...
+    duration: str | None = None  # e.g. "52 min", "1 hr 5 min"
+
+
+class NearbyPlace(BaseModel):
+    name: str
+    transportations: list[Transportation] = Field(default_factory=list)
+
+
 class HotelOffer(BaseModel):
     name: str
     type: str | None = None  # "hotel" | "vacation rental"
@@ -356,6 +395,9 @@ class HotelOffer(BaseModel):
     lon: float | None = None
     link: str | None = None
     property_token: str | None = None
+    address: str | None = None
+    thumbnail: str | None = None
+    nearby: list[NearbyPlace] = Field(default_factory=list)  # Google's travel times to places
 
 
 class HotelSearchResult(SourcedResult):
@@ -437,6 +479,20 @@ def parse_hotels(
                 lon=gps.get("longitude"),
                 link=p.get("link"),
                 property_token=p.get("property_token"),
+                address=p.get("address"),
+                thumbnail=((p.get("images") or [{}])[0] or {}).get("thumbnail"),
+                nearby=[
+                    NearbyPlace(
+                        name=n["name"],
+                        transportations=[
+                            Transportation(type=t["type"], duration=t.get("duration"))
+                            for t in n.get("transportations") or []
+                            if t.get("type")
+                        ],
+                    )
+                    for n in p.get("nearby_places") or []
+                    if n.get("name")
+                ],
             )
         )
     return HotelSearchResult(

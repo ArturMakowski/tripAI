@@ -451,6 +451,8 @@ def _rank(
                 tags=c.tags,
                 temp_c=c.temp_c,
                 crowd=c.crowd,
+                flight=c.flight,
+                hotel=c.hotel,
             )
         )
     return out

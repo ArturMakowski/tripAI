@@ -1,0 +1,427 @@
+{
+  "meta": {
+    "source": "ourairports",
+    "fetched_at": "2026-10-03T16:34:08+00:00",
+    "generator": "uv run python -m tripai.seed.airports",
+    "url": "https://davidmegginson.github.io/ourairports-data/airports.csv",
+    "licence": "Public Domain (OurAirports)"
+  },
+  "airports": [
+    {
+      "iata": "AGP",
+      "name": "Málaga-Costa del Sol Airport",
+      "lat": 36.6749,
+      "lon": -4.49911,
+      "municipality": "Málaga",
+      "country": "ES"
+    },
+    {
+      "iata": "AMS",
+      "name": "Amsterdam Airport Schiphol",
+      "lat": 52.3086,
+      "lon": 4.76389,
+      "municipality": "Amsterdam",
+      "country": "NL"
+    },
+    {
+      "iata": "ARN",
+      "name": "Stockholm-Arlanda Airport",
+      "lat": 59.64849,
+      "lon": 17.92883,
+      "municipality": "Stockholm",
+      "country": "SE"
+    },
+    {
+      "iata": "ATH",
+      "name": "Athens Eleftherios Venizelos International Airport",
+      "lat": 37.9364,
+      "lon": 23.9445,
+      "municipality": "Spata-Artemida",
+      "country": "GR"
+    },
+    {
+      "iata": "BCN",
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "lat": 41.2971,
+      "lon": 2.07846,
+      "municipality": "Barcelona",
+      "country": "ES"
+    },
+    {
+      "iata": "BER",
+      "name": "Berlin Brandenburg Airport",
+      "lat": 52.36174,
+      "lon": 13.50234,
+      "municipality": "Berlin",
+      "country": "DE"
+    },
+    {
+      "iata": "BGY",
+      "name": "Il Caravaggio International Airport",
+      "lat": 45.66936,
+      "lon": 9.70885,
+      "municipality": "Orio al Serio (BG)",
+      "country": "IT"
+    },
+    {
+      "iata": "BUD",
+      "name": "Budapest Liszt Ferenc International Airport",
+      "lat": 47.43018,
+      "lon": 19.26239,
+      "municipality": "Budapest",
+      "country": "HU"
+    },
+    {
+      "iata": "BVA",
+      "name": "Beauvais-Tillé airport",
+      "lat": 49.4544,
+      "lon": 2.11278,
+      "municipality": "Beauvais",
+      "country": "FR"
+    },
+    {
+      "iata": "CDG",
+      "name": "Charles de Gaulle International Airport",
+      "lat": 49.00896,
+      "lon": 2.55412,
+      "municipality": "Paris (Roissy-en-France, Val-d'Oise)",
+      "country": "FR"
+    },
+    {
+      "iata": "CIA",
+      "name": "Ciampino–G. B. Pastine International Airport",
+      "lat": 41.79877,
+      "lon": 12.59533,
+      "municipality": "Rome",
+      "country": "IT"
+    },
+    {
+      "iata": "CPH",
+      "name": "Copenhagen Kastrup Airport",
+      "lat": 55.6179,
+      "lon": 12.656,
+      "municipality": "Copenhagen",
+      "country": "DK"
+    },
+    {
+      "iata": "CTA",
+      "name": "Catania-Fontanarossa Airport",
+      "lat": 37.4668,
+      "lon": 15.0664,
+      "municipality": "Catania",
+      "country": "IT"
+    },
+    {
+      "iata": "DBV",
+      "name": "Dubrovnik Ruđer Bošković Airport",
+      "lat": 42.56225,
+      "lon": 18.26554,
+      "municipality": "Dubrovnik",
+      "country": "HR"
+    },
+    {
+      "iata": "DUB",
+      "name": "Dublin Airport",
+      "lat": 53.42871,
+      "lon": -6.26212,
+      "municipality": "Dublin",
+      "country": "IE"
+    },
+    {
+      "iata": "EIN",
+      "name": "Eindhoven Airport",
+      "lat": 51.4501,
+      "lon": 5.37453,
+      "municipality": "Eindhoven",
+      "country": "NL"
+    },
+    {
+      "iata": "FCO",
+      "name": "Rome–Fiumicino Leonardo da Vinci International Airport",
+      "lat": 41.80453,
+      "lon": 12.252,
+      "municipality": "Rome",
+      "country": "IT"
+    },
+    {
+      "iata": "FNC",
+      "name": "Cristiano Ronaldo International Airport",
+      "lat": 32.69781,
+      "lon": -16.77461,
+      "municipality": "Funchal",
+      "country": "PT"
+    },
+    {
+      "iata": "GDN",
+      "name": "Gdańsk Lech Wałęsa Airport",
+      "lat": 54.3776,
+      "lon": 18.4662,
+      "municipality": "Gdańsk",
+      "country": "PL"
+    },
+    {
+      "iata": "HER",
+      "name": "Heraklion International Nikos Kazantzakis Airport",
+      "lat": 35.3397,
+      "lon": 25.1803,
+      "municipality": "Heraklion",
+      "country": "GR"
+    },
+    {
+      "iata": "INN",
+      "name": "Innsbruck Airport",
+      "lat": 47.2602,
+      "lon": 11.344,
+      "municipality": "Innsbruck",
+      "country": "AT"
+    },
+    {
+      "iata": "KEF",
+      "name": "Keflavik International Airport",
+      "lat": 63.985,
+      "lon": -22.6056,
+      "municipality": "Reykjavík",
+      "country": "IS"
+    },
+    {
+      "iata": "KRK",
+      "name": "Kraków John Paul II International Airport",
+      "lat": 50.0777,
+      "lon": 19.7848,
+      "municipality": "Balice",
+      "country": "PL"
+    },
+    {
+      "iata": "KTW",
+      "name": "Katowice Wojciech Korfanty International Airport",
+      "lat": 50.47601,
+      "lon": 19.0807,
+      "municipality": "Katowice",
+      "country": "PL"
+    },
+    {
+      "iata": "LCA",
+      "name": "Larnaca International Airport",
+      "lat": 34.8751,
+      "lon": 33.6249,
+      "municipality": "Larnaca",
+      "country": "CY"
+    },
+    {
+      "iata": "LGW",
+      "name": "London Gatwick Airport",
+      "lat": 51.14874,
+      "lon": -0.18574,
+      "municipality": "London",
+      "country": "GB"
+    },
+    {
+      "iata": "LHR",
+      "name": "London Heathrow Airport",
+      "lat": 51.47075,
+      "lon": -0.45991,
+      "municipality": "London",
+      "country": "GB"
+    },
+    {
+      "iata": "LIN",
+      "name": "Milano Linate Airport",
+      "lat": 45.4451,
+      "lon": 9.27674,
+      "municipality": "Segrate (MI)",
+      "country": "IT"
+    },
+    {
+      "iata": "LIS",
+      "name": "Lisbon Humberto Delgado Airport",
+      "lat": 38.7813,
+      "lon": -9.13592,
+      "municipality": "Lisbon",
+      "country": "PT"
+    },
+    {
+      "iata": "LTN",
+      "name": "London Luton Airport",
+      "lat": 51.8747,
+      "lon": -0.36833,
+      "municipality": "Luton, Luton",
+      "country": "GB"
+    },
+    {
+      "iata": "MAD",
+      "name": "Adolfo Suárez Madrid–Barajas Airport",
+      "lat": 40.49341,
+      "lon": -3.57225,
+      "municipality": "Madrid",
+      "country": "ES"
+    },
+    {
+      "iata": "MLA",
+      "name": "Malta International Airport",
+      "lat": 35.84593,
+      "lon": 14.49155,
+      "municipality": "Valletta",
+      "country": "MT"
+    },
+    {
+      "iata": "MUC",
+      "name": "Munich Airport",
+      "lat": 48.3538,
+      "lon": 11.7861,
+      "municipality": "Munich",
+      "country": "DE"
+    },
+    {
+      "iata": "MXP",
+      "name": "Milan Malpensa International Airport",
+      "lat": 45.6306,
+      "lon": 8.72811,
+      "municipality": "Ferno (VA)",
+      "country": "IT"
+    },
+    {
+      "iata": "NAP",
+      "name": "Naples International Airport",
+      "lat": 40.886,
+      "lon": 14.2908,
+      "municipality": "Napoli",
+      "country": "IT"
+    },
+    {
+      "iata": "NCE",
+      "name": "Nice-Côte d'Azur Airport",
+      "lat": 43.6584,
+      "lon": 7.21587,
+      "municipality": "Nice, Alpes-Maritimes",
+      "country": "FR"
+    },
+    {
+      "iata": "OPO",
+      "name": "Francisco de Sá Carneiro Airport",
+      "lat": 41.2481,
+      "lon": -8.68139,
+      "municipality": "Porto",
+      "country": "PT"
+    },
+    {
+      "iata": "ORY",
+      "name": "Paris-Orly Airport",
+      "lat": 48.7295,
+      "lon": 2.35896,
+      "municipality": "Paris (Orly, Val-de-Marne)",
+      "country": "FR"
+    },
+    {
+      "iata": "OSL",
+      "name": "Oslo-Gardermoen International Airport",
+      "lat": 60.1939,
+      "lon": 11.1004,
+      "municipality": "Oslo (Gardermoen)",
+      "country": "NO"
+    },
+    {
+      "iata": "PFO",
+      "name": "Paphos International Airport",
+      "lat": 34.718,
+      "lon": 32.4857,
+      "municipality": "Paphos",
+      "country": "CY"
+    },
+    {
+      "iata": "PMI",
+      "name": "Palma de Mallorca Airport",
+      "lat": 39.5517,
+      "lon": 2.73881,
+      "municipality": "Palma de Mallorca",
+      "country": "ES"
+    },
+    {
+      "iata": "PRG",
+      "name": "Václav Havel Airport Prague",
+      "lat": 50.10087,
+      "lon": 14.25991,
+      "municipality": "Prague",
+      "country": "CZ"
+    },
+    {
+      "iata": "SPU",
+      "name": "Split Saint Jerome Airport",
+      "lat": 43.5389,
+      "lon": 16.298,
+      "municipality": "Split",
+      "country": "HR"
+    },
+    {
+      "iata": "STN",
+      "name": "London Stansted Airport",
+      "lat": 51.885,
+      "lon": 0.235,
+      "municipality": "London, Essex",
+      "country": "GB"
+    },
+    {
+      "iata": "TFN",
+      "name": "Tenerife Norte-Ciudad de La Laguna Airport",
+      "lat": 28.48275,
+      "lon": -16.34171,
+      "municipality": "Tenerife",
+      "country": "ES"
+    },
+    {
+      "iata": "TFS",
+      "name": "Tenerife Sur Airport",
+      "lat": 28.0445,
+      "lon": -16.5725,
+      "municipality": "Tenerife",
+      "country": "ES"
+    },
+    {
+      "iata": "TIA",
+      "name": "Tirana International Airport Mother Teresa",
+      "lat": 41.4147,
+      "lon": 19.7206,
+      "municipality": "Rinas",
+      "country": "AL"
+    },
+    {
+      "iata": "TSF",
+      "name": "Treviso Airport",
+      "lat": 45.6484,
+      "lon": 12.1944,
+      "municipality": "Treviso (TV)",
+      "country": "IT"
+    },
+    {
+      "iata": "VCE",
+      "name": "Venice Marco Polo Airport",
+      "lat": 45.5053,
+      "lon": 12.3519,
+      "municipality": "Venezia (VE)",
+      "country": "IT"
+    },
+    {
+      "iata": "VIE",
+      "name": "Vienna International Airport",
+      "lat": 48.1103,
+      "lon": 16.5697,
+      "municipality": "Vienna",
+      "country": "AT"
+    },
+    {
+      "iata": "VLC",
+      "name": "Valencia Airport",
+      "lat": 39.48916,
+      "lon": -0.48096,
+      "municipality": "Valencia",
+      "country": "ES"
+    },
+    {
+      "iata": "WAW",
+      "name": "Warsaw Chopin Airport",
+      "lat": 52.1657,
+      "lon": 20.9671,
+      "municipality": "Warsaw",
+      "country": "PL"
+    }
+  ]
+}

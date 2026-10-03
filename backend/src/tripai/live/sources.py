@@ -19,6 +19,7 @@ SOURCES: dict[str, tuple[str, ...]] = {
     "serpapi": ("SERPAPI_API_KEY",),
     "serper": ("SERPER_API_KEY",),
     "open_meteo": (),
+    "osrm": (),
     "gcal": ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"),
 }
 ALIASES = {"open-meteo": "open_meteo", "openmeteo": "open_meteo", "google_calendar": "gcal"}
@@ -28,6 +29,7 @@ EVIDENCE_PREFIX = {
     "serpapi:": "serpapi",
     "serper:": "serper",
     "open-meteo:": "open_meteo",
+    "osrm:": "osrm",
     "gcal:": "gcal",
 }
 RECORDED_TAG = " [recorded fixture]"
