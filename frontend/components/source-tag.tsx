@@ -41,11 +41,11 @@ export function SourceTag({
     ? "inline-flex max-w-full items-center gap-1 rounded-full bg-paper-deep px-2 py-0.5 font-sans text-xs text-ink-soft"
     : "inline-flex items-center gap-1 font-sans text-xs text-muted-foreground";
   return e.url ? (
-    <a data-tour="source" href={e.url} target="_blank" rel="noreferrer" className={cn(cls, "underline-offset-2 hover:text-pine hover:underline", className)} title={title}>
+    <a href={e.url} target="_blank" rel="noreferrer" className={cn(cls, "underline-offset-2 hover:text-pine hover:underline", className)} title={title}>
       {inner}
     </a>
   ) : (
-    <span data-tour="source" className={cn(cls, className)} title={title}>
+    <span className={cn(cls, className)} title={title}>
       {inner}
     </span>
   );

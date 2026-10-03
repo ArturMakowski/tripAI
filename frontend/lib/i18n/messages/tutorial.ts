@@ -33,7 +33,6 @@ export const en = {
   },
   art: {
     thatsMe: "That’s me",
-    notMe: "Not me",
     card: "I love discovering places I don’t know yet.",
     month: "May 2027",
     weekdays: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
@@ -119,7 +118,6 @@ export const pl: Shape<typeof en> = {
   },
   art: {
     thatsMe: "To ja",
-    notMe: "Nie ja",
     card: "Lubię odkrywać miejsca, których jeszcze nie znam.",
     month: "Maj 2027",
     weekdays: ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"],

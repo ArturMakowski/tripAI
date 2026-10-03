@@ -161,6 +161,7 @@ export default function ReceiptPage() {
 
   // Rank-independent counterfactuals come from the scorer; the runner-up follows the live ranking.
   const counterfactuals = rec.counterfactuals.filter((c) => c.kind !== "runner_up");
+  const compareCount = counterfactuals.length + (rival ? 1 : 0) + (typical ? 1 : 0);
   // The scorer's flip is about a specific neighbour at specific weights: only show it while both still hold.
   const scorerFlipValid = !!rec.flip && scoredAtCurrentWeights && rival?.id === rec.flip.rival_id;
   const flipHi = rank === 0 ? rec.city : rival?.city;
@@ -212,7 +213,7 @@ export default function ReceiptPage() {
         {rec.fit && <FitBadge fit={rec.fit} />}
 
         <section className="receipt-edge mt-3 bg-card px-4 pt-3 pb-7 font-mono shadow-soft">
-          <MoneyLines rec={rec} nights={nightsText} idFor={ev} />
+          <MoneyLines rec={rec} nights={nightsText} idFor={ev} collapseSources />
         </section>
 
         <section className="mt-4 rounded-3xl border border-line bg-card px-4 py-3 shadow-soft" aria-label={t.stars.overall}>
@@ -259,8 +260,8 @@ export default function ReceiptPage() {
           )}
           {/* Comparisons hold every number with a % or "pkt" (round 3: none above the fold):
               the typical-price chip, the runner-up, and the scorer's counterfactuals. */}
-          {(counterfactuals.length + (rival ? 1 : 0) + (typical ? 1 : 0)) > 0 && (
-            <Disclosure title={r.compareTitle} count={counterfactuals.length + (rival ? 1 : 0) + (typical ? 1 : 0)}>
+          {compareCount > 0 && (
+            <Disclosure title={r.compareTitle} count={compareCount}>
               {typical && baseline && (
                 <p className="mb-1">
                   <span id={ev(baseline)} className="rounded-full">
@@ -268,17 +269,19 @@ export default function ReceiptPage() {
                   </span>
                 </p>
               )}
-          {rival && (
-            <div className="font-sans">
-              <Compare
-                subject={rec.city}
-                label={`${rank === 0 ? r.runnerUp : `#${rival.rank}`}: ${rival.city}, ${fmt.range(rival.window)}`}
-                pts={(rec.score.total - rival.score.total) * 100}
-                pln={recEstimate || moneyOf(rival).status === "estimate" ? null : rival.total_cost_pln - rec.total_cost_pln}
-              />
-            </div>
-          )}
-              {!scoredAtCurrentWeights && counterfactuals.length > 0 && <p className="mb-1 text-xs text-muted-foreground">{r.refreshNote}</p>}
+              {rival && (
+                <div className="font-sans">
+                  <Compare
+                    subject={rec.city}
+                    label={`${rank === 0 ? r.runnerUp : `#${rival.rank}`}: ${rival.city}, ${fmt.range(rival.window)}`}
+                    pts={(rec.score.total - rival.score.total) * 100}
+                    pln={recEstimate || moneyOf(rival).status === "estimate" ? null : rival.total_cost_pln - rec.total_cost_pln}
+                  />
+                </div>
+              )}
+              {!scoredAtCurrentWeights && counterfactuals.length > 0 && (
+                <p className="mb-1 text-xs text-muted-foreground">{r.refreshNote}</p>
+              )}
               {counterfactuals.map((c) => (
                 <Compare
                   key={c.kind}

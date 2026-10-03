@@ -7,7 +7,6 @@ export const en = {
   loading: "Loading…",
   notFound: "Trip not found. Back to trips.",
   backToTrips: "Back to trips",
-  rankOf: (rank: number, total: number) => `#${rank} of ${total}`,
   nights: (n: number) => `${n} ${n === 1 ? "night" : "nights"}`,
   /** chip under the AI-written "why" */
   aiChip: "AI-written · sourced",
@@ -98,7 +97,6 @@ export const pl: Shape<typeof en> = {
   loading: "Ładowanie…",
   notFound: "Nie znaleziono wyjazdu. Wróć do listy.",
   backToTrips: "Wróć do wyjazdów",
-  rankOf: (rank, total) => `#${rank} z ${total}`,
   nights: (n) => `${n} ${plural("pl", n, { one: "noc", few: "noce", many: "nocy", other: "nocy" })}`,
   aiChip: "Tekst AI · ze źródeł",
   whyTitle: "Dlaczego teraz",

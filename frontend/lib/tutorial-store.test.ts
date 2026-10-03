@@ -77,6 +77,7 @@ describe("routing", () => {
   it("opens the intro once, after the welcome screen (on /onboarding), never over deep links", () => {
     expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/")).toBe(false); // the welcome screen comes first
     expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/onboarding")).toBe(true);
+    expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/onboarding/chat")).toBe(true); // "Porozmawiaj z TripAI"
     expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/trips")).toBe(false);
     expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/trips/rome-2027-01-14")).toBe(false);
     expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/windows")).toBe(false);

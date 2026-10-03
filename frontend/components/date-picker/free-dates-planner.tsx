@@ -9,6 +9,7 @@ import {
   type DateRange,
   type QuickKind,
   holidaysBetween,
+  isQuickOn,
   localBridges,
   mergeSuggestions,
   monthEnd,
@@ -67,9 +68,8 @@ function Chip({
   return (
     <button
       type="button"
-      role="radio"
       onClick={onClick}
-      aria-checked={!!done}
+      aria-pressed={!!done}
       className={cn(
         "flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors",
         done ? "border-pine bg-pine-soft text-pine-deep" : "border-line bg-card text-ink hover:border-pine/40",
@@ -83,10 +83,20 @@ function Chip({
 
 /** "This weekend · Next long weekend · Any 5 days in May": one tap adds a range. */
 /**
- * "Ten weekend · Najbliższy długi weekend · Dowolne 5 dni…" as radios (round 3): one quick filter at a
- * time, tapping the selected one clears it. Ranges drawn in the calendar stay as they are.
+ * "Ten weekend · Najbliższy długi weekend · Dowolne 5 dni…": toggle buttons of which the store keeps at
+ * most one on (round 3; aria-pressed, since tapping the pressed one clears it, which a radio can't do).
+ * Ranges drawn in the calendar stay as they are.
  */
-function QuickChips({ today, onPicked, className }: { today: string; onPicked?: (r: DateRange) => void; className?: string }) {
+function QuickChips({
+  today,
+  onPicked,
+  className,
+}: {
+  today: string;
+  /** after a tap: `on` = the filter is now selected (false = it was cleared) */
+  onPicked?: (r: DateRange, on: boolean) => void;
+  className?: string;
+}) {
   const t = useDatePickerStrings();
   const ranges = useUsableRanges();
   const pickQuick = useDates((s) => s.pickQuick);
@@ -96,30 +106,30 @@ function QuickChips({ today, onPicked, className }: { today: string; onPicked?: 
     () => mergeSuggestions(longWeekends, localBridges(today, horizonEnd)).filter((s) => s.end >= today),
     [longWeekends, today, horizonEnd],
   );
-  const on = (k: QuickKind) => ranges.some((x) => x.quick === k);
+  const on = (k: QuickKind, r: DateRange) => isQuickOn(ranges, k, r);
   const pick = (k: QuickKind, r: DateRange) => {
-    const selecting = !on(k);
+    const selecting = !on(k, r);
     pickQuick(k, r);
-    if (selecting) onPicked?.(r);
+    onPicked?.(r, selecting);
   };
   const weekend = thisWeekend(today);
   const nextLong = nextSuggestion(suggestions, today);
   const anyDays = anyDaysNextMonth(today, 5);
   return (
-    <div role="radiogroup" aria-label={t.quickTitle} className={cn("no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1", className)}>
-      <Chip onClick={() => pick("weekend", weekend)} icon={<Zap className="size-4 text-sun" aria-hidden />} done={on("weekend")}>
+    <div role="group" aria-label={t.quickTitle} className={cn("no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1", className)}>
+      <Chip onClick={() => pick("weekend", weekend)} icon={<Zap className="size-4 text-sun" aria-hidden />} done={on("weekend", weekend)}>
         {weekendIsNext(today) ? t.chipNextWeekend : t.chipThisWeekend}
       </Chip>
       {nextLong && (
         <Chip
           onClick={() => pick("long", { start: nextLong.start, end: nextLong.end })}
           icon={<Plus className="size-4 text-clay" aria-hidden />}
-          done={on("long")}
+          done={on("long", { start: nextLong.start, end: nextLong.end })}
         >
           {t.chipNextLongWeekend} · {formatDates(nextLong, t.locale)}
         </Chip>
       )}
-      <Chip onClick={() => pick("any", anyDays)} icon={<Shuffle className="size-4 text-sky" aria-hidden />} done={on("any")}>
+      <Chip onClick={() => pick("any", anyDays)} icon={<Shuffle className="size-4 text-sky" aria-hidden />} done={on("any", anyDays)}>
         {t.chipAnyDays(anyDays.anyDays ?? 5, Number(anyDays.start.slice(5, 7)) - 1)}
       </Chip>
     </div>
@@ -207,9 +217,9 @@ function Planner({ today }: { today: string }) {
 
       <QuickChips
         today={today}
-        onPicked={(r) => {
-          setAnnounce(t.announceAdded(formatDates(r, t.locale)));
-          setMonth(monthKey(r.start));
+        onPicked={(r, selected) => {
+          setAnnounce((selected ? t.announceAdded : t.announceRemoved)(formatDates(r, t.locale)));
+          if (selected) setMonth(monthKey(r.start));
         }}
         className="mt-3"
       />

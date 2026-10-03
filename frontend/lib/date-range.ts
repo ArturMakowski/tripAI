@@ -26,9 +26,15 @@ export type QuickKind = "weekend" | "long" | "any";
  */
 export function pickQuick(ranges: DateRange[], kind: QuickKind, r: DateRange): DateRange[] {
   const rest = ranges.filter((x) => !x.quick);
-  if (ranges.some((x) => x.quick === kind)) return rest;
+  // Tapping the selected chip clears it; a stale pick of the same kind (last month's "any 5 days in
+  // November", review #41) is replaced by the chip's current range instead.
+  if (isQuickOn(ranges, kind, r)) return rest;
   return addRange(rest, { ...r, quick: kind });
 }
+
+/** The chip is on only if its *current* range is the picked one. */
+export const isQuickOn = (ranges: DateRange[], kind: QuickKind, r: Pick<DateRange, "start">) =>
+  ranges.some((x) => x.quick === kind && x.start === r.start);
 
 const DAY = 86_400_000;
 const d = (iso: ISODate) => new Date(`${iso}T12:00:00Z`);
@@ -75,7 +81,9 @@ export function normalizeRanges(ranges: DateRange[]): DateRange[] {
   const out: DateRange[] = [];
   for (const r of sorted) {
     const last = out.at(-1);
-    if (last && !last.anyDays && !r.anyDays && r.start <= addDays(last.end, 1)) {
+    // Quick-filter ranges never merge with anything (review #41): a merged range would either take
+    // over the days the user drew (and lose them on the next quick pick) or lose its `quick` tag.
+    if (last && !last.anyDays && !r.anyDays && !last.quick && !r.quick && r.start <= addDays(last.end, 1)) {
       if (r.end > last.end) out[out.length - 1] = { ...last, end: r.end };
     } else if (!out.some((x) => x.start === r.start && x.end === r.end)) {
       out.push({ ...r });

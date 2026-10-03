@@ -127,6 +127,7 @@ export function MoneyLines({
   flightLabel,
   icons,
   idFor,
+  collapseSources = false,
 }: {
   rec: Priced;
   /** "4 nights" */
@@ -136,9 +137,12 @@ export function MoneyLines({
   icons?: { flight: ReactNode; hotel: ReactNode };
   /** jump-target id for the line's evidence row (receipt only) */
   idFor?: (e: Evidence) => string;
+  /** receipt (round 3): the lines' source chips sit behind one "ⓘ Źródła" toggle; confirm keeps them visible */
+  collapseSources?: boolean;
 }) {
   const { t, fmt } = useT();
-  const [showSources, setShowSources] = useState(false);
+  const [open, setShowSources] = useState(false);
+  const showSources = !collapseSources || open;
   const m = moneyOf(rec);
   const flightEv = rec.evidence.find((e) => e.kind === "flight");
   const hotelEv = rec.evidence.find((e) => e.kind === "hotel");
@@ -210,7 +214,7 @@ export function MoneyLines({
         return m.travelers > 1 ? (
           <>
             <MoneyRow
-              label={estimate ? `${t.money.total(m.travelers)} · ${t.money.est}` : t.money.total(m.travelers)}
+              label={estimate ? `${t.money.total(m.travelers)} (${t.money.otherDates})` : t.money.total(m.travelers)}
               value={
                 <span data-testid="party-total" data-amount={m.partyTotal} className={cls}>
                   {amt(m.partyTotal)}
@@ -230,7 +234,7 @@ export function MoneyLines({
           </>
         ) : (
           <MoneyRow
-            label={estimate ? `${t.money.total(1)} · ${t.money.est}` : t.money.total(1)}
+            label={estimate ? `${t.money.total(1)} (${t.money.otherDates})` : t.money.total(1)}
             value={
               <span data-testid="trip-total" data-amount={m.perPerson} className={cls}>
                 {amt(m.perPerson)}
@@ -242,13 +246,13 @@ export function MoneyLines({
         );
       })()}
       {/* One "ⓘ Źródła" toggle for the section instead of a chip under every line (round 3). */}
-      {(flightEv || hotelEv) && (
+      {collapseSources && (flightEv || hotelEv) && (
         <button
           type="button"
           onClick={() => setShowSources((v) => !v)}
-          aria-expanded={showSources}
+          aria-expanded={open}
           data-tour="source"
-          className="mt-1.5 inline-flex items-center gap-1 font-sans text-xs text-muted-foreground hover:text-ink"
+          className="mt-1 inline-flex min-h-11 items-center gap-1 font-sans text-xs text-muted-foreground hover:text-ink"
         >
           <Info className="size-3.5" aria-hidden /> {t.money.sources}
         </button>

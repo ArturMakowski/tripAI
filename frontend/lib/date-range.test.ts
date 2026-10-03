@@ -9,6 +9,7 @@ import {
   activeRanges,
   addRange,
   pickQuick,
+  isQuickOn,
   easterSunday,
   holidaysBetween,
   localBridges,
@@ -244,6 +245,29 @@ describe("quick filters are radios (round 3)", () => {
       ["2026-11-07", "long"],
       ["2026-12-01", null],
     ]);
+  });
+  it("a quick pick that sorts first never takes over a range drawn next to it (review #41)", () => {
+    let r = pickQuick([], "weekend", { start: "2026-10-10", end: "2026-10-11" });
+    r = addRange(r, { start: "2026-10-11", end: "2026-10-14" });
+    expect(r).toHaveLength(2);
+    r = pickQuick(r, "long", long);
+    expect(r.map((x) => [x.start, x.end, x.quick ?? null])).toEqual([
+      ["2026-10-11", "2026-10-14", null],
+      ["2026-11-07", "2026-11-11", "long"],
+    ]);
+  });
+  it("a drawn range that sorts first never swallows the quick pick", () => {
+    const r = pickQuick([{ start: "2026-10-07", end: "2026-10-09" }], "weekend", { start: "2026-10-10", end: "2026-10-11" });
+    expect(r.find((x) => x.quick === "weekend")).toBeTruthy();
+    expect(pickQuick(r, "weekend", { start: "2026-10-10", end: "2026-10-11" })).toEqual([{ start: "2026-10-07", end: "2026-10-09" }]);
+  });
+  it("a stale pick of the same kind is replaced by the chip's current range, not cleared", () => {
+    const nov = { start: "2026-11-01", end: "2026-11-30", anyDays: 5 };
+    const dec = { start: "2026-12-01", end: "2026-12-31", anyDays: 5 };
+    const r = pickQuick(pickQuick([], "any", nov), "any", dec);
+    expect(r.map((x) => x.start)).toEqual(["2026-12-01"]);
+    expect(isQuickOn(r, "any", nov)).toBe(false);
+    expect(isQuickOn(r, "any", dec)).toBe(true);
   });
   it("picking the selected one again clears it", () => {
     const r = pickQuick(pickQuick([], "weekend", weekend), "weekend", weekend);

@@ -23,7 +23,9 @@ export const en = {
   est: "est.",
   /** one toggle per receipt section that shows the source chips of its lines */
   sources: "Sources",
-  flight: (n: number) => (n > 1 ? `Flights × ${n}` : "Flight"),
+  /** an estimate's total says so in words, not only with "~" (review #41) */
+  otherDates: "other dates",
+  flight: (n: number) => (n > 1 ? `Flights × ${n}` : "Return flight"),
   hotel: (nights: string, rooms: number) => (rooms > 1 ? `Stay, ${nights} × ${rooms} rooms` : `Stay, ${nights}`),
   /** a specific priced hotel: "Hotel Raphael, 4 nights" */
   hotelNamed: (name: string, nights: string, rooms: number) => (rooms > 1 ? `${name}, ${nights} × ${rooms} rooms` : `${name}, ${nights}`),
@@ -68,7 +70,8 @@ export const pl: Shape<typeof en> = {
   legHotel: "nocleg",
   est: "szac.",
   sources: "Źródła",
-  flight: (n) => (n > 1 ? `Loty × ${n}` : "Lot"),
+  otherDates: "inne daty",
+  flight: (n) => (n > 1 ? `Loty × ${n}` : "Lot w obie strony"),
   hotel: (nights, rooms) => (rooms > 1 ? `Nocleg, ${nights} × ${rooms} ${plPokoj(rooms)}` : `Nocleg, ${nights}`),
   hotelNamed: (name, nights, rooms) => (rooms > 1 ? `${name}, ${nights} × ${rooms} ${plPokoj(rooms)}` : `${name}, ${nights}`),
   cityAverage: "średnia w mieście",

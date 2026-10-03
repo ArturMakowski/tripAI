@@ -14,7 +14,7 @@ vi.hoisted(() => {
   Object.defineProperty(globalThis, "localStorage", { value: storage, configurable: true });
 });
 import { renderToStaticMarkup } from "react-dom/server";
-import { MoneyLines, PriceInline, TripPrice } from "@/components/money";
+import { MoneyLines, TripPrice } from "@/components/money";
 import { RecCard } from "@/components/rec-card";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { fastEstimates, scoreLocally, withParty, withPriceStatus } from "@/lib/mock/api";
@@ -32,13 +32,8 @@ function totals(html: string): [string, string][] {
 
 const screens = (rec: RankedRecommendation) => ({
   card: renderToStaticMarkup(<RecCard rec={rec} />),
-  // the hero line ("14–19 sty · 5 nocy · 1 442 zł") and the money lines
-  receipt: renderToStaticMarkup(
-    <>
-      <PriceInline rec={rec} tone="light" />
-      <MoneyLines rec={rec} nights="4" />
-    </>,
-  ),
+  // the receipt's money lines (round 3: the hero no longer repeats the price)
+  receipt: renderToStaticMarkup(<MoneyLines rec={rec} nights="4" collapseSources />),
   confirm: renderToStaticMarkup(
     <>
       <TripPrice rec={rec} tone="light" showParty={false} />
@@ -101,14 +96,18 @@ describe.each(["pl", "en"] as const)("money consistency (%s)", (lang) => {
       const receipt = totals(s.receipt);
       const confirm = totals(s.confirm);
       expect(card, rec.id).toHaveLength(1);
-      expect(receipt, rec.id).toHaveLength(2);
+      expect(receipt, rec.id).toHaveLength(1);
       expect(confirm.length, rec.id).toBeGreaterThanOrEqual(1);
       const want = card[0];
       for (const got of [...receipt, ...confirm]) expect(got[0], `${rec.id} amount`).toBe(want[0]);
       // same visible number (the estimate is phrased "od ~X zł (inne daty)" everywhere it appears)
       const num = (t: string) => t.replace(/&nbsp;|\u00a0|\u202f/g, " ").match(/[\d\s.,]+(?=\s?(zł|PLN))/)?.[0].trim();
       // an estimate reads "od ~X" / "from ~X" on every screen, never as a bare price
-      if (rec.price_status === "estimate") for (const got of [card[0], ...receipt, ...confirm]) expect(got[1], rec.id).toMatch(/~/);
+      if (rec.price_status === "estimate") {
+        for (const got of [card[0], ...receipt, ...confirm]) expect(got[1], rec.id).toMatch(/~/);
+        // and says "other dates" in words on every screen, not only in a tooltip (review #41)
+        for (const html of [s.card, s.receipt, s.confirm]) expect(html, rec.id).toMatch(/inne daty|other dates/);
+      }
       // the visible text shows that same per-person number (party headlines read "1 704 zł razem · 852 zł/os.")
       const digits = (t: string) => t.replace(/[^\d]/g, " ").split(/\s+/).join("");
       const perDigits = String(Number(want[0]));

@@ -33,7 +33,9 @@ export function TutorialHost() {
   const tour = tourForPath(path);
   const key = tour ? `${tour}:${path}` : null;
   useEffect(() => {
-    if (!hydrated || introOpen || !flags.intro || !tour || !key || flags.tours[tour]) return;
+    // Tours don't wait for the intro (review #41): someone who leaves the welcome screen by "Profil
+    // demo" never sees the intro, but still gets each screen's tips once.
+    if (!hydrated || introOpen || !tour || !key || flags.tours[tour]) return;
     startTour(tour, key);
   }, [hydrated, introOpen, flags, tour, key, startTour]);
 

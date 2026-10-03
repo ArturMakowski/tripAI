@@ -87,9 +87,6 @@ export const en = {
     allIn: "all-in",
     cachedEstimate: "estimate",
     overBudget: (amount: string) => `Over budget +${amount}`,
-    vsPeak: (pct: number) => `−${pct}% vs peak`,
-    peakNote: (month: string | null, peak: string, now: string, version: string) =>
-      `Same trip${month ? ` in ${month}` : ""} (the city's peak-crowd month): ${peak} vs ${now} now · TripAI scorer ${version}`,
     disagree: "Score and fit disagree:",
   },
 } as const;
@@ -181,9 +178,6 @@ export const pl: Shape<typeof en> = {
     allIn: "łącznie",
     cachedEstimate: "szacunek",
     overBudget: (amount: string) => `Ponad budżet +${amount}`,
-    vsPeak: (pct: number) => `−${pct}% wobec szczytu`,
-    peakNote: (month: string | null, peak: string, now: string, version: string) =>
-      `Ten sam wyjazd w szczycie sezonu w tym mieście${month ? ` (${month})` : ""}: ${peak} wobec ${now} teraz · algorytm TripAI ${version}`,
     disagree: "Wynik i dopasowanie się różnią:",
   },
 };
