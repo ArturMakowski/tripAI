@@ -29,3 +29,20 @@ offered a trip with nothing bookable, "cheap" that is only cheap because the wea
 ## Verifiability (for the jury)
 `backend/tests/fit_eval/`: ~20 hand-labelled (DNA profile × offer) cases → `uv run python -m tripai.agents.fit_eval`
 prints agreement with the labels (and with the rules fallback). Shown in the pitch as "AI agreement 17/20 on labelled cases".
+
+## Engines (decided 2026-10-03): Jev decides, GPT explains, rules back-stop
+`TRIPAI_FIT_ENGINE=jev|llm|rules` (default `jev` when a TypeSafe key is set). Jev runs via **pydantic-ai's
+`TypeSafeModel`** (`pydantic-ai-slim[typesafe]`, model `typesafe:jev-latest`; key from `TYPESAFE_API_KEY` or `TYPESAFEAI_API_KEY`).
+- One Pydantic `output_type` per decision: `label: Literal[great_fit, good_fit, mixed, poor_fit]` + one `bool` per DNA
+  check (e.g. `crowd_conflict`, `relax_conflict`, `budget_conflict`, `pace_conflict`, `novelty_match`), field docstrings /
+  `BoolCriteria` as the question text. Calibrated confidences from `result.response.provider_details['confidence']`
+  become `FitVerdict.confidence` and per-point confidence.
+- Jev can't write text: `summary` and the wording of matches/concerns come from GPT-6 Luna (or a template), which may only
+  phrase Jev's decisions + cited evidence. `FitVerdict.model` records the engine, e.g. `typesafe:jev-1.13.0+openai:gpt-6-luna`.
+- Low confidence (< 0.6 on label) → `mixed` + "we're not sure; here's why", never a confident wrong label.
+- Fallback chain: Jev → LLM → rules (pydantic-ai `FallbackModel` where it fits).
+- Smoke test (3 Oct): Barcelona Aug 95% crowds → poor_fit 0.93, 657 ms; Valletta Jan 20% crowds → great_fit 0.97, 284 ms.
+
+Other Jev decision points: notification gate (`worth_interrupting: bool`, push only if p ≥ 0.8), chat interview → DNA
+(`int` score per q1..q12 from free text, follow-up when confidence < 0.6), guardrail on user free text
+(`prompt_injection`, `off_topic`). The fit eval prints jev vs llm vs rules: agreement, p50 latency, cost.
