@@ -5,7 +5,13 @@ import logging
 from tripai.api.state import MemoryStore, Store
 from tripai.api.supabase_store import SupabaseStore
 from tripai.connectors import config
-from tripai.scoring.provider import FixtureProvider, TripDataProvider
+from tripai.live import sources
+from tripai.scoring.provider import (
+    CalendarProvider,
+    FixtureCalendar,
+    FixtureProvider,
+    TripDataProvider,
+)
 
 log = logging.getLogger(__name__)
 
@@ -35,3 +41,13 @@ def store_from_env() -> Store:
     if (config.env("TRIPAI_STORE") or "").lower() != "memory" and url and key:
         return SupabaseStore(url, key)
     return MemoryStore()
+
+
+def calendar_from_env() -> CalendarProvider:
+    """Live Google Calendar free/busy when the live provider runs and gcal is not on fixtures
+    (OAuth client + token present, not listed in TRIPAI_FIXTURE_SOURCES); else the demo calendar."""
+    if provider_name() == "live" and sources.mode("gcal") == "live":
+        from tripai.live.calendar import GCalCalendar
+
+        return GCalCalendar()
+    return FixtureCalendar()

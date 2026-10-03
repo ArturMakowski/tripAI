@@ -66,6 +66,7 @@ def create_app(
             "provider": type(provider).__name__,
             "calendar": type(calendar).__name__,
             "store": type(store).__name__,
+            "sources": _source_modes(provider, calendar),
             "llm": model_name() if llm_enabled() else None,
             "scoring_version": SCORING_VERSION,
         }
@@ -167,6 +168,14 @@ def create_app(
         )
 
     return app
+
+
+def _source_modes(provider: TripDataProvider, calendar: CalendarProvider) -> dict[str, str]:
+    """Per data source: 'live' or 'fixture' (providers may expose `source_modes()`)."""
+    modes = getattr(provider, "source_modes", None)
+    out = dict(modes()) if callable(modes) else {"provider": "fixture"}
+    out["gcal"] = getattr(calendar, "mode", "fixture")
+    return out
 
 
 def _check_range(start: date, end: date) -> None:

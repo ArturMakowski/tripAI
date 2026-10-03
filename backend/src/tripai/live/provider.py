@@ -33,6 +33,7 @@ from tripai.connectors.serpapi import (
 )
 from tripai.connectors.serper import Serper
 from tripai.connectors.travelpayouts import FlightCalendar, Travelpayouts
+from tripai.live import sources
 from tripai.models import Evidence, FreeWindow, LuxuryLevel, TasteProfile, Weights
 from tripai.scoring.engine import MONTHS, candidate_id, rank, taste_score
 from tripai.scoring.provider import LUXURY_HOTEL_MULT, CityInfo, FixtureProvider, TripDataProvider
@@ -122,6 +123,14 @@ class _Quality:
     def set(self, factor: str, q: float, basis: str) -> None:
         self.parts[factor] = (q, basis)
 
+    def mark_fixtures(self, evidence: Sequence[Evidence]) -> None:
+        """A factor whose headline fact came from a fixture counts half."""
+        for f in ("flight", "hotel", "weather"):
+            first = next((e for e in evidence if e.kind == f), None)
+            if first is not None and "fixture]" in first.source and f in self.parts:
+                q, basis = self.parts[f]
+                self.parts[f] = (q / 2, basis + " (fixture)")
+
     def evidence(self) -> Evidence:
         factors = ("flight", "hotel", "weather", "crowds")
         qs = [self.parts.get(f, (0.0, "unavailable"))[0] for f in factors]
@@ -169,21 +178,37 @@ class _Session:
         fixtures: bool | None,
         today: date | None,
     ):
-        kw = {"client": client, "cache": cache or _session_cache(client), "fixtures": fixtures}
-        self.tp = Travelpayouts(**kw)
-        self.explore = SerpApiExplore(**kw)
-        self.flights = SerpApiFlights(**kw)
-        self.hotels = SerpApiHotels(**kw)
-        self.meteo = OpenMeteo(**kw)
-        self.serper = Serper(**kw)
-        self.fixtures = config.use_fixtures() if fixtures is None else fixtures
+        # fixtures=None: per-source mode from env (TRIPAI_FIXTURE_SOURCES, missing keys, ...)
+        self.modes = (
+            sources.modes()
+            if fixtures is None
+            else dict.fromkeys(sources.SOURCES, "fixture" if fixtures else "live")
+        )
+        kw = {"client": client, "cache": cache or _session_cache(client)}
+
+        def fx(source: str) -> dict:
+            return {**kw, "fixtures": self.modes[source] == "fixture"}
+
+        self.tp = Travelpayouts(**fx("travelpayouts"))
+        self.explore = SerpApiExplore(**fx("serpapi"))
+        self.flights = SerpApiFlights(**fx("serpapi"))
+        self.hotels = SerpApiHotels(**fx("serpapi"))
+        self.meteo = OpenMeteo(**fx("open_meteo"))
+        self.serper = Serper(**fx("serper"))
         self.today = today
         self._sem = asyncio.Semaphore(CONCURRENCY)
         self.failures: list[str] = []
         self.serpapi_calls = 0
 
-    def has(self, env: str) -> bool:
-        return self.fixtures or bool(config.env(env))
+    def live(self, source: str) -> bool:
+        return self.modes[source] == "live"
+
+    def label(self, e: Evidence) -> Evidence:
+        """Tag evidence served from a recorded (real but not fresh) fixture."""
+        src = sources.source_of_evidence(e.source)
+        if src is None or self.live(src) or "fixture]" in e.source:
+            return e
+        return e.model_copy(update={"source": e.source + sources.RECORDED_TAG})
 
     async def call(self, what: str, fn: Callable[[], Awaitable[Any]]) -> Any | None:
         """Run one connector call; any failure is logged and becomes None (never raises)."""
@@ -196,7 +221,7 @@ class _Session:
                 return None
 
     async def serpapi(self, what: str, fn: Callable[[], Awaitable[Any]]) -> Any | None:
-        self.serpapi_calls += 1
+        self.serpapi_calls += self.live("serpapi")  # lookups (cache hits included), not fixtures
         return await self.call(what, fn)
 
 
@@ -235,6 +260,12 @@ class LiveProvider:
         self.city_ids = list(city_ids) if city_ids else None
         self.fallback = (fallback or FixtureProvider()) if use_fallback else None
         self.last_stats: dict[str, Any] = {}
+
+    def source_modes(self) -> dict[str, str]:
+        """Per-source 'live' | 'fixture' (reported by GET /health)."""
+        if self.fixtures is not None:
+            return dict.fromkeys(sources.SOURCES, "fixture" if self.fixtures else "live")
+        return sources.modes()
 
     # ------------------------------------------------------------------ seed
 
@@ -309,9 +340,7 @@ class LiveProvider:
         trip_days = (min(nights), min(max(nights), 30))
         async with httpx.AsyncClient(timeout=30) as client:
             s = _Session(client, self.cache, self.fixtures, self.today)
-            explore = None
-            if s.has("SERPAPI_API_KEY"):
-                explore = await s.serpapi("explore", lambda: s.explore.explore(origin))
+            explore = await s.serpapi("explore", lambda: s.explore.explore(origin))
             data = await asyncio.gather(
                 *(
                     self._city_data(s, origin, c, windows, trip_days, explore, profile)
@@ -346,22 +375,20 @@ class LiveProvider:
                 )
                 swap = {candidate_id(c): c for c in done}
                 cands = [swap.get(candidate_id(c), c) for c in cands]
-            cands = [
-                c.model_copy(
-                    update={
-                        "evidence": sorted(
-                            [*c.evidence, quality[candidate_id(c)].evidence()],
-                            key=lambda e: KIND_ORDER.get(e.kind, len(KIND_ORDER)),
-                        )
-                    }
-                )
-                for c in cands
-            ]
+            final = []
+            for c in cands:
+                ev = [s.label(e) for e in c.evidence]
+                q = quality[candidate_id(c)]
+                q.mark_fixtures(ev)
+                ev = sorted([*ev, q.evidence()], key=lambda e: KIND_ORDER.get(e.kind, 99))
+                final.append(c.model_copy(update={"evidence": ev}))
+            cands = final
             self.last_stats = {
                 "cities": len(cities),
                 "candidates": len(cands),
                 "refined": sorted(refined),
                 "serpapi_calls": s.serpapi_calls,
+                "sources": s.modes,
                 "failures": s.failures[:200],
             }
             return cands
@@ -399,7 +426,7 @@ class LiveProvider:
                 ),
             )
 
-        cal_jobs = [calendar(*ym) for ym in dep_months] if s.has("TRAVELPAYOUTS_TOKEN") else []
+        cal_jobs = [calendar(*ym) for ym in dep_months]
         clim_jobs = [climate(*ym) for ym in all_months]
         cals, clims = await asyncio.gather(asyncio.gather(*cal_jobs), asyncio.gather(*clim_jobs))
         calendars = {ym: r for ym, r in zip(dep_months, cals) if r is not None and r.fares}
@@ -733,26 +760,17 @@ class LiveProvider:
         w = c.window
         nights = c.nights
         jobs: list[Awaitable[Any]] = []
-        has_serpapi = s.has("SERPAPI_API_KEY")
-
-        async def none() -> None:
-            return None
-
         jobs.append(
             s.serpapi(
                 f"google_flights {origin}-{c.iata} {w.start}",
                 lambda: s.flights.price_insights(origin, c.iata, w.start, w.end),
             )
-            if has_serpapi
-            else none()
         )
         jobs.append(
             s.serpapi(
                 f"google_hotels {d.city.name} {w.start}",
                 lambda: s.hotels.search(_plain(d.city.name), w.start, w.end, iata=c.iata),
             )
-            if has_serpapi
-            else none()
         )
         jobs.append(
             s.call(
@@ -767,8 +785,6 @@ class LiveProvider:
                 f"serper images {d.city.name}",
                 lambda: s.serper.city_images(_plain(d.city.name), country=d.city.country_name),
             )
-            if s.has("SERPER_API_KEY")
-            else none()
         )
         flights, hotels, weather, images = await asyncio.gather(*jobs)
 
@@ -783,7 +799,7 @@ class LiveProvider:
             q.set("flight", 1.0, "Google Flights, exact dates")
             if flights.typical_price_range:
                 flight_base = sum(flights.typical_price_range) / 2
-        elif flights is None and has_serpapi:
+        elif flights is None and s.live("serpapi"):
             fli = await self._fli(s, origin, c)
             if fli is not None:
                 flight_cost = fli[0]
@@ -856,8 +872,6 @@ class LiveProvider:
 
     async def _fli(self, s: _Session, origin: str, c: Candidate) -> tuple[float, Evidence] | None:
         """Last-resort exact-date price via fli (optional install). Only PLN prices are used."""
-        if s.fixtures:
-            return None
         from tripai.connectors.fli_dates import search_dates
 
         res = await s.call(

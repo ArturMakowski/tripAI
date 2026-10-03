@@ -13,9 +13,17 @@ from tripai.api.state import MemoryStore
 from tripai.api.supabase_store import SupabaseStore
 from tripai.connectors.base import SYNTHETIC_TAG, ConnectorError
 from tripai.connectors.serpapi import SerpApiFlights
-from tripai.live import LiveProvider, provider_from_env, store_from_env
+from tripai.live import (
+    LiveProvider,
+    calendar_from_env,
+    provider_from_env,
+    sources,
+    store_from_env,
+)
+from tripai.live.calendar import GCalCalendar
+from tripai.live.sources import RECORDED_TAG
 from tripai.models import FreeWindow, LuxuryLevel, TasteProfile, Weights
-from tripai.scoring import FixtureProvider, rank
+from tripai.scoring import FixtureCalendar, FixtureProvider, rank
 
 # The connector fixtures cover these cities for 14-19 Jan 2027; Paris has none (degrades).
 FIXTURE_CITIES = ["rome", "lisbon", "barcelona", "athens", "vienna", "prague", "budapest",
@@ -28,9 +36,11 @@ TODAY = date(2026, 10, 3)
 def _no_live_env(monkeypatch, tmp_path):
     for var in ("SERPAPI_API_KEY", "SERPER_API_KEY", "TRAVELPAYOUTS_TOKEN", "SUPABASE_URL",
                 "SUPABASE_SECRET_KEY", "TRIPAI_PROVIDER", "TRIPAI_USE_FIXTURES", "TRIPAI_STORE",
-                "TRIPAI_LIVE_TOP_N", "TRIPAI_LIVE_MAX_REFINE", "TRIPAI_LIVE_MAX_CITIES"):  # fmt: skip
+                "TRIPAI_LIVE_TOP_N", "TRIPAI_LIVE_MAX_REFINE", "TRIPAI_LIVE_MAX_CITIES",
+                "TRIPAI_FIXTURE_SOURCES", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"):  # fmt: skip
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("TRIPAI_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setenv("TRIPAI_GCAL_TOKEN", str(tmp_path / "no-token.json"))
 
 
 def live(**kw) -> LiveProvider:
@@ -65,22 +75,28 @@ def test_live_candidates_from_seed_and_connectors(prof):
                 assert e.source.endswith(SYNTHETIC_TAG)
 
 
+def conf(c):
+    return next(e for e in c.evidence if e.kind == "confidence")
+
+
 def test_top_n_get_exact_date_serpapi_prices(prof):
     p = live(top_n=3, max_refine=6)
     cands = run(p, prof)
     assert 3 <= len(p.last_stats["refined"]) <= 6
-    assert p.last_stats["serpapi_calls"] == 1 + 2 * len(p.last_stats["refined"])
+    assert p.last_stats["serpapi_calls"] == 0  # fixtures only: no live SerpApi lookups
     by_id = {f"{c.iata}-{c.window.start:%Y%m%d}-{c.window.end:%Y%m%d}": c for c in cands}
     for cid in p.last_stats["refined"]:
         c = by_id[cid]
         srcs = {e.source for e in c.evidence}
-        assert "serpapi:google_flights" in srcs and "serpapi:google_hotels" in srcs
-        assert any(e.kind == "photo" and e.source == "serper:images" for e in c.evidence)
-        conf = next(e for e in c.evidence if e.kind == "confidence")
-        assert conf.value >= 0.9
+        assert {
+            "serpapi:google_flights" + RECORDED_TAG,
+            "serpapi:google_hotels" + RECORDED_TAG,
+        } <= srcs
+        assert any(e.kind == "photo" and e.source.startswith("serper:images") for e in c.evidence)
+        assert "Google Flights, exact dates (fixture)" in conf(c).label
     unrefined = [c for cid, c in by_id.items() if cid not in p.last_stats["refined"]]
-    assert all(next(e for e in c.evidence if e.kind == "confidence").value < 0.9
-               for c in unrefined)  # fmt: skip
+    lowest_refined = min(conf(by_id[cid]).value for cid in p.last_stats["refined"])
+    assert all(conf(c).value < lowest_refined for c in unrefined)
     top = rank(cands, prof, limit=3)
     assert all(r.id in p.last_stats["refined"] for r in top)
 
@@ -88,7 +104,8 @@ def test_top_n_get_exact_date_serpapi_prices(prof):
 def test_refinement_disabled_spends_one_serpapi_call(prof):
     p = live(top_n=0)
     run(p, prof)
-    assert p.last_stats["serpapi_calls"] == 1 and p.last_stats["refined"] == []
+    assert p.last_stats["refined"] == []
+    assert not any("google_flights" in f for f in p.last_stats["failures"])
 
 
 def test_failing_flights_connector_degrades(prof, monkeypatch):
@@ -99,9 +116,11 @@ def test_failing_flights_connector_degrades(prof, monkeypatch):
     p = live(top_n=2)
     cands = run(p, prof)
     assert len(cands) == 10
-    assert not any(e.source == "serpapi:google_flights" for c in cands for e in c.evidence)
+    assert not any(e.source.startswith("serpapi:google_flights") for c in cands for e in c.evidence)
     assert any("google_flights" in f for f in p.last_stats["failures"])
-    refined = [c for c in cands if any(e.source == "serpapi:google_hotels" for e in c.evidence)]
+    refined = [
+        c for c in cands if any(e.source.startswith("serpapi:google_hotels") for e in c.evidence)
+    ]
     assert refined
     for c in refined:  # hotel verified, flight still the estimate -> confidence below 1
         conf = next(e for e in c.evidence if e.kind == "confidence")
@@ -250,3 +269,97 @@ def test_feedback_endpoint_persists_diff(prof):
     r = c.post("/feedback", json={"trip_id": "FCO-20261107-20261111", "answers": {"crowds": 1}})
     assert r.status_code == 200
     assert st.feedback[0]["trip_id"] == "FCO-20261107-20261111" and st.feedback[0]["diff"]
+
+
+# ---------------------------------------------------------------- per-source modes
+
+
+def test_source_modes_from_env(monkeypatch):
+    # open_meteo needs no key -> live; keyed sources without keys -> fixture (never a crash)
+    assert sources.modes() == {"travelpayouts": "fixture", "serpapi": "fixture",
+                               "serper": "fixture", "open_meteo": "live", "gcal": "fixture"}  # fmt: skip
+    assert sources.reasons()["serpapi"] == "missing SERPAPI_API_KEY"
+    monkeypatch.setenv("SERPAPI_API_KEY", "k")
+    monkeypatch.setenv("TRAVELPAYOUTS_TOKEN", "t")
+    assert sources.mode("serpapi") == sources.mode("travelpayouts") == "live"
+    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", " Travelpayouts , open-meteo,bogus")
+    assert sources.mode("travelpayouts") == sources.mode("open_meteo") == "fixture"
+    assert sources.mode("serpapi") == "live"
+    assert sources.reasons()["travelpayouts"] == "TRIPAI_FIXTURE_SOURCES"
+    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", "all")
+    assert set(sources.modes().values()) == {"fixture"}
+    monkeypatch.delenv("TRIPAI_FIXTURE_SOURCES")
+    monkeypatch.setenv("TRIPAI_USE_FIXTURES", "1")
+    assert set(sources.modes().values()) == {"fixture"}
+
+
+def test_env_driven_provider_runs_offline_without_keys(prof, monkeypatch):
+    """TRIPAI_PROVIDER=live with no keys: every keyed source falls back to fixtures."""
+    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", "open_meteo")  # the only keyless source
+    p = LiveProvider(today=TODAY, city_ids=FIXTURE_CITIES, use_fallback=False)
+    assert set(p.source_modes().values()) == {"fixture"}
+    cands = run(p, prof)
+    assert len(cands) == 10 and p.last_stats["serpapi_calls"] == 0
+    for c in cands:
+        for e in c.evidence:
+            if sources.source_of_evidence(e.source):
+                assert e.source.endswith((RECORDED_TAG, SYNTHETIC_TAG))
+
+
+def test_mixed_live_and_fixture_sources(prof, monkeypatch):
+    """Travelpayouts live (mocked HTTP), everything else on fixtures."""
+    import respx
+
+    monkeypatch.setenv("TRAVELPAYOUTS_TOKEN", "t")
+    monkeypatch.setenv("TRIPAI_NO_CACHE", "1")
+    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", "serpapi,serper,open_meteo")
+    rome = json.loads(
+        (sources.config.fixtures_dir() / "travelpayouts/grouped_prices/KRK-FCO.json").read_text()
+    )["payload"]
+    p = LiveProvider(today=TODAY, city_ids=["rome"], use_fallback=False, top_n=0)
+    assert p.source_modes()["travelpayouts"] == "live"
+    with respx.mock(assert_all_called=False) as mock:
+        route = mock.get(url__startswith="https://api.travelpayouts.com/").respond(json=rome)
+        cands = run(p, prof)
+    assert route.called and len(cands) == 1
+    flight = next(e for e in cands[0].evidence if e.kind == "flight")
+    assert flight.source == "travelpayouts:grouped_prices"  # live: no fixture tag
+    weather = next(e for e in cands[0].evidence if e.kind == "weather")
+    assert weather.source == "open-meteo:archive" + RECORDED_TAG
+    assert (
+        "(fixture)" in conf(cands[0]).label
+        and "flight: Aviasales cached fare;" in conf(cands[0]).label
+    )
+
+
+def test_health_lists_source_modes(monkeypatch):
+    h = TestClient(create_app(provider=live())).get("/health").json()
+    assert h["sources"]["serpapi"] == "fixture" and h["sources"]["gcal"] == "fixture"
+    h = TestClient(create_app()).get("/health").json()
+    assert h["sources"] == {"provider": "fixture", "gcal": "fixture"}
+
+
+def test_calendar_selection(monkeypatch, tmp_path):
+    assert isinstance(calendar_from_env(), FixtureCalendar)
+    token = tmp_path / "tok.json"
+    token.write_text("{}")
+    monkeypatch.setenv("TRIPAI_GCAL_TOKEN", str(token))
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "id")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "secret")
+    cal = calendar_from_env()
+    assert isinstance(cal, GCalCalendar) and cal.mode == "live"
+    # an unusable token never crashes: the demo calendar answers instead
+    busy = asyncio.run(cal.busy(date(2026, 11, 2), date(2026, 11, 3)))
+    assert busy == asyncio.run(FixtureCalendar().busy(date(2026, 11, 2), date(2026, 11, 3)))
+    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", "gcal")
+    assert isinstance(calendar_from_env(), FixtureCalendar)
+
+
+def test_warm_cli_offline(monkeypatch, capsys):
+    from tripai import warm
+
+    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", "all")
+    monkeypatch.setattr(warm.config, "load_dotenv_files", lambda: None)
+    assert warm.main(["--today", "2026-10-03", "--skip-calendar"]) == 0
+    out = capsys.readouterr().out
+    assert "long weekends:" in out and "HTTP 200" in out and '"serpapi": "fixture"' in out

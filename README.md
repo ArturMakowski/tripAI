@@ -83,6 +83,21 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
 when `TRIPAI_USE_FIXTURES=1`, else `live`. `create_app()` without arguments (tests) stays on `FixtureProvider`.
 `GET /health` reports the active `provider` and `store`.
 
+**Per-source mode.** Each live source (`travelpayouts`, `serpapi`, `serper`, `open_meteo`, `gcal`) runs
+`live` or `fixture`. `TRIPAI_FIXTURE_SOURCES=travelpayouts,gcal` (or `all`) pins sources to recorded fixtures while
+the rest stay live. A source whose credentials are missing also uses fixtures (gcal needs `GOOGLE_CLIENT_ID/SECRET` + the
+OAuth token file), so a missing key never crashes anything. `TRIPAI_USE_FIXTURES=1` puts every source on fixtures.
+Fixture-served evidence is tagged `[recorded fixture]` (or `[synthetic fixture]` as before) and counts half in `confidence`.
+Recorded fixtures only cover 14–19 Jan 2027, so for other dates a fixture source just contributes nothing.
+`GET /health` → `"sources": {"travelpayouts": "live", "serpapi": "fixture", ...}`. With gcal live, `/windows` and
+the default `/recommendations` use real Google Calendar free/busy. On any error they fall back to the demo calendar, never an empty one.
+
+**Warm the cache before a demo:** `uv run python -m tripai.warm [--today YYYY-MM-DD] [--skip-calendar] [--profile p.json]`
+runs the demo queries through the real app: KRK, the demo profile, the next 3 long weekends (one per holiday), plus the default
+calendar request. It uses the same env-driven source modes, an in-memory store and no LLM. It prints the source modes, timings,
+SerpApi lookups and the top 5 with their confidence, and exits non-zero on a failed query. With `SUPABASE_*` set it fills the shared
+`api_cache`, so the Railway instance starts warm too.
+
 `tripai.live.LiveProvider` (seed + connectors), per `/recommendations` call:
 1. **Shortlist** `TRIPAI_LIVE_MAX_CITIES` (default 12) of the ~36 seed cities by taste fit (+ direct route from the origin). No I/O.
 2. **Cheap pass** for every (city, window): Travelpayouts month calendar (free; exact departure day,
