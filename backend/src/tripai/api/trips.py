@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from tripai.api.session import session_user
 from tripai.notify.models import PlannedTrip, SavedPick, now_utc, watching
+from tripai.scoring.party import party_total
 from tripai.scoring.types import RankedRecommendation
 from tripai.scoring.windows import TZ
 
@@ -39,6 +40,8 @@ def pick_from(uid: str, rec: RankedRecommendation) -> SavedPick:
         baseline_source=flight.source if flight else "tripai.scoring",
         baseline_fetched_at=flight.fetched_at if flight else now_utc(),
         saved_pln=rec.total_cost_pln,
+        saved_flight_pln=rec.flight_cost_pln,
+        saved_hotel_pln=rec.hotel_cost_pln,
         saved_price_status=rec.price_status,
         travelers=rec.travelers,
     )
@@ -52,16 +55,27 @@ class TripItem(BaseModel):
     iata: str
     start: date
     end: date
+    # Party money model (docs/BUDGET.md): *_pln = per person (== total_cost_pln); flight lines are
+    # per traveller, hotel lines the whole stay; party = flight x travellers + hotel. Lines are null
+    # on rows saved before they were recorded (the UI then shows the per-person figure only).
     travelers: int = 1
     saved_pln: float  # per person all-in when approved / saved
+    saved_flight_pln: float | None = None
+    saved_hotel_pln: float | None = None
+    saved_party_pln: float | None = None
     saved_price_status: str = "exact"
     saved_at: datetime
     watched: bool  # re-priced by the proactive scan
     current_pln: float | None = None  # latest scan check (None: not checked yet / no price now)
+    current_flight_pln: float | None = None
+    current_hotel_pln: float | None = None
+    current_party_pln: float | None = None
+    current_travelers: int | None = None
     price_status: str | None = None  # of current_pln: "exact" | "partial" | "estimate"
     checked_at: datetime | None = None
-    change_pln: float | None = None  # current - saved; only when both are exact-date prices
-    target_pln: float | None = None
+    # current - saved per person; only when both are exact-date prices for the same party size
+    change_pln: float | None = None
+    target_pln: float | None = None  # per person
 
 
 class TripsResponse(BaseModel):
@@ -78,16 +92,30 @@ class TargetRequest(BaseModel):
     target_pln: float | None = Field(None, gt=0, le=1_000_000)  # null clears it
 
 
+def _party(flight: float | None, hotel: float | None, n: int) -> float | None:
+    """What the whole party pays (tripai.scoring.party): flight x travellers + the stay."""
+    return None if flight is None or hotel is None else round(party_total(flight, hotel, n), 2)
+
+
 def item(trip: PlannedTrip | None, pick: SavedPick | None) -> TripItem:
     assert trip or pick
     base = trip or pick
     if trip:
         saved, status, at = trip.total_pln, trip.price_status, trip.approved_at
+        s_flight, s_hotel = trip.flight_pln, trip.hotel_pln
     else:
         saved, status, at = pick.first_pln, pick.saved_price_status, pick.saved_at
+        s_flight, s_hotel = pick.saved_flight_pln, pick.saved_hotel_pln
+    if pick and trip and s_flight is None:  # older approval row: the pick may have the lines
+        s_flight, s_hotel = pick.saved_flight_pln, pick.saved_hotel_pln
     cur = pick.last_pln if pick else None
     cur_status = pick.last_price_status if pick else None
-    honest = cur is not None and cur_status == "exact" and status == "exact"
+    c_flight = pick.last_flight_pln if pick else None
+    c_hotel = pick.last_hotel_pln if pick else None
+    c_n = (pick.last_travelers or base.travelers) if pick and cur is not None else None
+    honest = (
+        cur is not None and cur_status == "exact" and status == "exact" and c_n == base.travelers
+    )
     return TripItem(
         id=base.recommendation_id,
         kind="approved" if trip else "saved",
@@ -98,10 +126,17 @@ def item(trip: PlannedTrip | None, pick: SavedPick | None) -> TripItem:
         end=base.end,
         travelers=base.travelers,
         saved_pln=saved,
+        saved_flight_pln=s_flight,
+        saved_hotel_pln=s_hotel,
+        saved_party_pln=_party(s_flight, s_hotel, base.travelers),
         saved_price_status=status,
         saved_at=at,
         watched=pick is not None,
         current_pln=cur,
+        current_flight_pln=c_flight,
+        current_hotel_pln=c_hotel,
+        current_party_pln=_party(c_flight, c_hotel, c_n or 1),
+        current_travelers=c_n,
         price_status=cur_status,
         checked_at=pick.last_checked_at if pick else None,
         change_pln=round(cur - saved, 2) if honest else None,
@@ -166,6 +201,8 @@ def trips_router(deps) -> APIRouter:
             start=rec.window.start,
             end=rec.window.end,
             total_pln=rec.total_cost_pln,
+            flight_pln=rec.flight_cost_pln,
+            hotel_pln=rec.hotel_cost_pln,
             price_status=rec.price_status,
             travelers=rec.travelers,
         )

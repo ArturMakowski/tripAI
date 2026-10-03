@@ -159,14 +159,17 @@ def draft_target_price(
         return None, Decision(
             kind="target_price", recommendation_id=rec.id, notify=False, reason=reason
         )
+    n = rec.travelers
     d = Draft(
         "target_price",
         rec,
         i18n.t("n.target.title", city=rec.city, dates=when(rec)),
-        i18n.t(
-            "n.target.body",
+        i18n.t(  # party money model: per person, plus "loty n x X + hotel Y" for a group
+            "n.target.body" if n == 1 else "n.target.body.party",
             now=i18n.fmt_pln(now),
             target=i18n.fmt_pln(target_pln),
+            group=i18n.fmt_pln(rec.party_total_pln or now * n),
+            n=n,
             flight=i18n.fmt_int(rec.flight_cost_pln),
             hotel=i18n.fmt_int(rec.hotel_cost_pln),
         ),

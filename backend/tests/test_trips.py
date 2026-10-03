@@ -377,3 +377,62 @@ def test_supabase_pick_writes_before_migration_0006():
                      {"baseline_pln": 850.0, "last_pln": 850.0,
                       "last_checked_at": now_utc().isoformat()})  # fmt: skip
     assert [json.loads(r.content) for r in sent][1] == {"baseline_pln": 850.0}
+
+
+# ---------------------------------------------------------------------------- party money (#38/#40)
+
+PARTY = {**PROFILE, "adults": 2}
+
+
+def party_recs(c, n=3):
+    body = {"profile": PARTY, "today": TODAY, "limit": n}
+    return c.post("/recommendations", json=body).json()
+
+
+def test_party_money_model_on_my_trips():
+    """Flight per traveller, hotel = the whole stay, party = flight x n + hotel, per person =
+    party / n == total_cost_pln: My trips carries the same lines as the card."""
+    provider = ScaledProvider()
+    c, _, _ = make(provider=provider)
+    r = party_recs(c)[0]
+    assert r["travelers"] == 2
+    it = c.post("/trips", json={"recommendation_id": r["id"]}).json()
+    assert it["travelers"] == 2
+    assert it["saved_flight_pln"] == r["flight_cost_pln"]
+    assert it["saved_hotel_pln"] == r["hotel_cost_pln"]
+    party = r["flight_cost_pln"] * 2 + r["hotel_cost_pln"]
+    assert it["saved_party_pln"] == pytest.approx(party)
+    assert it["saved_pln"] == pytest.approx(r["total_cost_pln"]) == pytest.approx(party / 2, abs=1)
+
+    provider.factor = 0.9
+    scan(c, profile=PARTY)
+    cur = trips(c)["planned"][0]
+    assert cur["current_travelers"] == 2
+    want = cur["current_flight_pln"] * 2 + cur["current_hotel_pln"]
+    assert cur["current_party_pln"] == pytest.approx(want)
+    assert cur["change_pln"] == pytest.approx(cur["current_pln"] - cur["saved_pln"])
+    assert cur["change_pln"] < 0
+
+
+def test_party_size_change_is_not_a_price_change():
+    """Saved for 2, re-priced for 1: different trips, so no "since saved" comparison."""
+    c, _, _ = make()
+    rid = party_recs(c)[0]["id"]
+    c.post("/trips", json={"recommendation_id": rid})
+    scan(c, profile=PROFILE)  # the profile is now 1 traveller
+    it = trips(c)["planned"][0]
+    assert it["travelers"] == 2 and it["current_travelers"] == 1
+    assert it["current_pln"] is not None and it["change_pln"] is None
+
+
+def test_target_alert_party_text_pl():
+    c, _, _ = make()
+    r = party_recs(c)[0]
+    c.post("/trips", json={"recommendation_id": r["id"]})
+    c.put(f"/trips/{r['id']}/target", json={"target_pln": 99999})
+    out = scan(c, profile=PARTY, lang="pl")
+    hit = next(n for n in out["notifications"] if n["kind"] == "target_price")
+    rec = hit["recommendation"]
+    assert "/os." in hit["body"] and "loty 2 ×" in hit["body"] and "razem dla 2 os." in hit["body"]
+    group = rec["flight_cost_pln"] * 2 + rec["hotel_cost_pln"]
+    assert f"{group:,.0f}".replace(",", " ") in hit["body"].replace(" ", " ")

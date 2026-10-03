@@ -33,6 +33,18 @@ alter table notifications drop constraint if exists notifications_kind_check;
 alter table notifications add constraint notifications_kind_check
   check (kind in ('new_top', 'price_drop', 'long_weekend', 'target_price'));
 
+-- Party money model (docs/BUDGET.md, #38/#40): keep the lines, not just the per-person total, so
+-- "My trips" renders flights x n + the stay exactly like the card, receipt and confirm.
+alter table trips
+  add column if not exists flight_pln numeric,              -- per traveller
+  add column if not exists hotel_pln  numeric;              -- the whole stay, all rooms
+alter table saved_picks
+  add column if not exists saved_flight_pln numeric,
+  add column if not exists saved_hotel_pln  numeric,
+  add column if not exists last_flight_pln  numeric,
+  add column if not exists last_hotel_pln   numeric,
+  add column if not exists last_travelers   int;
+
 -- Server-side access only (SUPABASE_SECRET_KEY bypasses RLS). RLS stays on, NO anon/authenticated policies.
 alter table trips       enable row level security;
 alter table saved_picks enable row level security;

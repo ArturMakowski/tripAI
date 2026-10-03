@@ -314,8 +314,9 @@ no contract changes.
 ## My trips (`/my-trips`, T13)
 - **Nav.** "Podróże / My trips" replaces Feedback in the bottom nav, which keeps 4 items. The survey is reached from Past →
   "Oceń wyjazd", and the nav item stays highlighted on `/survey`.
-- **Planned.** One card per trip: photo, city, dates, party, and the price per person. The price is the latest exact-date check,
-  else the price when saved.
+- **Planned.** One card per trip: photo, city, dates and party size. The price is the latest exact-date check, else the price when saved.
+  - Money renders through `moneyOf()` / `<PriceInline>`, the same as the card, receipt and confirm: flight × travellers + the stay.
+    For a group that reads "1 368 zł razem · 684 zł/os.", and the change chip is per person ("↓ 60 zł/os. od zapisania").
   - A chip shows the change: "↓ 120 zł od zapisania" (pine) or "↑ …" (clay). An estimate shows muted as "od ~X zł (inne daty)"
     and is never compared. There are also states for "jeszcze nie sprawdzono" and "brak ceny na te daty", each with how long ago it was checked.
   - The **target chip** ("Ustaw swoją cenę" / "Powiadom przy 900 zł" / "Twoja cena jest!") opens an inline editor

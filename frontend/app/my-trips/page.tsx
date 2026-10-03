@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Bookmark, CircleCheck, Luggage, Pencil, Star, Target } from "lucide-react";
 import { useCallback, useEffect, useId, useState, type FormEvent } from "react";
+import { PriceInline } from "@/components/money";
 import { CityPhoto } from "@/components/rec-card";
 import { AppShell, PageTitle } from "@/components/shell";
 import { Button } from "@/components/ui/button";
@@ -18,17 +19,18 @@ function PriceChip({ t: trip }: { t: TripItem }) {
   const { t, fmt } = useT();
   const m = t.myTrips;
   const line = priceLine(trip);
+  const pp = (n: number) => (trip.travelers > 1 ? `${fmt.pln(n)}${t.money.perPersonShort}` : fmt.pln(n));
   const text =
     line.kind === "down"
-      ? m.down(fmt.pln(line.amount))
+      ? m.down(pp(line.amount))
       : line.kind === "up"
-        ? m.up(fmt.pln(line.amount))
+        ? m.up(pp(line.amount))
         : line.kind === "same"
           ? m.same
           : line.kind === "exactNow"
-            ? m.exactNow(fmt.pln(line.amount))
+            ? m.exactNow(pp(line.amount))
           : line.kind === "estimate"
-            ? m.estimate(fmt.pln(line.amount))
+            ? m.estimate(pp(line.amount))
             : line.kind === "none"
               ? m.noPriceNow
               : trip.watched
@@ -163,19 +165,11 @@ function PlannedCard({
               <span className="truncate">{trip.city}</span>
               <KindIcon className="size-3.5 shrink-0 text-pine" aria-label={trip.kind === "approved" ? m.approved : m.saved} />
             </p>
-            {price.estimate ? (
-              // price honesty: an estimate is never a plain headline number
-              <p className="tabular shrink-0 text-right text-sm leading-tight text-muted-foreground" title={m.estimate(fmt.pln(price.amount))}>
-                {m.estimateShort(fmt.pln(price.amount))}
-                {trip.travelers > 1 && <span className="text-xs">{m.perPerson}</span>}
-                <span className="block text-[11px]">{m.otherDates}</span>
-              </p>
-            ) : (
-              <p className="tabular shrink-0 font-display text-lg text-ink">
-                {fmt.pln(price.amount)}
-                {trip.travelers > 1 && <span className="text-xs text-muted-foreground">{m.perPerson}</span>}
-              </p>
-            )}
+            {/* same money as the card (moneyOf): per person + "2 480 zł razem" for a group; estimates muted */}
+            <PriceInline rec={price.rec} className={cn(
+                "shrink-0 text-right",
+                price.estimate ? "max-w-[55%] text-xs" : trip.travelers > 1 ? "max-w-[55%] text-sm font-semibold text-ink" : "font-display text-lg text-ink",
+              )} />
           </div>
           <p className="text-xs text-muted-foreground">
             {fmt.range(trip)} · {m.party(trip.travelers)}

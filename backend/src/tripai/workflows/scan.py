@@ -485,7 +485,10 @@ def price_checks(ctx: dict, priced: dict) -> dict[str, dict]:
     out = {}
     for rec_id, raw in priced["recs"].items():
         out[rec_id] = {
-            "last_pln": raw["total_cost_pln"] if raw else None,
+            "last_pln": raw["total_cost_pln"] if raw else None,  # per person
+            "last_flight_pln": raw["flight_cost_pln"] if raw else None,  # per traveller
+            "last_hotel_pln": raw["hotel_cost_pln"] if raw else None,  # the whole stay
+            "last_travelers": raw.get("travelers", 1) if raw else None,
             "last_price_status": raw.get("price_status", "exact") if raw else None,
             "last_checked_at": ctx["now"],
         }

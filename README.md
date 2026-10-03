@@ -539,7 +539,16 @@ route handler `frontend/app/api/[...path]/route.ts` (`frontend/lib/proxy.ts`) fo
 `POST /picks`, approvals, targets and the scan's own pick budget.
 
 Each row carries the saved price, the scan's **latest check** (`current_pln`, `price_status`, `checked_at`) and
-`change_pln` (current − saved). `change_pln` is only set when both are exact-date prices: an estimate is shown, never compared.
+`change_pln` (current − saved). `change_pln` is only set when both are exact-date prices for the same party size. An estimate is
+shown, never compared.
+
+**Money follows the party model (docs/BUDGET.md, #38/#40).**
+- `*_pln` is per person (`== total_cost_pln`). The flight line is per traveller and the hotel line is the whole stay.
+- Rows also carry `saved_/current_flight_pln`, `saved_/current_hotel_pln`, the party size (`travelers`, `current_travelers`) and
+  `*_party_pln` (`flight × n + hotel`, via `tripai.scoring.party`).
+- Targets are per person, like budgets.
+- The `target_price` text for a group reads like the other notifications:
+  "Teraz 684 zł/os. (1 368 zł razem dla 2 os.), Twój cel … (loty 2 × 234 + hotel 900)".
 
 **Scan changes** (`workflows/scan.py`, `notify/rules.py`):
 - Every re-priced pick gets its latest check recorded. If there is no price now, the check says so: the old number is

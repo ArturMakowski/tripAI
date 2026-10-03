@@ -100,11 +100,18 @@ class SavedPick(BaseModel):
     saved_at: UTCDateTime = Field(default_factory=now_utc)
     # T13 "My trips" (migration 0006): what it cost when saved (the baseline moves with every
     # price_drop alert; this one never does), the user's target price, and the latest scan check
+    # Money (docs/BUDGET.md party model): *_pln = per person (== total_cost_pln); the lines are
+    # flight per traveller + hotel for the whole stay, so the UI shows the same sums as the card.
     saved_pln: float | None = None  # None (rows from before 0006): baseline_pln
+    saved_flight_pln: float | None = None
+    saved_hotel_pln: float | None = None
     saved_price_status: str = "exact"
     travelers: int = 1
-    target_pln: float | None = Field(None, gt=0)
+    target_pln: float | None = Field(None, gt=0)  # per person, like budgets
     last_pln: float | None = None
+    last_flight_pln: float | None = None
+    last_hotel_pln: float | None = None
+    last_travelers: int | None = None  # the party the scan priced (the profile may have changed)
     last_price_status: str | None = None  # "exact" | "partial" | "estimate" (docs/BUDGET.md)
     last_checked_at: UTCDateTime | None = None
 
@@ -131,6 +138,8 @@ class PlannedTrip(BaseModel):
     start: date
     end: date
     total_pln: float  # per person all-in when approved (card == receipt == confirm)
+    flight_pln: float | None = None  # per traveller
+    hotel_pln: float | None = None  # the whole stay, all rooms
     price_status: str = "exact"
     travelers: int = 1
     status: Literal["planned", "booked", "done", "cancelled"] = "planned"
