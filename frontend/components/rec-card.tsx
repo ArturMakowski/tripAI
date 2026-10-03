@@ -10,7 +10,7 @@ import { useT } from "@/lib/i18n";
 import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
 import { flightLine, hotelLineParts, trustedDetails } from "@/lib/trip-details";
-import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
+import { cityPhoto, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/types";
 import { peakMonth } from "@/lib/counterfactual";
 import { moneyOf } from "@/lib/money";
@@ -68,26 +68,17 @@ export function CityPhoto({
   rec,
   className,
   children,
-  credit,
   thumb,
 }: {
   rec: Pick<Recommendation, "iata" | "city"> & { country?: string };
   className?: string;
   children?: React.ReactNode;
-  /**
-   * Photo attribution (author · license). "link" links to the Commons page (receipt hero); "inline" is plain text for
-   * photos that sit inside another link, such as recommendation cards.
-   */
-  credit?: "link" | "inline";
   /** Small square thumbnail: no shade and no city name on the fallback illustration. */
   thumb?: boolean;
 }) {
   const photo = cityPhoto(rec.iata);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showPhoto = photo !== null && failedSrc !== photo;
-  const info = showPhoto && credit ? cityPhotoCredit(rec.iata) : null;
-  const { t } = useT();
-  const creditText = info && t.credits.photoBy(info.author, info.license);
   return (
     <div className={cn("@container relative overflow-hidden", className)}>
       <CityIllustration city={rec.city} label={!thumb} />
@@ -102,19 +93,6 @@ export function CityPhoto({
       )}
       {!thumb && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/0" />}
       {children}
-      {info && credit === "link" && (
-        <a
-          href={info.source}
-          target="_blank"
-          rel="noreferrer"
-          className="absolute top-16 right-4 max-w-[60%] truncate rounded-full bg-black/25 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-sm hover:text-white"
-        >
-          {creditText}
-        </a>
-      )}
-      {info && credit === "inline" && (
-        <span className="absolute right-3 bottom-1.5 max-w-[55%] truncate text-[9px] leading-none text-white/60">{creditText}</span>
-      )}
     </div>
   );
 }
@@ -158,7 +136,7 @@ export function RecCard({
       href={`/trips/${rec.id}`}
       className="group block overflow-hidden rounded-[1.75rem] border border-line bg-card shadow-soft transition-shadow hover:shadow-lift"
     >
-      <CityPhoto rec={rec} className={featured ? "h-60" : "h-40"} credit="inline">
+      <CityPhoto rec={rec} className={featured ? "h-60" : "h-40"}>
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <motion.span
             key={rank}

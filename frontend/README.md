@@ -53,7 +53,7 @@ The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12
 - **Hand-off.** "Looks right" stores the profile (with airports and party size) and the DNA weights, then continues to free windows.
   "Fine-tune by chat" opens the earlier LLM interview, now at `/onboarding/chat`.
 - **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA) or Unsplash (CC0). Three cards reuse
-  bundled city photos and their credits. Every card shows its photo credit, and the full list is in `public/swipe/CREDITS.md`.
+  bundled city photos and their credits. The full list is in `public/swipe/CREDITS.md` and on `/credits`.
 
 ## Loading and budget on `/trips`
 - **Loading.** The backend contract is in issue #18.
@@ -269,9 +269,9 @@ Every one of the 36 cities in `data/cities.json`, plus Edinburgh from the backen
 The photos are landscape Wikimedia Commons images (CC0, public domain, CC BY or CC BY-SA), 1200 px wide and under 250 KB each.
 - **Lookup.** `lib/photos.ts` maps every city code and airport code (for example LHR/LGW/STN/LTN → London, PMI → Palma) to a photo
   and its credit (author, license, source URL).
-- **Credits.** Recommendation cards show a small "Photo: author · license" line, and the receipt hero shows the same credit as a
-  link to the source. Every screen built on `AppShell`, and the landing page, has a "Photo credits" link to `/credits`. That
-  page lists every city photo and Travel DNA card photo with its author, license link and source. The same list is in
+- **Credits.** No inline photo captions anywhere: cards, the receipt hero, the swipe deck, the landing collage and survey
+  thumbnails show only the photo. CC BY / BY-SA attribution lives on `/credits`, reached from one small footer link
+  ("Zdjęcia" / "Photo credits") on every screen built on `AppShell`, the landing page and the receipt. That page lists every city photo and Travel DNA card photo with its author, license link and source. The same list is in
   `public/cities/CREDITS.md`.
 - **Landing collage.** The photos are landscape but the frames are 3:4, so each image sets an `object-position` that keeps
   its landmark in frame.
