@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from tripai.agents.explain import explain, template_why
+from tripai.agents.fit import fit
 from tripai.agents.interview import InterviewResult, interview
 from tripai.agents.llm import llm_enabled, model_name
 from tripai.api.schemas import (
@@ -148,11 +149,18 @@ def create_app(
         recs = rank(candidates, profile, weights, limit=req.limit)
 
         top = recs[: max(0, req.explain_top)]
-        whys = await asyncio.gather(*(explain(r, profile.interests) for r in top))
-        for r, why in zip(top, whys):
+        fit_recs = recs[: req.fit_top]
+        # explanations and fit verdicts are independent LLM calls: run them all concurrently
+        results = await asyncio.gather(
+            *(explain(r, profile.interests) for r in top),
+            *(fit(r, profile) for r in fit_recs),
+        )
+        for r, why in zip(top, results[: len(top)]):
             r.why = why
         for r in recs[len(top) :]:
             r.why = template_why(r, profile.interests)
+        for r, verdict in zip(fit_recs, results[len(top) :]):
+            r.fit = verdict
 
         await store.save_profile(profile)
         await store.save_weights(uid, weights)
