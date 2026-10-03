@@ -1,0 +1,1214 @@
+{
+  "meta": {
+    "source": "curated:tripai-team",
+    "fetched_at": "2026-10-03T11:57:40+00:00",
+    "generator": "uv run python -m tripai.seed.cities",
+    "notes": "Hand-curated list. Tag weights (0..1) are editorial priors; direct_from is an approximate list of PL origins with direct (often seasonal) flights, to be verified by flight connectors. nuts2 uses Eurostat NUTS 2024 codes (UKI has no post-Brexit Eurostat data; IS00 uses country-level data). subdivisions are ISO 3166-2 codes (plus FR school zones FR-ZA/ZB/ZC) for regional holiday matching.",
+    "tags": [
+      "food",
+      "history",
+      "art",
+      "beach",
+      "nature",
+      "hiking",
+      "nightlife",
+      "ski"
+    ],
+    "origins": [
+      "KRK",
+      "KTW",
+      "WAW",
+      "GDN"
+    ]
+  },
+  "cities": [
+    {
+      "id": "rome",
+      "name": "Rome",
+      "country": "IT",
+      "country_name": "Italy",
+      "iata": "FCO",
+      "airports": [
+        "FCO",
+        "CIA"
+      ],
+      "lat": 41.8967,
+      "lon": 12.4822,
+      "nuts2": "ITI4",
+      "subdivisions": [
+        "IT-62"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 6,
+      "tags": {
+        "food": 0.95,
+        "history": 1.0,
+        "art": 0.95,
+        "beach": 0.0,
+        "nature": 0.2,
+        "hiking": 0.0,
+        "nightlife": 0.6,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "milan",
+      "name": "Milan",
+      "country": "IT",
+      "country_name": "Italy",
+      "iata": "MXP",
+      "airports": [
+        "MXP",
+        "BGY",
+        "LIN"
+      ],
+      "lat": 45.4642,
+      "lon": 9.19,
+      "nuts2": "ITC4",
+      "subdivisions": [
+        "IT-25"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 6,
+      "tags": {
+        "food": 0.85,
+        "history": 0.6,
+        "art": 0.85,
+        "beach": 0.0,
+        "nature": 0.3,
+        "hiking": 0.0,
+        "nightlife": 0.75,
+        "ski": 0.3
+      }
+    },
+    {
+      "id": "naples",
+      "name": "Naples",
+      "country": "IT",
+      "country_name": "Italy",
+      "iata": "NAP",
+      "airports": [
+        "NAP"
+      ],
+      "lat": 40.8518,
+      "lon": 14.2681,
+      "nuts2": "ITF3",
+      "subdivisions": [
+        "IT-72"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW"
+      ],
+      "attractions_radius_km": 12,
+      "tags": {
+        "food": 1.0,
+        "history": 0.9,
+        "art": 0.6,
+        "beach": 0.5,
+        "nature": 0.6,
+        "hiking": 0.5,
+        "nightlife": 0.5,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "venice",
+      "name": "Venice",
+      "country": "IT",
+      "country_name": "Italy",
+      "iata": "VCE",
+      "airports": [
+        "VCE",
+        "TSF"
+      ],
+      "lat": 45.4381,
+      "lon": 12.3358,
+      "nuts2": "ITH3",
+      "subdivisions": [
+        "IT-34"
+      ],
+      "direct_from": [
+        "KTW",
+        "WAW"
+      ],
+      "attractions_radius_km": 5,
+      "tags": {
+        "food": 0.7,
+        "history": 0.95,
+        "art": 0.95,
+        "beach": 0.0,
+        "nature": 0.2,
+        "hiking": 0.0,
+        "nightlife": 0.3,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "catania",
+      "name": "Catania",
+      "country": "IT",
+      "country_name": "Italy",
+      "iata": "CTA",
+      "airports": [
+        "CTA"
+      ],
+      "lat": 37.5079,
+      "lon": 15.083,
+      "nuts2": "ITG1",
+      "subdivisions": [
+        "IT-82"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 30,
+      "tags": {
+        "food": 0.9,
+        "history": 0.7,
+        "art": 0.4,
+        "beach": 0.75,
+        "nature": 0.85,
+        "hiking": 0.8,
+        "nightlife": 0.5,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "barcelona",
+      "name": "Barcelona",
+      "country": "ES",
+      "country_name": "Spain",
+      "iata": "BCN",
+      "airports": [
+        "BCN"
+      ],
+      "lat": 41.3874,
+      "lon": 2.1686,
+      "nuts2": "ES51",
+      "subdivisions": [
+        "ES-CT"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 7,
+      "tags": {
+        "food": 0.95,
+        "history": 0.75,
+        "art": 0.95,
+        "beach": 0.7,
+        "nature": 0.3,
+        "hiking": 0.3,
+        "nightlife": 0.95,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "madrid",
+      "name": "Madrid",
+      "country": "ES",
+      "country_name": "Spain",
+      "iata": "MAD",
+      "airports": [
+        "MAD"
+      ],
+      "lat": 40.4168,
+      "lon": -3.7038,
+      "nuts2": "ES30",
+      "subdivisions": [
+        "ES-MD"
+      ],
+      "direct_from": [
+        "KRK",
+        "WAW",
+        "KTW"
+      ],
+      "attractions_radius_km": 7,
+      "tags": {
+        "food": 0.9,
+        "history": 0.75,
+        "art": 1.0,
+        "beach": 0.0,
+        "nature": 0.2,
+        "hiking": 0.0,
+        "nightlife": 0.9,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "malaga",
+      "name": "Málaga",
+      "country": "ES",
+      "country_name": "Spain",
+      "iata": "AGP",
+      "airports": [
+        "AGP"
+      ],
+      "lat": 36.7213,
+      "lon": -4.4214,
+      "nuts2": "ES61",
+      "subdivisions": [
+        "ES-AN"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 12,
+      "tags": {
+        "food": 0.85,
+        "history": 0.65,
+        "art": 0.7,
+        "beach": 0.9,
+        "nature": 0.5,
+        "hiking": 0.5,
+        "nightlife": 0.7,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "valencia",
+      "name": "Valencia",
+      "country": "ES",
+      "country_name": "Spain",
+      "iata": "VLC",
+      "airports": [
+        "VLC"
+      ],
+      "lat": 39.4699,
+      "lon": -0.3763,
+      "nuts2": "ES52",
+      "subdivisions": [
+        "ES-VC"
+      ],
+      "direct_from": [
+        "KRK",
+        "WAW",
+        "KTW"
+      ],
+      "attractions_radius_km": 8,
+      "tags": {
+        "food": 0.95,
+        "history": 0.6,
+        "art": 0.65,
+        "beach": 0.85,
+        "nature": 0.35,
+        "hiking": 0.0,
+        "nightlife": 0.7,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "palma",
+      "name": "Palma de Mallorca",
+      "country": "ES",
+      "country_name": "Spain",
+      "iata": "PMI",
+      "airports": [
+        "PMI"
+      ],
+      "lat": 39.5696,
+      "lon": 2.6502,
+      "nuts2": "ES53",
+      "subdivisions": [
+        "ES-IB"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 25,
+      "tags": {
+        "food": 0.7,
+        "history": 0.5,
+        "art": 0.4,
+        "beach": 1.0,
+        "nature": 0.75,
+        "hiking": 0.75,
+        "nightlife": 0.75,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "tenerife",
+      "name": "Tenerife",
+      "country": "ES",
+      "country_name": "Spain",
+      "iata": "TFS",
+      "airports": [
+        "TFS",
+        "TFN"
+      ],
+      "lat": 28.2916,
+      "lon": -16.6291,
+      "nuts2": "ES70",
+      "subdivisions": [
+        "ES-CN"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 40,
+      "tags": {
+        "food": 0.5,
+        "history": 0.2,
+        "art": 0.0,
+        "beach": 0.9,
+        "nature": 1.0,
+        "hiking": 0.95,
+        "nightlife": 0.5,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "lisbon",
+      "name": "Lisbon",
+      "country": "PT",
+      "country_name": "Portugal",
+      "iata": "LIS",
+      "airports": [
+        "LIS"
+      ],
+      "lat": 38.7223,
+      "lon": -9.1393,
+      "nuts2": "PT1A",
+      "subdivisions": [
+        "PT-11"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 15,
+      "tags": {
+        "food": 0.9,
+        "history": 0.85,
+        "art": 0.75,
+        "beach": 0.65,
+        "nature": 0.4,
+        "hiking": 0.3,
+        "nightlife": 0.8,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "porto",
+      "name": "Porto",
+      "country": "PT",
+      "country_name": "Portugal",
+      "iata": "OPO",
+      "airports": [
+        "OPO"
+      ],
+      "lat": 41.1579,
+      "lon": -8.6291,
+      "nuts2": "PT11",
+      "subdivisions": [
+        "PT-13"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 8,
+      "tags": {
+        "food": 0.95,
+        "history": 0.75,
+        "art": 0.6,
+        "beach": 0.45,
+        "nature": 0.4,
+        "hiking": 0.0,
+        "nightlife": 0.65,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "funchal",
+      "name": "Funchal (Madeira)",
+      "country": "PT",
+      "country_name": "Portugal",
+      "iata": "FNC",
+      "airports": [
+        "FNC"
+      ],
+      "lat": 32.6669,
+      "lon": -16.9241,
+      "nuts2": "PT30",
+      "subdivisions": [
+        "PT-30"
+      ],
+      "direct_from": [
+        "WAW",
+        "KRK",
+        "KTW"
+      ],
+      "attractions_radius_km": 25,
+      "tags": {
+        "food": 0.6,
+        "history": 0.3,
+        "art": 0.0,
+        "beach": 0.4,
+        "nature": 1.0,
+        "hiking": 1.0,
+        "nightlife": 0.3,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "paris",
+      "name": "Paris",
+      "country": "FR",
+      "country_name": "France",
+      "iata": "CDG",
+      "airports": [
+        "CDG",
+        "ORY",
+        "BVA"
+      ],
+      "lat": 48.8566,
+      "lon": 2.3522,
+      "nuts2": "FR10",
+      "subdivisions": [
+        "FR-IDF",
+        "FR-ZC"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 7,
+      "tags": {
+        "food": 0.95,
+        "history": 0.9,
+        "art": 1.0,
+        "beach": 0.0,
+        "nature": 0.2,
+        "hiking": 0.0,
+        "nightlife": 0.85,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "nice",
+      "name": "Nice",
+      "country": "FR",
+      "country_name": "France",
+      "iata": "NCE",
+      "airports": [
+        "NCE"
+      ],
+      "lat": 43.7102,
+      "lon": 7.262,
+      "nuts2": "FRL0",
+      "subdivisions": [
+        "FR-PAC",
+        "FR-ZB"
+      ],
+      "direct_from": [
+        "KRK",
+        "WAW",
+        "KTW"
+      ],
+      "attractions_radius_km": 20,
+      "tags": {
+        "food": 0.8,
+        "history": 0.55,
+        "art": 0.7,
+        "beach": 0.85,
+        "nature": 0.65,
+        "hiking": 0.55,
+        "nightlife": 0.6,
+        "ski": 0.2
+      }
+    },
+    {
+      "id": "amsterdam",
+      "name": "Amsterdam",
+      "country": "NL",
+      "country_name": "Netherlands",
+      "iata": "AMS",
+      "airports": [
+        "AMS",
+        "EIN"
+      ],
+      "lat": 52.3676,
+      "lon": 4.9041,
+      "nuts2": "NL32",
+      "subdivisions": [
+        "NL-NH"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 6,
+      "tags": {
+        "food": 0.65,
+        "history": 0.75,
+        "art": 0.95,
+        "beach": 0.0,
+        "nature": 0.3,
+        "hiking": 0.0,
+        "nightlife": 0.9,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "berlin",
+      "name": "Berlin",
+      "country": "DE",
+      "country_name": "Germany",
+      "iata": "BER",
+      "airports": [
+        "BER"
+      ],
+      "lat": 52.52,
+      "lon": 13.405,
+      "nuts2": "DE30",
+      "subdivisions": [
+        "DE-BE"
+      ],
+      "direct_from": [
+        "KRK",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 8,
+      "tags": {
+        "food": 0.65,
+        "history": 0.95,
+        "art": 0.85,
+        "beach": 0.0,
+        "nature": 0.3,
+        "hiking": 0.0,
+        "nightlife": 1.0,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "munich",
+      "name": "Munich",
+      "country": "DE",
+      "country_name": "Germany",
+      "iata": "MUC",
+      "airports": [
+        "MUC"
+      ],
+      "lat": 48.1351,
+      "lon": 11.582,
+      "nuts2": "DE21",
+      "subdivisions": [
+        "DE-BY"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 8,
+      "tags": {
+        "food": 0.75,
+        "history": 0.7,
+        "art": 0.75,
+        "beach": 0.0,
+        "nature": 0.55,
+        "hiking": 0.5,
+        "nightlife": 0.65,
+        "ski": 0.45
+      }
+    },
+    {
+      "id": "vienna",
+      "name": "Vienna",
+      "country": "AT",
+      "country_name": "Austria",
+      "iata": "VIE",
+      "airports": [
+        "VIE"
+      ],
+      "lat": 48.2082,
+      "lon": 16.3738,
+      "nuts2": "AT13",
+      "subdivisions": [
+        "AT-9"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 8,
+      "tags": {
+        "food": 0.8,
+        "history": 0.9,
+        "art": 0.95,
+        "beach": 0.0,
+        "nature": 0.35,
+        "hiking": 0.0,
+        "nightlife": 0.6,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "innsbruck",
+      "name": "Innsbruck",
+      "country": "AT",
+      "country_name": "Austria",
+      "iata": "INN",
+      "airports": [
+        "INN"
+      ],
+      "lat": 47.2692,
+      "lon": 11.4041,
+      "nuts2": "AT33",
+      "subdivisions": [
+        "AT-7"
+      ],
+      "direct_from": [
+        "KTW",
+        "WAW"
+      ],
+      "attractions_radius_km": 20,
+      "tags": {
+        "food": 0.5,
+        "history": 0.5,
+        "art": 0.3,
+        "beach": 0.0,
+        "nature": 0.95,
+        "hiking": 1.0,
+        "nightlife": 0.35,
+        "ski": 1.0
+      }
+    },
+    {
+      "id": "prague",
+      "name": "Prague",
+      "country": "CZ",
+      "country_name": "Czechia",
+      "iata": "PRG",
+      "airports": [
+        "PRG"
+      ],
+      "lat": 50.0755,
+      "lon": 14.4378,
+      "nuts2": "CZ01",
+      "subdivisions": [
+        "CZ-10"
+      ],
+      "direct_from": [
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 6,
+      "tags": {
+        "food": 0.65,
+        "history": 0.95,
+        "art": 0.75,
+        "beach": 0.0,
+        "nature": 0.25,
+        "hiking": 0.0,
+        "nightlife": 0.8,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "budapest",
+      "name": "Budapest",
+      "country": "HU",
+      "country_name": "Hungary",
+      "iata": "BUD",
+      "airports": [
+        "BUD"
+      ],
+      "lat": 47.4979,
+      "lon": 19.0402,
+      "nuts2": "HU11",
+      "subdivisions": [
+        "HU-BU"
+      ],
+      "direct_from": [
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 7,
+      "tags": {
+        "food": 0.75,
+        "history": 0.85,
+        "art": 0.65,
+        "beach": 0.0,
+        "nature": 0.35,
+        "hiking": 0.0,
+        "nightlife": 0.9,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "athens",
+      "name": "Athens",
+      "country": "GR",
+      "country_name": "Greece",
+      "iata": "ATH",
+      "airports": [
+        "ATH"
+      ],
+      "lat": 37.9838,
+      "lon": 23.7275,
+      "nuts2": "EL30",
+      "subdivisions": [
+        "GR-I"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 10,
+      "tags": {
+        "food": 0.85,
+        "history": 1.0,
+        "art": 0.7,
+        "beach": 0.55,
+        "nature": 0.3,
+        "hiking": 0.0,
+        "nightlife": 0.7,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "heraklion",
+      "name": "Heraklion (Crete)",
+      "country": "GR",
+      "country_name": "Greece",
+      "iata": "HER",
+      "airports": [
+        "HER"
+      ],
+      "lat": 35.3387,
+      "lon": 25.1442,
+      "nuts2": "EL43",
+      "subdivisions": [
+        "GR-M"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 30,
+      "tags": {
+        "food": 0.85,
+        "history": 0.85,
+        "art": 0.3,
+        "beach": 0.95,
+        "nature": 0.75,
+        "hiking": 0.7,
+        "nightlife": 0.5,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "split",
+      "name": "Split",
+      "country": "HR",
+      "country_name": "Croatia",
+      "iata": "SPU",
+      "airports": [
+        "SPU"
+      ],
+      "lat": 43.5081,
+      "lon": 16.4402,
+      "nuts2": "HR03",
+      "subdivisions": [
+        "HR-17"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 20,
+      "tags": {
+        "food": 0.7,
+        "history": 0.8,
+        "art": 0.4,
+        "beach": 0.9,
+        "nature": 0.7,
+        "hiking": 0.55,
+        "nightlife": 0.75,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "dubrovnik",
+      "name": "Dubrovnik",
+      "country": "HR",
+      "country_name": "Croatia",
+      "iata": "DBV",
+      "airports": [
+        "DBV"
+      ],
+      "lat": 42.6507,
+      "lon": 18.0944,
+      "nuts2": "HR03",
+      "subdivisions": [
+        "HR-19"
+      ],
+      "direct_from": [
+        "KRK",
+        "WAW",
+        "KTW"
+      ],
+      "attractions_radius_km": 10,
+      "tags": {
+        "food": 0.65,
+        "history": 0.9,
+        "art": 0.4,
+        "beach": 0.8,
+        "nature": 0.6,
+        "hiking": 0.4,
+        "nightlife": 0.5,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "valletta",
+      "name": "Valletta (Malta)",
+      "country": "MT",
+      "country_name": "Malta",
+      "iata": "MLA",
+      "airports": [
+        "MLA"
+      ],
+      "lat": 35.8989,
+      "lon": 14.5146,
+      "nuts2": "MT00",
+      "subdivisions": [
+        "MT-60"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 15,
+      "tags": {
+        "food": 0.65,
+        "history": 0.9,
+        "art": 0.5,
+        "beach": 0.8,
+        "nature": 0.45,
+        "hiking": 0.35,
+        "nightlife": 0.75,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "copenhagen",
+      "name": "Copenhagen",
+      "country": "DK",
+      "country_name": "Denmark",
+      "iata": "CPH",
+      "airports": [
+        "CPH"
+      ],
+      "lat": 55.6761,
+      "lon": 12.5683,
+      "nuts2": "DK01",
+      "subdivisions": [
+        "DK-84"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 8,
+      "tags": {
+        "food": 0.9,
+        "history": 0.7,
+        "art": 0.75,
+        "beach": 0.0,
+        "nature": 0.35,
+        "hiking": 0.0,
+        "nightlife": 0.7,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "stockholm",
+      "name": "Stockholm",
+      "country": "SE",
+      "country_name": "Sweden",
+      "iata": "ARN",
+      "airports": [
+        "ARN"
+      ],
+      "lat": 59.3293,
+      "lon": 18.0686,
+      "nuts2": "SE11",
+      "subdivisions": [
+        "SE-AB"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 10,
+      "tags": {
+        "food": 0.7,
+        "history": 0.75,
+        "art": 0.75,
+        "beach": 0.0,
+        "nature": 0.65,
+        "hiking": 0.4,
+        "nightlife": 0.65,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "oslo",
+      "name": "Oslo",
+      "country": "NO",
+      "country_name": "Norway",
+      "iata": "OSL",
+      "airports": [
+        "OSL"
+      ],
+      "lat": 59.9139,
+      "lon": 10.7522,
+      "nuts2": "NO08",
+      "subdivisions": [
+        "NO-03"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 12,
+      "tags": {
+        "food": 0.6,
+        "history": 0.65,
+        "art": 0.75,
+        "beach": 0.0,
+        "nature": 0.8,
+        "hiking": 0.7,
+        "nightlife": 0.5,
+        "ski": 0.6
+      }
+    },
+    {
+      "id": "reykjavik",
+      "name": "Reykjavík",
+      "country": "IS",
+      "country_name": "Iceland",
+      "iata": "KEF",
+      "airports": [
+        "KEF"
+      ],
+      "lat": 64.1466,
+      "lon": -21.9426,
+      "nuts2": "IS00",
+      "subdivisions": [
+        "IS-1"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 60,
+      "tags": {
+        "food": 0.5,
+        "history": 0.4,
+        "art": 0.45,
+        "beach": 0.0,
+        "nature": 1.0,
+        "hiking": 0.9,
+        "nightlife": 0.6,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "dublin",
+      "name": "Dublin",
+      "country": "IE",
+      "country_name": "Ireland",
+      "iata": "DUB",
+      "airports": [
+        "DUB"
+      ],
+      "lat": 53.3498,
+      "lon": -6.2603,
+      "nuts2": "IE06",
+      "subdivisions": [
+        "IE-D"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 8,
+      "tags": {
+        "food": 0.6,
+        "history": 0.75,
+        "art": 0.6,
+        "beach": 0.0,
+        "nature": 0.4,
+        "hiking": 0.35,
+        "nightlife": 0.95,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "larnaca",
+      "name": "Larnaca (Cyprus)",
+      "country": "CY",
+      "country_name": "Cyprus",
+      "iata": "LCA",
+      "airports": [
+        "LCA",
+        "PFO"
+      ],
+      "lat": 34.9167,
+      "lon": 33.6333,
+      "nuts2": "CY00",
+      "subdivisions": [
+        "CY-03"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 30,
+      "tags": {
+        "food": 0.7,
+        "history": 0.65,
+        "art": 0.25,
+        "beach": 0.95,
+        "nature": 0.5,
+        "hiking": 0.35,
+        "nightlife": 0.6,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "london",
+      "name": "London",
+      "country": "GB",
+      "country_name": "United Kingdom",
+      "iata": "STN",
+      "airports": [
+        "LHR",
+        "LGW",
+        "STN",
+        "LTN"
+      ],
+      "lat": 51.5074,
+      "lon": -0.1278,
+      "nuts2": "UKI",
+      "subdivisions": [
+        "GB-ENG",
+        "GB-LND"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 8,
+      "tags": {
+        "food": 0.8,
+        "history": 0.9,
+        "art": 1.0,
+        "beach": 0.0,
+        "nature": 0.3,
+        "hiking": 0.0,
+        "nightlife": 0.95,
+        "ski": 0.0
+      }
+    },
+    {
+      "id": "tirana",
+      "name": "Tirana",
+      "country": "AL",
+      "country_name": "Albania",
+      "iata": "TIA",
+      "airports": [
+        "TIA"
+      ],
+      "lat": 41.3275,
+      "lon": 19.8187,
+      "nuts2": "AL02",
+      "subdivisions": [
+        "AL-11"
+      ],
+      "direct_from": [
+        "KRK",
+        "KTW",
+        "WAW",
+        "GDN"
+      ],
+      "attractions_radius_km": 40,
+      "tags": {
+        "food": 0.75,
+        "history": 0.6,
+        "art": 0.35,
+        "beach": 0.6,
+        "nature": 0.75,
+        "hiking": 0.75,
+        "nightlife": 0.6,
+        "ski": 0.0
+      }
+    }
+  ]
+}
