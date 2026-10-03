@@ -22,6 +22,10 @@ class TasteProfile(BaseModel):
     dislikes: list[str] = Field(default_factory=list)  # e.g. ["crowds", "heat"]
     preferred_temp_c: tuple[float, float] = (15.0, 26.0)
     trip_length_days: tuple[int, int] = (3, 7)
+    # Travel DNA (docs/TRAVEL_DNA.md): raw swipe answers q1..q12 -> 1..5, plus derived traits
+    traits: dict[str, float] = Field(default_factory=dict)
+    daily_discovery: bool | None = None
+    personalize: bool = True  # False: neutral weights, feedback never changes the profile
 
 
 class FreeWindow(BaseModel):
