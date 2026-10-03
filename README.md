@@ -39,5 +39,7 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   provider with `create_app(provider=...)`.
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
-- `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache. Not wired
-  yet; the API uses an in-memory `Store`.
+- `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache
+  (`source, cache_key, payload, fetched_at, expires_at`). RLS is enabled on every table with no
+  anon/authenticated policies: only the backend connects, using `SUPABASE_URL` + `SUPABASE_SECRET_KEY`
+  (server only). Not wired yet; the API uses an in-memory `Store`.

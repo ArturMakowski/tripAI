@@ -1,5 +1,5 @@
 -- TripAI core schema (mirrors backend/src/tripai/models.py + tripai.api.state.Store).
--- Apply: supabase db push  (or paste into the Supabase SQL editor).
+-- Applied by the president (Supabase MCP) after merge; do not apply from feature branches.
 
 create table if not exists profiles (
   user_id     text primary key,
@@ -39,8 +39,18 @@ create table if not exists feedback (
 -- Connector response cache (T2): every fact keeps its source + fetched_at.
 create table if not exists api_cache (
   source      text not null,                 -- "serpapi:google_flights", "open-meteo", ...
-  key         text not null,                 -- canonical request key
+  cache_key   text not null,                 -- canonical request key
   payload     jsonb not null,
   fetched_at  timestamptz not null default now(),
-  primary key (source, key)
+  expires_at  timestamptz,                   -- null = never expires
+  primary key (source, cache_key)
 );
+
+-- Only the backend talks to the DB, with the server-side secret key (SUPABASE_SECRET_KEY,
+-- sb_secret_..., which bypasses RLS). RLS is on with NO anon/authenticated policies, so the
+-- public API keys can read or write nothing.
+alter table profiles        enable row level security;
+alter table recommendations enable row level security;
+alter table trips           enable row level security;
+alter table feedback        enable row level security;
+alter table api_cache       enable row level security;
