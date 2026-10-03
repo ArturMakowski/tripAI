@@ -91,6 +91,34 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   (server only). Wired by T5a (`SupabaseStore`, see below); without those env vars the API uses an
   in-memory `Store`.
 
+## Jev decision layer (T1e): `tripai.agents.jev`
+
+Jev (TypeSafe) answers typed questions with a calibrated confidence per field. It runs through pydantic-ai's
+`TypeSafeModel` (`pydantic-ai-slim[typesafe]`, model `TRIPAI_JEV_MODEL`, default `jev-latest`). The key comes
+from `TYPESAFE_API_KEY` or `TYPESAFEAI_API_KEY`, and `TRIPAI_JEV=0` turns it off. Jev only decides: it never
+writes text, prices or scores. Every decision point has a deterministic fallback, so the demo works without a key.
+
+- **Fit engine** `TRIPAI_FIT_ENGINE=jev|llm|rules`. Without the env var: jev if a TypeSafe key is set, else llm
+  if an LLM key is set, else rules. Jev decides the label (an ordered 4-level rubric) and one yes/no per DNA check
+  (`crowd_conflict`, `relax_conflict`, `budget_conflict`, `weather_conflict`, `pace_conflict`, `culture_match`,
+  `active_match`, `novelty_match`). Every check that comes back yes (P >= 0.7) becomes a point. Its citations
+  (DNA cards the user answered 4-5, plus evidence indexes) are set in code, not by a model. The LLM (or a
+  template) then only *phrases* those points (`phrase_agent`): it must return the same number of points, and
+  the grounding validator still applies. A label confidence below 0.6 becomes `mixed` + "We're not sure about
+  this one; here's why". Fallback chain: jev -> llm -> rules. `FitVerdict.model` records both parts, e.g.
+  `typesafe:jev-1.13.0+openai:gpt-6-luna`. `/health` shows `fit_engine` and `jev`.
+- **Chat -> Travel DNA** `POST /interview/dna` (`tripai.agents.dna_chat`): Jev reads q1..q12 (1-5 or
+  "not said") and y1 from the conversation. Answers with confidence >= 0.6 are kept. For the rest it asks a
+  follow-up about the most important unsure card (at most 4), then stops. `answers` / `yes_no` have the same
+  shape as the `POST /profile/dna` input. Without Jev, a scripted flow asks the cards and parses "so me" / "nie ja" / "4".
+- **Guardrail** `guard(text)`: Jev's `prompt_injection` / `off_topic` (plus a regex fallback) check the user's
+  free text before any LLM call (`/interview`, `/interview/dna`). Off-topic text is blocked only at confidence >= 0.6.
+- **Notification gate** `jev_worth_interrupting(rec, profile) -> (push, p)` for T5b: push only if p >= 0.8.
+  Without Jev, only a `great_fit` verdict passes.
+- **Eval** `uv run python -m tripai.agents.fit_eval [--no-llm] [--no-jev]`: per case and per engine,
+  agreement with the 20 labels, p50 latency, and estimated cost per verdict (from pydantic-ai/genai-prices
+  usage). `jev raw` is Jev's label before the 0.6 gate.
+
 ## Live data (T5a): `LiveProvider` + Supabase persistence
 
 `tripai.main` picks the provider from env: `TRIPAI_PROVIDER=live|fixture` wins; otherwise `fixture`

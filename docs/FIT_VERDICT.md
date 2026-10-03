@@ -33,7 +33,8 @@ prints agreement with the labels (and with the rules fallback). Shown in the pit
 ## Engines (decided 2026-10-03): Jev decides, GPT explains, rules back-stop
 `TRIPAI_FIT_ENGINE=jev|llm|rules` (default `jev` when a TypeSafe key is set). Jev runs via **pydantic-ai's
 `TypeSafeModel`** (`pydantic-ai-slim[typesafe]`, model `typesafe:jev-latest`; key from `TYPESAFE_API_KEY` or `TYPESAFEAI_API_KEY`).
-- One Pydantic `output_type` per decision: `label: Literal[great_fit, good_fit, mixed, poor_fit]` + one `bool` per DNA
+- One Pydantic `output_type` per decision: `label` (implemented as an ordered rubric 0..3 = poor/mixed/good/great: a
+  4-way pick-one split its confidence over neighbouring labels, ~0.4, so the gate made everything `mixed`) + one `bool` per DNA
   check (e.g. `crowd_conflict`, `relax_conflict`, `budget_conflict`, `pace_conflict`, `novelty_match`), field docstrings /
   `BoolCriteria` as the question text. Calibrated confidences from `result.response.provider_details['confidence']`
   become `FitVerdict.confidence` and per-point confidence.
@@ -46,3 +47,8 @@ prints agreement with the labels (and with the rules fallback). Shown in the pit
 Other Jev decision points: notification gate (`worth_interrupting: bool`, push only if p ≥ 0.8), chat interview → DNA
 (`int` score per q1..q12 from free text, follow-up when confidence < 0.6), guardrail on user free text
 (`prompt_injection`, `off_topic`). The fit eval prints jev vs llm vs rules: agreement, p50 latency, cost.
+
+Implemented in T1e (`tripai.agents.jev`, see README). Per-point confidence is applied as a filter (a check is shown
+only at P(yes) >= 0.7) because `FitPoint` has no confidence field yet (contract change = its own PR).
+Live eval (3 Oct, 20 cases): Jev decision alone 13/20 exact, 20/20 within one, p50 ~0.5 s, ~$0.0001;
+gated + GPT phrasing 12/20, 17/20; GPT-6 Luna alone 13/20, 20/20, p50 ~6.7 s; rules 10/20, 18/20.
