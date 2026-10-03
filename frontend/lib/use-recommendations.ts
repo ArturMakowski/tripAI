@@ -28,28 +28,67 @@ export function useRecommendations() {
   const seq = useRef(0);
   const [now] = useState(() => Date.now()); // staleness is judged once per mount
 
-  const fresh =
-    !!recsMeta && recsMeta.profileKey === profileKey(profile) && now - recsMeta.at < RECS_TTL_MS && recs.length > 0;
+  // An empty answer is still an answer: show the empty state instead of loading forever.
+  const fresh = !!recsMeta && recsMeta.profileKey === profileKey(profile) && now - recsMeta.at < RECS_TTL_MS;
   // Receipts (flip hint, counterfactual score deltas, hash) were computed at these weights.
   const scoredAtCurrentWeights = sameWeights(recsMeta?.weights, weights);
 
-  // Initial / stale load (with LLM explanations for the top 3).
+  // Fast results are on screen, exact live prices still coming.
+  const refining = fresh && recsMeta?.phase === "fast";
+
+  // Initial / stale load. Two-phase only when the backend says it supports it (/health.phases);
+  // otherwise, or if the fast call fails, exactly one classic call (with explanations), as before.
+  const [phased, setPhased] = useState<boolean | null>(null);
   useEffect(() => {
     if (!hydrated || fresh) return;
     const id = ++seq.current;
     const ctrl = new AbortController();
-    const p = profile ?? DEMO_PROFILE;
-    api.recommendations({ profile: p, weights }, ctrl.signal).then(({ data, mode }) => {
-      if (id === seq.current) setRecs(data, { profile, weights, mode });
+    const req = { profile: profile ?? DEMO_PROFILE, weights };
+    const single = () =>
+      api.recommendations(req, ctrl.signal).then(({ data, mode }) => {
+        if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "full" });
+      });
+    api.capabilities().then(({ phases }) => {
+      if (id !== seq.current) return;
+      setPhased(phases);
+      if (!phases) return single();
+      return api
+        .recommendationsPhase(req, "fast", ctrl.signal)
+        .then(({ data, mode }) => {
+          if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "fast" });
+        })
+        .catch(() => {
+          if (!ctrl.signal.aborted) return single();
+        });
     });
     return () => ctrl.abort();
     // weights intentionally excluded: slider moves are handled below
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, fresh, profile]);
 
+  // Phase 2: exact live prices + explanations; cards update and re-order in place.
+  // If it fails, the fast list stays (marked final) rather than swapping in fixtures.
+  useEffect(() => {
+    if (!hydrated || !refining) return;
+    const id = ++seq.current;
+    const ctrl = new AbortController();
+    const current = () => useTrip.getState().recs;
+    api
+      .recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights }, "full", ctrl.signal)
+      .then(({ data, mode }) => {
+        if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "full" });
+      })
+      .catch(() => {
+        if (!ctrl.signal.aborted && id === seq.current)
+          setRecs(current(), { profile, weights, mode: useTrip.getState().modes.recs ?? "live", phase: "full", merge: false });
+      });
+    return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, refining]);
+
   // Slider settled with different weights: refresh receipts (no new LLM calls; keep existing "why").
   useEffect(() => {
-    if (!hydrated || !fresh || modes.recs !== "live" || scoredAtCurrentWeights) return;
+    if (!hydrated || !fresh || refining || modes.recs !== "live" || scoredAtCurrentWeights) return;
     const ctrl = new AbortController();
     const t = setTimeout(() => {
       const id = ++seq.current;
@@ -78,5 +117,14 @@ export function useRecommendations() {
     // Backend verdicts win; until the fit agent ships, a rule-based preview is computed here and labelled as such.
     return withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL);
   }, [recs, weights, fixture, fitProfile]);
-  return { ranked, loading: !recs.length, weights, scoredAtCurrentWeights: fixture || scoredAtCurrentWeights };
+  return {
+    ranked,
+    loading: !fresh,
+    refining,
+    /** null until known; false = classic single call (backend without phase support) */
+    phased,
+    mode: modes.recs ?? null,
+    weights,
+    scoredAtCurrentWeights: fixture || scoredAtCurrentWeights,
+  };
 }

@@ -17,6 +17,7 @@ import type {
   InterviewResult,
   RankedRecommendation,
   RecommendationsRequest,
+  RecPhase,
 } from "./types";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
@@ -67,6 +68,8 @@ export class HttpError extends Error {
     super(message);
   }
 }
+
+let caps: Promise<{ phases: boolean }> | null = null;
 
 async function http<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Promise<T> {
   const timeout = AbortSignal.timeout(timeoutMs);
@@ -131,6 +134,40 @@ export const api = {
       () => mock.recommendations(req),
       signal,
     ),
+
+  /**
+   * Two-phase load. The server confirms the phase it served in X-TripAI-Phase; a backend
+   * without phase support ignores the query and answers in full, so `served` is null and
+   * the caller must NOT fire a second (expensive) full request.
+   */
+  /**
+   * Does the backend support two-phase /recommendations? Asked once per page load via the
+   * proposed `/health.phases` flag. Fixture mode always does (mocked); anything else, including
+   * an unreachable /health, means "no": the client then makes the single classic call.
+   */
+  capabilities: (): Promise<{ phases: boolean }> => {
+    if (FORCE_MOCK) return Promise.resolve({ phases: true });
+    caps ??= http<Health>("/health", undefined, 5_000)
+      .then((h) => ({ phases: Array.isArray(h.phases) && h.phases.includes("fast") && h.phases.includes("full") }))
+      .catch(() => ({ phases: false }));
+    return caps;
+  },
+
+  /**
+   * One phase of a two-phase load. Only call after `capabilities().phases`. In live mode a
+   * failure THROWS (never a fixture "fast" result): the caller then degrades to the single
+   * classic `recommendations()` call, so the backend runs the pipeline at most once more.
+   */
+  recommendationsPhase: async (
+    req: RecommendationsRequest,
+    phase: RecPhase,
+    signal?: AbortSignal,
+  ): Promise<Result<RankedRecommendation[]>> => {
+    if (FORCE_MOCK) return { data: await mock.recommendations(req, phase), mode: "fixture" };
+    const body = phase === "fast" ? { limit: 10, explain_top: 0, ...req } : { limit: 10, explain_top: 3, ...req };
+    const data = await http<RankedRecommendation[]>(`/recommendations?phase=${phase}`, { ...post(body), signal }, phase === "fast" ? 8_000 : 60_000);
+    return { data, mode: "live" };
+  },
 
   /** Travel DNA swipes -> profile + weights + reasons (backend: tripai.profile.dna). */
   profileDna: (req: DnaRequest) =>

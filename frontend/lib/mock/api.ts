@@ -15,6 +15,7 @@ import type {
   LuxuryLevel,
   RankedRecommendation,
   RecommendationsRequest,
+  RecPhase,
   TasteProfile,
   Weights,
 } from "../types";
@@ -195,11 +196,58 @@ export function scoreLocally(profile: TasteProfile, weights: Weights, windowsIn?
   return withReceipts(rerank(recs, weights), weights);
 }
 
-export async function recommendations(req: RecommendationsRequest): Promise<RankedRecommendation[]> {
-  await sleep(500);
+/**
+ * Fast-phase estimates (cached calendar fares + estimated hotels), per destination.
+ * Deliberately off from the exact fixture prices so the full phase visibly re-ranks.
+ */
+const FAST_ESTIMATE: Record<string, { flight: number; hotel: number }> = {
+  FCO: { flight: 318, hotel: 1260 },
+  LIS: { flight: 452, hotel: 890 },
+  ATH: { flight: 405, hotel: 690 },
+  VCE: { flight: 340, hotel: 1350 },
+  OPO: { flight: 560, hotel: 640 },
+};
+
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+
+export function fastEstimates(recs: RankedRecommendation[]): RankedRecommendation[] {
+  return recs.map((r) => {
+    const est = FAST_ESTIMATE[r.iata];
+    if (!est) return r;
+    const total = est.flight + est.hotel;
+    return {
+      ...r,
+      flight_cost_pln: est.flight,
+      hotel_cost_pln: est.hotel,
+      total_cost_pln: total,
+      // cheaper estimate -> better price score, same scale as the scorer's price factor
+      score: { ...r.score, price: Math.round(clamp01(r.score.price + (r.total_cost_pln - total) / 2000) * 1000) / 1000 },
+      evidence: r.evidence.map((e) =>
+        e.kind === "flight" && typeof e.value === "number"
+          ? { ...e, value: est.flight, label: `${e.label} (cached calendar fare)`, source: "fixture:travelpayouts-calendar" }
+          : e.kind === "hotel" && typeof e.value === "number"
+            ? { ...e, value: est.hotel, label: `${e.label} (estimate)`, source: "fixture:estimate:tripai-editorial" }
+            : e,
+      ),
+      why: "",
+    };
+  });
+}
+
+/** Mark trips over the profile budget the way the backend will (positive = PLN over). */
+export function markBudget(recs: RankedRecommendation[], budget: number | null): RankedRecommendation[] {
+  return recs.map((r) => ({ ...r, over_budget_pln: budget == null ? null : Math.max(0, Math.round(r.total_cost_pln - budget)) }));
+}
+
+export async function recommendations(req: RecommendationsRequest, phase?: RecPhase): Promise<RankedRecommendation[]> {
+  // fast < 1 s, full a couple of seconds more: the shape of the real two-phase backend
+  await sleep(phase === "fast" ? 700 : phase === "full" ? 2600 : 500);
+  const w = req.weights ?? DEFAULT_WEIGHTS;
+  let recs = scoreLocally(req.profile, w, req.windows);
+  if (phase === "fast") recs = withReceipts(rerank(fastEstimates(recs), w), w);
   // No fit here: in fixture mode the verdict is derived from the *current* ranking (use-recommendations),
   // so it never goes stale when the slider re-weights locally.
-  return scoreLocally(req.profile, req.weights ?? DEFAULT_WEIGHTS, req.windows).slice(0, req.limit ?? 10);
+  return markBudget(recs, req.profile.budget_pln).slice(0, req.limit ?? 10);
 }
 
 // --- /feedback --------------------------------------------------------------------------

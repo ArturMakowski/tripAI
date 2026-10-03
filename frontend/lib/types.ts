@@ -123,6 +123,8 @@ export interface FlipHint {
 
 export interface RankedRecommendation extends Recommendation {
   rank: number;
+  /** PROPOSED (issue #18): total minus the profile budget, > 0 when over; null/absent = no budget or not marked. */
+  over_budget_pln?: number | null;
   counterfactuals: Counterfactual[];
   flip: FlipHint | null;
   inputs_hash: string;
@@ -175,6 +177,9 @@ export interface InterviewResult {
   profile: TasteProfile | null;
 }
 
+/** Two-phase loading (T5a): `fast` = cached/calendar prices in < 2 s, `full` = exact live prices + explanations. */
+export type RecPhase = "fast" | "full";
+
 export interface RecommendationsRequest {
   profile: TasteProfile;
   windows?: FreeWindow[] | null; // null -> calendar free windows + long-weekend radar
@@ -219,6 +224,8 @@ export interface Health {
   calendar: string;
   llm: string | null;
   scoring_version: string;
+  /** PROPOSED (issue #18): phases /recommendations supports, e.g. ["fast", "full"]. Absent = single call only. */
+  phases?: string[];
 }
 
 // --- profile/dna (docs/TRAVEL_DNA.md) ----------------------------------------------

@@ -46,6 +46,24 @@ Profile creation is a swipe deck built from the team questionnaire in `docs/TRAV
 - **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA) or Unsplash (CC0). Three cards reuse the
   bundled Unsplash city photos. Every card shows its photo credit, and the full list is in `public/swipe/CREDITS.md`.
 
+## Loading and budget on `/trips`
+- **Loading.** The backend contract is in issue #18.
+  - **Two phases only when the backend says so.** If `/health.phases` includes `fast` and `full`, `POST /recommendations?phase=fast`
+    puts cards on screen and `phase=full` then updates and re-orders them in place.
+  - **Otherwise one call.** This covers today's backend, an unreachable `/health`, or a failed fast call: the client makes the classic
+    single call (`explain_top: 3`). The pipeline never runs twice and explanations are never lost.
+  - **Loader:** a plane on a dotted route (SVG `animateMotion`, so it scales to the card), a description of what the pipeline is
+    doing, and sheen skeletons. Only real signals get a ✓ (e.g. "Found 7 free windows").
+  - **Refining:** a fixed-height slot shows "Refining live prices…" (or "…(demo data)" on fixtures), then a confirmation that stays.
+    The push toast floats over the page, so the cards never jump.
+  - **Accessibility:** one persistent screen-reader live region. `MotionConfig reducedMotion="user"` app-wide plus a static plane and
+    no sheen under `prefers-reduced-motion`.
+- **Budget.**
+  - A "Budget 1,000 PLN · set in profile" chip links to the profile.
+  - Cards show "Over budget +X PLN" from the backend's `over_budget_pln`, falling back to total minus budget.
+  - An over-budget #1 is never shown without a banner. Either "Nothing fits {budget} for these dates — closest options" (naming the
+    cheapest trip), or "Your top pick is X over your budget · N trips fit · Show those first" (a stable within-budget-first sort).
+
 ## Data: live vs fixture
 `lib/api.ts` implements API v0 exactly as `backend/src/tripai/api/app.py` serves it: `POST /interview`, `GET /windows`,
 `GET /windows/long-weekends`, `POST /recommendations` (→ `RankedRecommendation[]`), and `POST /feedback` (→ the profile plus `weights`
