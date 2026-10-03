@@ -1,5 +1,5 @@
-"""Per-user state (profile, weights, last recommendations). In-memory for the demo; the
-Supabase tables in `supabase/migrations` mirror it for a persistent implementation."""
+"""Per-user state (profile, weights, last recommendations, feedback). In-memory here;
+`tripai.api.supabase_store.SupabaseStore` persists it to the tables in `supabase/migrations`."""
 
 from typing import Protocol
 
@@ -14,6 +14,7 @@ class Store(Protocol):
     def save_weights(self, user_id: str, weights: Weights) -> None: ...
     def save_recommendations(self, user_id: str, recs: list[RankedRecommendation]) -> None: ...
     def get_recommendation(self, rec_id: str) -> RankedRecommendation | None: ...
+    def save_feedback(self, user_id: str, trip_id: str, answers: dict, diff: list) -> None: ...
 
 
 class MemoryStore:
@@ -21,6 +22,7 @@ class MemoryStore:
         self.profiles: dict[str, TasteProfile] = {}
         self.weights: dict[str, Weights] = {}
         self.recs: dict[str, RankedRecommendation] = {}
+        self.feedback: list[dict] = []
 
     def get_profile(self, user_id: str) -> TasteProfile | None:
         return self.profiles.get(user_id)
@@ -39,3 +41,7 @@ class MemoryStore:
 
     def get_recommendation(self, rec_id: str) -> RankedRecommendation | None:
         return self.recs.get(rec_id)
+
+    def save_feedback(self, user_id: str, trip_id: str, answers: dict, diff: list) -> None:
+        self.feedback.append({"user_id": user_id, "trip_id": trip_id, "answers": answers,
+                              "diff": diff})  # fmt: skip

@@ -74,4 +74,38 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache
   (`source, cache_key, payload, fetched_at, expires_at`). RLS is enabled on every table with no
   anon/authenticated policies: only the backend connects, using `SUPABASE_URL` + `SUPABASE_SECRET_KEY`
-  (server only). Not wired yet; the API uses an in-memory `Store`.
+  (server only). Wired by T5a (`SupabaseStore`, see below); without those env vars the API uses an
+  in-memory `Store`.
+
+## Live data (T5a): `LiveProvider` + Supabase persistence
+
+`tripai.main` picks the provider from env: `TRIPAI_PROVIDER=live|fixture` wins; otherwise `fixture`
+when `TRIPAI_USE_FIXTURES=1`, else `live`. `create_app()` without arguments (tests) stays on `FixtureProvider`.
+`GET /health` reports the active `provider` and `store`.
+
+`tripai.live.LiveProvider` (seed + connectors), per `/recommendations` call:
+1. **Shortlist** `TRIPAI_LIVE_MAX_CITIES` (default 12) of the ~36 seed cities by taste fit (+ direct route from the origin). No I/O.
+2. **Cheap pass** for every (city, window): Travelpayouts month calendar (free; exact departure day,
+   else nearest ±3 days, else month median), else one Google Travel Explore call for all cities;
+   hotel nightly from Explore, else a labelled editorial estimate (`estimate:tripai-editorial`);
+   weather from Open-Meteo month normals; crowds from the Eurostat seed; local holidays, PL school
+   breaks, attractions (highlights) and a Wikimedia photo from the seed.
+3. **Refine** the top `TRIPAI_LIVE_TOP_N` (default 3) by the real scorer with exact-date SerpApi
+   Google Flights (price + price level, typical range as the deal baseline) and Google Hotels
+   (quantile by luxury level: 25/50/75/90th percentile), exact-window Open-Meteo and a Serper photo.
+   Re-rank and repeat until the top N are all refined, at most `TRIPAI_LIVE_MAX_REFINE` (default 6) in total.
+   Worst case is 1 + 2×6 = 13 SerpApi calls per cold request; repeats come from the cache (disk + Supabase `api_cache`).
+
+Every number is an `Evidence` with `source` + `fetched_at`. Synthetic fixtures keep `[synthetic fixture]`.
+Extra evidence kinds: `confidence` (0..1, the mean of the per-factor data quality, and the label says what each
+factor is based on), `photo` (value = image URL; see the contract proposal in the PR), `holiday`, `price_baseline`.
+A failing connector drops its evidence and lowers `confidence`. A city with no price or no weather is
+skipped. If nothing at all comes back, the provider serves `FixtureProvider` candidates (`fixture:*`). It never returns a 500.
+
+Peak-season counterfactuals need Travelpayouts fares for the city's peak month. Those are often missing
+months ahead, and then the card simply has no peak counterfactual.
+
+`tripai.api.supabase_store.SupabaseStore` (when `SUPABASE_URL` + `SUPABASE_SECRET_KEY` are set; `TRIPAI_STORE=memory`
+opts out) writes profiles + weights, recommendations (`inputs_hash`, rank, full payload) and feedback
+(`answers` + `diff`) through PostgREST. Memory stays the primary copy. Writes go out on one background thread,
+in order, and reads fall back to Supabase on a miss. Errors are logged and never fail a request.

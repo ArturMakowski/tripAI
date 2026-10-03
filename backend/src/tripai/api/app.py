@@ -65,6 +65,7 @@ def create_app(
             "ok": True,
             "provider": type(provider).__name__,
             "calendar": type(calendar).__name__,
+            "store": type(store).__name__,
             "llm": model_name() if llm_enabled() else None,
             "scoring_version": SCORING_VERSION,
         }
@@ -121,7 +122,9 @@ def create_app(
             windows = _merge_windows(free_windows(busy, today, end, source="gcal") + radar)
         trips = trip_windows(windows, profile.trip_length_days)
         origin = profile.origin_airports[0] if profile.origin_airports else "KRK"
-        candidates = await provider.candidates(origin, trips, profile.luxury)
+        candidates = await provider.candidates(
+            origin, trips, profile.luxury, profile=profile, weights=weights
+        )
         recs = rank(candidates, profile, weights, limit=req.limit)
 
         top = recs[: max(0, req.explain_top)]
@@ -154,6 +157,7 @@ def create_app(
         result = apply_feedback(profile, weights, req.answers, tags, temp, trip_label=label)
         store.save_profile(result.profile)
         store.save_weights(result.profile.user_id, result.weights)
+        store.save_feedback(result.profile.user_id, req.trip_id, req.answers, result.diff)
         return FeedbackResponse(
             **result.profile.model_dump(),
             trip_id=req.trip_id,

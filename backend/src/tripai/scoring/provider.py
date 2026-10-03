@@ -12,7 +12,7 @@ from typing import Protocol
 
 from pydantic import BaseModel, Field
 
-from tripai.models import Evidence, FreeWindow, LuxuryLevel
+from tripai.models import Evidence, FreeWindow, LuxuryLevel, TasteProfile, Weights
 from tripai.scoring.types import Candidate, PeakQuote
 from tripai.scoring.windows import BusyInterval, pl_holidays, work_calendar
 
@@ -29,7 +29,13 @@ class TripDataProvider(Protocol):
     async def cities(self, origin: str) -> list[CityInfo]: ...
 
     async def candidates(
-        self, origin: str, windows: Sequence[FreeWindow], luxury: LuxuryLevel
+        self,
+        origin: str,
+        windows: Sequence[FreeWindow],
+        luxury: LuxuryLevel,
+        *,
+        profile: TasteProfile | None = None,  # lets a provider spend its live-call budget on
+        weights: Weights | None = None,  # the options this user is likely to see
     ) -> list[Candidate]: ...
 
 
@@ -195,6 +201,9 @@ class FixtureProvider:
         origin: str,
         windows: Sequence[FreeWindow],
         luxury: LuxuryLevel = LuxuryLevel.standard,
+        *,
+        profile: TasteProfile | None = None,
+        weights: Weights | None = None,
     ) -> list[Candidate]:
         return [self._candidate(c, origin, w, luxury) for c in self._cities for w in windows]
 

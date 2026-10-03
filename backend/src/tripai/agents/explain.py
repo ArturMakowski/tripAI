@@ -130,7 +130,9 @@ def template_why(rec: RankedRecommendation, interests: dict[str, float] | None =
     when = f"{s.day} {MONTHS[s.month - 1]}" + (
         f"-{e.day} {MONTHS[e.month - 1]}" if (s.month, s.day) != (e.month, e.day) else ""
     )
-    ev = {x.kind: x for x in rec.evidence}
+    ev: dict = {}
+    for x in rec.evidence:
+        ev.setdefault(x.kind, x)  # first fact per kind (e.g. avg temp before rainy-day share)
     parts = [
         (
             f"{rec.city}, {when}: about {rec.total_cost_pln:.0f} PLN in total "
