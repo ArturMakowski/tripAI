@@ -208,11 +208,21 @@ const ART: Record<IntroStepId, (p: ArtProps) => React.ReactElement> = {
   decide: DecideArt,
 };
 
+/** Steps whose art shows prices or a source: labelled so made-up numbers never pass for sourced ones. */
+const SHOWS_NUMBERS = new Set<IntroStepId>(["proof", "decide"]);
+
 export function IntroArt({ step, ...p }: ArtProps & { step: IntroStepId }) {
   const Art = ART[step];
   return (
-    <div aria-hidden className="grid h-80 place-items-center">
-      <Art {...p} />
+    <div className="relative grid h-80 place-items-center">
+      <div aria-hidden className="contents">
+        <Art {...p} />
+      </div>
+      {SHOWS_NUMBERS.has(step) && (
+        <span aria-hidden className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-full border border-dashed border-line bg-card px-2.5 py-0.5 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+          {p.art.example}
+        </span>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useTutorial } from "@/lib/tutorial-store";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
-/** "Jak to działa?" row: replays the intro, and the coach marks come back on each screen. */
+/** "How it works" / "Jak to działa?" row (app language): replays the intro, and the coach marks come back on each screen. */
 export function HowItWorksButton({ className }: { className?: string }) {
   const replay = useTutorial((s) => s.replay);
   const t = useT().t.tutorial;

@@ -76,7 +76,7 @@ export const en = {
       },
       calendar: {
         title: "Mark your free days",
-        body: "Tap a start, then an end. Sun = long weekend.",
+        body: "Tap a start, then an end. Dashed band = long weekend.",
       },
       scan: {
         title: "Run a scan now",
@@ -160,7 +160,7 @@ export const pl: Shape<typeof en> = {
       },
       calendar: {
         title: "Zaznacz wolne dni",
-        body: "Stuknij początek, potem koniec. Słońce = długi weekend.",
+        body: "Stuknij początek, potem koniec. Przerywana ramka = długi weekend.",
       },
       scan: {
         title: "Skanuj teraz",

@@ -7,15 +7,16 @@ import { Button } from "@/components/ui/button";
 import { useTutorial, type TourKey } from "@/lib/tutorial-store";
 import { useT } from "@/lib/i18n";
 import { useFocusTrap } from "./a11y";
+import { placeTip, scrollDelta, type Box } from "./geometry";
 import { TOURS } from "./strings";
 
 /** How long to wait for an anchor: the first one may sit behind a loader, later ones are already on screen. */
 const FIRST_WAIT_MS = 15_000;
 const NEXT_WAIT_MS = 2_500;
 const POLL_MS = 250;
-const PAD = 6;
 const TIP_W = 320;
-const GAP = 12;
+/** Tip height before it has been measured (title + one-line body + buttons at 390px). */
+const TIP_H_GUESS = 170;
 
 function findAnchor(name: string): HTMLElement | null {
   for (const el of document.querySelectorAll<HTMLElement>(`[data-tour="${name}"]`)) {
@@ -39,8 +40,6 @@ function waitForAnchor(name: string, timeout: number, signal: { cancelled: boole
   });
 }
 
-type Rect = { top: number; left: number; width: number; height: number };
-
 /**
  * One-time coach marks for a screen: a spotlight on each anchor in turn with a short tip.
  * "Next"/"Got it" advances, "Hide tips", ✕ or Esc dismisses the whole screen's tour; both are
@@ -54,7 +53,8 @@ export function CoachMarks({ tour }: { tour: TourKey }) {
   const reduced = !!useReducedMotion();
   const [index, setIndex] = useState(-1);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const [rect, setRect] = useState<Rect | null>(null);
+  const [rect, setRect] = useState<Box | null>(null);
+  const [tipH, setTipH] = useState(TIP_H_GUESS);
   const tipRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const bodyId = useId();
@@ -68,7 +68,9 @@ export function CoachMarks({ tour }: { tour: TourKey }) {
           const el = await waitForAnchor(steps[i].anchor, i === 0 && shown.current === 0 ? FIRST_WAIT_MS : NEXT_WAIT_MS, signal);
           if (signal.cancelled) return;
           if (el) {
-            el.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+            // Tall anchors (the calendar) go to the top, so the tip has room under them.
+            const dy = scrollDelta(el.getBoundingClientRect(), window.innerHeight, TIP_H_GUESS);
+            window.scrollBy({ top: dy, behavior: reduced ? "auto" : "smooth" });
             shown.current += 1;
             setAnchor(el);
             setIndex(i);
@@ -106,6 +108,8 @@ export function CoachMarks({ tour }: { tour: TourKey }) {
         else setRect(null);
       } else {
         const r = anchor.getBoundingClientRect();
+        const h = tipRef.current?.offsetHeight;
+        if (h) setTipH((p) => (p === h ? p : h));
         setRect((p) => (p && p.top === r.top && p.left === r.left && p.width === r.width && p.height === r.height ? p : { top: r.top, left: r.left, width: r.width, height: r.height }));
       }
       raf = requestAnimationFrame(loop);
@@ -121,15 +125,28 @@ export function CoachMarks({ tour }: { tour: TourKey }) {
     if (active) tipRef.current?.focus({ preventScroll: true });
   }, [active, index]);
 
-  const next = () => {
-    setAnchor(null);
-    advance(index + 1, signal.current);
-  };
-  const dismiss = () => {
+  const dismiss = useCallback(() => {
     signal.current.cancelled = true;
     setAnchor(null);
     setIndex(-1);
     markSeen(tour);
+  }, [markSeen, tour]);
+
+  // Esc works wherever focus is, not only on the tip.
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      dismiss();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [active, dismiss]);
+
+  const next = () => {
+    setAnchor(null);
+    advance(index + 1, signal.current);
   };
 
   if (!active || !rect) return null;
@@ -143,8 +160,7 @@ export function CoachMarks({ tour }: { tour: TourKey }) {
   const colRight = col?.right ?? vw;
   const width = Math.min(TIP_W, colRight - colLeft - 32);
   const left = Math.min(Math.max(rect.left + rect.width / 2 - width / 2, colLeft + 16), colRight - 16 - width);
-  const below = vh - (rect.top + rect.height) > 210 || rect.top < 210;
-  const tipPos = below ? { top: Math.min(rect.top + rect.height + PAD + GAP, vh - 200) } : { bottom: vh - rect.top + PAD + GAP };
+  const { side, tip, spot } = placeTip(rect, vh, tipH);
 
   return (
     <div className="fixed inset-0 z-[55]" onClick={next}>
@@ -152,10 +168,7 @@ export function CoachMarks({ tour }: { tour: TourKey }) {
         aria-hidden
         className="pointer-events-none fixed rounded-2xl ring-2 ring-sun"
         style={{
-          top: rect.top - PAD,
-          left: rect.left - PAD,
-          width: rect.width + PAD * 2,
-          height: rect.height + PAD * 2,
+          ...spot,
           boxShadow: "0 0 0 9999px oklch(0.24 0.025 165 / 0.55)",
         }}
       />
@@ -168,15 +181,9 @@ export function CoachMarks({ tour }: { tour: TourKey }) {
         aria-describedby={bodyId}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            e.preventDefault();
-            dismiss();
-          }
-        }}
         className="fixed rounded-2xl bg-card p-4 shadow-lift ring-1 ring-line outline-none"
-        style={{ left, width, ...tipPos }}
-        initial={reduced ? false : { opacity: 0, y: below ? -6 : 6 }}
+        style={{ left, width, ...tip }}
+        initial={reduced ? false : { opacity: 0, y: side === "above" ? 6 : -6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       >
