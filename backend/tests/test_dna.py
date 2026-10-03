@@ -186,13 +186,20 @@ def test_personalize_off_feedback_changes_nothing():
 def test_personalize_off_interests_filter_not_rank(candidates):
     p = dna({"q6": 5, "q5": 1, "q7": 1, "q8": 1, "q11": 1, "q1": 1, "q12": 5}, y2=False).profile
     assert {t for t, w in p.interests.items() if w >= 0.5} == {"beach", "wellness", "nature"}
-    kept = interest_filter(candidates, p)
+    kept, receipt = interest_filter(candidates, p)
+    assert receipt.applied and receipt.liked == ["beach", "nature", "wellness"]
+    assert receipt.dropped_cities and all(c.city not in receipt.dropped_cities for c in kept)
     assert kept and all({"beach", "nature"} & set(c.tags) for c in kept)
-    assert all(score_candidate(c, p, Weights()).taste == 0.5 for c in kept)
-    assert {r.iata for r in rank(candidates, p)} == {c.iata for c in kept}
+    assert all(score_candidate(c, p, Weights()).taste == 0.5 for c in kept)  # no dislikes
+    recs = rank(candidates, p)
+    assert {r.iata for r in recs} == {c.iata for c in kept}
+    assert all(r.interest_filter == receipt for r in recs)
     # nothing matches -> no filtering rather than an empty list
     p2 = p.model_copy(update={"interests": {"skiing": 1.0}})
-    assert len(interest_filter(candidates, p2)) == len(candidates)
+    kept2, receipt2 = interest_filter(candidates, p2)
+    assert len(kept2) == len(candidates) and not receipt2.applied
+    assert "no city matches" in receipt2.text
+    assert interest_filter(candidates, p.model_copy(update={"personalize": True}))[1] is None
 
 
 def test_api_profile_dna_and_personalize_flow():
@@ -233,3 +240,63 @@ def test_api_recommendations_ignore_stored_weights_when_personalize_off():
     implicit = c.post("/recommendations", json=req).json()
     assert [r["id"] for r in implicit] == [r["id"] for r in neutral]
     assert implicit[0]["inputs_hash"] == neutral[0]["inputs_hash"]
+
+
+def test_personalize_off_keeps_dislike_penalty(candidates):
+    p = dna({"q8": 5, "q11": 5}, y2=False).profile
+    assert p.dislikes == ["crowds"]
+    nightlife = p.model_copy(update={"dislikes": ["nightlife"]})
+    bcn = next(c for c in candidates if c.iata == "BCN")
+    assert score_candidate(bcn, nightlife, Weights()).taste == 0.25  # 0.5 - 0.25
+
+
+def test_inputs_hash_covers_unfiltered_inputs(candidates):
+    from tripai.scoring.engine import inputs_hash
+
+    p = dna({"q6": 5}, y2=False).profile
+    rec = rank(candidates, p)[0]
+    assert rec.inputs_hash == inputs_hash(candidates, p, Weights())
+
+
+@pytest.mark.parametrize("bad", [{"q1": True}, {"q1": "4"}, {"q1": 4.0}])
+def test_answers_strict_ints(bad):
+    with pytest.raises(ValidationError):
+        DnaRequest(answers=bad)
+    with pytest.raises(ValidationError):
+        DnaRequest(yes_no={"y1": "yes"})
+
+
+def test_map_dna_keeps_non_dna_fields_of_base():
+    from tripai.models import TasteProfile
+
+    base = TasteProfile(user_id="u", budget_pln=1500, origin_airports=["WAW"],
+                        preferred_temp_c=(20, 30), trip_length_days=(2, 4),
+                        interests={"art": 0.9, "food": 0.1}, dislikes=["heat", "crowds"],
+                        daily_discovery=True)  # fmt: skip
+    res = map_dna(DnaRequest(user_id="u", answers={"q5": 5}), base=base)
+    p = res.profile
+    assert (p.budget_pln, p.origin_airports, p.preferred_temp_c, p.trip_length_days) == (
+        1500, ["WAW"], (20, 30), (2, 4))  # fmt: skip
+    assert p.interests["art"] == 0.9 and p.interests["food"] == 1.0  # learned kept, DNA wins
+    assert p.dislikes == ["heat"]  # crowds is DNA-owned: q8/q11 = 3 now -> removed
+    assert p.daily_discovery is True  # y1 unanswered -> keep
+
+
+def test_api_retaking_dna_keeps_budget_and_airport():
+    c = TestClient(create_app())
+    c.post("/feedback", json={"user_id": "u", "trip_id": "FCO-x", "answers": {"food": 5},
+                              "profile": {"user_id": "u", "budget_pln": 1500,
+                                          "origin_airports": ["WAW"],
+                                          "preferred_temp_c": [20, 30]}})  # fmt: skip
+    c.post("/profile/dna", json={"user_id": "u", "answers": {"q5": 5}})
+    fb = c.post("/feedback", json={"user_id": "u", "trip_id": "FCO-x", "answers": {}}).json()
+    assert fb["budget_pln"] == 1500 and fb["origin_airports"] == ["WAW"]
+    assert fb["preferred_temp_c"] == [20, 30] and fb["interests"]["food"] == 1.0
+
+
+def test_api_recommendations_carry_filter_receipt():
+    c = TestClient(create_app())
+    prof = dna({"q6": 5, "q5": 1, "q7": 1}, y2=False).profile.model_dump(mode="json")
+    recs = c.post("/recommendations", json={"profile": prof, "today": "2026-10-03"}).json()
+    f = recs[0]["interest_filter"]
+    assert f["applied"] and f["dropped_cities"] and "filtered out" in f["text"]

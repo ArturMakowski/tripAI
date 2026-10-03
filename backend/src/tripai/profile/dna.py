@@ -4,7 +4,7 @@ Pure and deterministic: no I/O, no LLM. Every derived value lists the card ids i
 (`because`) so the UI can say "because you swiped *So me* on ...".
 """
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, StrictBool, StrictInt, field_validator
 
 from tripai.models import LuxuryLevel, TasteProfile, Weights
 from tripai.scoring.engine import normalise_weights
@@ -35,8 +35,8 @@ PACE_THRESHOLD = 0.25
 
 class DnaRequest(BaseModel):
     user_id: str = "demo"
-    answers: dict[str, int] = Field(default_factory=dict)  # q1..q12 -> 1..5
-    yes_no: dict[str, bool] = Field(default_factory=dict)  # y1, y2
+    answers: dict[str, StrictInt] = Field(default_factory=dict)  # q1..q12 -> 1..5
+    yes_no: dict[str, StrictBool] = Field(default_factory=dict)  # y1, y2
 
     @field_validator("answers")
     @classmethod
@@ -137,7 +137,12 @@ def _swiped(cards: list[str], a: dict[str, int], given: set[str]) -> str:
     return "; ".join(parts)
 
 
-def map_dna(req: DnaRequest) -> DnaResult:
+DNA_OWNED_DISLIKES = {"crowds"}
+
+
+def map_dna(req: DnaRequest, base: TasteProfile | None = None) -> DnaResult:
+    """Map answers to a profile. With `base` (the stored profile), only DNA-owned fields change:
+    budget, airports, temperature range, trip length and non-DNA interests/dislikes are kept."""
     given = set(req.answers)
     a = {q: req.answers.get(q, MISSING) for q in STATEMENTS}
     personalize = req.yes_no.get("y2", True)
@@ -221,13 +226,17 @@ def map_dna(req: DnaRequest) -> DnaResult:
     )
 
     traits = {q: float(a[q]) for q in STATEMENTS} | {"pace": _r(p), "novelty": novelty}
-    profile = TasteProfile(
-        user_id=req.user_id,
-        luxury=lux,
-        interests=tags,
-        dislikes=dislikes,
-        traits=traits,
-        daily_discovery=daily,
-        personalize=personalize,
+    base = base or TasteProfile(user_id=req.user_id)
+    kept_dislikes = [d for d in base.dislikes if d not in DNA_OWNED_DISLIKES]
+    profile = base.model_copy(
+        update={
+            "user_id": req.user_id,
+            "luxury": lux,
+            "interests": base.interests | tags,  # DNA tags overwrite, learned extras stay
+            "dislikes": kept_dislikes + [d for d in dislikes if d not in kept_dislikes],
+            "traits": base.traits | traits,
+            "daily_discovery": daily if daily is not None else base.daily_discovery,
+            "personalize": personalize,
+        }
     )
     return DnaResult(profile=profile, weights=weights, reasons=reasons)

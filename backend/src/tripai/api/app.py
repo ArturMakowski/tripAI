@@ -163,7 +163,9 @@ def create_app(
     @app.post("/profile/dna")
     async def post_profile_dna(req: DnaRequest, uid: User) -> DnaResult:
         """Travel DNA swipe answers -> profile + weights + reasons (docs/TRAVEL_DNA.md)."""
-        result = map_dna(req.model_copy(update={"user_id": uid}))
+        result = map_dna(
+            req.model_copy(update={"user_id": uid}), base=await store.get_profile(uid)
+        )
         await store.save_profile(result.profile)
         await store.save_weights(uid, result.weights)
         return result

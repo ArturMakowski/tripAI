@@ -69,8 +69,10 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   and small integers that also occur in the evidence (e.g. the trip length) are accepted in any context.
 - `TasteProfile.personalize=false` (Travel DNA y2 = No): ranking uses neutral default weights (stored
   feedback weights are ignored; only an explicit slider `weights` overrides them). Interests act only as a filter
-  (cities matching an interest >= 0.5; if none match, nothing is filtered) and the taste score is a neutral
-  0.5. `/feedback` never changes the profile.
+  (cities matching an interest >= 0.5; if none match, nothing is filtered), and each card's `interest_filter` receipt
+  says which interests were used and which cities were dropped. The taste score is a neutral 0.5, but disliked
+  tags still cost. `/feedback` never changes the profile. Retaking the DNA quiz updates only DNA-owned fields;
+  budget, airports, temperature range, trip length and learned interests are kept.
 - Connector seam: `tripai.scoring.provider.TripDataProvider` / `CalendarProvider` (Protocols).
   `FixtureProvider` serves 10 cities from KRK; its evidence is labelled `fixture:*`. Pass a live
   provider with `create_app(provider=...)`.
