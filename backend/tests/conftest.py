@@ -9,10 +9,20 @@ from tripai.scoring import FixtureProvider
 
 @pytest.fixture(autouse=True)
 def _offline(monkeypatch):
-    """Tests never hit an LLM, even if the developer has a key exported."""
-    for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "TRIPAI_MODEL"):
+    """Tests never hit an LLM or Jev, even if the developer has a key exported."""
+    for key in (
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "TRIPAI_MODEL",
+        "TYPESAFE_API_KEY",
+        "TYPESAFEAI_API_KEY",
+        "TRIPAI_FIT_ENGINE",
+    ):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("TRIPAI_LLM", "0")
+    from tripai.agents.jev import clear_screen_cache
+
+    clear_screen_cache()
 
 
 @pytest.fixture

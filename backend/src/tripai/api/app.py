@@ -7,9 +7,11 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
+from tripai.agents.dna_chat import DnaChatResult, chat_dna
 from tripai.agents.explain import explain, template_why
-from tripai.agents.fit import fit
+from tripai.agents.fit import fit, fit_engine
 from tripai.agents.interview import InterviewResult, interview
+from tripai.agents.jev import jev_enabled, jev_model_name
 from tripai.agents.llm import llm_enabled, model_name
 from tripai.api.schemas import (
     FeedbackRequest,
@@ -79,6 +81,8 @@ def create_app(
             "sources": _source_modes(provider, calendar),
             "serpapi_budget": await budget() if callable(budget) else None,
             "llm": model_name() if llm_enabled() else None,
+            "jev": f"typesafe:{jev_model_name()}" if jev_enabled() else None,
+            "fit_engine": fit_engine(),
             "scoring_version": SCORING_VERSION,
         }
 
@@ -93,6 +97,11 @@ def create_app(
             result.profile.user_id = uid
             await store.save_profile(result.profile)
         return result
+
+    @app.post("/interview/dna")
+    async def post_interview_dna(req: InterviewRequest) -> DnaChatResult:
+        """Chat -> Travel DNA answers (Jev). When `done`, POST `answers`/`yes_no` to /profile/dna."""
+        return await chat_dna(req.messages)
 
     @app.get("/windows")
     async def get_windows(

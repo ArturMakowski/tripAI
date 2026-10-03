@@ -1,16 +1,25 @@
 """Fit agent (docs/FIT_VERDICT.md): a grounded, qualitative second opinion on one recommendation
 against the user's Travel DNA. The scorer ranks; this agent only labels and cites.
 
-Grounding is enforced by an output validator (ModelRetry), with a deterministic rules fallback
-(`model = "rules"`) when no LLM is configured or the agent keeps failing.
+Engines (`TRIPAI_FIT_ENGINE=jev|llm|rules`, default jev when a TypeSafe key is set, else llm when
+an LLM key is set, else rules):
+- jev (cascade): Jev (`tripai.agents.jev`) decides the label + one bool per DNA check with
+  calibrated confidence; the LLM (or a template) only phrases those decisions + their cited
+  evidence. If Jev's label confidence is below TRIPAI_JEV_ESCALATE_BELOW (0.5), the decision is
+  escalated to the LLM agent (System 1 -> System 2), then to rules if that fails.
+- llm: the LLM labels and writes grounded points itself.
+- rules: deterministic score bands + DNA rules.
+Fallback chain: jev -> llm -> rules. Grounding is enforced by output validators (ModelRetry).
 """
 
 import hashlib
 import json
 import logging
+import os
 import re
+import time
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Literal
 
@@ -19,6 +28,17 @@ from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models import Model
 
 from tripai.agents.explain import _ALWAYS_OK, allowed_numbers, numbers_in, ungrounded_numbers
+from tripai.agents.jev import (
+    FIT_CHECKS,
+    LOW_CONFIDENCE,
+    Decision,
+    FitDecision,
+    decide,
+    escalate_below,
+    fit_decision_agent,
+    jev_enabled,
+    jev_model_name,
+)
 from tripai.agents.llm import llm_enabled, model_name
 from tripai.models import FitPoint, FitVerdict, TasteProfile
 from tripai.scoring.types import RankedRecommendation
@@ -331,7 +351,307 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
                     matches=matches, concerns=concerns)  # fmt: skip
 
 
+# ---------------------------------------------------------------- jev engine
+
+POINT_MIN_CONFIDENCE = 0.4  # a Jev yes/no below this (P(yes) < 0.7) is too unsure to show
+UNSURE_PREFIX = "We're not sure about this one; here's why: "
+CHECK_TEXT = {
+    "crowd_conflict": "Busy tourist period, and you prefer to avoid crowds",
+    "relax_conflict": "Known more for buzz than for rest, and you travel to unwind",
+    "budget_conflict": "Pricey for someone price-driven",
+    "weather_conflict": "Weather outside your comfort range",
+    "pace_conflict": "Few concrete sights to plan your days around",
+    "culture_match": "Strong local food and culture",
+    "active_match": "Plenty to do actively outdoors",
+    "novelty_match": "Enough sights for something new each day",
+}
+LABEL_PHRASE = {
+    "great_fit": "A great fit for you",
+    "good_fit": "A good fit for you",
+    "mixed": "A mixed fit for you",
+    "poor_fit": "Probably not your style",
+}
+
+
+def _lower_first(text: str) -> str:
+    return text[:1].lower() + text[1:]
+
+
+def template_summary(label: str, matches: list[FitPoint], concerns: list[FitPoint]) -> str:
+    summary = LABEL_PHRASE[label]
+    if matches:
+        summary += f": {_lower_first(matches[0].text)}"
+    if concerns:
+        summary += f"; watch out: {_lower_first(concerns[0].text)}"
+    return summary + "."
+
+
+@dataclass
+class JevFit:
+    """Jev's decisions turned into cited points (template wording); `checks` keeps what Jev said."""
+
+    draft: FitDraft
+    checks: dict[str, tuple[bool, float]]  # check -> (answer, confidence)
+    point_checks: list[str] = field(default_factory=list)  # check behind each match, then concern
+
+
+def jev_fit(d: Decision[FitDecision], rec: RankedRecommendation, profile: TasteProfile) -> JevFit:
+    """Deterministic: cite the DNA cards (only strong answers) and evidence behind each yes."""
+    a = dna_answers(profile)
+    p = effective_profile(profile)
+    checks = {name: (bool(getattr(d.output, name)), d.conf(name)) for name in FIT_CHECKS}
+    matches: list[FitPoint] = []
+    concerns: list[FitPoint] = []
+    m_checks: list[str] = []
+    c_checks: list[str] = []
+    for name, (kind, cards, kinds) in FIT_CHECKS.items():
+        yes, conf = checks[name]
+        if not yes or conf < POINT_MIN_CONFIDENCE:
+            continue
+        dna = [c for c in cards if (c in a and a[c] >= 4) or (c == "y1" and p.daily_discovery)]
+        evidence = [i for k in kinds for i in _ev_index(rec, k)]
+        pt = FitPoint(text=CHECK_TEXT[name], dna=dna, evidence=evidence)
+        if not (pt.dna or pt.evidence) or point_problems(pt, rec, a):
+            continue  # rule 1: a point that can't cite anything is not shown
+        (matches if kind == "match" else concerns).append(pt)
+        (m_checks if kind == "match" else c_checks).append(name)
+    label, conf = d.output.label_name, d.conf("label")
+    summary = template_summary(label, matches, concerns)
+    draft = FitDraft(label=label, confidence=conf, summary=summary,
+                     matches=matches, concerns=concerns)  # fmt: skip
+    return JevFit(draft=draft, checks=checks, point_checks=m_checks + c_checks)
+
+
+class Phrasing(BaseModel):
+    """The LLM's only job on the jev engine: words for decisions already made."""
+
+    summary: str = Field(description="One user-facing sentence")
+    matches: list[str] = Field(default_factory=list, description="One text per given match")
+    concerns: list[str] = Field(default_factory=list, description="One text per given concern")
+
+
+@dataclass
+class PhraseDeps:
+    jf: JevFit
+    rec: RankedRecommendation
+    profile: TasteProfile
+
+
+PHRASE_INSTRUCTIONS = """A decision engine has already judged whether a travel offer fits a traveller. You only write the
+words: a one-sentence summary and one short text per match and per concern, in the same order.
+Do NOT change the verdict, add or drop points, or add facts. Each text may only use the DNA
+statements and evidence given for that point; prefer words over numbers and never invent prices,
+scores or percentages."""
+
+phrase_agent = Agent(
+    None,
+    output_type=Phrasing,
+    instructions=PHRASE_INSTRUCTIONS,
+    deps_type=PhraseDeps,
+    retries=2,
+    defer_model_check=True,
+)
+
+
+def phrase_payload(jf: JevFit, rec: RankedRecommendation, profile: TasteProfile) -> str:
+    a = dna_answers(profile)
+
+    def point(pt: FitPoint) -> dict:
+        return {
+            "draft_text": pt.text,
+            "dna": [{"id": c, "statement": DNA_EN[c], "answer_1_to_5": a.get(c)} for c in pt.dna],
+            "evidence": [
+                {
+                    "label": rec.evidence[i].label,
+                    "value": rec.evidence[i].value,
+                    "unit": rec.evidence[i].unit,
+                }
+                for i in pt.evidence
+            ],
+        }
+
+    return json.dumps(
+        {
+            "offer": f"{rec.city}, {rec.country}, {rec.window.start} to {rec.window.end}",
+            "verdict": jf.draft.label,
+            "matches": [point(m) for m in jf.draft.matches],
+            "concerns": [point(c) for c in jf.draft.concerns],
+        },
+        ensure_ascii=False,
+        default=str,
+    )
+
+
+def _phrased(jf: JevFit, ph: Phrasing) -> FitDraft:
+    d = jf.draft
+    return d.model_copy(
+        update={
+            "summary": ph.summary,
+            "matches": [m.model_copy(update={"text": t}) for m, t in zip(d.matches, ph.matches)],
+            "concerns": [c.model_copy(update={"text": t}) for c, t in zip(d.concerns, ph.concerns)],
+        }
+    )
+
+
+@phrase_agent.output_validator
+def _phrase_ok(ctx: RunContext[PhraseDeps], ph: Phrasing) -> Phrasing:
+    jf = ctx.deps.jf
+    problems = []
+    if len(ph.matches) != len(jf.draft.matches) or len(ph.concerns) != len(jf.draft.concerns):
+        problems.append(
+            f"give exactly {len(jf.draft.matches)} matches and {len(jf.draft.concerns)} concerns"
+        )
+    else:
+        problems += verdict_problems(_phrased(jf, ph), ctx.deps.rec, ctx.deps.profile)
+    if problems:
+        raise ModelRetry("Fix: " + "; ".join(problems))
+    return ph
+
+
 # ---------------------------------------------------------------- entry point
+
+Engine = Literal["jev", "llm", "rules"]
+ENGINES: tuple[Engine, ...] = ("jev", "llm", "rules")
+
+
+def fit_engine() -> Engine:
+    """TRIPAI_FIT_ENGINE if set, else the best engine that has a key (jev > llm > rules)."""
+    env = os.getenv("TRIPAI_FIT_ENGINE", "").strip().lower()
+    if env in ENGINES:
+        return env  # type: ignore[return-value]
+    if jev_enabled():
+        return "jev"
+    return "llm" if llm_enabled() else "rules"
+
+
+@dataclass
+class FitRun:
+    verdict: FitVerdict
+    engine: Engine  # the engine that produced the label (after fallbacks)
+    latency_ms: float
+    cost_usd: float | None = None
+    jev: Decision[FitDecision] | None = None  # Jev's raw decision, when the jev engine ran
+    escalated: bool = False  # Jev was unsure and handed the decision on
+    degraded: bool = False  # e.g. GPT phrasing failed and the template wording was used
+
+
+def _add(a: float | None, b: float | None) -> float | None:
+    return None if a is None and b is None else (a or 0.0) + (b or 0.0)
+
+
+def _cost(result) -> float | None:
+    cost = getattr(result.usage, "cost", None)
+    return float(cost) if cost is not None else None
+
+
+def _llm_name(model: Model | str | None) -> str:
+    return model if isinstance(model, str) else model.model_name if model else model_name()
+
+
+async def _run_llm(rec, profile, model) -> tuple[FitDraft, float | None]:
+    result = await fit_agent.run(
+        "FIT INPUT:\n" + fit_payload(rec, profile),
+        model=model or model_name(),
+        deps=FitDeps(rec=rec, profile=profile),
+    )
+    return result.output, _cost(result)
+
+
+async def _phrase(jf: JevFit, rec, profile, model) -> tuple[FitDraft, str, float | None]:
+    """GPT words Jev's decisions; on failure the template wording stays."""
+    try:
+        result = await phrase_agent.run(
+            "DECISIONS:\n" + phrase_payload(jf, rec, profile),
+            model=model or model_name(),
+            deps=PhraseDeps(jf=jf, rec=rec, profile=profile),
+        )
+        return _phrased(jf, result.output), _llm_name(model), _cost(result)
+    except Exception as exc:  # noqa: BLE001 - Jev's decisions stand; template wording
+        log.warning("fit phrasing failed for %s, using template: %s", rec.id, exc)
+        return jf.draft, "template", None
+
+
+class EscalationFailed(Exception):
+    """Jev was unsure and the LLM couldn't take over: the caller falls back to rules."""
+
+
+async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool):
+    """Jev decides when sure; else the LLM decides.
+
+    -> (verdict, cost, Jev decision, escalated, degraded)."""
+    d = await decide(fit_decision_agent, "FIT INPUT:\n" + fit_payload(rec, profile), model=jev)
+    p = d.conf("label")
+    if p >= escalate_below():
+        jf = jev_fit(d, rec, profile)
+        draft, phraser, cost = jf.draft, "template", d.cost_usd
+        if phrase:
+            draft, phraser, phrase_cost = await _phrase(jf, rec, profile, model)
+            cost = _add(cost, phrase_cost)
+        name = d.model if phraser == "template" else f"{d.model}+{phraser}"
+        run_degraded = phrase and phraser == "template"  # GPT wording failed: don't cache
+        return _finish(draft, name, rec, profile), cost, d, False, run_degraded
+
+    # System 2: the LLM makes the decision itself, under the same grounding validator
+    if not use_llm:
+        raise EscalationFailed(f"jev unsure (p={p:.2f}) and no LLM configured")
+    try:
+        draft, llm_cost = await _run_llm(rec, profile, model)
+    except Exception as exc:
+        raise EscalationFailed(f"jev unsure (p={p:.2f}) and the LLM failed: {exc}") from exc
+    if draft.confidence < LOW_CONFIDENCE:  # GPT is the final engine and unsure itself
+        draft = draft.model_copy(
+            update={"label": "mixed", "summary": UNSURE_PREFIX + _lower_first(draft.summary)}
+        )
+    name = f"{d.model}\u2192{_llm_name(model)} (escalated, jev p={p:.2f}; confidence self-rated)"
+    return _finish(draft, name, rec, profile), _add(d.cost_usd, llm_cost), d, True, False
+
+
+async def fit_run(
+    rec: RankedRecommendation,
+    profile: TasteProfile,
+    model: Model | str | None = None,
+    *,
+    engine: Engine | None = None,
+    jev: Model | None = None,
+    phrase: bool | None = None,
+) -> FitRun:
+    """One uncached verdict through the fallback chain jev -> llm -> rules.
+
+    `model` overrides the LLM, `jev` the Jev model (tests pass FunctionModels for both).
+    `phrase=False` keeps Jev's template wording even when an LLM is available.
+    """
+    if engine is None:
+        engine = "jev" if jev is not None else "llm" if model is not None else fit_engine()
+    use_jev = engine == "jev" and (jev is not None or jev_enabled())
+    use_llm = engine in ("jev", "llm") and (model is not None or llm_enabled())
+    t0 = time.perf_counter()
+    cost: float | None = None
+
+    def done(verdict: FitVerdict, used: Engine) -> FitRun:
+        return FitRun(verdict, used, (time.perf_counter() - t0) * 1000, cost)
+
+    if use_jev:
+        try:
+            phrase = use_llm if phrase is None else phrase
+            verdict, cost, d, escalated, degraded = await _run_cascade(
+                rec, profile, model, jev, use_llm, phrase
+            )
+            run = done(verdict, "jev")
+            run.jev, run.escalated, run.degraded = d, escalated, degraded
+            return run
+        except EscalationFailed as exc:
+            log.warning("fit for %s: %s; using rules", rec.id, exc)
+            return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
+        except Exception as exc:  # noqa: BLE001 - Jev itself failed: next engine in the chain
+            log.warning("jev fit failed for %s, falling back: %s", rec.id, exc)
+    if use_llm:
+        try:
+            draft, cost = await _run_llm(rec, profile, model)
+            return done(_finish(draft, _llm_name(model), rec, profile), "llm")
+        except Exception as exc:  # noqa: BLE001 - fall back to rules, never break ranking
+            log.warning("fit agent failed for %s, using rules: %s", rec.id, exc)
+    return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
+
 
 _CACHE: "OrderedDict[tuple[str, str, str, str], FitVerdict]" = OrderedDict()
 CACHE_SIZE = 1024
@@ -353,37 +673,40 @@ def _finish(draft: FitDraft, model: str, rec: RankedRecommendation, profile: Tas
     )
 
 
+def _engine_key(engine: Engine, model: Model | str | None, jev: Model | None) -> str:
+    llm = model if isinstance(model, str) else model.model_name if model else model_name()
+    if engine == "jev":
+        return f"jev:{jev.model_name if jev else jev_model_name()}+{llm}"
+    return llm if engine == "llm" else "rules"
+
+
 async def fit(
-    rec: RankedRecommendation, profile: TasteProfile, model: Model | str | None = None
+    rec: RankedRecommendation,
+    profile: TasteProfile,
+    model: Model | str | None = None,
+    *,
+    engine: Engine | None = None,
+    jev: Model | None = None,
 ) -> FitVerdict:
-    """Grounded fit verdict; cached by (model, inputs_hash, profile hash, recommendation id)."""
-    use_llm = model is not None or llm_enabled()
-    name = model if isinstance(model, str) else model.model_name if model else model_name()
-    model_key = name if use_llm else "rules"
-    key = (model_key, rec.inputs_hash, profile_hash(profile), rec.id)
+    """Grounded fit verdict; cached by (engine+model, inputs_hash, profile hash, recommendation id)."""
+    if engine is None:
+        engine = "jev" if jev is not None else "llm" if model is not None else fit_engine()
+    if engine == "jev" and jev is None and not jev_enabled():
+        engine = "llm"
+    if engine == "llm" and model is None and not llm_enabled():
+        engine = "rules"
+    key = (_engine_key(engine, model, jev), rec.inputs_hash, profile_hash(profile), rec.id)
     if key in _CACHE:
         _CACHE.move_to_end(key)
         return _CACHE[key].model_copy(deep=True)  # callers may mutate their copy
 
-    verdict = None
-    if use_llm:
-        try:
-            result = await fit_agent.run(
-                "FIT INPUT:\n" + fit_payload(rec, profile),
-                model=model or model_name(),
-                deps=FitDeps(rec=rec, profile=profile),
-            )
-            verdict = _finish(result.output, name, rec, profile)
-        except Exception as exc:  # noqa: BLE001 - fall back to rules, never break ranking
-            log.warning("fit agent failed for %s, using rules: %s", rec.id, exc)
-    if verdict is None:
-        verdict = _finish(rules_verdict(rec, profile), "rules", rec, profile)
-        if use_llm:
-            return verdict  # don't cache a fallback under the LLM key: retry next request
-    _CACHE[key] = verdict.model_copy(deep=True)
+    run = await fit_run(rec, profile, model, engine=engine, jev=jev)
+    if run.engine != engine or run.degraded:
+        return run.verdict  # don't cache a fallback under the primary key: retry next request
+    _CACHE[key] = run.verdict.model_copy(deep=True)
     while len(_CACHE) > CACHE_SIZE:
         _CACHE.popitem(last=False)
-    return verdict
+    return run.verdict
 
 
 def clear_cache() -> None:

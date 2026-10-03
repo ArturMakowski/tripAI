@@ -91,6 +91,46 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   (server only). Wired by T5a (`SupabaseStore`, see below); without those env vars the API uses an
   in-memory `Store`.
 
+## Jev decision layer (T1e): `tripai.agents.jev`
+
+Jev (TypeSafe) answers typed questions with a calibrated confidence per field. It runs through pydantic-ai's
+`TypeSafeModel` (`pydantic-ai-slim[typesafe]`, model `TRIPAI_JEV_MODEL`, default `jev-latest`). The key comes
+from `TYPESAFE_API_KEY` or `TYPESAFEAI_API_KEY`, and `TRIPAI_JEV=0` turns it off. Jev only decides: it never
+writes text, prices or scores. Every decision point has a deterministic fallback, so the demo works without a key.
+
+- **Fit engine** `TRIPAI_FIT_ENGINE=jev|llm|rules`. Without the env var: jev if a TypeSafe key is set, else llm
+  if an LLM key is set, else rules. The jev engine is a **cascade (System 1 -> System 2)**:
+  - Jev decides the label (an ordered 4-level rubric) and one yes/no per DNA check (`crowd_conflict`,
+    `relax_conflict`, `budget_conflict`, `weather_conflict`, `pace_conflict`, `culture_match`,
+    `active_match`, `novelty_match`).
+  - **Jev confident** (label confidence >= `TRIPAI_JEV_ESCALATE_BELOW`, default 0.5): Jev's decision stands.
+    Every check that comes back yes (P >= 0.7) becomes a point. Code sets its citations (DNA cards the user
+    answered 4-5, plus evidence indexes). GPT (or a template) only *phrases* those points; it must return the
+    same number of points, and the grounding validator still applies. `model` = `typesafe:jev-1.13.0`, or
+    `typesafe:jev-1.13.0+openai:gpt-6-luna` when GPT did the wording. `confidence` = Jev's.
+  - **Jev unsure**: the *decision* escalates to the GPT fit agent, under the same grounding validator, and
+    then to rules if GPT fails. `model` = `typesafe:jev-1.13.0→openai:gpt-6-luna (escalated, jev p=0.38;
+    confidence self-rated)`. `confidence` is GPT's self-rated one. If that is < 0.6, the verdict shows as
+    `mixed` + "We're not sure about this one; here's why".
+  - If Jev itself errors, the chain is llm -> rules. Escalations are cached like any verdict. Fallbacks and
+    failed phrasing are not cached, so the next request retries them.
+  - `POST /recommendations` computes the top-N fits concurrently. `/health` shows `fit_engine` and `jev`.
+- **Chat -> Travel DNA** `POST /interview/dna` (`tripai.agents.dna_chat`): Jev reads q1..q12 (1-5 or
+  "not said") and y1 from the conversation. Answers with confidence >= 0.6 are kept; a direct reply to a card
+  question ("so me") always wins. For the rest it asks a
+  follow-up about the most important unsure card (at most 4), then stops. `answers` / `yes_no` have the same
+  shape as the `POST /profile/dna` input. Without Jev, a scripted flow asks the cards and parses "so me" / "nie ja" / "4".
+- **Guardrail** `guard(text)` / `screen(texts)`: Jev's `prompt_injection` / `off_topic` (plus a regex fallback)
+  check **every** message of the conversation before any LLM call (`/interview`, `/interview/dna`). This
+  covers every message because the client resends history and sets `role`. Blocked messages are dropped from
+  the transcript on every later turn. Results are cached by text. Off-topic text is blocked only at confidence >= 0.6.
+- **Notification gate** `jev_worth_interrupting(rec, profile) -> (push, p)`: push only if p >= 0.8. This is a
+  library function **not called yet**: T5b's proactive scan should call it before every push.
+  Without Jev, only a `great_fit` verdict passes.
+- **Eval** `uv run python -m tripai.agents.fit_eval [--no-llm] [--no-jev]`: per case and per engine,
+  agreement with the 20 labels, p50 latency, and estimated cost per verdict (from pydantic-ai/genai-prices
+  usage). `cascade` is the jev engine (with % escalated). `jev raw` is Jev's label on every case.
+
 ## Live data (T5a): `LiveProvider` + Supabase persistence
 
 `tripai.main` picks the provider from env: `TRIPAI_PROVIDER=live|fixture` wins; otherwise `fixture`

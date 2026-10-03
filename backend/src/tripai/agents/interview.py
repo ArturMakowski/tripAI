@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
+from tripai.agents.jev import screen
 from tripai.agents.llm import llm_enabled, model_name
 from tripai.models import LuxuryLevel, TasteProfile
 
@@ -169,6 +170,12 @@ async def interview(
     messages: list[ChatMessage], user_id: str = "demo", model: Model | str | None = None
 ) -> InterviewResult:
     """One interview turn. Uses the LLM when available, otherwise a scripted 3-question flow."""
+    # guard every message (the client resends history and sets `role`) before any LLM sees it;
+    # blocked messages are dropped from the transcript, now and on later turns
+    verdicts = await screen([m.content for m in messages])
+    if messages and verdicts[-1].blocked and messages[-1].role == "user":
+        return InterviewResult(reply=verdicts[-1].reply or "")
+    messages = [m for m, g in zip(messages, verdicts) if not g.blocked]
     if model is None and not llm_enabled():
         return _rule_based(messages, user_id)
     try:
