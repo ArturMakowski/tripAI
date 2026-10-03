@@ -1,0 +1,98 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Naples, Italy"
+  }
+ },
+ "fetched_at": "2026-10-03T11:52:54.699305+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Naples, Italy",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Catacombs of San Gennaro",
+    "address": "Via Capodimonte, 13",
+    "latitude": 40.865063,
+    "longitude": 14.247431,
+    "rating": 4.7,
+    "ratingCount": 14000,
+    "category": "Tourist attraction",
+    "website": "http://www.catacombedinapoli.it/",
+    "cid": "2426936737718357997"
+   },
+   {
+    "position": 2,
+    "title": "Royal Palace of Naples",
+    "address": "Piazza del Plebiscito, 1",
+    "latitude": 40.83623,
+    "longitude": 14.249403,
+    "rating": 4.6,
+    "ratingCount": 11000,
+    "category": "Tourist attraction",
+    "website": "https://palazzorealedinapoli.org/",
+    "cid": "4578959926908743113"
+   },
+   {
+    "position": 3,
+    "title": "Naples Underground",
+    "address": "Vico S. Anna di Palazzo, 52",
+    "latitude": 40.837288,
+    "longitude": 14.245476,
+    "rating": 4.7,
+    "ratingCount": 9000,
+    "category": "Tourist attraction",
+    "website": "https://www.lanapolisotterranea.it/",
+    "cid": "7924312316458681370"
+   },
+   {
+    "position": 4,
+    "title": "Castel Sant'Elmo",
+    "address": "Via Tito Angelini, 20/A",
+    "latitude": 40.84445,
+    "longitude": 14.238895,
+    "rating": 4.6,
+    "ratingCount": 37000,
+    "category": "Tourist attraction",
+    "website": "https://cultura.gov.it/luogo/castel-sant-elmo-e-museo-del-novecento-a-napoli",
+    "cid": "10116009229884936047"
+   },
+   {
+    "position": 5,
+    "title": "Complesso Monumentale di Santa Chiara",
+    "address": "Via Santa Chiara, 49/c",
+    "latitude": 40.847225,
+    "longitude": 14.252638,
+    "rating": 4.7,
+    "ratingCount": 19000,
+    "category": "Tourist attraction",
+    "website": "https://www.monasterodisantachiara.it/",
+    "cid": "4458383393820799731"
+   },
+   {
+    "position": 6,
+    "title": "Castel dell'Ovo",
+    "address": "Via Eldorado, 3",
+    "latitude": 40.828316,
+    "longitude": 14.247604,
+    "rating": 4.6,
+    "ratingCount": 36000,
+    "category": "Tourist attraction",
+    "website": "http://www.comune.napoli.it/casteldellovo/",
+    "cid": "680263724113068205"
+   }
+  ],
+  "credits": 1
+ }
+}

@@ -1,0 +1,145 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Porto, Portugal"
+  }
+ },
+ "fetched_at": "2026-10-03T11:53:00.239596+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Porto, Portugal",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Porto Cathedral",
+    "address": "Porto, Portugal",
+    "latitude": 41.142853,
+    "longitude": -8.611116,
+    "rating": 4.6,
+    "ratingCount": 39000,
+    "category": "Tourist attraction",
+    "website": "https://www.diocese-porto.pt/pt/catedral-do-porto/",
+    "cid": "5340368308542978025"
+   },
+   {
+    "position": 2,
+    "title": "Torre dos Clérigos",
+    "address": "Porto, Portugal",
+    "latitude": 41.14567,
+    "longitude": -8.614597,
+    "rating": 4.6,
+    "ratingCount": 22000,
+    "category": "Tourist attraction",
+    "website": "https://www.torredosclerigos.pt/",
+    "cid": "4782476540364618785"
+   },
+   {
+    "position": 3,
+    "title": "Clérigos Church",
+    "address": "Porto, Portugal",
+    "latitude": 41.145885,
+    "longitude": -8.613945,
+    "rating": 4.6,
+    "ratingCount": 14000,
+    "category": "Tourist attraction",
+    "website": "https://www.torredosclerigos.pt/pt/",
+    "cid": "8124884474302192112"
+   },
+   {
+    "position": 4,
+    "title": "Palácio da Bolsa",
+    "address": "Porto, Portugal",
+    "latitude": 41.141376,
+    "longitude": -8.615672,
+    "rating": 4.5,
+    "ratingCount": 15000,
+    "category": "Tourist attraction",
+    "website": "https://palaciodabolsa.com/",
+    "cid": "7580193080231123281"
+   },
+   {
+    "position": 5,
+    "title": "Muralha Primitiva do Porto",
+    "address": "Porto, Portugal",
+    "latitude": 41.1431,
+    "longitude": -8.610465,
+    "rating": 4.5,
+    "ratingCount": 469,
+    "category": "Tourist attraction",
+    "website": "https://www.allaboutportugal.pt/en/porto/monuments/muralha-primitiva-do-porto",
+    "cid": "1115293343700773888"
+   },
+   {
+    "position": 6,
+    "title": "Livraria Lello",
+    "address": "Porto, Portugal",
+    "latitude": 41.14681,
+    "longitude": -8.614872,
+    "rating": 4,
+    "ratingCount": 88000,
+    "category": "Tourist attraction",
+    "website": "https://www.livrarialello.pt/",
+    "cid": "9153637019004560463"
+   },
+   {
+    "position": 7,
+    "title": "Luís I Bridge",
+    "address": "Porto, Portugal",
+    "latitude": 41.139957,
+    "longitude": -8.609448,
+    "rating": 4.8,
+    "ratingCount": 99000,
+    "category": "Bridge",
+    "cid": "14004858726612560555"
+   },
+   {
+    "position": 8,
+    "title": "Chafariz do Anjo",
+    "address": "Porto, Portugal",
+    "latitude": 41.142967,
+    "longitude": -8.610989,
+    "rating": 4.4,
+    "ratingCount": 50,
+    "category": "Tourist attraction",
+    "website": "http://www.porto.pt/",
+    "cid": "201195763430659072"
+   },
+   {
+    "position": 9,
+    "title": "Jardim do Passeio Alegre",
+    "address": "Porto, Portugal",
+    "latitude": 41.148205,
+    "longitude": -8.670801,
+    "rating": 4.6,
+    "ratingCount": 15000,
+    "category": "Tourist attraction",
+    "website": "https://ambiente.cm-porto.pt/parques-e-jardins/jardim-do-passeio-alegre",
+    "cid": "274132238691824674"
+   },
+   {
+    "position": 10,
+    "title": "Porto Bridge Climb",
+    "address": "Porto, Portugal",
+    "latitude": 41.148396,
+    "longitude": -8.64131,
+    "rating": 4.7,
+    "ratingCount": 1000,
+    "category": "Tourist attraction",
+    "website": "http://portobridgeclimb.com/",
+    "cid": "17464139779003421854"
+   }
+  ],
+  "credits": 1
+ }
+}

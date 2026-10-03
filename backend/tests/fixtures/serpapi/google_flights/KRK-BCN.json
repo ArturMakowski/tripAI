@@ -1,0 +1,846 @@
+{
+ "source": "serpapi:google_flights",
+ "params": {
+  "engine": "google_flights",
+  "currency": "PLN",
+  "gl": "pl",
+  "hl": "en",
+  "departure_id": "KRK",
+  "arrival_id": "BCN",
+  "type": 1,
+  "outbound_date": "2027-01-14",
+  "return_date": "2027-01-19",
+  "adults": 1
+ },
+ "fetched_at": "2026-10-03T11:43:37.443339+00:00",
+ "recorded": true,
+ "payload": {
+  "search_metadata": {
+   "id": "6ac0ea6328b27b59657aa5a3",
+   "status": "Success",
+   "json_endpoint": "https://serpapi.com/searches/2Yv70Vp8DR_Au2YpngPClFzKj05zrBWHdACOL8Gv_cs/6ac0ea6328b27b59657aa5a3.json",
+   "markdown_endpoint": "https://serpapi.com/searches/2Yv70Vp8DR_Au2YpngPClFzKj05zrBWHdACOL8Gv_cs/6ac0ea6328b27b59657aa5a3.md",
+   "created_at": "2026-10-03 11:43:31 UTC",
+   "processed_at": "2026-10-03 11:43:31 UTC",
+   "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=PLN&tfs=CBwQAhoeEgoyMDI3LTAxLTE0agcIARIDS1JLcgcIARIDQkNOGh4SCjIwMjctMDEtMTlqBwgBEgNCQ05yBwgBEgNLUktAAUgBcAGYAQE&tfu=EgIIAQ",
+   "raw_html_file": "https://serpapi.com/searches/2Yv70Vp8DR_Au2YpngPClFzKj05zrBWHdACOL8Gv_cs/6ac0ea6328b27b59657aa5a3.html",
+   "prettify_html_file": "https://serpapi.com/searches/2Yv70Vp8DR_Au2YpngPClFzKj05zrBWHdACOL8Gv_cs/6ac0ea6328b27b59657aa5a3.prettify",
+   "total_time_taken": 6.23
+  },
+  "search_parameters": {
+   "engine": "google_flights",
+   "hl": "en",
+   "gl": "pl",
+   "type": "1",
+   "departure_id": "KRK",
+   "arrival_id": "BCN",
+   "outbound_date": "2027-01-14",
+   "return_date": "2027-01-19",
+   "adults": 1,
+   "currency": "PLN"
+  },
+  "best_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 05:30"
+      },
+      "arrival_airport": {
+       "name": "Josep Tarradellas Barcelona-El Prat Airport",
+       "id": "BCN",
+       "time": "2027-01-14 08:25"
+      },
+      "duration": 175,
+      "airplane": "Airbus A321neo",
+      "airline": "Wizz Air",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+      "travel_class": "Economy",
+      "flight_number": "W6 2047",
+      "extensions": [
+       "Carbon emissions estimate: 109 kg"
+      ]
+     }
+    ],
+    "total_duration": 175,
+    "carbon_emissions": {
+     "this_flight": 110000,
+     "typical_for_this_route": 126000,
+     "difference_percent": -13
+    },
+    "price": 358,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+    "departure_token": "WyJDalJJTkc5UFRWUjBPRFF3WjBsQlFXRkliV2RDUnkwdExTMHRMUzB0TFMxd1puaGhPVUZCUVVGQlIzSkJObTFWUVMxT2MwbEJFZ1pYTmpJd05EY2FDd2pZbHdJUUFob0RVRXhPT0J4dzVrYz0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJCQ04iLG51bGwsIlc2IiwiMjA0NyJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 15:25"
+      },
+      "arrival_airport": {
+       "name": "Josep Tarradellas Barcelona-El Prat Airport",
+       "id": "BCN",
+       "time": "2027-01-14 18:20"
+      },
+      "duration": 175,
+      "airplane": "Airbus A321neo",
+      "airline": "Wizz Air",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+      "travel_class": "Economy",
+      "flight_number": "W6 2095",
+      "extensions": [
+       "Carbon emissions estimate: 109 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "total_duration": 175,
+    "carbon_emissions": {
+     "this_flight": 110000,
+     "typical_for_this_route": 126000,
+     "difference_percent": -13
+    },
+    "price": 368,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+    "departure_token": "WyJDalJJTkc5UFRWUjBPRFF3WjBsQlFXRkliV2RDUnkwdExTMHRMUzB0TFMxd1puaGhPVUZCUVVGQlIzSkJObTFWUVMxT2MwbEJFZ1pYTmpJd09UVWFDd2pBbndJUUFob0RVRXhPT0J4dzVraz0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJCQ04iLG51bGwsIlc2IiwiMjA5NSJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 12:50"
+      },
+      "arrival_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 14:30"
+      },
+      "duration": 100,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1365",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 85 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 15:40"
+      },
+      "arrival_airport": {
+       "name": "Josep Tarradellas Barcelona-El Prat Airport",
+       "id": "BCN",
+       "time": "2027-01-14 17:40"
+      },
+      "duration": 120,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1132",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 112 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 70,
+      "name": "Frankfurt Airport",
+      "id": "FRA"
+     }
+    ],
+    "total_duration": 290,
+    "carbon_emissions": {
+     "this_flight": 198000,
+     "typical_for_this_route": 126000,
+     "difference_percent": 57
+    },
+    "price": 758,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJTkc5UFRWUjBPRFF3WjBsQlFXRkliV2RDUnkwdExTMHRMUzB0TFMxd1puaGhPVUZCUVVGQlIzSkJObTFWUVMxT2MwbEJFZzFNU0RFek5qVjhURWd4TVRNeUdnc0krODhFRUFJYUExQk1UamdjY1BxWEFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJGUkEiLG51bGwsIkxIIiwiMTM2NSJdLFsiRlJBIiwiMjAyNy0wMS0xNCIsIkJDTiIsbnVsbCwiTEgiLCIxMTMyIl1dXQ=="
+   }
+  ],
+  "other_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:00"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 07:20"
+      },
+      "duration": 80,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1627",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 15:25"
+      },
+      "arrival_airport": {
+       "name": "Josep Tarradellas Barcelona-El Prat Airport",
+       "id": "BCN",
+       "time": "2027-01-14 17:35"
+      },
+      "duration": 130,
+      "airplane": "Airbus A321neo",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1814",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 98 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 485,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     }
+    ],
+    "total_duration": 695,
+    "carbon_emissions": {
+     "this_flight": 187000,
+     "typical_for_this_route": 126000,
+     "difference_percent": 48
+    },
+    "price": 721,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJTkc5UFRWUjBPRFF3WjBsQlFXRkliV2RDUnkwdExTMHRMUzB0TFMxd1puaGhPVUZCUVVGQlIzSkJObTFWUVMxT2MwbEJFZzFNU0RFMk1qZDhURWd4T0RFMEdnc0kwN0lFRUFJYUExQk1UamdjY0xlUUFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJNVUMiLG51bGwsIkxIIiwiMTYyNyJdLFsiTVVDIiwiMjAyNy0wMS0xNCIsIkJDTiIsbnVsbCwiTEgiLCIxODE0Il1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:00"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 07:20"
+      },
+      "duration": 80,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1627",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 08:50"
+      },
+      "arrival_airport": {
+       "name": "Josep Tarradellas Barcelona-El Prat Airport",
+       "id": "BCN",
+       "time": "2027-01-14 11:00"
+      },
+      "duration": 130,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1810",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 109 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 90,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     }
+    ],
+    "total_duration": 300,
+    "carbon_emissions": {
+     "this_flight": 198000,
+     "typical_for_this_route": 126000,
+     "difference_percent": 57
+    },
+    "price": 775,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJTkc5UFRWUjBPRFF3WjBsQlFXRkliV2RDUnkwdExTMHRMUzB0TFMxd1puaGhPVUZCUVVGQlIzSkJObTFWUVMxT2MwbEJFZzFNU0RFMk1qZDhURWd4T0RFd0dnc0k2ZHdFRUFJYUExQk1UamdjY0tDYkFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJNVUMiLG51bGwsIkxIIiwiMTYyNyJdLFsiTVVDIiwiMjAyNy0wMS0xNCIsIkJDTiIsbnVsbCwiTEgiLCIxODEwIl1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 19:55"
+      },
+      "arrival_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-14 21:40"
+      },
+      "duration": 105,
+      "airplane": "Embraer 195",
+      "airline": "SWISS",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+      "travel_class": "Economy",
+      "flight_number": "LX 1371",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 113 kg"
+      ],
+      "often_delayed_by_over_30_min": true,
+      "plane_and_crew_by": "Helvetic"
+     },
+     {
+      "departure_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-15 07:20"
+      },
+      "arrival_airport": {
+       "name": "Josep Tarradellas Barcelona-El Prat Airport",
+       "id": "BCN",
+       "time": "2027-01-15 09:05"
+      },
+      "duration": 105,
+      "airplane": "Airbus A220-300 Passenger",
+      "airline": "SWISS",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+      "travel_class": "Economy",
+      "flight_number": "LX 1952",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "Carbon emissions estimate: 103 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 580,
+      "name": "Zurich Airport",
+      "id": "ZRH"
+     }
+    ],
+    "total_duration": 790,
+    "carbon_emissions": {
+     "this_flight": 216000,
+     "typical_for_this_route": 126000,
+     "difference_percent": 71
+    },
+    "price": 775,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+    "departure_token": "WyJDalJJTkc5UFRWUjBPRFF3WjBsQlFXRkliV2RDUnkwdExTMHRMUzB0TFMxd1puaGhPVUZCUVVGQlIzSkJObTFWUVMxT2MwbEJFZzFNV0RFek56RjhURmd4T1RVeUdnc0k2ZHdFRUFJYUExQk1UamdjY0tDYkFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJaUkgiLG51bGwsIkxYIiwiMTM3MSJdLFsiWlJIIiwiMjAyNy0wMS0xNSIsIkJDTiIsbnVsbCwiTFgiLCIxOTUyIl1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:20"
+      },
+      "arrival_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 08:00"
+      },
+      "duration": 100,
+      "airplane": "Airbus A321",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1371",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 95 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 14:30"
+      },
+      "arrival_airport": {
+       "name": "Josep Tarradellas Barcelona-El Prat Airport",
+       "id": "BCN",
+       "time": "2027-01-14 16:30"
+      },
+      "duration": 120,
+      "airplane": "Airbus A320neo",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1130",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 98 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 390,
+      "name": "Frankfurt Airport",
+      "id": "FRA"
+     }
+    ],
+    "total_duration": 610,
+    "carbon_emissions": {
+     "this_flight": 193000,
+     "typical_for_this_route": 126000,
+     "difference_percent": 53
+    },
+    "price": 890,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJTkc5UFRWUjBPRFF3WjBsQlFXRkliV2RDUnkwdExTMHRMUzB0TFMxd1puaGhPVUZCUVVGQlIzSkJObTFWUVMxT2MwbEJFZzFNU0RFek56RjhURWd4TVRNd0dnc0loN2NGRUFJYUExQk1UamdjY0xXeUFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJGUkEiLG51bGwsIkxIIiwiMTM3MSJdLFsiRlJBIiwiMjAyNy0wMS0xNCIsIkJDTiIsbnVsbCwiTEgiLCIxMTMwIl1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:20"
+      },
+      "arrival_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 08:00"
+      },
+      "duration": 100,
+      "airplane": "Airbus A321",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1371",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 95 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 10:10"
+      },
+      "arrival_airport": {
+       "name": "Josep Tarradellas Barcelona-El Prat Airport",
+       "id": "BCN",
+       "time": "2027-01-14 12:10"
+      },
+      "duration": 120,
+      "airplane": "Airbus A320neo",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1126",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 98 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 130,
+      "name": "Frankfurt Airport",
+      "id": "FRA"
+     }
+    ],
+    "total_duration": 350,
+    "carbon_emissions": {
+     "this_flight": 193000,
+     "typical_for_this_route": 126000,
+     "difference_percent": 53
+    },
+    "price": 913,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJTkc5UFRWUjBPRFF3WjBsQlFXRkliV2RDUnkwdExTMHRMUzB0TFMxd1puaGhPVUZCUVVGQlIzSkJObTFWUVMxT2MwbEJFZzFNU0RFek56RjhURWd4TVRJMkdnc0lnY2tGRUFJYUExQk1UamdjY0lPM0FRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJGUkEiLG51bGwsIkxIIiwiMTM3MSJdLFsiRlJBIiwiMjAyNy0wMS0xNCIsIkJDTiIsbnVsbCwiTEgiLCIxMTI2Il1dXQ=="
+   }
+  ],
+  "price_insights": {
+   "lowest_price": 358,
+   "price_level": "typical",
+   "typical_price_range": [
+    285,
+    590
+   ],
+   "price_history": [
+    [
+     1785708000,
+     338
+    ],
+    [
+     1785794400,
+     338
+    ],
+    [
+     1785880800,
+     338
+    ],
+    [
+     1785967200,
+     352
+    ],
+    [
+     1786053600,
+     352
+    ],
+    [
+     1786140000,
+     352
+    ],
+    [
+     1786226400,
+     390
+    ],
+    [
+     1786312800,
+     390
+    ],
+    [
+     1786399200,
+     358
+    ],
+    [
+     1786485600,
+     324
+    ],
+    [
+     1786572000,
+     324
+    ],
+    [
+     1786658400,
+     324
+    ],
+    [
+     1786744800,
+     324
+    ],
+    [
+     1786831200,
+     324
+    ],
+    [
+     1786917600,
+     298
+    ],
+    [
+     1787004000,
+     298
+    ],
+    [
+     1787090400,
+     298
+    ],
+    [
+     1787176800,
+     298
+    ],
+    [
+     1787263200,
+     312
+    ],
+    [
+     1787349600,
+     285
+    ],
+    [
+     1787436000,
+     278
+    ],
+    [
+     1787522400,
+     278
+    ],
+    [
+     1787608800,
+     278
+    ],
+    [
+     1787695200,
+     278
+    ],
+    [
+     1787781600,
+     278
+    ],
+    [
+     1787868000,
+     248
+    ],
+    [
+     1787954400,
+     248
+    ],
+    [
+     1788040800,
+     248
+    ],
+    [
+     1788127200,
+     248
+    ],
+    [
+     1788213600,
+     213
+    ],
+    [
+     1788300000,
+     213
+    ],
+    [
+     1788386400,
+     213
+    ],
+    [
+     1788472800,
+     268
+    ],
+    [
+     1788559200,
+     274
+    ],
+    [
+     1788645600,
+     322
+    ],
+    [
+     1788732000,
+     322
+    ],
+    [
+     1788818400,
+     322
+    ],
+    [
+     1788904800,
+     322
+    ],
+    [
+     1788991200,
+     322
+    ],
+    [
+     1789077600,
+     322
+    ],
+    [
+     1789164000,
+     322
+    ],
+    [
+     1789250400,
+     322
+    ],
+    [
+     1789336800,
+     305
+    ],
+    [
+     1789423200,
+     306
+    ],
+    [
+     1789509600,
+     306
+    ],
+    [
+     1789596000,
+     338
+    ],
+    [
+     1789682400,
+     338
+    ],
+    [
+     1789768800,
+     338
+    ],
+    [
+     1789855200,
+     338
+    ],
+    [
+     1789941600,
+     317
+    ],
+    [
+     1790028000,
+     318
+    ],
+    [
+     1790114400,
+     338
+    ],
+    [
+     1790200800,
+     388
+    ],
+    [
+     1790287200,
+     388
+    ],
+    [
+     1790373600,
+     388
+    ],
+    [
+     1790460000,
+     388
+    ],
+    [
+     1790546400,
+     361
+    ],
+    [
+     1790632800,
+     368
+    ],
+    [
+     1790719200,
+     368
+    ],
+    [
+     1790805600,
+     368
+    ],
+    [
+     1790892000,
+     368
+    ],
+    [
+     1790978400,
+     358
+    ]
+   ]
+  },
+  "airports": [
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "BCN",
+       "name": "Josep Tarradellas Barcelona-El Prat Airport"
+      },
+      "city": "Barcelona",
+      "country": "Spain",
+      "country_code": "ES",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOk3xypjQxrqfZPlTUH5lubWcGBzOkdXv7IVkOL--w1FYohepC2Y1hN69JZMcmQsAOt2hIy7EWP0SfXA",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSm8RLrNH5mwpZ7VV_y8imJgifZndKGVUDYaU5-3_hF41Qrpet1SbU1az4wU48pwjNcbuAC9cYwCNqDCxMF1MgcMCvzO0P__9pb0Q9JBGM"
+     }
+    ]
+   },
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "BCN",
+       "name": "Josep Tarradellas Barcelona-El Prat Airport"
+      },
+      "city": "Barcelona",
+      "country": "Spain",
+      "country_code": "ES",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOk3xypjQxrqfZPlTUH5lubWcGBzOkdXv7IVkOL--w1FYohepC2Y1hN69JZMcmQsAOt2hIy7EWP0SfXA",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSm8RLrNH5mwpZ7VV_y8imJgifZndKGVUDYaU5-3_hF41Qrpet1SbU1az4wU48pwjNcbuAC9cYwCNqDCxMF1MgcMCvzO0P__9pb0Q9JBGM"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ]
+   }
+  ]
+ }
+}
