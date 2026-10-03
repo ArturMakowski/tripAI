@@ -43,3 +43,7 @@ Supabase (Postgres + auth). Next.js mobile-first web frontend if needed.
 1. Short interview → taste profile.  2. Calendar → free window found.
 3. Proactive cards: where + when + cost + why + sources; slider re-ranks.
 4. Confirm → booking handoff.  5. (stretch) Disruption → replan.  6. Post-trip survey → profile updates.
+
+## Positioning (after competitor research, see COMPETITORS.md)
+"An auditable recommendation engine, not a chatbot." Differentiators: free-time-triggered proactive picks,
+sourced deterministic score, visible learning from feedback, PL "długi weekend" radar.
