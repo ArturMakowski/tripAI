@@ -9,7 +9,7 @@ from pydantic import AfterValidator, BaseModel, Field
 from tripai.models import Evidence, FitPoint, ScoreBreakdown
 from tripai.scoring.types import RankedRecommendation
 
-NotificationKind = Literal["new_top", "price_drop", "long_weekend"]
+NotificationKind = Literal["new_top", "price_drop", "long_weekend", "target_price"]
 
 
 def now_utc() -> datetime:
@@ -98,6 +98,52 @@ class SavedPick(BaseModel):
     baseline_source: str
     baseline_fetched_at: UTCDateTime
     saved_at: UTCDateTime = Field(default_factory=now_utc)
+    # T13 "My trips" (migration 0006): what it cost when saved (the baseline moves with every
+    # price_drop alert; this one never does), the user's target price, and the latest scan check
+    # Money (docs/BUDGET.md party model): *_pln = per person (== total_cost_pln); the lines are
+    # flight per traveller + hotel for the whole stay, so the UI shows the same sums as the card.
+    saved_pln: float | None = None  # None (rows from before 0006): baseline_pln
+    saved_flight_pln: float | None = None
+    saved_hotel_pln: float | None = None
+    saved_price_status: str = "exact"
+    travelers: int = 1
+    target_pln: float | None = Field(None, gt=0)  # per person, like budgets
+    last_pln: float | None = None
+    last_flight_pln: float | None = None
+    last_hotel_pln: float | None = None
+    last_travelers: int | None = None  # the party the scan priced (the profile may have changed)
+    last_price_status: str | None = None  # "exact" | "partial" | "estimate" (docs/BUDGET.md)
+    last_checked_at: UTCDateTime | None = None
+
+    @property
+    def first_pln(self) -> float:
+        return self.saved_pln if self.saved_pln is not None else self.baseline_pln
+
+
+def watching(picks: list[SavedPick], today: date) -> list[SavedPick]:
+    """Picks that still hold a watch slot: a trip that has ended has nothing left to buy, so it
+    neither counts against TRIPAI_MAX_PICKS nor gets re-priced (T13 review #1)."""
+    return [p for p in picks if p.end >= today]
+
+
+class PlannedTrip(BaseModel):
+    """A trip the user approved on the confirm page (supabase `trips`, columns from 0006).
+    Nothing is booked: it is the user's plan, shown under "My trips" and rated after it ends."""
+
+    user_id: str
+    recommendation_id: str
+    city: str
+    country: str = ""
+    iata: str
+    start: date
+    end: date
+    total_pln: float  # per person all-in when approved (card == receipt == confirm)
+    flight_pln: float | None = None  # per traveller
+    hotel_pln: float | None = None  # the whole stay, all rooms
+    price_status: str = "exact"
+    travelers: int = 1
+    status: Literal["planned", "booked", "done", "cancelled"] = "planned"
+    approved_at: UTCDateTime = Field(default_factory=now_utc)
 
 
 class Decision(BaseModel):

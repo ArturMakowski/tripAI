@@ -17,6 +17,7 @@ import * as tutorial from "./messages/tutorial";
 import * as money from "./messages/money";
 import * as stars from "./messages/stars";
 import * as tripDetails from "./messages/tripDetails";
+import * as myTrips from "./messages/myTrips";
 
 export const en = {
   common: common.en,
@@ -36,6 +37,7 @@ export const en = {
   money: money.en,
   stars: stars.en,
   tripDetails: tripDetails.en,
+  myTrips: myTrips.en,
 };
 
 export type Messages = Shape<typeof en>;

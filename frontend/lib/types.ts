@@ -169,6 +169,8 @@ export interface Recommendation {
   hotel?: HotelDetails | null; // which hotel, where, transfers, distance to centre
 }
 
+export type PriceStatus = "exact" | "partial" | "estimate";
+
 // --- scoring/types.py -------------------------------------------------------------
 
 export interface Counterfactual {
@@ -323,4 +325,41 @@ export interface DnaResponse {
   profile: TasteProfile;
   weights: Weights;
   reasons: DnaReason[];
+}
+
+// --- api/trips.py (T13 "My trips") ------------------------------------------------
+
+export interface TripItem {
+  id: string; // recommendation id
+  kind: "approved" | "saved";
+  city: string;
+  country: string;
+  iata: string;
+  start: string;
+  end: string;
+  travelers: number;
+  // Party money model (docs/BUDGET.md): *_pln = per person (== total_cost_pln); flight lines per traveller,
+  // hotel lines the whole stay, party = flight × travellers + hotel. Lines are null on rows saved before they were recorded.
+  saved_pln: number; // per person all-in when approved / saved
+  saved_flight_pln: number | null;
+  saved_hotel_pln: number | null;
+  saved_party_pln: number | null;
+  saved_price_status: PriceStatus;
+  saved_at: string;
+  watched: boolean; // re-priced by the daily scan
+  current_pln: number | null; // latest scan check (per person); null = not checked yet / no price now
+  current_flight_pln: number | null;
+  current_hotel_pln: number | null;
+  current_party_pln: number | null;
+  current_travelers: number | null; // the party the scan priced
+  price_status: PriceStatus | null;
+  checked_at: string | null;
+  change_pln: number | null; // current - saved per person; only exact-date prices for the same party size
+  target_pln: number | null; // per person
+}
+
+export interface TripsResponse {
+  planned: TripItem[];
+  past: TripItem[];
+  max_watched: number;
 }

@@ -4,7 +4,7 @@ export const en = {
   appName: "TripAI",
   home: "TripAI home",
   back: "Back",
-  nav: { trips: "Trips", windows: "Free time", profile: "Profile", feedback: "Feedback", inbox: "Inbox" },
+  nav: { trips: "Trips", windows: "Free time", profile: "Profile", myTrips: "My trips", inbox: "Inbox" },
   mode: {
     live: "Live API",
     fixture: "Demo fixtures",
@@ -29,7 +29,7 @@ export const pl: Shape<typeof en> = {
   appName: "TripAI",
   home: "Strona główna TripAI",
   back: "Wstecz",
-  nav: { trips: "Wyjazdy", windows: "Wolny czas", profile: "Profil", feedback: "Opinie", inbox: "Skrzynka" },
+  nav: { trips: "Wyjazdy", windows: "Wolny czas", profile: "Profil", myTrips: "Podróże", inbox: "Skrzynka" },
   mode: {
     live: "Dane na żywo",
     fixture: "Dane demo",

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { BellOff, BellRing, CalendarHeart, Crown, Eye, Fingerprint, Loader2, Settings2, TrendingDown, TriangleAlert } from "lucide-react";
+import { BellOff, BellRing, CalendarHeart, Crown, Eye, Fingerprint, Loader2, Settings2, Target, TrendingDown, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { InfoTip } from "@/components/declutter";
 import { AppShell, PageTitle } from "@/components/shell";
@@ -21,6 +21,7 @@ const KIND: Record<NotificationKind, { icon: typeof Crown; tone: string }> = {
   new_top: { icon: Crown, tone: "bg-pine-soft text-pine-deep" },
   price_drop: { icon: TrendingDown, tone: "bg-clay-soft text-clay" },
   long_weekend: { icon: CalendarHeart, tone: "bg-sun-soft text-ink" },
+  target_price: { icon: Target, tone: "bg-pine-soft text-pine-deep" },
 };
 
 function NotificationCard({ n, onOpen, busy }: { n: AppNotification; onOpen: (n: AppNotification) => void; busy: boolean }) {

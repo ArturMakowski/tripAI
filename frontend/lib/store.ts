@@ -22,7 +22,7 @@ export interface FeedbackDiff {
 /** Onboarding: the Travel DNA deck first ("swipe"), then dates + party + airports ("trip"), then the result. */
 export type DeckStep = "trip" | "swipe" | "result";
 
-export type Dataset = "interview" | "windows" | "recs" | "feedback";
+export type Dataset = "interview" | "windows" | "recs" | "feedback" | "trips";
 
 /** Cached data older than this is refetched (prices and calendars move). */
 export const RECS_TTL_MS = 30 * 60_000;
@@ -44,6 +44,8 @@ interface TripState {
   /** Which source answered each dataset; the badge shows "fixture" if any did. */
   modes: Partial<Record<Dataset, DataMode>>;
   approved: string[];
+  /** Target prices set while the backend is unreachable (fixture "My trips"); live targets live on the server. */
+  tripTargets: Record<string, number>;
   feedback: FeedbackDiff | null;
   /** Swipe onboarding progress (survives a reload mid-deck). */
   deck: { swipes: DnaSwipe[]; step: DeckStep; airports: string[]; result: DnaResponse | null; /** "Ile osób?" chosen before the profile exists */ party?: number };
@@ -62,6 +64,7 @@ interface TripState {
   setWeights: (w: Weights) => void;
   setMode: (d: Dataset, m: DataMode) => void;
   approve: (id: string) => void;
+  setTripTarget: (id: string, pln: number | null) => void;
   setFeedback: (f: FeedbackDiff | null) => void;
   setDeck: (patch: Partial<TripState["deck"]>) => void;
   reset: () => void;
@@ -79,6 +82,7 @@ const initial = {
   weights: weightsFromSlider(50),
   modes: {},
   approved: [],
+  tripTargets: {} as Record<string, number>,
   feedback: null,
   deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, airports: ["KRK"], result: null as DnaResponse | null },
   lang: null as Lang | null,
@@ -112,6 +116,13 @@ export const useTrip = create<TripState>()(
       setWeights: (weights) => set({ weights, slider: null }),
       setMode: (d, m) => set((s) => ({ modes: { ...s.modes, [d]: m } })),
       approve: (id) => set((s) => ({ approved: s.approved.includes(id) ? s.approved : [...s.approved, id] })),
+      setTripTarget: (id, pln) =>
+        set((s) => {
+          const tripTargets = { ...s.tripTargets };
+          if (pln == null) delete tripTargets[id];
+          else tripTargets[id] = pln;
+          return { tripTargets };
+        }),
       setFeedback: (feedback) => set({ feedback }),
       setDeck: (patch) => set((s) => ({ deck: { ...s.deck, ...patch } })),
       setLang: (lang) => set({ lang }),

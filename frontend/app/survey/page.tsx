@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { LayoutGroup, motion } from "motion/react";
 import { ArrowDown, ArrowRight, ArrowUp, Bell, Minus, RotateCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { FACTOR_COLOR, FACTOR_ICON } from "@/components/factor-bars";
 import { CityPhoto } from "@/components/rec-card";
 import { AppShell, PageTitle } from "@/components/shell";
@@ -11,9 +12,10 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { pct } from "@/lib/format";
 import { useT } from "@/lib/i18n";
-import { DEMO_PROFILE, PAST_TRIP } from "@/lib/mock/fixtures";
+import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { FACTORS, normalise, rerank, type Factor } from "@/lib/scoring";
 import { useTrip, type FeedbackDiff } from "@/lib/store";
+import { surveyTrip } from "@/lib/trips";
 import type { Change } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { cn } from "@/lib/utils";
@@ -223,7 +225,17 @@ function Rerank({ diff }: { diff: FeedbackDiff }) {
   );
 }
 
-export default function SurveyPage() {
+export default function SurveyRoute() {
+  // useSearchParams (My trips → Past → "Rate trip" passes ?trip=&city=) needs a Suspense boundary on a prerendered route
+  return (
+    <Suspense>
+      <SurveyPage />
+    </Suspense>
+  );
+}
+
+function SurveyPage() {
+  const trip = surveyTrip(useSearchParams());
   const { ranked } = useRecommendations();
   const { profile, weights, setProfile, setWeights, setRecs, setMode, feedback, setFeedback } = useTrip();
   const [ratings, setRatings] = useState<Partial<Record<Factor, number>>>({});
@@ -231,14 +243,14 @@ export default function SurveyPage() {
   const [busy, setBusy] = useState(false);
   const { t, fmt } = useT();
   const sv = t.survey;
-  const pastWindow = pastTripWindow(PAST_TRIP.id);
-  const pastDates = pastWindow ? `${fmt.range(pastWindow)} ${pastWindow.start.slice(0, 4)}` : PAST_TRIP.dates;
+  const pastWindow = pastTripWindow(trip.id);
+  const pastDates = pastWindow ? `${fmt.range(pastWindow)} ${pastWindow.start.slice(0, 4)}` : "";
 
   async function submit() {
     setBusy(true);
     const before = { weights, profile: profile ?? DEMO_PROFILE, ranking: ranked.map((r) => r.id) };
     const fb = await api.feedback({
-      trip_id: PAST_TRIP.id,
+      trip_id: trip.id,
       answers: { ...(ratings as Record<string, number>), loved: liked },
       profile: before.profile,
       weights,
@@ -250,7 +262,7 @@ export default function SurveyPage() {
     if (before.profile.personalize === false) {
       const items: FeedbackDiff["items"] = {};
       for (const r of ranked) items[r.id] = { city: r.city, iata: r.iata, window: r.window, total_cost_pln: r.total_cost_pln };
-      setFeedback({ tripId: PAST_TRIP.id, before, after: before, diff: [], items, frozen: true });
+      setFeedback({ tripId: trip.id, before, after: before, diff: [], items, frozen: true });
       setBusy(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -266,7 +278,7 @@ export default function SurveyPage() {
     setWeights(nextWeights);
     setRecs(fresh.data, { profile: nextProfile, weights: nextWeights, mode: fresh.mode });
     setFeedback({
-      tripId: PAST_TRIP.id,
+      tripId: trip.id,
       before,
       after: { weights: nextWeights, profile: nextProfile, ranking: rerank(fresh.data, nextWeights).map((r) => r.id) },
       diff: fb.data.diff ?? [],
@@ -276,13 +288,14 @@ export default function SurveyPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  if (feedback) {
+  // a stored result is only for the trip it rated; another trip opens a fresh form
+  if (feedback && feedback.tripId === trip.id) {
     const top = feedback.items[feedback.after.ranking[0]];
     const changedTop = feedback.before.ranking[0] !== feedback.after.ranking[0];
     return (
       <AppShell>
         <PageTitle eyebrow={sv.resultEyebrow} title={feedback.frozen ? sv.titleFrozen : sv.titleChanged}>
-          {feedback.frozen ? sv.introFrozen(PAST_TRIP.city) : sv.introChanged(PAST_TRIP.city)}
+          {feedback.frozen ? sv.introFrozen(trip.city) : sv.introChanged(trip.city)}
         </PageTitle>
         {feedback.frozen && (
           <p role="status" className="mb-6 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm text-ink">
@@ -340,7 +353,7 @@ export default function SurveyPage() {
 
   return (
     <AppShell>
-      <PageTitle eyebrow={sv.eyebrow} title={sv.title(PAST_TRIP.city)}>
+      <PageTitle eyebrow={sv.eyebrow} title={sv.title(trip.city)}>
         {sv.intro}
       </PageTitle>
 
@@ -354,15 +367,12 @@ export default function SurveyPage() {
         </div>
       )}
 
-      <div className="relative mb-6 h-36 overflow-hidden rounded-3xl">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={PAST_TRIP.photo_url} alt={PAST_TRIP.city} className="absolute inset-0 size-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
+      <CityPhoto rec={trip} className="mb-6 h-36 rounded-3xl">
         <div className="absolute bottom-3 left-4 text-white">
-          <p className="font-display text-2xl leading-none">{PAST_TRIP.city}</p>
+          <p className="font-display text-2xl leading-none">{trip.city}</p>
           <p className="mt-1 text-sm text-white/85">{pastDates}</p>
         </div>
-      </div>
+      </CityPhoto>
 
       <div className="space-y-6">
         {QUESTION_ORDER.map((f) => {

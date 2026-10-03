@@ -5,6 +5,10 @@ Triggers (docs: backend README "Proactive scan + notifications"):
 - new_top:      this scan's #1 differs from the last scan's #1 (or there was no last scan)
 - price_drop:   a watched pick is >= 15% cheaper than the last price we told the user
 - long_weekend: a długi-weekend window starts within 21 days and its best trip scores >= 0.8
+- target_price: a watched pick's exact-date price is at or under the user's own target (T13)
+
+Price honesty (docs/BUDGET.md): price alerts only fire on `price_status == "exact"`; a price from
+other dates or a city average is never "this trip's price".
 
 Gate: when `rec.fit` (AI fit verdict, docs/FIT_VERDICT.md) is present, only good_fit/great_fit
 pass; otherwise the score thresholds below apply.
@@ -24,7 +28,7 @@ LONG_WEEKEND_MIN_SCORE = 0.8
 LONG_WEEKEND_WITHIN_DAYS = 21
 PRICE_DROP_MIN = 0.15
 GOOD_FIT = {"good_fit", "great_fit"}
-PRIORITY = {"price_drop": 0, "long_weekend": 1, "new_top": 2}
+PRIORITY = {"target_price": 0, "price_drop": 0, "long_weekend": 1, "new_top": 2}
 
 
 def gate(rec: RankedRecommendation, min_score: float) -> tuple[bool, str]:
@@ -98,10 +102,20 @@ def draft_new_top(
     return d, Decision(kind="new_top", recommendation_id=top.id, notify=True, reason=why)
 
 
+def honest(rec: RankedRecommendation) -> bool:
+    """True when the price is for these exact dates (both legs), so it may trigger an alert."""
+    return rec.price_status == "exact"
+
+
 def draft_price_drop(
     rec: RankedRecommendation, baseline_pln: float
 ) -> tuple[Draft | None, Decision]:
     now = rec.total_cost_pln
+    if not honest(rec):
+        reason = f"price is {rec.price_status} (not these exact dates): never alerts"
+        return None, Decision(
+            kind="price_drop", recommendation_id=rec.id, notify=False, reason=reason
+        )
     drop = (baseline_pln - now) / baseline_pln if baseline_pln > 0 else 0.0
     if drop < PRICE_DROP_MIN:
         reason = f"{now:.0f} PLN vs watched {baseline_pln:.0f} PLN ({-drop:+.0%}), need -15%"
@@ -127,6 +141,41 @@ def draft_price_drop(
     return d, Decision(
         kind="price_drop", recommendation_id=rec.id, notify=True, reason=f"-{drop:.0%}; {why}"
     )
+
+
+def draft_target_price(
+    rec: RankedRecommendation, target_pln: float
+) -> tuple[Draft | None, Decision]:
+    """The user's own alert: no fit/score gate (they chose this trip and this number), but the
+    price must be for the exact dates. One alert per (trip, target): a new target re-arms it."""
+    now = rec.total_cost_pln
+    if not honest(rec):
+        reason = f"price is {rec.price_status} (not these exact dates): never alerts"
+        return None, Decision(
+            kind="target_price", recommendation_id=rec.id, notify=False, reason=reason
+        )
+    if now > target_pln:
+        reason = f"{now:.0f} PLN > target {target_pln:.0f} PLN"
+        return None, Decision(
+            kind="target_price", recommendation_id=rec.id, notify=False, reason=reason
+        )
+    n = rec.travelers
+    d = Draft(
+        "target_price",
+        rec,
+        i18n.t("n.target.title", city=rec.city, dates=when(rec)),
+        i18n.t(  # party money model: per person, plus "loty n x X + hotel Y" for a group
+            "n.target.body" if n == 1 else "n.target.body.party",
+            now=i18n.fmt_pln(now),
+            target=i18n.fmt_pln(target_pln),
+            group=i18n.fmt_pln(rec.party_total_pln or now * n),
+            n=n,
+            flight=i18n.fmt_int(rec.flight_cost_pln),
+            hotel=i18n.fmt_int(rec.hotel_cost_pln),
+        ),
+    ).with_key(f"target_price:{rec.id}:{target_pln:.0f}")
+    reason = f"{now:.0f} PLN <= target {target_pln:.0f} PLN (exact dates)"
+    return d, Decision(kind="target_price", recommendation_id=rec.id, notify=True, reason=reason)
 
 
 def soon_long_weekends(bridges: list[BridgeWindow], today: date) -> list[BridgeWindow]:

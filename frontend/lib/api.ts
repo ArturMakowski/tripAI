@@ -21,6 +21,8 @@ import type {
   RankedRecommendation,
   RecommendationsRequest,
   RecPhase,
+  TripItem,
+  TripsResponse,
 } from "./types";
 
 export const API_URL = "/api";
@@ -229,6 +231,13 @@ export const api = {
     }
     return hit;
   },
+  /** T13 "My trips" (backend api/trips.py). Live only: lib/trips.ts decides the fixture fallback. */
+  trips: (today?: string) => http<TripsResponse>(`/trips${today ? `?${qs({ today })}` : ""}`),
+  approveTrip: (recommendationId: string) => http<TripItem>("/trips", post({ recommendation_id: recommendationId })),
+  setTripTarget: (id: string, targetPln: number | null) =>
+    http<TripItem>(`/trips/${encodeURIComponent(id)}/target`, { method: "PUT", body: JSON.stringify({ target_pln: targetPln }) }),
+  /** "Stop watching": frees the watch slot. An approved trip comes back unwatched; a saved-only trip -> null (gone). */
+  stopWatching: (id: string) => http<TripItem | null>(`/trips/${encodeURIComponent(id)}/watch`, { method: "DELETE" }),
 
   feedback: (req: FeedbackRequest) =>
     withFallback<FeedbackResponse>(

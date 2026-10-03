@@ -36,8 +36,10 @@ class ScaledProvider(FixtureProvider):
 
     factor = 1.0
 
-    async def candidates(self, origin, windows, luxury=None, **kw):
-        out = await super().candidates(origin, windows, *(x for x in [luxury] if x))
+    async def candidates(self, origin, windows, luxury=None, *, profile=None, **kw):
+        # `profile` named: callers pass it only to providers that declare it (party pricing)
+        lux = [x for x in [luxury] if x]
+        out = await super().candidates(origin, windows, *lux, profile=profile, **kw)
         if self.factor == 1.0:
             return out
         scaled = []

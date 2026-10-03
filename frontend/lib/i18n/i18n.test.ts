@@ -38,7 +38,7 @@ describe("dictionaries", () => {
   });
 
   it("covers every screen namespace", () => {
-    for (const ns of ["common", "calendar", "home", "onboarding", "profile", "windows", "trips", "receipt", "confirm", "credits", "survey", "swipeOffers", "inbox", "money", "stars", "tripDetails"])
+    for (const ns of ["common", "calendar", "home", "onboarding", "profile", "windows", "trips", "receipt", "confirm", "credits", "survey", "swipeOffers", "inbox", "money", "stars", "tripDetails", "myTrips"])
       expect(Object.keys((en as Record<string, object>)[ns]).length, ns).toBeGreaterThan(0);
   });
 });

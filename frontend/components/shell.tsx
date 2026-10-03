@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CalendarDays, ChevronLeft, Compass, MessageSquareHeart, UserRound } from "lucide-react";
+import { CalendarDays, ChevronLeft, Compass, Luggage, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 import { InboxBell } from "@/components/inbox-bell";
 import { LangSwitch } from "@/components/lang-switch";
@@ -42,11 +42,12 @@ export function ModeBadge() {
   );
 }
 
-const NAV: { href: string; key: "trips" | "windows" | "profile" | "feedback"; icon: typeof Compass }[] = [
+/** ≤ 5 items. Feedback (the post-trip survey) lives under My trips → Past → "Rate trip". */
+const NAV: { href: string; key: "trips" | "windows" | "profile" | "myTrips"; icon: typeof Compass; also?: string[] }[] = [
   { href: "/trips", key: "trips", icon: Compass },
   { href: "/windows", key: "windows", icon: CalendarDays },
+  { href: "/my-trips", key: "myTrips", icon: Luggage, also: ["/survey"] },
   { href: "/profile", key: "profile", icon: UserRound },
-  { href: "/survey", key: "feedback", icon: MessageSquareHeart },
 ];
 
 function BottomNav() {
@@ -55,9 +56,9 @@ function BottomNav() {
   return (
     <nav className="sticky bottom-0 z-30 border-t border-line bg-paper/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
       <ul className="grid grid-cols-4">
-        {NAV.map(({ href, key, icon: Icon }) => {
+        {NAV.map(({ href, key, icon: Icon, also = [] }) => {
           const label = t.common.nav[key];
-          const active = path === href || (href !== "/" && path.startsWith(`${href}/`));
+          const active = [href, ...also].some((h) => path === h || path.startsWith(`${h}/`));
           return (
             <li key={href}>
               <Link
