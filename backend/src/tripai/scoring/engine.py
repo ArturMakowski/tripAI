@@ -16,16 +16,18 @@ from tripai.scoring.types import (
     RankedRecommendation,
 )
 
-SCORING_VERSION = "2026.10.03-1"
+SCORING_VERSION = "2026.10.04-1"  # typical-spend price reference, shown totals, hash
 FACTORS = ("price", "weather", "crowds", "taste")
 
-# Used when the profile has no explicit budget: total per person, PLN.
-DEFAULT_BUDGET_PLN = {
+# Typical total trip spend (flight + hotel room) per DNA luxury level, PLN: the price factor's
+# reference when there's no spend history (docs/BUDGET.md). Not a cap.
+DEFAULT_SPEND_PLN = {
     LuxuryLevel.budget: 1500,
     LuxuryLevel.standard: 2500,
     LuxuryLevel.comfort: 4000,
     LuxuryLevel.luxury: 7000,
 }
+DEFAULT_BUDGET_PLN = DEFAULT_SPEND_PLN  # old name
 
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -50,12 +52,14 @@ def normalise_weights(weights: Weights | None) -> Weights:
     return Weights(**out)
 
 
-def effective_budget(profile: TasteProfile) -> float:
-    return float(profile.budget_pln or DEFAULT_BUDGET_PLN[profile.luxury])
+def effective_budget(profile: TasteProfile, typical_spend_pln: float | None = None) -> float:
+    """The price factor's reference: the user's typical spend (history, else DNA luxury level).
+    `budget_pln` is a hard limit applied by `budget_fit`, never a reference here."""
+    return float(typical_spend_pln or DEFAULT_SPEND_PLN[profile.luxury])
 
 
 def price_score(cost: float, budget: float, seasonal_median: float) -> float:
-    """50% fit vs budget (<=50% of budget -> 1, >=125% -> 0) + 50% deal vs seasonal median
+    """50% fit vs typical spend (<=50% of it -> 1, >=125% -> 0) + 50% deal vs seasonal median
     (at median -> 0.5, half the median -> 1, 1.5x median -> 0)."""
     budget_fit = _clamp((1.25 * budget - cost) / (0.75 * budget)) if budget > 0 else 0.5
     deal = _clamp(1.5 - cost / seasonal_median) if seasonal_median > 0 else 0.5
@@ -115,11 +119,18 @@ def taste_score(tags: Sequence[str], interests: dict[str, float], dislikes: Sequ
     return _clamp(base - 0.25 * len(tagset & set(dislikes)))
 
 
-def score_candidate(c: Candidate, profile: TasteProfile, weights: Weights) -> ScoreBreakdown:
+def score_candidate(
+    c: Candidate,
+    profile: TasteProfile,
+    weights: Weights,
+    typical_spend_pln: float | None = None,
+) -> ScoreBreakdown:
     w = normalise_weights(weights)
     parts = {
         "price": price_score(
-            c.total_cost_pln, effective_budget(profile), c.seasonal_median_cost_pln
+            c.total_cost_pln,
+            effective_budget(profile, typical_spend_pln),
+            c.seasonal_median_cost_pln,
         ),
         "weather": weather_score(
             c.temp_c, profile.preferred_temp_c, profile.dislikes, c.rainy_day_share, c.sunshine_h
@@ -167,17 +178,25 @@ def candidate_id(c: Candidate) -> str:
     return f"{c.iata}-{c.window.start:%Y%m%d}-{c.window.end:%Y%m%d}"
 
 
-def inputs_hash(candidates: Sequence[Candidate], profile: TasteProfile, weights: Weights) -> str:
+def inputs_hash(
+    candidates: Sequence[Candidate],
+    profile: TasteProfile,
+    weights: Weights,
+    typical_spend_pln: float | None = None,
+) -> str:
     """sha256 over canonical JSON of everything the ranking depends on (incl. scoring version)."""
-    payload = {
+    payload: dict = {
         "scoring_version": SCORING_VERSION,
         "profile": profile.model_dump(mode="json"),
         "weights": normalise_weights(weights).model_dump(mode="json"),
         "candidates": sorted(
-            (c.model_dump(mode="json") for c in candidates),
+            (c.model_dump(mode="json", exclude_none=True) for c in candidates),
             key=lambda d: (d["iata"], d["window"]["start"], d["window"]["end"]),
         ),
     }
+    # only when it changes the price reference, so "no history" hashes stay stable
+    if typical_spend_pln is not None and typical_spend_pln != DEFAULT_SPEND_PLN[profile.luxury]:
+        payload["typical_spend_pln"] = typical_spend_pln
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode()).hexdigest()
 
@@ -215,24 +234,40 @@ def _peak_candidate(c: Candidate) -> Candidate | None:
     )
 
 
+def shown_total(c: Candidate) -> int:
+    """The total every screen shows: the rounded flight + the rounded hotel (never off by 1)."""
+    return round(c.flight_cost_pln) + round(c.hotel_cost_pln)
+
+
 def _counterfactual(
     kind, label: str, this: Candidate, this_score: float, other: Candidate, other_score: float
 ) -> Counterfactual:
-    cost_delta = round(other.total_cost_pln - this.total_cost_pln)
-    pct = round(100 * cost_delta / other.total_cost_pln) if other.total_cost_pln else 0
+    """Phrased from the *other* option's side, so it is never ambiguous which trip costs what:
+    'Same trip in Jul (peak season): 1046 PLN more, 42 pts lower'."""
+    cost_delta = shown_total(other) - shown_total(this)
+    pct = round(100 * cost_delta / shown_total(other)) if shown_total(other) else 0
     score_delta = round(this_score - other_score, 4)
-    if cost_delta >= 0:
-        cost_txt = i18n.t("cf.cheaper", amount=i18n.fmt_pln(cost_delta), pct=pct)
-    else:
-        cost_txt = i18n.t("cf.pricier", amount=i18n.fmt_pln(-cost_delta), pct=-pct)
     pts = round(100 * score_delta)
-    text = i18n.t("cf.line", cost=cost_txt, label=label, pts=f"{'+' if pts >= 0 else ''}{pts}")
+    if cost_delta > 0:
+        cost_txt = i18n.t("cf.more", amount=i18n.fmt_pln(cost_delta))
+    elif cost_delta < 0:
+        cost_txt = i18n.t("cf.less", amount=i18n.fmt_pln(-cost_delta))
+    else:
+        cost_txt = i18n.t("cf.same_price")
+    if pts > 0:
+        score_txt = i18n.t("cf.pts_lower", pts=pts, pt="pt" if pts == 1 else "pts")
+    elif pts < 0:
+        score_txt = i18n.t("cf.pts_higher", pts=-pts, pt="pt" if pts == -1 else "pts")
+    else:
+        score_txt = i18n.t("cf.pts_same")
+    text = i18n.t("cf.subject", subject=label[:1].upper() + label[1:], cost=cost_txt,
+                  score=score_txt)  # fmt: skip
     return Counterfactual(
         kind=kind,
         label=label,
         city=other.city,
         window=other.window if kind != "peak_season" else None,
-        total_cost_pln=round(other.total_cost_pln),
+        total_cost_pln=shown_total(other),
         cost_delta_pln=cost_delta,
         cost_delta_pct=pct,
         score_total=other_score,
@@ -259,10 +294,16 @@ def with_extra_cost(c: Candidate, extra_pln: float) -> Candidate:
     return c.model_copy(update={"flight_cost_pln": c.flight_cost_pln + extra_pln})
 
 
-def _overtakes(lo_c: Candidate, hi_c: Candidate, profile: TasteProfile, weights: Weights) -> bool:
+def _overtakes(
+    lo_c: Candidate,
+    hi_c: Candidate,
+    profile: TasteProfile,
+    weights: Weights,
+    typical_spend_pln: float | None = None,
+) -> bool:
     """Strictly higher total (as displayed, 4 dp), so the swap never relies on a tie-break."""
-    lo = score_candidate(lo_c, profile, weights).total
-    return lo > score_candidate(hi_c, profile, weights).total
+    lo = score_candidate(lo_c, profile, weights, typical_spend_pln).total
+    return lo > score_candidate(hi_c, profile, weights, typical_spend_pln).total
 
 
 def _w(x: float) -> str:
@@ -278,6 +319,7 @@ def _flip(
     profile: TasteProfile,
     weights: Weights,
     rival_above: bool,
+    typical_spend_pln: float | None = None,
 ) -> FlipHint:
     """Smallest single-weight change that swaps the pair; plus the price change that would do it.
 
@@ -300,7 +342,9 @@ def _flip(
         x = gap / -d
         crossing = (getattr(w, f) + x) / (1 + x)
         t = math.ceil(crossing * 100 + 1e-9) / 100
-        while t <= 1.0 and not _overtakes(lo_c, hi_c, profile, with_weight(w, f, t)):
+        while t <= 1.0 and not _overtakes(
+            lo_c, hi_c, profile, with_weight(w, f, t), typical_spend_pln
+        ):
             t = round(t + 0.01, 2)
         if t <= 1.0 and t > getattr(w, f) and (best is None or t - getattr(w, f) < best[0]):
             best = (t - getattr(w, f), f, t)
@@ -308,20 +352,21 @@ def _flip(
     # Price route: how much pricier would the higher-ranked trip have to be to drop below the other.
     price_inc = None
     if w.price > 0:
-        budget = effective_budget(profile)
+        budget = effective_budget(profile, typical_spend_pln)
+        median = hi_c.seasonal_median_cost_pln
         target = hi.price - (gap / w.price)
         base_cost = hi_c.total_cost_pln
-        if price_score(base_cost * 10, budget, hi_c.seasonal_median_cost_pln) < target:
+        if price_score(base_cost * 10, budget, median) < target:
             lo_cost, hi_cost = base_cost, base_cost * 10
             for _ in range(60):
                 mid = (lo_cost + hi_cost) / 2
-                if price_score(mid, budget, hi_c.seasonal_median_cost_pln) > target:
+                if price_score(mid, budget, median) > target:
                     lo_cost = mid
                 else:
                     hi_cost = mid
             inc = math.ceil(hi_cost - base_cost) + 1
             for _ in range(100):
-                if _overtakes(lo_c, with_extra_cost(hi_c, inc), profile, w):
+                if _overtakes(lo_c, with_extra_cost(hi_c, inc), profile, w, typical_spend_pln):
                     price_inc = float(inc)
                     break
                 inc += max(1, math.ceil(base_cost * 0.005))
@@ -366,12 +411,15 @@ def rank(
     limit: int = 10,
     one_per_city: bool = True,
     lang: str | None = None,
+    typical_spend_pln: float | None = None,
 ) -> list[RankedRecommendation]:
     """Score every candidate, keep the best window per city, attach the receipt.
     Receipt texts (counterfactuals, flip, filter) are written in `lang` (default: the request's).
-    Scores and `inputs_hash` don't depend on the language."""
+    Scores and `inputs_hash` don't depend on the language. `typical_spend_pln` (the user's usual
+    trip spend, docs/BUDGET.md) is the price factor's reference; None -> DNA luxury default."""
     with i18n.using(i18n.pick(lang)):
-        return _rank(candidates, profile, weights, limit=limit, one_per_city=one_per_city)
+        return _rank(candidates, profile, weights, limit=limit, one_per_city=one_per_city,
+                     typical=typical_spend_pln)  # fmt: skip
 
 
 def _rank(
@@ -381,13 +429,14 @@ def _rank(
     *,
     limit: int,
     one_per_city: bool,
+    typical: float | None = None,
 ) -> list[RankedRecommendation]:
     weights = normalise_weights(weights)
     candidates = list({candidate_id(c): c for c in reversed(candidates)}.values())  # first wins
     # hash the inputs *before* filtering: the filter is a deterministic function of them
-    digest = inputs_hash(candidates, profile, weights)
+    digest = inputs_hash(candidates, profile, weights, typical)
     candidates, filter_receipt = interest_filter(candidates, profile)
-    scored = [(c, score_candidate(c, profile, weights)) for c in candidates]
+    scored = [(c, score_candidate(c, profile, weights, typical)) for c in candidates]
     scored.sort(key=lambda cs: (-cs[1].total, cs[0].total_cost_pln, cs[0].iata, cs[0].window.start))
 
     picked: list[tuple[Candidate, ScoreBreakdown]] = []
@@ -404,7 +453,7 @@ def _rank(
         cfs: list[Counterfactual] = []
         peak = _peak_candidate(c)
         if peak is not None and c.peak.month not in _months(c.window):
-            peak_sb = score_candidate(peak, profile, weights)
+            peak_sb = score_candidate(peak, profile, weights, typical)
             label = i18n.t("cf.peak", month=i18n.month_in(c.peak.month))
             cfs.append(_counterfactual("peak_season", label, c, sb.total, peak, peak_sb.total))
         alt = next(
@@ -424,10 +473,12 @@ def _rank(
             label = i18n.t("cf.runner_up", city=nxt[0].city, dates=fmt_window(nxt[0]))
             cfs.append(_counterfactual("runner_up", label, c, sb.total, nxt[0], nxt[1].total))
         if i == 0 and len(picked) > 1:
-            flip = _flip(c, sb, picked[1][0], picked[1][1], profile, weights, rival_above=False)
+            flip = _flip(c, sb, picked[1][0], picked[1][1], profile, weights, rival_above=False,
+                         typical_spend_pln=typical)  # fmt: skip
         elif i > 0:
             prev = picked[i - 1]
-            flip = _flip(c, sb, prev[0], prev[1], profile, weights, rival_above=True)
+            flip = _flip(c, sb, prev[0], prev[1], profile, weights, rival_above=True,
+                         typical_spend_pln=typical)  # fmt: skip
 
         out.append(
             RankedRecommendation(
@@ -437,7 +488,8 @@ def _rank(
                 country=c.country,
                 iata=c.iata,
                 window=c.window,
-                total_cost_pln=round(c.total_cost_pln),
+                # total == flight + hotel exactly, as shown (docs/BUDGET.md money consistency)
+                total_cost_pln=shown_total(c),
                 flight_cost_pln=round(c.flight_cost_pln),
                 hotel_cost_pln=round(c.hotel_cost_pln),
                 score=sb,

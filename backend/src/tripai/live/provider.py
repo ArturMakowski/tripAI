@@ -460,13 +460,20 @@ class LiveProvider:
         self.fast_deadline = float(config.env("TRIPAI_FAST_DEADLINE_S") or FAST_DEADLINE_S)
 
     def _refine_targets(
-        self, cands: list[Candidate], profile: TasteProfile, weights: Weights | None
+        self,
+        cands: list[Candidate],
+        profile: TasteProfile,
+        weights: Weights | None,
+        typical_spend_pln: float | None = None,
     ) -> list[str]:
         """Exact-date checks go to what the user will see first: the top N under the same
-        hard-budget policy the API applies (never to options the budget filters out)."""
+        hard-budget policy and price reference (typical spend) the API applies."""
         from tripai.scoring.budget_fit import rank_within_budget
 
-        return [r.id for r, _ in rank_within_budget(cands, profile, weights, limit=self.top_n)]
+        ranked = rank_within_budget(
+            cands, profile, weights, limit=self.top_n, typical_spend_pln=typical_spend_pln
+        )
+        return [r.id for r, _ in ranked]
 
     async def _drive_transfer(self, s: "_Session", h: HotelDetails) -> HotelDetails:
         """No Google travel times for this property: driving time airport -> hotel via OSRM
@@ -538,11 +545,14 @@ class LiveProvider:
         profile: TasteProfile | None = None,
         weights: Weights | None = None,
         fast: bool = False,
+        typical_spend_pln: float | None = None,
     ) -> list[Candidate]:
         """`fast=True` (POST /recommendations?phase=fast): cached SerpApi only, no exact-date
         refinement, and a FAST_DEADLINE_S budget for the per-city fetches."""
         try:
-            out = await self._live(origin, list(windows), luxury, profile, weights, fast)
+            out = await self._live(
+                origin, list(windows), luxury, profile, weights, fast, typical_spend_pln
+            )
         except Exception:
             log.exception("live provider failed; falling back")
             out = []
@@ -560,6 +570,7 @@ class LiveProvider:
         profile: TasteProfile | None,
         weights: Weights | None,
         fast: bool = False,
+        typical_spend_pln: float | None = None,
     ) -> list[Candidate]:
         if not windows:
             return []
@@ -618,7 +629,7 @@ class LiveProvider:
             # Exact-date prices usually differ from the cached estimates, so re-rank after each
             # round until the top N are all refined or the refinement budget is spent.
             while cands and not fast and len(refined) < self.max_refine:
-                top = self._refine_targets(cands, profile, weights)
+                top = self._refine_targets(cands, profile, weights, typical_spend_pln)
                 todo = [cid for cid in top if cid not in refined]
                 todo = todo[: self.max_refine - len(refined)]
                 if not todo:

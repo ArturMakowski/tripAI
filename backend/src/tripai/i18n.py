@@ -196,20 +196,25 @@ def llm_language_rule(lang: str | None = None) -> str:
 
 MESSAGES: dict[str, dict[str, str]] = {
     # ---- scoring: counterfactuals, flip, interest filter
-    "cf.cheaper": {"en": "{amount} ({pct}%) cheaper", "pl": "{amount} ({pct}%) taniej"},
-    "cf.pricier": {"en": "{amount} ({pct}%) more expensive", "pl": "{amount} ({pct}%) drożej"},
-    "cf.line": {
-        "en": "{cost} than {label}; score {pts} pts",
-        "pl": "{cost} niż {label}; wynik {pts} pkt",
-    },
+    # comparisons always name the option they describe (docs/BUDGET.md)
+    "cf.subject": {"en": "{subject}: {cost}, {score}", "pl": "{subject}: {cost}, {score}"},
+    "cf.more": {"en": "{amount} more", "pl": "o {amount} drożej"},
+    "cf.less": {"en": "{amount} less", "pl": "o {amount} taniej"},
+    "cf.same_price": {"en": "same price", "pl": "ta sama cena"},
+    "cf.pts_lower": {"en": "{pts} {pt} lower", "pl": "wynik niższy o {pts} pkt"},
+    "cf.pts_higher": {"en": "{pts} {pt} higher", "pl": "wynik wyższy o {pts} pkt"},
+    "cf.pts_same": {"en": "same score", "pl": "ten sam wynik"},
     "cf.peak": {
         "en": "same trip in {month} (peak season)",
         "pl": "ten sam wyjazd w {month} (szczyt sezonu)",
     },
-    "cf.next_window": {"en": "next-best window {dates}", "pl": "następny najlepszy termin {dates}"},
-    "cf.runner_up": {"en": "runner-up {city} {dates}", "pl": "drugie miejsce: {city} {dates}"},
+    "cf.next_window": {
+        "en": "{dates} (next-best dates)",
+        "pl": "{dates} (następny najlepszy termin)",
+    },
+    "cf.runner_up": {"en": "{city} {dates} (runner-up)", "pl": "{city} {dates} (drugie miejsce)"},
     "flip.weight": {"en": "{factor} weight {a} -> {b}", "pl": "waga „{factor}” {a} -> {b}"},
-    "flip.price": {"en": "{city} costing {amount} more", "pl": "{city} droższe o {amount}"},
+    "flip.price": {"en": "{city}: {amount} more", "pl": "{city}: o {amount} drożej"},
     "flip.or": {"en": " or ", "pl": " albo "},
     "flip.text": {
         "en": "{lo} would overtake {hi} with: {parts}",
@@ -258,8 +263,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "pl": "{city}, {dates}: ok. {total} łącznie (lot {flight}, hotel {hotel}).",
     },
     "why.peak": {
-        "en": "That is {amount} cheaper than the same trip in peak season.",
-        "pl": "To {amount} taniej niż ten sam wyjazd w szczycie sezonu.",
+        "en": "The same trip in peak season: {amount} more.",
+        "pl": "Ten sam wyjazd w szczycie sezonu: o {amount} drożej.",
     },
     "why.expect": {"en": "Expect {parts}.", "pl": "Spodziewaj się: {parts}."},
     "why.temp": {"en": "around {temp}", "pl": "ok. {temp}"},
@@ -398,6 +403,42 @@ MESSAGES: dict[str, dict[str, str]] = {
     "budget.over": {
         "en": "Over budget: +{amount} ({pct}%)",
         "pl": "Ponad budżet: +{amount} ({pct}%)",
+    },
+    # ---- value badges (docs/BUDGET.md)
+    "value.splurge": {
+        "en": "Worth the splurge: {city}: {amount} more than {alt} (flight + room) for {parts}",
+        "pl": "Warto dopłacić: {city}: o {amount} drożej niż {alt} (lot + pokój), ale {parts}",
+    },
+    "value.warmer": {"en": "{deg} °C warmer", "pl": "cieplej o {deg} °C"},
+    "value.cooler": {"en": "{deg} °C cooler", "pl": "chłodniej o {deg} °C"},
+    "value.fewer_crowds": {"en": "{pct}% fewer crowds", "pl": "tłumy mniejsze o {pct}%"},
+    "value.better_taste": {
+        "en": "a better match for your interests ({a} vs {b} pts)",
+        "pl": "lepiej pasuje do Twoich zainteresowań ({a} vs {b} pkt)",
+    },
+    "value.great_under": {
+        "en": "Great value: {city}: {total} (flight + room), {under} under your usual ~{typical} "
+        "(price score {price}/100)",
+        "pl": "Świetna cena: {city}: {total} (lot + pokój), o {under} mniej niż zwykle wydajesz "
+        "(~{typical}; ocena ceny {price}/100)",
+    },
+    "value.great": {
+        "en": "Great value: {city}: {total} (flight + room), price score {price}/100 with an "
+        "overall score of {fit}/100",
+        "pl": "Świetna cena: {city}: {total} (lot + pokój), ocena ceny {price}/100 przy ogólnym "
+        "wyniku {fit}/100",
+    },
+    "value.typical_chip": {
+        "en": "You usually spend ~{amount} (flight + room)",
+        "pl": "Zwykle wydajesz ok. {amount} (lot + pokój)",
+    },
+    "value.typical_chip_dna": {
+        "en": "Typical for your travel style: ~{amount} (flight + room)",
+        "pl": "Typowo dla Twojego stylu podróży: ok. {amount} (lot + pokój)",
+    },
+    "value.better_weather": {
+        "en": "better weather ({a} vs {b} pts)",
+        "pl": "lepsza pogoda ({a} vs {b} pkt)",
     },
     # ---- notifications
     "n.cost": {

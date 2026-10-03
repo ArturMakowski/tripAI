@@ -73,6 +73,10 @@ class ApiRecommendation(RankedRecommendation):
     over_budget_pln: float | None = None
     phase: Phase = "full"  # "fast": cache/Travelpayouts/seed estimates; "full": final answer
     refined: bool = False  # flight/hotel verified with exact-date Google prices (SerpApi)
+    # docs/BUDGET.md: the price factor's reference, shown as a chip ("You usually spend ~X")
+    typical_spend_pln: float | None = None
+    typical_spend_source: str | None = None  # "history" (>= 3 past trips) | "dna" (luxury level)
+    typical_spend_label: str | None = None
 
 
 class ReactionRequest(BaseModel):

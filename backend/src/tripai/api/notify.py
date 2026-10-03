@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from tripai import i18n
 from tripai.api.lang import use_lang
 from tripai.api.session import session_user
+from tripai.api.spend import forget as forget_spend
 from tripai.api.state import Store
 from tripai.models import TasteProfile, Weights
 from tripai.notify.models import (
@@ -262,6 +263,7 @@ def _router(deps: ScanDeps, limiter: ScanRateLimiter) -> APIRouter:
     @r.post("/picks")
     async def post_pick(req: PickRequest, uid: User) -> SavedPick:
         """Watch a recommendation for price drops; the baseline is its last real price."""
+        forget_spend(uid)  # a watched pick changes the typical-spend history
         rec = await deps.store.get_recommendation(uid, req.recommendation_id)
         if rec is None:
             raise HTTPException(404, "unknown recommendation id (fetch recommendations first)")

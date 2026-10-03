@@ -1,12 +1,15 @@
 """FastAPI app, API v0 (see docs/ARCHITECTURE.md)."""
 
 import asyncio
+import inspect
+import logging
 from datetime import date, datetime, timedelta
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
+from tripai import i18n
 from tripai.agents.dna_chat import DnaChatResult, chat_dna
 from tripai.agents.explain import explain, template_why
 from tripai.agents.fit import fit, fit_engine
@@ -34,6 +37,8 @@ from tripai.api.schemas import (
 )
 from tripai.api.session import HEADER as SESSION_HEADER
 from tripai.api.session import session_user
+from tripai.api.spend import forget as forget_spend
+from tripai.api.spend import spend_history
 from tripai.api.state import MemoryStore, Store
 from tripai.models import FreeWindow, TasteProfile, Weights
 from tripai.notify.push import WebPusher
@@ -57,7 +62,10 @@ from tripai.scoring.budget_fit import rank_within_budget
 from tripai.scoring.engine import candidate_id
 from tripai.scoring.feedback import Change
 from tripai.scoring.reactions import ReactionRecord, apply_reaction, undo_reaction
+from tripai.scoring.value import annotate_value, typical_spend
 from tripai.scoring.windows import MAX_LEAVE_DAYS, TZ
+
+log = logging.getLogger(__name__)
 
 
 def _merge_windows(windows: list[FreeWindow]) -> list[FreeWindow]:
@@ -189,6 +197,12 @@ def create_app(
         trips = trip_windows(windows, profile.trip_length_days)
         origin = profile.origin_airports[0] if profile.origin_airports else "KRK"
         extra = {"fast": True} if fast and getattr(provider, "supports_fast", False) else {}
+        # one price reference for everything: refinement targets, ranking, badges (BUDGET.md)
+        typical = typical_spend(
+            profile, await spend_history(store, getattr(app.state, "notify", None), uid)
+        )
+        if "typical_spend_pln" in inspect.signature(provider.candidates).parameters:
+            extra["typical_spend_pln"] = typical.pln
         candidates = await provider.candidates(
             origin, trips, profile.luxury, profile=profile, weights=weights, **extra
         )
@@ -200,7 +214,11 @@ def create_app(
         hidden = {k for k, r in (await store.get_reactions(uid)).items() if r.hidden}
         if hidden:
             candidates = [c for c in candidates if candidate_id(c) not in hidden]
-        ranked = rank_within_budget(candidates, profile, weights, limit=req.limit)
+        ranked = rank_within_budget(
+            candidates, profile, weights, limit=req.limit, typical_spend_pln=typical.pln
+        )
+        chip_key = "value.typical_chip" if typical.source == "history" else "value.typical_chip_dna"
+        chip = i18n.t(chip_key, amount=i18n.fmt_pln(typical.pln))
         recs = [
             ApiRecommendation(
                 **r.model_dump(),
@@ -208,6 +226,9 @@ def create_app(
                 over_budget_pln=None if status is None else status.overage_pln,
                 phase=phase,
                 refined=not fast and _refined(r),
+                typical_spend_pln=typical.pln,
+                typical_spend_source=typical.source,
+                typical_spend_label=chip,
             )
             for r, status in ranked
         ]
@@ -225,6 +246,7 @@ def create_app(
             r.why = template_why(r, profile.interests)
         for r, verdict in zip(fit_recs, results[len(top) :]):
             r.fit = verdict
+        annotate_value(recs, profile, weights, typical)  # after fit: great_value needs it
 
         if not fast:  # the full call always follows; persist the final answer only
             await store.save_profile(profile)
@@ -305,6 +327,7 @@ def create_app(
         """T6 swipe -> small deterministic nudge of interests (and maybe one weight), with reasons.
         personalize=False: recorded, nothing changes, `note` says so."""
         use_lang(req.lang)
+        forget_spend(uid)  # a like/love changes the typical-spend history
         rec = await store.get_recommendation(uid, req.recommendation_id)
         if rec is None:
             raise HTTPException(404, "unknown recommendation id (fetch recommendations first)")
