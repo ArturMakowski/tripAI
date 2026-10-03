@@ -63,6 +63,65 @@ class ScoreBreakdown(BaseModel):
     total: float
 
 
+class FlightLeg(BaseModel):
+    airline: str  # e.g. "Ryanair"
+    flight_number: str | None = None  # e.g. "FR 1234"
+    from_iata: str
+    to_iata: str
+    depart_at: datetime | None = None  # local time at departure airport
+    arrive_at: datetime | None = None
+    duration_min: int | None = None
+
+
+class FlightDetails(BaseModel):
+    """The concrete itinerary behind flight_cost_pln (docs/TRIP_DETAILS.md)."""
+
+    outbound: list[FlightLeg] = Field(default_factory=list)
+    inbound: list[FlightLeg] = Field(default_factory=list)
+    stops_outbound: int | None = None
+    stops_inbound: int | None = None
+    price_pln: float | None = None
+    booking_url: str | None = None
+    source: str  # e.g. "serpapi:google_flights", "travelpayouts" (airline code only)
+    fetched_at: datetime
+
+
+class TransferOption(BaseModel):
+    mode: str  # "public_transport" | "taxi" | "drive" | "walk" | "train" | "bus"
+    duration_min: int | None = None
+    distance_km: float | None = None
+    price_pln: float | None = None
+    note: str | None = None  # e.g. "Metro line A, 1 change"
+    source: str  # "serpapi:google_hotels" | "osrm" | "estimate:haversine"
+    fetched_at: datetime
+
+
+class GeoPoint(BaseModel):
+    lat: float
+    lon: float
+    label: str | None = None
+
+
+class HotelDetails(BaseModel):
+    """The concrete stay behind hotel_cost_pln (docs/TRIP_DETAILS.md)."""
+
+    name: str
+    address: str | None = None
+    location: GeoPoint | None = None
+    rating: float | None = None  # e.g. 4.4
+    reviews: int | None = None
+    stars: int | None = None  # hotel class
+    price_pln_total: float | None = None
+    distance_to_center_km: float | None = None  # computed vs the city's centre point
+    airport: GeoPoint | None = None
+    city_center: GeoPoint | None = None
+    transfers: list[TransferOption] = Field(default_factory=list)  # airport -> hotel
+    booking_url: str | None = None
+    photo_url: str | None = None
+    source: str  # e.g. "serpapi:google_hotels"
+    fetched_at: datetime
+
+
 class FitPoint(BaseModel):
     text: str
     dna: list[str] = Field(default_factory=list)  # Travel DNA card ids, e.g. ["q6", "q11"]
@@ -95,4 +154,8 @@ class Recommendation(BaseModel):
     evidence: list[Evidence]
     highlights: list[str] = Field(default_factory=list)  # matching attractions
     why: str = ""  # LLM-written, grounded only in evidence
-    fit: FitVerdict | None = None  # AI fit verdict vs Travel DNA (docs/FIT_VERDICT.md)
+    fit: FitVerdict | None = None
+    flight: FlightDetails | None = None  # which flight (docs/TRIP_DETAILS.md)
+    hotel: HotelDetails | None = (
+        None  # which hotel, where, transfers, distance to centre  # AI fit verdict vs Travel DNA (docs/FIT_VERDICT.md)
+    )
