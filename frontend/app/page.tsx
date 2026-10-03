@@ -97,9 +97,12 @@ export default function Welcome() {
           <>
             <Button asChild size="lg" className="h-13 w-full rounded-2xl text-base">
               <Link href="/onboarding">
-                Start the 2-minute interview <ArrowRight data-icon="inline-end" />
+                Swipe your Travel DNA <ArrowRight data-icon="inline-end" />
               </Link>
             </Button>
+            <Link href="/onboarding/chat" className="block w-full py-1 text-center text-sm text-ink-soft hover:text-ink">
+              or chat with TripAI instead
+            </Link>
             <button
               className="w-full py-2 text-sm text-muted-foreground hover:text-ink"
               onClick={() => {

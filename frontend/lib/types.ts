@@ -21,6 +21,11 @@ export interface TasteProfile {
   dislikes: string[];
   preferred_temp_c: [number, number];
   trip_length_days: [number, number];
+  /** Travel DNA: raw swipe answers q1..q12 -> 1..5, plus derived traits (pace, novelty). */
+  traits?: Record<string, number>;
+  daily_discovery?: boolean | null;
+  /** false: neutral weights, post-trip feedback never changes the profile. */
+  personalize?: boolean;
 }
 
 export interface FreeWindow {
@@ -54,6 +59,24 @@ export interface ScoreBreakdown {
   total: number;
 }
 
+export interface FitPoint {
+  text: string;
+  dna: string[]; // Travel DNA card ids, e.g. ["q6", "q11"]
+  evidence: number[]; // indexes into Recommendation.evidence
+}
+
+/** AI second opinion vs the user's Travel DNA (docs/FIT_VERDICT.md). */
+export interface FitVerdict {
+  label: "great_fit" | "good_fit" | "mixed" | "poor_fit" | (string & {});
+  confidence: number;
+  summary: string;
+  matches: FitPoint[];
+  concerns: FitPoint[];
+  model: string; // pydantic-ai model string, or "rules"
+  inputs_hash: string;
+  created_at: string | null;
+}
+
 export interface Recommendation {
   id: string; // e.g. "LIS-20270101-20270103"
   city: string;
@@ -67,6 +90,7 @@ export interface Recommendation {
   evidence: Evidence[];
   highlights: string[];
   why: string;
+  fit?: FitVerdict | null;
 }
 
 // --- scoring/types.py -------------------------------------------------------------
@@ -195,4 +219,25 @@ export interface Health {
   calendar: string;
   llm: string | null;
   scoring_version: string;
+}
+
+// --- profile/dna (docs/TRAVEL_DNA.md) ----------------------------------------------
+
+export interface DnaRequest {
+  user_id: string;
+  answers: Record<string, number>; // q1..q12 -> 1..5
+  yes_no: Record<string, boolean>; // y1, y2
+}
+
+export interface DnaReason {
+  field: string; // "weights.crowds" | "interests.food" | "dislikes" | "luxury" | "traits.pace" | ...
+  value: number | string | boolean | string[] | null;
+  because: string[]; // card ids, e.g. ["q8", "q11"]
+  text: string;
+}
+
+export interface DnaResponse {
+  profile: TasteProfile;
+  weights: Weights;
+  reasons: DnaReason[];
 }

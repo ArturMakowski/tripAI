@@ -4,9 +4,12 @@
  * fixtures so the demo never dead-ends. Every call reports which one answered.
  */
 import * as mock from "./mock/api";
+import { profileDna as mockDna } from "./mock/dna";
 import type {
   BridgeWindow,
   ChatMessage,
+  DnaRequest,
+  DnaResponse,
   FeedbackRequest,
   FeedbackResponse,
   FreeWindow,
@@ -26,14 +29,58 @@ export interface Result<T> {
   mode: DataMode;
 }
 
+/**
+ * Server-issued session (backend tripai.api.session): every response carries a signed
+ * token in X-TripAI-Session (exposed via CORS); we keep it and send it back on every
+ * call, so the backend ties profile/weights/recs/feedback to this browser.
+ */
+export const SESSION_HEADER = "X-TripAI-Session";
+const SESSION_KEY = "tripai-session";
+let session: string | null = null;
+
+function readSession(): string | null {
+  if (session) return session;
+  try {
+    session = localStorage.getItem(SESSION_KEY);
+  } catch {
+    session = null;
+  }
+  return session;
+}
+
+export function rememberSession(res: Pick<Response, "headers">) {
+  const token = res.headers.get(SESSION_HEADER);
+  if (!token || token === session) return;
+  session = token;
+  try {
+    localStorage.setItem(SESSION_KEY, token);
+  } catch {
+    /* private mode: keep it in memory */
+  }
+}
+
+export class HttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
 async function http<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Promise<T> {
   const timeout = AbortSignal.timeout(timeoutMs);
+  const token = readSession();
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+    headers: { "content-type": "application/json", ...(token ? { [SESSION_HEADER]: token } : {}), ...(init?.headers ?? {}) },
     signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
   });
-  if (!res.ok) throw new Error(`${init?.method ?? "GET"} ${path} -> ${res.status}`);
+  rememberSession(res);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new HttpError(res.status, `${init?.method ?? "GET"} ${path} -> ${res.status} ${detail.slice(0, 300)}`);
+  }
   return (await res.json()) as T;
 }
 
@@ -44,7 +91,11 @@ async function withFallback<T>(live: () => Promise<T>, fixture: () => Promise<T>
   } catch (err) {
     // Superseded by a newer request: never resolve (callers ignore it anyway).
     if (signal?.aborted) return new Promise<Result<T>>(() => {});
-    console.warn("[tripai] backend unavailable, using fixtures:", err);
+    // Missing route / server down / network: expected while lanes land, so fall back quietly.
+    // Any other 4xx means our request doesn't match the backend contract: shout about it.
+    if (err instanceof HttpError && err.status >= 400 && err.status < 500 && err.status !== 404)
+      console.error("[tripai] CONTRACT MISMATCH, falling back to fixtures:", err.message);
+    else console.warn("[tripai] backend unavailable, using fixtures:", err);
     return { data: await fixture(), mode: "fixture" };
   }
 }
@@ -79,6 +130,13 @@ export const api = {
       () => http("/recommendations", { ...post({ limit: 10, explain_top: 3, ...req }), signal }, 45_000),
       () => mock.recommendations(req),
       signal,
+    ),
+
+  /** Travel DNA swipes -> profile + weights + reasons (backend: tripai.profile.dna). */
+  profileDna: (req: DnaRequest) =>
+    withFallback<DnaResponse>(
+      () => http("/profile/dna", post(req)),
+      async () => mockDna(req),
     ),
 
   feedback: (req: FeedbackRequest) =>

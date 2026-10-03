@@ -237,13 +237,25 @@ export default function SurveyPage() {
       profile: before.profile,
       weights,
     });
+    setMode("feedback", fb.mode);
+
+    // Travel DNA y2 = No: the answers are recorded, but the profile and weights stay exactly as they were,
+    // whatever the backend returns. That is the promise on screen.
+    if (before.profile.personalize === false) {
+      const items: FeedbackDiff["items"] = {};
+      for (const r of ranked) items[r.id] = { city: r.city, iata: r.iata, window: r.window, total_cost_pln: r.total_cost_pln };
+      setFeedback({ tripId: PAST_TRIP.id, before, after: before, diff: [], items, frozen: true });
+      setBusy(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     const nextWeights = fb.data.weights ?? weights;
     const nextProfile = fb.data.profile ?? fb.data;
     const fresh = await api.recommendations({ profile: nextProfile, weights: nextWeights });
     const items: FeedbackDiff["items"] = {};
     for (const r of [...ranked, ...fresh.data])
       items[r.id] = { city: r.city, iata: r.iata, window: r.window, total_cost_pln: r.total_cost_pln };
-    setMode("feedback", fb.mode);
     setProfile(nextProfile);
     setWeights(nextWeights);
     setRecs(fresh.data, { profile: nextProfile, weights: nextWeights, mode: fresh.mode });
@@ -263,9 +275,19 @@ export default function SurveyPage() {
     const changedTop = feedback.before.ranking[0] !== feedback.after.ranking[0];
     return (
       <AppShell>
-        <PageTitle eyebrow="Learning from your trip" title="Your weights changed.">
-          Here&rsquo;s exactly what your Barcelona feedback changed, and how your trips re-ranked.
+        <PageTitle eyebrow="Learning from your trip" title={feedback.frozen ? "Noted. Nothing changed." : "Your weights changed."}>
+          {feedback.frozen
+            ? "We saved your Barcelona feedback, but you chose no tailoring in your Travel DNA, so your profile and weights stay exactly as they were."
+            : "Here’s exactly what your Barcelona feedback changed, and how your trips re-ranked."}
         </PageTitle>
+        {feedback.frozen && (
+          <p role="status" className="mb-6 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm text-ink">
+            Recommendations won&rsquo;t adapt and feedback won&rsquo;t change your profile.{" "}
+            <Link href="/onboarding" className="font-medium text-pine underline-offset-2 hover:underline">
+              Turn tailoring on
+            </Link>
+          </p>
+        )}
 
         {top && (
           <motion.div
@@ -317,6 +339,15 @@ export default function SurveyPage() {
       <PageTitle eyebrow="After your trip" title="How was Barcelona?">
         Four taps. Your answers adjust the ranking weights, and we&rsquo;ll show you exactly how.
       </PageTitle>
+
+      {profile?.personalize === false && (
+        <div role="status" className="mb-5 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm text-ink">
+          <b>You chose no tailoring</b> in your Travel DNA, so this feedback won&rsquo;t change your profile or weights.{" "}
+          <Link href="/onboarding" className="font-medium text-pine underline-offset-2 hover:underline">
+            Change that
+          </Link>
+        </div>
+      )}
 
       <div className="relative mb-6 h-36 overflow-hidden rounded-3xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}

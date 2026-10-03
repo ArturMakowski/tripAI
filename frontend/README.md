@@ -26,6 +26,26 @@ npm run lint && npm run typecheck && npm run build
 Demo script: interview → windows → trips → drag the slider to **Price** (Athens takes #1) → open the receipt → plan it → survey
 → "Fill demo answers" → crowd weight goes up → Rome goes back to #1.
 
+## Travel DNA swipe onboarding (`/onboarding`)
+Profile creation is a swipe deck built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12 statements (q1–q12) and 2 yes/no cards
+(y1, y2). Copy is Polish first, with an EN toggle.
+
+- **Gestures.** ← left = 1 "Nie ja", ↓ down = 3 "Zależy", → right = 4 "To ja", ↑ up = 5 "Bardzo ja!". Yes/no cards: → Tak, ← Nie.
+  The same choices are available as buttons and arrow keys. Backspace undoes the last swipe.
+- **Motion.** Cards tilt with the drag, show direction stamps, fly out with spring physics, and fly back in on undo.
+  Progress dots track the deck. Progress survives a reload.
+- **Budget and airports.** Two quick tap screens follow the deck: a budget slider and home-airport chips.
+- **Result.** Answers are POSTed to `/profile/dna`. **The UI never derives the profile itself.** Until T1b ships the route, `lib/mock/dna.ts`
+  implements the spec formulas verbatim and `lib/dna.test.ts` pins them. The result screen renders the returned `reasons`
+  ("na podstawie: „Bardzo ja!” przy …" / "because you swiped “So me!” on …").
+  - Every answer can be edited on a 1–5 dot scale; 2 "Raczej nie" is only reachable there. Each edit re-POSTs.
+  - y2 = No shows "recommendations won't adapt; post-trip feedback won't change your profile". The survey repeats that notice,
+    and the mock feedback keeps the profile unchanged.
+- **Hand-off.** "Looks right" stores the profile (with budget and airports) and the DNA weights, then continues to free windows.
+  "Fine-tune by chat" opens the earlier LLM interview, now at `/onboarding/chat`.
+- **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA). Three cards reuse the
+  bundled Unsplash city photos. Every card shows its photo credit, and the full list is in `public/swipe/CREDITS.md`.
+
 ## Data: live vs fixture
 `lib/api.ts` implements API v0 exactly as `backend/src/tripai/api/app.py` serves it: `POST /interview`, `GET /windows`,
 `GET /windows/long-weekends`, `POST /recommendations` (→ `RankedRecommendation[]`), and `POST /feedback` (→ the profile plus `weights`

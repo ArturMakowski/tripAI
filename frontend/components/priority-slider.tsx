@@ -22,7 +22,7 @@ export function PrioritySlider({
     <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
       <div className="mb-3 flex items-baseline justify-between">
         <p className="text-sm font-semibold text-ink">What matters most this time?</p>
-        {value === null && <span className="text-xs font-medium text-clay">Tuned by your feedback</span>}
+        {value === null && <span className="text-xs font-medium text-clay">Set by your profile</span>}
       </div>
       <Slider
         value={[pos]}
