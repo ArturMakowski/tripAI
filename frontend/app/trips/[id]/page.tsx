@@ -234,6 +234,7 @@ export default function ReceiptPage() {
           <button
             onClick={() => setShowMath((v) => !v)}
             aria-expanded={showMath}
+            data-tour="flip"
             aria-controls="how-we-scored"
             className="mt-3 flex w-full items-center justify-between border-t border-dashed border-line pt-2.5 text-left text-sm font-medium text-pine"
           >
