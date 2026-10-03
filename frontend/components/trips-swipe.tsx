@@ -176,7 +176,8 @@ export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]
         </div>
       ) : (
         <>
-          <p className="mb-3 text-sm text-muted-foreground">{t.hint}</p>
+          {/* the deck's buttons say what each direction does; the gesture help is for screen readers */}
+          <p className="sr-only">{t.hint}</p>
           <OfferDeck
             cards={cards}
             position={position}

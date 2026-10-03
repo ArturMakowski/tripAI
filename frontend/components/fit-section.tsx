@@ -103,9 +103,20 @@ export function isStockPhoto(e: { kind: string; source: string; url?: string | n
 }
 
 /** Matches and concerns as bold one-liners (docs/DECLUTTER.md: "fit claims = bold claim only"). */
-export function FitClaims({ rec, profile, lang }: { rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang }) {
+export function FitClaims({
+  rec,
+  profile,
+  lang,
+  all: showAll = false,
+}: {
+  rec: RankedRecommendation;
+  profile: TasteProfile | null;
+  lang: Lang;
+  /** inside a collapsed row: every claim at once */
+  all?: boolean;
+}) {
   const { t } = useT();
-  const [all, setAll] = useState(false);
+  const [all, setAll] = useState(showAll);
   const fit = rec.fit;
   if (!fit || (!fit.matches.length && !fit.concerns.length)) return null;
   const claims = [

@@ -8,6 +8,7 @@ import {
   anyDaysNextMonth,
   activeRanges,
   addRange,
+  pickQuick,
   easterSunday,
   holidaysBetween,
   localBridges,
@@ -228,5 +229,24 @@ describe("long-weekend suggestions + quick chips", () => {
     expect(thisWeekend("2026-10-04")).toEqual({ start: "2026-10-10", end: "2026-10-11" }); // Sunday -> next weekend
     expect(nextSuggestion(bridges, TODAY)?.holidays).toContain("2026-11-11"); // 1 Nov 2026 is a Sunday
     expect(anyDaysNextMonth(TODAY)).toEqual({ start: "2026-11-01", end: "2026-11-30", anyDays: 5 });
+  });
+});
+
+describe("quick filters are radios (round 3)", () => {
+  const weekend = { start: "2026-10-10", end: "2026-10-11" };
+  const long = { start: "2026-11-07", end: "2026-11-11" };
+  const custom = { start: "2026-12-01", end: "2026-12-05" };
+  it("picking one quick filter replaces the previous one; calendar ranges stay", () => {
+    let r = pickQuick([custom], "weekend", weekend);
+    expect(r.map((x) => x.start)).toEqual(["2026-10-10", "2026-12-01"]);
+    r = pickQuick(r, "long", long);
+    expect(r.map((x) => [x.start, x.quick ?? null])).toEqual([
+      ["2026-11-07", "long"],
+      ["2026-12-01", null],
+    ]);
+  });
+  it("picking the selected one again clears it", () => {
+    const r = pickQuick(pickQuick([], "weekend", weekend), "weekend", weekend);
+    expect(r).toEqual([]);
   });
 });

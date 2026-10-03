@@ -138,6 +138,7 @@ export function MoneyLines({
   idFor?: (e: Evidence) => string;
 }) {
   const { t, fmt } = useT();
+  const [showSources, setShowSources] = useState(false);
   const m = moneyOf(rec);
   const flightEv = rec.evidence.find((e) => e.kind === "flight");
   const hotelEv = rec.evidence.find((e) => e.kind === "hotel");
@@ -190,9 +191,9 @@ export function MoneyLines({
             label={l.label}
             value={amount(l.value, l.est)}
             sub={
-              (l.e || (l.est && !estimate)) && (
+              ((l.e && showSources) || (l.est && !estimate)) && (
                 <>
-                  {l.e && <SourceTag e={l.e} variant="chip" />}
+                  {l.e && showSources && <SourceTag e={l.e} variant="chip" />}
                   {l.est && !estimate && <InfoTip label={t.money.estimateTitle}>{t.money.partialTip(l.leg)}</InfoTip>}
                 </>
               )
@@ -240,6 +241,18 @@ export function MoneyLines({
           />
         );
       })()}
+      {/* One "ⓘ Źródła" toggle for the section instead of a chip under every line (round 3). */}
+      {(flightEv || hotelEv) && (
+        <button
+          type="button"
+          onClick={() => setShowSources((v) => !v)}
+          aria-expanded={showSources}
+          data-tour="source"
+          className="mt-1.5 inline-flex items-center gap-1 font-sans text-xs text-muted-foreground hover:text-ink"
+        >
+          <Info className="size-3.5" aria-hidden /> {t.money.sources}
+        </button>
+      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@
  * each one renders its final frame, still.
  */
 import { motion, type Transition } from "motion/react";
-import { BellRing, CalendarHeart, Check, ChevronLeft, ChevronRight, ExternalLink, Hand, Sun } from "lucide-react";
+import { BellRing, CalendarHeart, Check, ExternalLink, Sun } from "lucide-react";
 import { ScoreRing } from "@/components/score-ring";
 import { cn } from "@/lib/utils";
 import type { Messages } from "@/lib/i18n";
@@ -41,15 +41,6 @@ function DnaArt({ art: a, reduced }: ArtProps) {
           {a.thatsMe}
         </motion.span>
       </motion.div>
-      <div className="absolute -bottom-9 left-1/2 flex -translate-x-1/2 items-center gap-3 text-xs font-medium whitespace-nowrap text-ink-soft">
-        <span className="inline-flex items-center gap-0.5">
-          <ChevronLeft className="size-3.5" /> {a.notMe}
-        </span>
-        <span className="size-1 rounded-full bg-line" />
-        <span className="inline-flex items-center gap-0.5 text-pine">
-          {a.thatsMe} <ChevronRight className="size-3.5" />
-        </span>
-      </div>
     </div>
   );
 }
@@ -175,22 +166,15 @@ function DecideArt({ art: a, reduced }: ArtProps) {
           <p className="font-display text-base text-ink">{a.cities[0]}</p>
           <p className="text-xs text-ink-soft">{a.notBooked}</p>
           <div className="relative mt-2.5">
+            {/* a status, not a button: the preview must never look tappable */}
             <motion.div
-              className="flex h-9 items-center justify-center gap-1.5 rounded-xl bg-pine text-sm font-medium text-paper"
+              className="flex items-center gap-1.5 text-sm font-medium text-pine"
               initial={false}
               animate={reduced ? { scale: 1 } : { scale: [1, 1, 0.95, 1, 1] }}
               transition={loop(reduced, { duration: 4.5, times: [0, 0.5, 0.58, 0.66, 1], repeatDelay: 0.6 })}
             >
               <Check className="size-4" /> {a.approve}
             </motion.div>
-            <motion.span
-              className="absolute -right-1 -bottom-4 text-ink"
-              initial={false}
-              animate={reduced ? { x: 0, y: 0 } : { x: [24, 24, 0, 0, 24], y: [16, 16, 0, 0, 16], opacity: [0, 0, 1, 1, 0] }}
-              transition={loop(reduced, { duration: 4.5, times: [0, 0.3, 0.5, 0.8, 1], repeatDelay: 0.6 })}
-            >
-              <Hand className="size-6 fill-card" />
-            </motion.span>
           </div>
         </div>
       </div>
@@ -211,18 +195,20 @@ const ART: Record<IntroStepId, (p: ArtProps) => React.ReactElement> = {
 /** Steps whose art shows prices or a source: labelled so made-up numbers never pass for sourced ones. */
 const SHOWS_NUMBERS = new Set<IntroStepId>(["proof", "decide"]);
 
+/**
+ * Every illustration is a still frame (no loops, user testing round 3: a tester tapped the card
+ * thinking it was the quiz) inside a dashed "Podgląd" frame, and ignores taps.
+ */
 export function IntroArt({ step, ...p }: ArtProps & { step: IntroStepId }) {
   const Art = ART[step];
   return (
-    <div className="relative grid h-80 place-items-center">
-      <div aria-hidden className="contents">
-        <Art {...p} />
+    <div aria-hidden className="pointer-events-none relative grid h-80 w-full place-items-center rounded-3xl border border-dashed border-line/80 select-none">
+      <div className="contents">
+        <Art {...p} reduced />
       </div>
-      {SHOWS_NUMBERS.has(step) && (
-        <span aria-hidden className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-full border border-dashed border-line bg-card px-2.5 py-0.5 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-          {p.art.example}
-        </span>
-      )}
+      <span className="absolute top-2 left-1/2 -translate-x-1/2 rounded-full bg-paper-deep px-2.5 py-0.5 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+        {SHOWS_NUMBERS.has(step) ? `${p.art.preview} · ${p.art.example}` : p.art.preview}
+      </span>
     </div>
   );
 }

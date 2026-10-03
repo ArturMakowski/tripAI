@@ -13,6 +13,21 @@ export interface DateRange {
   end: ISODate;
   /** "any N days in <month>": the whole month is the window, the scorer picks N days in it. */
   anyDays?: number;
+  /** set when the range came from a quick filter chip (they are mutually exclusive) */
+  quick?: QuickKind;
+}
+
+export type QuickKind = "weekend" | "long" | "any";
+
+/**
+ * Quick filters ("Ten weekend" / "Najbliższy długi weekend" / "Dowolne 5 dni…") work like radios:
+ * picking one replaces the previous quick pick, picking the selected one again clears it. Ranges the
+ * user drew in the calendar are never touched.
+ */
+export function pickQuick(ranges: DateRange[], kind: QuickKind, r: DateRange): DateRange[] {
+  const rest = ranges.filter((x) => !x.quick);
+  if (ranges.some((x) => x.quick === kind)) return rest;
+  return addRange(rest, { ...r, quick: kind });
 }
 
 const DAY = 86_400_000;

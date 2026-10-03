@@ -47,6 +47,8 @@ export const en = {
     alertOnly: "Only when it’s worth it",
     cities: ["Rome", "Lisbon", "Athens"],
     example: "Example",
+    /** label on every illustration: a still preview, not something to tap */
+    preview: "Preview",
   },
   coach: {
     gotIt: "Got it",
@@ -68,7 +70,7 @@ export const en = {
       },
       source: {
         title: "Every number has a source",
-        body: "Where the price came from, and when.",
+        body: "Tap for where each price came from, and when.",
       },
       flip: {
         title: "What would flip it?",
@@ -131,6 +133,7 @@ export const pl: Shape<typeof en> = {
     alertOnly: "Tylko gdy warto",
     cities: ["Rzym", "Lizbona", "Ateny"],
     example: "Przykład",
+    preview: "Podgląd",
   },
   coach: {
     gotIt: "Rozumiem",
@@ -152,7 +155,7 @@ export const pl: Shape<typeof en> = {
       },
       source: {
         title: "Każda liczba ma źródło",
-        body: "Skąd jest cena i kiedy ją pobraliśmy.",
+        body: "Dotknij: skąd jest każda cena i kiedy ją pobraliśmy.",
       },
       flip: {
         title: "Co by to zmieniło?",

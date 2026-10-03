@@ -73,11 +73,11 @@ export function tourForPath(path: string): TourKey | null {
 }
 
 /**
- * The intro opens on its own exactly once per device, and only on a first visit to the start of the
- * app (the landing page or the onboarding deck): never over a deep link such as /trips or a shared
+ * The intro opens on its own exactly once per device, on the first visit to /onboarding: after the
+ * welcome screen (/ is the welcome itself, round 3), never over a deep link such as /trips or a shared
  * /trips/<id>, never on /credits or a push landing.
  */
-const AUTO_INTRO_PATHS = ["/", "/onboarding"];
+const AUTO_INTRO_PATHS = ["/onboarding"];
 
 export function shouldAutoOpenIntro(flags: TutorialFlags, path: string): boolean {
   return !flags.intro && AUTO_INTRO_PATHS.includes(path);

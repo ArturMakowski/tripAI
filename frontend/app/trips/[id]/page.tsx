@@ -10,7 +10,7 @@ import { FitBadge } from "@/components/fit-badge";
 import { FitAudit, FitClaims, FitDisagreement, isStockPhoto } from "@/components/fit-section";
 import { CompactStars, OverallStars } from "@/components/stars";
 import { LangSwitch } from "@/components/lang-switch";
-import { MoneyLines, PriceInline } from "@/components/money";
+import { MoneyLines } from "@/components/money";
 import { PlacesSection } from "@/components/places-section";
 import { CityPhoto } from "@/components/rec-card";
 import { AppShell } from "@/components/shell";
@@ -33,7 +33,6 @@ import { overallOutOfFive } from "@/lib/stars";
 import { scoreGap } from "@/lib/compare";
 import { localCountry } from "@/lib/country";
 import { useRecommendations } from "@/lib/use-recommendations";
-import { cn } from "@/lib/utils";
 
 /** "Rome: 3.2 pts higher · 120 PLN cheaper": always says which trip the numbers describe. */
 /** `pln` is null when either side is an estimate: never compare against a price from other dates. */
@@ -93,23 +92,6 @@ function HashLine({ rec, weights }: { rec: RankedRecommendation; weights: Weight
       >
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
       </button>
-    </div>
-  );
-}
-
-/** The AI "why", clamped to two lines with a More/Less toggle. */
-function WhyText({ text }: { text: string }) {
-  const { t } = useT();
-  const [open, setOpen] = useState(false);
-  const long = text.length > 110;
-  return (
-    <div className="mt-3">
-      <p className={cn("text-[15px] leading-relaxed text-ink-soft", !open && "line-clamp-2")}>{text}</p>
-      {long && (
-        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mt-0.5 text-sm font-medium text-pine hover:underline">
-          {open ? t.common.less : t.common.more}
-        </button>
-      )}
     </div>
   );
 }
@@ -213,11 +195,11 @@ export default function ReceiptPage() {
         <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-3 text-white">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium tracking-wide text-white/80 uppercase">
-              {r.rankOf(rank + 1, ranked.length)} · {localCountry(rec.country, fmt.locale)}
+              {localCountry(rec.country, fmt.locale)}
             </p>
             <h1 className="font-display text-[clamp(2rem,11cqw,3rem)] leading-none font-medium [overflow-wrap:anywhere]">{rec.city}</h1>
             <p className="mt-2 text-[15px] text-white/90">
-              {fmt.range(rec.window)} · {nightsText} · <PriceInline rec={rec} tone="light" />
+              {fmt.range(rec.window)} · {nightsText}
             </p>
           </div>
           <OverallStars total={rec.score.total} size={14} tone="light" className="shrink-0 rounded-full bg-black/40 px-2.5 py-1.5 backdrop-blur-md" />
@@ -225,43 +207,33 @@ export default function ReceiptPage() {
       </CityPhoto>
 
       <main className="-mt-4 flex-1 rounded-t-[1.75rem] bg-paper px-5 pt-5 pb-32">
-        {/* Above the fold (DECLUTTER "always visible"): fit badge + AI chip, then the money with one
-            source chip per line; then stars + one fit claim, and the why in two lines. */}
-        <div className="flex flex-wrap items-center gap-2">
-          {rec.fit && <FitBadge fit={rec.fit} />}
-          <Chip icon={<Bot className="size-3.5 shrink-0" aria-hidden />}>{r.aiChip}</Chip>
-          <InfoTip>{r.aiTip}</InfoTip>
-        </div>
+        {/* Above the fold (round 3, ≤ 25 words): the fit badge, the money (sources behind one "ⓘ Źródła"),
+            the stars. Every sentence (the AI "why", the fit claims) is one tap away below. */}
+        {rec.fit && <FitBadge fit={rec.fit} />}
 
-        {/* Receipt: the money, one source chip per line */}
         <section className="receipt-edge mt-3 bg-card px-4 pt-3 pb-7 font-mono shadow-soft">
           <MoneyLines rec={rec} nights={nightsText} idFor={ev} />
-          {/* data confidence lives in Audit only (docs/USER_TESTING.md) */}
-          {typical && baseline && (
-            <div className="mt-1 flex flex-wrap gap-1.5 font-sans">
-              <span id={ev(baseline)} className="rounded-full">
-                <Chip title={`${baseline.label} · ${baseline.source}`}>{typical}</Chip>
-              </span>
-            </div>
-          )}
-          {rival && (
-            <div className="mt-2 border-t border-dashed border-ink/25 pt-1.5 font-sans">
-              <Compare
-                subject={rec.city}
-                label={`${rank === 0 ? r.runnerUp : `#${rival.rank}`}: ${rival.city}, ${fmt.range(rival.window)}`}
-                pts={(rec.score.total - rival.score.total) * 100}
-                pln={recEstimate || moneyOf(rival).status === "estimate" ? null : rival.total_cost_pln - rec.total_cost_pln}
-              />
-            </div>
-          )}
         </section>
 
-        <section className="mt-5 rounded-3xl border border-line bg-card p-4 shadow-soft" aria-label={t.stars.overall}>
+        <section className="mt-4 rounded-3xl border border-line bg-card px-4 py-3 shadow-soft" aria-label={t.stars.overall}>
           <CompactStars score={rec.score} />
-          <FitClaims rec={rec} profile={profile ?? DEMO_PROFILE} lang={lang} />
         </section>
-        <WhyText text={rec.why} />
-        <FitDisagreement rec={rec} lang={lang} />
+
+        <div className="mt-4 space-y-2.5">
+          <Disclosure title={r.whyTitle} icon={<Bot className="size-4" aria-hidden />}>
+            <div className="flex flex-wrap items-center gap-1">
+              <Chip icon={<Bot className="size-3.5 shrink-0" aria-hidden />}>{r.aiChip}</Chip>
+              <InfoTip>{r.aiTip}</InfoTip>
+            </div>
+            <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{rec.why}</p>
+          </Disclosure>
+          {rec.fit && (rec.fit.matches.length > 0 || rec.fit.concerns.length > 0) && (
+            <Disclosure title={r.fit.whyFitsTitle} count={rec.fit.matches.length + rec.fit.concerns.length}>
+              <FitDisagreement rec={rec} lang={lang} />
+              <FitClaims rec={rec} profile={profile ?? DEMO_PROFILE} lang={lang} all />
+            </Disclosure>
+          )}
+        </div>
 
         {/* where to eat / what to do (T14, #33): compact rows, more behind "+N" */}
         <PlacesSection iata={rec.iata} profile={profile ?? DEMO_PROFILE} />
@@ -285,9 +257,28 @@ export default function ReceiptPage() {
               <TransferList transfers={details.hotel.transfers} />
             </Disclosure>
           )}
-          {counterfactuals.length > 0 && (
-            <Disclosure title={r.compareTitle} count={counterfactuals.length}>
-              {!scoredAtCurrentWeights && <p className="mb-1 text-xs text-muted-foreground">{r.refreshNote}</p>}
+          {/* Comparisons hold every number with a % or "pkt" (round 3: none above the fold):
+              the typical-price chip, the runner-up, and the scorer's counterfactuals. */}
+          {(counterfactuals.length + (rival ? 1 : 0) + (typical ? 1 : 0)) > 0 && (
+            <Disclosure title={r.compareTitle} count={counterfactuals.length + (rival ? 1 : 0) + (typical ? 1 : 0)}>
+              {typical && baseline && (
+                <p className="mb-1">
+                  <span id={ev(baseline)} className="rounded-full">
+                    <Chip title={`${baseline.label} · ${baseline.source}`}>{typical}</Chip>
+                  </span>
+                </p>
+              )}
+          {rival && (
+            <div className="font-sans">
+              <Compare
+                subject={rec.city}
+                label={`${rank === 0 ? r.runnerUp : `#${rival.rank}`}: ${rival.city}, ${fmt.range(rival.window)}`}
+                pts={(rec.score.total - rival.score.total) * 100}
+                pln={recEstimate || moneyOf(rival).status === "estimate" ? null : rival.total_cost_pln - rec.total_cost_pln}
+              />
+            </div>
+          )}
+              {!scoredAtCurrentWeights && counterfactuals.length > 0 && <p className="mb-1 text-xs text-muted-foreground">{r.refreshNote}</p>}
               {counterfactuals.map((c) => (
                 <Compare
                   key={c.kind}

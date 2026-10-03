@@ -11,6 +11,8 @@ export const en = {
   nights: (n: number) => `${n} ${n === 1 ? "night" : "nights"}`,
   /** chip under the AI-written "why" */
   aiChip: "AI-written · sourced",
+  /** collapsed rows on the receipt */
+  whyTitle: "Why now",
   aiTip: "Written by AI from the evidence below. Every number in it is quoted from a source.",
   score: (n: number) => `${n}/100`,
   formulaTip: "Σ factor score × your weight. Factor scores come from tripai.scoring, the weights from your slider.",
@@ -68,6 +70,7 @@ export const en = {
     disagreeLow: (score: string, label: string) => `Score only ${score}/5, yet the fit check says: ${label}.`,
     disagreeTip: "We show both. The score weighs price, weather, crowds and taste; the fit check reads your Travel DNA answers.",
     match: "Fits you",
+    whyFitsTitle: "Why it fits you",
     concern: "Watch out",
     becauseSwiped: "Your answers",
     moreClaims: (n: number) => `+${n} more ›`,
@@ -98,6 +101,7 @@ export const pl: Shape<typeof en> = {
   rankOf: (rank, total) => `#${rank} z ${total}`,
   nights: (n) => `${n} ${plural("pl", n, { one: "noc", few: "noce", many: "nocy", other: "nocy" })}`,
   aiChip: "Tekst AI · ze źródeł",
+  whyTitle: "Dlaczego teraz",
   aiTip: "Tekst napisany przez AI na podstawie dowodów poniżej. Każda liczba pochodzi ze źródła.",
   score: (n) => `${n}/100`,
   formulaTip: "Σ wynik czynnika × Twoja waga. Wyniki czynników pochodzą z tripai.scoring, a wagi z Twojego suwaka.",
@@ -149,6 +153,7 @@ export const pl: Shape<typeof en> = {
     disagreeLow: (score, label) => `Wynik tylko ${score}/5, a dopasowanie: ${label}.`,
     disagreeTip: "Pokazujemy oba. Wynik waży cenę, pogodę, tłok i gust, a dopasowanie czyta Twoje odpowiedzi z DNA podróżnika.",
     match: "Pasuje",
+    whyFitsTitle: "Dlaczego pasuje",
     concern: "Uwaga",
     becauseSwiped: "Twoje odpowiedzi",
     moreClaims: (n) => `+${n} ${plural("pl", n, { one: "kolejny", few: "kolejne", many: "kolejnych", other: "kolejnego" })} ›`,

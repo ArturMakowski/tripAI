@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { BedDouble, ChevronRight, Info, Plane, TrendingDown } from "lucide-react";
+import { BedDouble, ChevronRight, Plane } from "lucide-react";
 import { useState } from "react";
 import { FactorStars, OverallStars } from "@/components/stars";
 import { dayCount } from "@/lib/format";
@@ -12,7 +12,6 @@ import { disagreement } from "@/lib/fit";
 import { flightLine, hotelLineParts, trustedDetails } from "@/lib/trip-details";
 import { cityPhoto, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/types";
-import { peakMonth } from "@/lib/counterfactual";
 import { moneyOf } from "@/lib/money";
 import { priceText, TripPrice, ValueBadge } from "@/components/money";
 import { localCountry } from "@/lib/country";
@@ -94,17 +93,13 @@ export function RecCard({
   /** PLN over the user's budget (> 0 shows the badge) */
   overBudgetPln?: number | null;
 }) {
-  const { t, fmt, lang } = useT();
+  const { t, fmt } = useT();
   const tc = t.trips.card;
   const rank = rec.rank;
   const money = moneyOf(rec);
   const split = disagreement(rec);
-  // no "−49% vs peak" on an estimate: it would compare against a price that isn't this trip's
-  const peak = moneyOf(rec).status === "estimate" ? undefined : rec.counterfactuals.find((c) => c.kind === "peak_season");
-  const peakM = peak ? peakMonth(peak.label) : null;
-  const peakMonthName = peakM ? fmt.monthName(peakM, lang === "pl" ? "long" : "short") : null;
-  const [showPeak, setShowPeak] = useState(false);
-  const peakNote = peak ? tc.peakNote(peakMonthName, fmt.pln(peak.total_cost_pln), fmt.pln(rec.total_cost_pln), rec.scoring_version) : "";
+  // No "−49% vs peak" chip on the card (round 3: no percentages on cards); peak season is a row
+  // in the receipt's "Porównaj".
   const nights = dayCount(rec.window) - 1;
   const td = t.tripDetails;
   const details = trustedDetails(rec);
@@ -206,20 +201,7 @@ export function RecCard({
               </>
             )}
           </span>
-          {peak && peak.cost_delta_pln > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowPeak((v) => !v)}
-              aria-expanded={showPeak}
-              title={peakNote}
-              className="relative z-[2] ml-auto flex items-center gap-1 rounded-full bg-pine-soft px-2 py-0.5 font-medium text-pine-deep hover:bg-pine/15"
-            >
-              <TrendingDown className="size-3.5" aria-hidden /> {tc.vsPeak(Math.round(peak.cost_delta_pct))}
-              <Info className="size-3 opacity-70" aria-hidden />
-            </button>
-          )}
         </div>
-        {peak && showPeak && <p className="mt-1.5 text-right text-xs text-muted-foreground">{peakNote}</p>}
 
         <FactorStars score={rec.score} columns={2} className="mt-3.5" />
 

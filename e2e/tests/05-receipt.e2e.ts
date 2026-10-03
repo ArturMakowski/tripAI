@@ -33,6 +33,9 @@ test('Receipt: every price row shows its source and fetch time, and the inputs h
     expect(l.title, `fetch time in the source tooltip: ${l.text}`).toMatch(/\d{1,2}:\d{2}/);
   }
 
+  // Since round 3 the line chips sit behind one "ⓘ Sources / Źródła" toggle: open it for the visual check.
+  await screen.getByRole('button', /^(sources|źródła)$/i).tap();
+
   // The inputs hash: collapsed under "Audit" (DECLUTTER: one tap away).
   await screen.getByRole('button', /^(audit|audyt)/i).tap();
   await expect(screen.getByText(/^[0-9a-f]{8,}…[0-9a-f]{6,}$/)).toBeVisible();
