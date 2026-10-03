@@ -64,6 +64,41 @@ Profile creation is a swipe deck built from the team questionnaire in `docs/TRAV
   - An over-budget #1 is never shown without a banner. Either "Nothing fits {budget} for these dates — closest options" (naming the
     cheapest trip), or "Your top pick is X over your budget · N trips fit · Show those first" (a stable within-budget-first sort).
 
+## Pick your dates (`/windows`, T4f)
+A mobile-first month calendar at the top of Free time. The user taps a start day, then an end day, to pick a date range.
+- **Calendar.** Shows one month at a time, for the next 12 months. Swipe or use the arrows to change month, or tap a month in the strip;
+  a dot marks months that already have picked dates. You can add several ranges. Overlapping or touching ranges merge, and the
+  × on each one removes it.
+- **Highlights.** Polish public holidays are computed locally (including Easter, Corpus Christi and Wigilia) and get a clay dot.
+  Long-weekend suggestions show as a dashed sun band: the backend radar where it has an entry, otherwise `localBridges`.
+  - If your first tap lands inside a suggestion, the calendar offers "Add the whole long weekend". The month's suggestions are also
+    listed under the calendar, with an Add button.
+- **Quick chips:** This weekend (on a Sunday: Next weekend), Next long weekend, Any 5 days in &lt;next month&gt;.
+- **Exact trips.** Every window sent is a concrete trip, so the scorer prices what the UI says:
+  - "Any 5 days" sends 5-day trips starting every 2 days across the month, the last one ending on the month's last day.
+  - "I'm flexible ± N" adds the same-length trip shifted 1..N days earlier and later, never into the past.
+  - Exact dates go first, then the smallest shifts, capped at the API's 60 windows.
+  - Ranges shorter than 2 days are never sent (the backend drops them). Tapping the start day again cancels it instead of picking one day.
+- **To the API.** Picked ranges become `FreeWindow(source="manual")` and are sent as `windows` to `POST /recommendations`. They
+  replace the calendar and radar windows; with no picks, nothing changes. They are stored in localStorage (`tripai-dates-v1`), and
+  every change drops the cached ranking so `/trips` refetches. The cached ranking also remembers which windows it was requested
+  for, so a range that ends or gets clipped by a new day refetches too, and a request that was in flight during an edit is dropped.
+- **Client-only dates.** `/windows` and `/trips` are prerendered, so anything that depends on today's date renders only after mount
+  (`useClientToday`). This avoids a hydration mismatch from the day after a deploy.
+- **On `/trips`.** A header reads "For your dates: 11–15 Nov, 22–24 Nov · ± 2 days", with an Edit link. Fixture data only prices
+  January 2027, so in fixture mode the sample trips are returned unchanged, never re-dated, and the header says so.
+  If the backend finds nothing for the picked dates, Trips shows an empty state with three ways out: "Also try ± N days", "Add the
+  next long weekend" and "Edit dates".
+- **Accessibility.** The calendar is an ARIA grid with `aria-selected` and a roving tabindex.
+  - Keys: arrows, Home/End, PageUp/PageDown to move; Enter/Space to pick; Esc to cancel.
+  - Every target is at least 44px, and selections are announced in a live region.
+  - With `prefers-reduced-motion`, there are no slide, swipe or ping animations.
+- **Code.**
+  - `lib/date-range.ts` holds the pure logic, pinned by `lib/date-range.test.ts`.
+  - `lib/windows-store.ts` is the store.
+  - `components/date-picker/` holds the UI. Every string, in PL and EN, is in `components/date-picker/strings.ts`. It shows EN, like the
+    rest of the app, until the i18n pass.
+
 ## Data: live vs fixture
 `lib/api.ts` implements API v0 exactly as `backend/src/tripai/api/app.py` serves it: `POST /interview`, `GET /windows`,
 `GET /windows/long-weekends`, `POST /recommendations` (→ `RankedRecommendation[]`), and `POST /feedback` (→ the profile plus `weights`

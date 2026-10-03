@@ -190,8 +190,14 @@ export function withReceipts(ranked: RankedRecommendation[], weights: Weights): 
 }
 
 export function scoreLocally(profile: TasteProfile, weights: Weights, windowsIn?: FreeWindow[] | null): RankedRecommendation[] {
-  const recs = buildRecommendations()
-    .filter((r) => !windowsIn?.length || windowsIn.some((w) => w.start === r.window.start))
+  const all = buildRecommendations();
+  // Like the backend, trips must fall inside the requested windows. The sample data only prices a few
+  // January 2027 dates, so for windows it doesn't cover it returns every sample trip unchanged (never re-dated);
+  // the Trips header says so.
+  const inside = windowsIn?.length
+    ? all.filter((r) => windowsIn.some((w) => r.window.start <= w.end && r.window.end >= w.start))
+    : all;
+  const recs = (inside.length ? inside : all)
     .map((r) => ({ ...r, score: { ...r.score, taste: tasteFit(profile, r.iata) } }));
   return withReceipts(rerank(recs, weights), weights);
 }

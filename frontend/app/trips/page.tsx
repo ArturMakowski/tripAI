@@ -12,6 +12,7 @@ import { PrioritySlider } from "@/components/priority-slider";
 import { RecCard } from "@/components/rec-card";
 import { RefiningStrip, TripLoader, type Stage } from "@/components/trip-loader";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
+import { PickedDatesEmpty, PickedDatesHeader } from "@/components/date-picker/free-dates-planner";
 import { AppShell, PageTitle } from "@/components/shell";
 import { formatPLN, formatRange, pct } from "@/lib/format";
 import { useTrip } from "@/lib/store";
@@ -156,6 +157,8 @@ function Trips() {
         )}
         <span className="text-muted-foreground">· {budget != null ? "set in profile" : "set one"}</span>
       </Link>
+
+      <PickedDatesHeader />
 
       <PrioritySlider value={slider} weights={weights} onChange={setSlider} />
 
@@ -341,7 +344,9 @@ function Trips() {
         )}
       </LayoutGroup>
       {!loading && !list.length && (
-        <p className="mt-6 text-center text-sm text-muted-foreground">No trips fit this window yet. We&rsquo;ll keep watching.</p>
+        <PickedDatesEmpty>
+          <p className="mt-6 text-center text-sm text-muted-foreground">No trips fit this window yet. We&rsquo;ll keep watching.</p>
+        </PickedDatesEmpty>
       )}
       <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
         Rankings are never paid for. Sponsored offers, if we ever show any, will be labelled separately.

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowRight, CalendarCheck2, Radar, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { FreeDatesPlanner } from "@/components/date-picker/free-dates-planner";
 import { AppShell, PageTitle } from "@/components/shell";
 import { dayCount, eachDay, formatRange, weekday } from "@/lib/format";
 import type { BridgeWindow, FreeWindow } from "@/lib/types";
@@ -95,7 +96,9 @@ export default function WindowsPage() {
         From your Google Calendar plus Polish public holidays. You never have to type a date.
       </PageTitle>
 
-      <section className="rounded-3xl bg-ink p-5 text-paper shadow-lift">
+      <FreeDatesPlanner />
+
+      <section className="mt-7 rounded-3xl bg-ink p-5 text-paper shadow-lift">
         <h2 className="flex items-center gap-2 font-display text-xl">
           <Radar className="size-5 text-sun" aria-hidden /> Długi weekend radar
         </h2>
