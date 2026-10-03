@@ -34,6 +34,7 @@ TTL_BY_SOURCE: dict[str, timedelta] = {
     "gcal:freebusy": timedelta(minutes=5),
     "serper:images": timedelta(days=30),
     "serper:places": timedelta(days=7),
+    "osrm:route": timedelta(days=3650),  # road distance airport -> hotel: effectively forever
 }
 
 

@@ -387,6 +387,10 @@ MESSAGES: dict[str, dict[str, str]] = {
     "fb.this_trip": {"en": "this trip", "pl": "ten wyjazd"},
     # ---- budget (two-phase /recommendations)
     "budget.within": {"en": "Within your {amount} budget", "pl": "W ramach budżetu {amount}"},
+    "transfer.osrm": {
+        "en": "by car, estimate (OSRM route, no traffic)",
+        "pl": "samochodem, szacunek (trasa OSRM, bez korków)",
+    },
     "budget.slightly": {
         "en": "Slightly over budget: +{amount} ({pct}%)",
         "pl": "Nieco ponad budżet: +{amount} ({pct}%)",

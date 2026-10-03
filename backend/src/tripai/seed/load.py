@@ -130,6 +130,7 @@ def clear_cache() -> None:
         school_breaks,
         _attractions,
         _climate,
+        _airports,
     ):
         fn.cache_clear()
 
@@ -345,3 +346,29 @@ def _climate() -> dict[str, CityClimate]:
 def climate(key: str) -> CityClimate | None:
     """Monthly climate normals (Open-Meteo ERA5 snapshot), or None if the city has none."""
     return _climate().get(city(key).id)
+
+
+# --- airports -------------------------------------------------------------------------------
+
+
+class Airport(BaseModel):
+    iata: str
+    name: str
+    lat: float
+    lon: float
+    municipality: str | None = None
+    country: str
+
+
+@cache
+def _airports() -> dict[str, Airport]:
+    try:
+        rows = _raw("airports.json")["airports"]
+    except FileNotFoundError:
+        return {}
+    return {r["iata"]: Airport.model_validate(r) for r in rows}
+
+
+def airport(iata: str) -> Airport | None:
+    """Coordinates of a seed airport (OurAirports snapshot), or None."""
+    return _airports().get(iata.upper())

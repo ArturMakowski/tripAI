@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from tripai.models import Evidence, FreeWindow, Recommendation
+from tripai.models import Evidence, FlightDetails, FreeWindow, HotelDetails, Recommendation
 
 
 class PeakQuote(BaseModel):
@@ -39,6 +39,9 @@ class Candidate(BaseModel):
     peak: PeakQuote | None = None
     highlights: list[str] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
+    # the concrete itinerary / property behind flight_cost_pln / hotel_cost_pln (if known)
+    flight: FlightDetails | None = None
+    hotel: HotelDetails | None = None
 
     @property
     def total_cost_pln(self) -> float:

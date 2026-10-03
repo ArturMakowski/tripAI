@@ -349,7 +349,7 @@ def test_session_tokens(monkeypatch):
 def test_source_modes_from_env(monkeypatch):
     # open_meteo needs no key -> live; keyed sources without keys -> fixture (never a crash)
     assert sources.modes() == {"travelpayouts": "fixture", "serpapi": "fixture",
-                               "serper": "fixture", "open_meteo": "live", "gcal": "fixture"}  # fmt: skip
+                               "serper": "fixture", "open_meteo": "live", "osrm": "live", "gcal": "fixture"}  # fmt: skip
     assert sources.reasons()["serpapi"] == "missing SERPAPI_API_KEY"
     monkeypatch.setenv("SERPAPI_API_KEY", "k")
     monkeypatch.setenv("TRAVELPAYOUTS_TOKEN", "t")
@@ -367,7 +367,7 @@ def test_source_modes_from_env(monkeypatch):
 
 def test_env_driven_provider_runs_offline_without_keys(prof, monkeypatch):
     """TRIPAI_PROVIDER=live with no keys: every keyed source falls back to fixtures."""
-    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", "open_meteo")  # the only keyless source
+    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", "open_meteo,osrm")  # the keyless sources
     p = LiveProvider(today=TODAY, city_ids=FIXTURE_CITIES, use_fallback=False)
     assert set(p.source_modes().values()) == {"fixture"}
     cands = run(p, prof)
