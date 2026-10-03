@@ -23,6 +23,7 @@ def _offline(monkeypatch):
     ):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("TRIPAI_LLM", "0")
+    monkeypatch.setenv("TRIPAI_LLM_CACHE", "0")  # no persistent LLM answers across test runs
     from tripai.agents.jev import clear_screen_cache
 
     clear_screen_cache()

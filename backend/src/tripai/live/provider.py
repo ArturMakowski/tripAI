@@ -731,7 +731,11 @@ class LiveProvider:
             refined: set[str] = set()
             # Exact-date prices usually differ from the cached estimates, so re-rank after each
             # round until the top N are all refined or the refinement budget is spent.
-            while cands and not fast and len(refined) < self.max_refine:
+            # SerpApi budget used up: skip the refine pipeline at once (each attempt would only be
+            # refused by the meter); prices stay honest estimates, `refined` stays false
+            budget = self.budget or global_budget()
+            skip_refine = not fast and await budget.exhausted()
+            while cands and not fast and not skip_refine and len(refined) < self.max_refine:
                 top = self._refine_targets(cands, profile, weights, typical_spend_pln)
                 todo = [cid for cid in top if cid not in refined]
                 todo = todo[: self.max_refine - len(refined)]
@@ -771,6 +775,7 @@ class LiveProvider:
                     "late_calls": s.late_calls,
                     "seconds": round(time.monotonic() - started, 2),
                     "capped": s.capped,
+                    "refine_skipped": "serpapi daily budget exhausted" if skip_refine else None,
                 }
             # one summary line per request (no per-call noise for expected gaps)
             log.info(

@@ -117,6 +117,15 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   row: for live seed data the value is the share of the peak month's tourist nights (Eurostat), and that is
   also what's scored (`seed.load.crowd_level`). Cities without that data show a relative "/100" scale, never
   "% of peak". `inputs_hash` ignores (localised) evidence labels.
+- **Full-phase speed:** each AI fit verdict and each 'why' has one deadline (`TRIPAI_LLM_TIMEOUT_S`, default 4 s).
+  Past it, the page gets the rules verdict / `template_why`, while the model keeps going in the background
+  (≤ `TRIPAI_LLM_BACKGROUND_S`, 20 s) and caches its answer for the next load. The LLM's own fit decision runs
+  speculatively next to Jev (an escalation costs max(Jev, LLM), not the sum) and is cancelled when Jev is sure.
+  Answers are cached in process and in `api_cache` (`tripai:fit`, `tripai:why`), keyed by a digest of exactly
+  what the model sees: payload, language and model. A changed price is a miss, and a cached 'why' is re-checked
+  against the card's numbers before reuse (`agents/llm_cache.py`; `TRIPAI_LLM_CACHE=0` disables it). Once the
+  SerpApi daily budget is spent, the provider skips the exact-date refine pipeline and the meter answers without
+  re-reading Supabase.
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache
