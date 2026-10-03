@@ -16,7 +16,9 @@ test('Trips: cards show photo, price and fit badge; with a 1,000 PLN budget no o
 
   await screen.getByRole('link', /^(Trips|Podróże|Wyjazdy)$/).tap();
   // /trips opens on the swipe view until a view is picked; this test reads the ranked list.
-  await screen.getByRole('button', /^(List|Lista)$/).tap();
+  const listToggle = screen.getByRole('button', /^(List|Lista)$/);
+  await expect(listToggle).toBeVisible({ timeout: 60_000 }); // the view toggle renders once /trips has loaded
+  await listToggle.tap();
   await expect(screen.getByRole('link', /budget|budżet/i).first()).toContainText(/1[,\s ]?000/);
 
   const cards = browser.locator('main li:has(article a[href^="/trips/"])');

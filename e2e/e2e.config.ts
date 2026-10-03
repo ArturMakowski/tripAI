@@ -25,6 +25,7 @@ const context = [
   'Profile (/profile), Feedback (/survey, post-trip survey) and the proactive Inbox (/inbox, bell icon in the header).',
   'Copy can be Polish or English. Polish words you may see: "To ja" (that\'s me), "Bardzo ja!" (so me), "Nie ja" (not me),',
   '"Zależy" (depends), "Cofnij" (undo), "Chcę tam" (I want to go), "Nie dla mnie" (not for me), "Zapamiętane" (learned/remembered).',
+  '"My" is also a Polish word (we): "My pilnujemy. Ty decydujesz." (we watch, you decide) is all Polish.',
   'A fit badge reads e.g. "Great fit", "Good fit", "Mixed", "Poor fit". Prices are in PLN (zł).',
 ].join(' ');
 
