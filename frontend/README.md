@@ -171,6 +171,42 @@ A new user should get what TripAI does in under 30 seconds.
 - **Code.** `lib/tutorial-store.ts` holds the flags, routing and step logic. `components/tutorial/*` holds the UI. Pages only get
   `data-tour` attributes, plus `<TutorialHost />` in the layout and `<HowItWorksButton />` on Profile.
 
+## Which flight, which hotel, where (T10)
+The receipt shows the exact flight and stay behind the prices (`Recommendation.flight` / `.hotel`, docs/TRIP_DETAILS.md), following
+docs/DECLUTTER.md: numbers and chips first, details one tap away.
+- **Only the priced trip.** `trustedDetails(rec)` applies docs/BUDGET.md. A hotel is shown only when `price_status` is `exact`,
+  because a city-average estimate is never shown as a hotel. The flight keeps its itinerary only when it is exact or its
+  departure dates are the trip's dates; otherwise only the airline is shown. The blocks repeat no prices: under party pricing,
+  `FlightDetails.price_pln` covers every traveller and `price_pln_total` is per room, so the receipt line stays the one
+  per-person figure.
+- **Your flight.** The airline, then one line per direction: "06:25 KRK → 08:30 FCO", plus a chip "direct · 2 h 05" or
+  "1 stop". A compact source chip and a "Check flight" link sit under it. "Flight numbers & legs ›" opens each leg's number,
+  duration and layover. The layover is the only arithmetic, because both times are at the same airport. Connections get no
+  door-to-door duration, since local times sit in different time zones.
+- **Your stay.** The name, then chips for "★ 4.6 (1,864 reviews)", the hotel class and "1.2 km from centre", with one source chip.
+  "Address & sources ›" holds the address and the straight-line distance, which has its own estimate chip.
+- **Where you'll stay.** A Leaflet map with OpenStreetMap tiles and attribution, and no API key.
+  - Pins: a hotel teardrop, an airport disc and a city-centre dot, joined by a dashed straight airport → hotel line,
+    labelled "straight line, not the route".
+  - Each pin's popup links to Google Maps and Apple Maps, as do the "Hotel" and "From airport" rows.
+  - Leaflet (with its CSS) loads through `next/dynamic` only when the map nears the viewport.
+  - Scroll-wheel zoom is off. On touch screens, one finger scrolls the page until you tap the map.
+  - With `prefers-reduced-motion`, there is no zoom, fade or inertia animation. The map is a labelled region, and the
+    legend and links are plain text.
+- **Airport → hotel.** The first transfer option is visible ("Train · 32 min · 27 km · 34 PLN" plus its note and source); the
+  rest sit behind "N more options ›". OSRM and `estimate:*` rows are labelled as estimates. Public transport is never invented.
+- **Cards.** Each price gets its compact line, covering both directions: "✈ 262 PLN · Ryanair · direct both ways · 2 h 05"
+  (or "there direct, back 1 stop") and "🛏 1,180 PLN · Casa Trastevere
+  Suites ★4.6 · 1.2 km from centre". A long hotel name truncates; the rating and distance never do.
+- **Null-safe.** Every field is optional in the UI. In the fast phase there is only the airline ("times with live price") and no
+  hotel; without details the card looks exactly as before.
+- **Code.**
+  - Pure helpers are in `lib/trip-details.ts`, pinned by `lib/trip-details.test.ts`.
+  - The UI is in `components/trip-details/`.
+  - The copy is in `lib/i18n/messages/tripDetails.ts` (PL + EN).
+  - The sample data is in `lib/mock/trip-details.ts`: real airport and centre coordinates, fictional hotels on real streets, and
+    prices equal to the fixture's `flight_cost_pln` / `hotel_cost_pln`. All of it is labelled "TripAI sample data".
+
 ## Data: live vs fixture
 `lib/api.ts` implements API v0 exactly as `backend/src/tripai/api/app.py` serves it: `POST /interview`, `GET /windows`,
 `GET /windows/long-weekends`, `POST /recommendations` (→ `RankedRecommendation[]`), and `POST /feedback` (→ the profile plus `weights`

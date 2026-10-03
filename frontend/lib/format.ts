@@ -58,6 +58,7 @@ export function sourceName(source: string): string {
     [/liteapi/, "LiteAPI"],
     [/gcal/, "Google Calendar"],
     [/tripai\.scoring/, "TripAI scorer"],
+    [/osrm/, "OSRM · OpenStreetMap"],
   ];
   // hand-curated sample numbers: never fetched, never recorded, say so plainly
   if (isSampleSource(source)) return "TripAI sample data";
