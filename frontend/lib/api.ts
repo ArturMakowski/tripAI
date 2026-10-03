@@ -1,6 +1,7 @@
 /**
- * API v0 client (backend/src/tripai/api/app.py). Talks to NEXT_PUBLIC_API_URL
- * when set; otherwise, or if the backend is unreachable, serves the in-browser
+ * API v0 client (backend/src/tripai/api/app.py). Talks to the same-origin `/api`
+ * proxy (app/api/[...path], lib/proxy.ts), which forwards to the private backend.
+ * With NEXT_PUBLIC_MOCK=1, or if the backend is unreachable, serves the in-browser
  * fixtures so the demo never dead-ends. Every call reports which one answered.
  */
 import type { Lang } from "./i18n/types";
@@ -21,8 +22,8 @@ import type {
   RecPhase,
 } from "./types";
 
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
-export const FORCE_MOCK = process.env.NEXT_PUBLIC_MOCK === "1" || !API_URL;
+export const API_URL = "/api";
+export const FORCE_MOCK = process.env.NEXT_PUBLIC_MOCK === "1";
 export const USER_ID = "demo";
 
 export type DataMode = "live" | "fixture";
@@ -33,7 +34,7 @@ export interface Result<T> {
 
 /**
  * Server-issued session (backend tripai.api.session): every response carries a signed
- * token in X-TripAI-Session (exposed via CORS); we keep it and send it back on every
+ * token in X-TripAI-Session (passed through by the proxy); we keep it and send it back on every
  * call, so the backend ties profile/weights/recs/feedback to this browser.
  */
 export const SESSION_HEADER = "X-TripAI-Session";

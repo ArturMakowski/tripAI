@@ -1,8 +1,8 @@
 """Server-issued sessions: the API never trusts a client-sent `user_id`.
 
 Every response carries a signed token `s_<32 hex>.<hmac>` in the `X-TripAI-Session` header and an
-HttpOnly cookie. Clients send it back (header preferred: the frontend is on another origin and CORS
-is `*`, so cookies may not travel). A missing or tampered token gets a fresh, unguessable session, so
+HttpOnly cookie. Clients send it back (header preferred; the frontend's same-origin /api proxy passes
+both through). A missing or tampered token gets a fresh, unguessable session, so
 one caller can never read or overwrite another user's profile, weights, recommendations or feedback.
 Set TRIPAI_SESSION_SECRET in production; without it a random per-process secret is used and
 sessions reset on restart.

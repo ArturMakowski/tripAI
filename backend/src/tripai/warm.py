@@ -60,12 +60,17 @@ def main(argv: list[str] | None = None) -> int:
     from fastapi.testclient import TestClient
 
     from tripai.api import create_app
+    from tripai.api.internal import HEADER, internal_key
     from tripai.api.state import MemoryStore
     from tripai.live import calendar_from_env, provider_from_env
     from tripai.scoring.windows import TZ
 
     provider, calendar = provider_from_env(), calendar_from_env()
-    client = TestClient(create_app(provider=provider, calendar=calendar, store=MemoryStore()))
+    key = internal_key()  # the app is private when TRIPAI_INTERNAL_KEY is set
+    client = TestClient(
+        create_app(provider=provider, calendar=calendar, store=MemoryStore()),
+        headers={HEADER: key} if key else None,
+    )
     health = client.get("/health").json()
     print("sources:", json.dumps(health["sources"]))
     print("serpapi budget:", json.dumps(health.get("serpapi_budget")))

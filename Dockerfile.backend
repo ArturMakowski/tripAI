@@ -8,4 +8,5 @@ COPY backend/ ./
 COPY data/ /app/data/
 RUN uv sync --frozen --no-dev
 ENV TRIPAI_DATA_DIR=/app/data PATH="/app/backend/.venv/bin:$PATH"
-CMD ["sh", "-c", "uvicorn tripai.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Dual-stack [::] (IPv6 for Railway private networking + IPv4), port from $PORT: see tripai/serve.py
+CMD ["python", "-m", "tripai.serve"]

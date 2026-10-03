@@ -188,7 +188,7 @@ export default function InboxPage() {
       {!NOTIFY_AVAILABLE ? (
         <p className="rounded-xl bg-paper-deep p-4 text-sm text-ink-soft">
           {ib.needsBackendA}
-          <code>NEXT_PUBLIC_API_URL</code>
+          <code>NEXT_PUBLIC_MOCK=0</code>
           {ib.needsBackendB}
         </p>
       ) : (

@@ -7,7 +7,7 @@ afterEach(() => {
 });
 
 async function live() {
-  vi.stubEnv("NEXT_PUBLIC_API_URL", "http://backend.test");
+  vi.stubEnv("NEXT_PUBLIC_MOCK", "0");
   const calls: { url: string; init: RequestInit }[] = [];
   vi.stubGlobal(
     "fetch",

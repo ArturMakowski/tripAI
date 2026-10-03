@@ -1,8 +1,9 @@
-# Frontend image for Railway, built from the repo root (service var NEXT_PUBLIC_API_URL is passed as a build arg).
+# Frontend image for Railway, built from the repo root. The browser calls same-origin /api; the proxy reads the
+# server-only runtime vars BACKEND_INTERNAL_URL and TRIPAI_INTERNAL_KEY (never build args, never in the bundle).
 FROM node:22-slim AS build
 WORKDIR /app
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_MOCK
+ENV NEXT_PUBLIC_MOCK=$NEXT_PUBLIC_MOCK NEXT_TELEMETRY_DISABLED=1
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./

@@ -23,7 +23,7 @@ describe("mock two-phase /recommendations", () => {
 
 describe("two-phase loading is gated on backend support", () => {
   async function liveApi(health: unknown, recStatus = 200) {
-    vi.stubEnv("NEXT_PUBLIC_API_URL", "http://backend.test");
+    vi.stubEnv("NEXT_PUBLIC_MOCK", "0");
     const urls: string[] = [];
     vi.stubGlobal(
       "fetch",
@@ -57,7 +57,7 @@ describe("two-phase loading is gated on backend support", () => {
     const r = await api.recommendationsPhase({ profile: DEMO_PROFILE }, "fast");
     expect(r.mode).toBe("live");
     expect(urls.filter((u) => u.endsWith("/health"))).toHaveLength(1);
-    expect(urls.at(-1)).toBe("http://backend.test/recommendations?phase=fast");
+    expect(urls.at(-1)).toBe("/api/recommendations?phase=fast");
   });
 
   it("a failing live phase call throws (never a fixture 'fast' result posing as live)", async () => {

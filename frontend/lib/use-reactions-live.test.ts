@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Live mode (API URL set) with a scripted backend; Node's localStorage stub replaced by a real one.
+// Live mode (/api proxy, not mocked) with a scripted backend; Node's localStorage stub replaced by a real one.
 vi.hoisted(() => {
-  process.env.NEXT_PUBLIC_API_URL = "http://api.test";
+  process.env.NEXT_PUBLIC_MOCK = "0";
   const mem = new Map<string, string>();
   const storage = {
     getItem: (k: string) => mem.get(k) ?? null,
