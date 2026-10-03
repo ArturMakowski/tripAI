@@ -62,15 +62,6 @@ function CardFace({ card, lang, index, total }: { card: DnaCard; lang: Lang; ind
       </div>
       <div className="absolute inset-x-0 bottom-0 p-6 text-white">
         <p className="font-display text-[1.85rem] leading-[1.12] font-medium text-balance">{card.text[lang]}</p>
-        <a
-          href={card.credit.source}
-          target="_blank"
-          rel="noreferrer"
-          onPointerDown={(e) => e.stopPropagation()}
-          className="mt-3 inline-block text-xs text-white/60 underline-offset-2 hover:text-white hover:underline"
-        >
-          {messagesFor(lang).onboarding.credit}: {card.credit.author} · {card.credit.license}
-        </a>
       </div>
     </>
   );

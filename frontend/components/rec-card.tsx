@@ -10,33 +10,14 @@ import { useT } from "@/lib/i18n";
 import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
 import { flightLine, hotelLineParts, trustedDetails } from "@/lib/trip-details";
-import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
+import { cityPhoto, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/types";
 import { peakMonth } from "@/lib/counterfactual";
 import { moneyOf } from "@/lib/money";
 import { TripPrice, ValueBadge } from "@/components/money";
+import { localCountry } from "@/lib/country";
 import { cn } from "@/lib/utils";
 
-/** English country names from the backend -> ISO 3166 codes, so Intl can name them in the UI language. */
-const COUNTRY_CODE: Record<string, string> = {
-  Italy: "IT", Portugal: "PT", Greece: "GR", Spain: "ES", France: "FR", Malta: "MT", Denmark: "DK",
-  "United Kingdom": "GB", Croatia: "HR", Germany: "DE", Austria: "AT", Netherlands: "NL", Czechia: "CZ",
-  "Czech Republic": "CZ", Hungary: "HU", Cyprus: "CY", Montenegro: "ME", Albania: "AL", Turkey: "TR",
-  Türkiye: "TR", Morocco: "MA", Egypt: "EG", Georgia: "GE", Ireland: "IE", Belgium: "BE", Switzerland: "CH",
-  Norway: "NO", Sweden: "SE", Finland: "FI", Iceland: "IS", Bulgaria: "BG", Romania: "RO", Slovenia: "SI",
-  Slovakia: "SK", Poland: "PL", "Canary Islands": "IC", Tunisia: "TN", Israel: "IL", Jordan: "JO",
-};
-
-/** "Italy" -> "Włochy" in PL; unknown names pass through unchanged. */
-export function localCountry(name: string, locale: string): string {
-  const code = COUNTRY_CODE[name];
-  if (!code) return name;
-  try {
-    return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? name;
-  } catch {
-    return name;
-  }
-}
 
 
 /** Illustrated stand-in for a city without a bundled photo: dusk sky, sun, hills and the city name. Never blank. */
@@ -68,26 +49,18 @@ export function CityPhoto({
   rec,
   className,
   children,
-  credit,
   thumb,
 }: {
   rec: Pick<Recommendation, "iata" | "city"> & { country?: string };
   className?: string;
   children?: React.ReactNode;
-  /**
-   * Photo attribution (author · license). "link" links to the Commons page (receipt hero); "inline" is plain text for
-   * photos that sit inside another link, such as recommendation cards.
-   */
-  credit?: "link" | "inline";
   /** Small square thumbnail: no shade and no city name on the fallback illustration. */
   thumb?: boolean;
 }) {
   const photo = cityPhoto(rec.iata);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showPhoto = photo !== null && failedSrc !== photo;
-  const info = showPhoto && credit ? cityPhotoCredit(rec.iata) : null;
-  const { t } = useT();
-  const creditText = info && t.credits.photoBy(info.author, info.license);
+  const { fmt } = useT();
   return (
     <div className={cn("@container relative overflow-hidden", className)}>
       <CityIllustration city={rec.city} label={!thumb} />
@@ -95,26 +68,13 @@ export function CityPhoto({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={photo}
-          alt={thumb ? "" : [rec.city, rec.country].filter(Boolean).join(", ")}
+          alt={thumb ? "" : [rec.city, rec.country && localCountry(rec.country, fmt.locale)].filter(Boolean).join(", ")}
           onError={() => setFailedSrc(photo)}
           className="absolute inset-0 size-full object-cover"
         />
       )}
       {!thumb && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/0" />}
       {children}
-      {info && credit === "link" && (
-        <a
-          href={info.source}
-          target="_blank"
-          rel="noreferrer"
-          className="absolute top-16 right-4 max-w-[60%] truncate rounded-full bg-black/25 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-sm hover:text-white"
-        >
-          {creditText}
-        </a>
-      )}
-      {info && credit === "inline" && (
-        <span className="absolute right-3 bottom-1.5 max-w-[55%] truncate text-[9px] leading-none text-white/60">{creditText}</span>
-      )}
     </div>
   );
 }
@@ -158,7 +118,7 @@ export function RecCard({
       href={`/trips/${rec.id}`}
       className="group block overflow-hidden rounded-[1.75rem] border border-line bg-card shadow-soft transition-shadow hover:shadow-lift"
     >
-      <CityPhoto rec={rec} className={featured ? "h-60" : "h-40"} credit="inline">
+      <CityPhoto rec={rec} className={featured ? "h-60" : "h-40"}>
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <motion.span
             key={rank}

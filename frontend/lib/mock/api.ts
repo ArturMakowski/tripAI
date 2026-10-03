@@ -3,6 +3,7 @@
  * shapes as backend/src/tripai/api; deterministic, no network. Used when
  * NEXT_PUBLIC_MOCK=1 or the backend is unreachable.
  */
+import { flipText } from "../flip-text";
 import { flipConditions, normalise, rerank, FACTORS, type Factor } from "../scoring";
 import type {
   BridgeWindow,
@@ -181,7 +182,7 @@ export function tasteFit(profile: TasteProfile, iata: string): number {
 const r2 = (x: number) => Math.round(x * 100) / 100;
 
 /** Adds the rank-dependent receipt parts: runner-up counterfactual and flip hint. */
-export function withReceipts(ranked: RankedRecommendation[], weights: Weights): RankedRecommendation[] {
+export function withReceipts(ranked: RankedRecommendation[], weights: Weights, lang: Lang = getApiLang()): RankedRecommendation[] {
   const n = normalise(weights);
   return ranked.map((r, i) => {
     const rival = i === 0 ? ranked[1] : ranked[i - 1];
@@ -197,7 +198,7 @@ export function withReceipts(ranked: RankedRecommendation[], weights: Weights): 
           weight_from: r2(n[f.factor]),
           weight_to: r2(n[f.factor] + f.deltaPts / 100),
           price_increase_pln: null,
-          text: `${lo.city} would overtake ${hi.city} with: ${f.factor} weight ${r2(n[f.factor])} -> ${r2(n[f.factor] + f.deltaPts / 100)}`,
+          text: flipText(lang, lo.city, { factor: f.factor, from: r2(n[f.factor]), to: r2(n[f.factor] + f.deltaPts / 100) }, hi.city),
         }
       : null;
     const next = ranked[1];

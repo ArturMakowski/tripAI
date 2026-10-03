@@ -19,6 +19,10 @@ export function TutorialHost() {
   const introOpen = useTutorial((s) => s.introOpen);
   const hydrate = useTutorial((s) => s.hydrate);
   const openIntro = useTutorial((s) => s.openIntro);
+  // The tour running on this screen is marked seen when it starts (once each, even if the user
+  // navigates away mid-tour), so which one runs is tracked in the store, not read back from the flags.
+  const running = useTutorial((s) => s.runningTour);
+  const startTour = useTutorial((s) => s.startTour);
 
   useEffect(() => hydrate(), [hydrate]);
 
@@ -26,14 +30,20 @@ export function TutorialHost() {
     if (hydrated && shouldAutoOpenIntro(flags, path)) openIntro();
   }, [hydrated, flags, path, openIntro]);
 
-  if (!mounted || !hydrated) return null;
   const tour = tourForPath(path);
-  const showTour = !introOpen && flags.intro && tour && !flags.tours[tour];
+  const key = tour ? `${tour}:${path}` : null;
+  useEffect(() => {
+    if (!hydrated || introOpen || !flags.intro || !tour || !key || flags.tours[tour]) return;
+    startTour(tour, key);
+  }, [hydrated, introOpen, flags, tour, key, startTour]);
+
+  if (!mounted || !hydrated) return null;
+  const showTour = !introOpen && !!tour && running === key;
 
   return (
     <>
       <AnimatePresence>{introOpen && <TutorialIntro key="intro" />}</AnimatePresence>
-      {showTour && <CoachMarks key={`${tour}:${path}`} tour={tour} />}
+      {showTour && tour && <CoachMarks key={key} tour={tour} />}
     </>
   );
 }

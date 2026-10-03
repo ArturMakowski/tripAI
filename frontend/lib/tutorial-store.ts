@@ -72,11 +72,42 @@ export function tourForPath(path: string): TourKey | null {
   return null;
 }
 
-/** Routes where the intro never opens on its own (attribution page, push-notification landing). */
-const NO_AUTO_INTRO = ["/credits", "/inbox/open"];
+/**
+ * The intro opens on its own exactly once per device, and only on a first visit to the start of the
+ * app (the landing page or the onboarding deck): never over a deep link such as /trips or a shared
+ * /trips/<id>, never on /credits or a push landing.
+ */
+const AUTO_INTRO_PATHS = ["/", "/onboarding"];
 
 export function shouldAutoOpenIntro(flags: TutorialFlags, path: string): boolean {
-  return !flags.intro && !NO_AUTO_INTRO.includes(path);
+  return !flags.intro && AUTO_INTRO_PATHS.includes(path);
+}
+
+/** Cookie fallback for the flags (Safari private mode / blocked localStorage still keeps "seen"). */
+const COOKIE = "tripai_tutorial";
+
+export function readCookieFlags(cookie: string | null | undefined): TutorialFlags {
+  try {
+    const raw = (cookie ?? "").split("; ").find((c) => c.startsWith(`${COOKIE}=`));
+    if (!raw) return EMPTY_FLAGS;
+    return loadFlags({ getItem: () => decodeURIComponent(raw.slice(COOKIE.length + 1)), setItem: () => {} });
+  } catch {
+    return EMPTY_FLAGS;
+  }
+}
+
+function writeCookieFlags(flags: TutorialFlags) {
+  try {
+    if (typeof document === "undefined") return;
+    document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify(flags))}; max-age=31536000; path=/; samesite=lax`;
+  } catch {
+    // cookies blocked too: memory only for this session
+  }
+}
+
+/** Anything seen in either store counts as seen (a cleared localStorage never brings the intro back). */
+export function mergeFlags(a: TutorialFlags, b: TutorialFlags): TutorialFlags {
+  return { intro: a.intro || b.intro, tours: { ...a.tours, ...b.tours } };
 }
 
 /** Step navigation for the intro carousel, clamped to [0, count - 1]. */
@@ -93,6 +124,9 @@ interface TutorialState {
   /** Closes the intro and remembers it (finished or skipped: both count as seen). */
   closeIntro: () => void;
   markTourSeen: (k: TourKey) => void;
+  /** The coach-mark tour running now ("trips:/trips"); it is marked seen as it starts. */
+  runningTour: string | null;
+  startTour: (k: TourKey, key: string) => void;
   /** "How it works": forget everything and show the intro again; coach marks return on next visit. */
   replay: () => void;
 }
@@ -100,6 +134,7 @@ interface TutorialState {
 export const useTutorial = create<TutorialState>()((set, get) => {
   const persist = (flags: TutorialFlags) => {
     saveFlags(safeStorage(), flags);
+    writeCookieFlags(flags);
     set({ flags });
   };
   return {
@@ -108,14 +143,24 @@ export const useTutorial = create<TutorialState>()((set, get) => {
     introOpen: false,
     hydrate: () => {
       if (get().hydrated) return;
-      set({ hydrated: true, flags: loadFlags(safeStorage()) });
+      const cookie = typeof document === "undefined" ? null : document.cookie;
+      set({ hydrated: true, flags: mergeFlags(loadFlags(safeStorage()), readCookieFlags(cookie)) });
     },
-    openIntro: () => set({ introOpen: true }),
+    // Seen as soon as it is shown: a reload mid-intro, Skip, Esc or finishing never shows it again.
+    openIntro: () => {
+      set({ introOpen: true });
+      persist({ ...get().flags, intro: true });
+    },
     closeIntro: () => {
       set({ introOpen: false });
       persist({ ...get().flags, intro: true });
     },
     markTourSeen: (k) => persist({ ...get().flags, tours: { ...get().flags.tours, [k]: true } }),
+    runningTour: null,
+    startTour: (k, key) => {
+      set({ runningTour: key });
+      persist({ ...get().flags, tours: { ...get().flags.tours, [k]: true } });
+    },
     replay: () => {
       persist(EMPTY_FLAGS);
       set({ introOpen: true });

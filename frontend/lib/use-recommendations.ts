@@ -133,7 +133,7 @@ export function useRecommendations() {
   const fitLang = lang; // on-device rule verdicts are written in the UI language
   const ranked = useMemo(() => {
     // Fixture verdicts are always derived from this ranking (drop any stored one so it can't go stale).
-    const r = fixture ? withReceipts(rerank(recs, weights), weights).map((x) => ({ ...x, fit: undefined })) : rerank(recs, weights);
+    const r = fixture ? withReceipts(rerank(recs, weights), weights, fitLang).map((x) => ({ ...x, fit: undefined })) : rerank(recs, weights);
     // Backend verdicts win; until the fit agent ships, a rule-based preview is computed here and labelled as such.
     const fitted = withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL, fitLang);
     // Value badges compare against the current top 5, so in fixture mode they follow the ranking like fit does.

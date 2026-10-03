@@ -8,9 +8,8 @@ export const en = {
   destinations: "Destinations",
   dnaCards: "Travel DNA cards",
   source: "source",
+  /** the one footer link to this page; photos carry no inline credit (attribution lives here) */
   link: "Photo credits",
-  /** "Photo: Author · CC BY-SA 4.0" on cards and the receipt hero */
-  photoBy: (author: string, license: string) => `Photo: ${author} · ${license}`,
 } as const;
 
 export const pl: Shape<typeof en> = {
@@ -21,6 +20,5 @@ export const pl: Shape<typeof en> = {
   destinations: "Kierunki",
   dnaCards: "Karty DNA podróżnika",
   source: "źródło",
-  link: "Autorzy zdjęć",
-  photoBy: (author, license) => `Zdjęcie: ${author} · ${license}`,
+  link: "Zdjęcia",
 };

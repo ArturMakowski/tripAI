@@ -6,18 +6,16 @@ import type { FitVerdict } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function FitBadge({ fit, className }: { fit: FitVerdict; className?: string }) {
-  const { t, lang } = useT();
+  const { lang } = useT();
   const m = fitMeta(fit.label, lang);
-  const confidence = t.receipt.fit.confidence(Math.round(fit.confidence * 100));
+  // Just the verdict: the check's confidence lives in the receipt's Audit row only (DECLUTTER).
   return (
     <span
       data-tour="fit"
       className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap", m.tone, className)}
-      title={`${m.label} · ${confidence}`}
     >
       <span className={cn("size-1.5 rounded-full", m.dot)} />
       {m.label}
-      <span className="sr-only">, {confidence}</span>
     </span>
   );
 }

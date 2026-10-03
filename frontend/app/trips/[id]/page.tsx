@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowRight, BedDouble, Bot, Check, ChevronLeft, Copy, MapPinned, Plane } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Chip, Disclosure, InfoTip } from "@/components/declutter";
 import { FactorBars } from "@/components/factor-bars";
 import { FitBadge } from "@/components/fit-badge";
@@ -13,7 +13,7 @@ import { LangSwitch } from "@/components/lang-switch";
 import { MoneyLines, PriceInline } from "@/components/money";
 import { PlacesSection } from "@/components/places-section";
 import { CityPhoto } from "@/components/rec-card";
-import { AppShell } from "@/components/shell";
+import { AppShell, PhotoCreditsLink } from "@/components/shell";
 import { SourceTag } from "@/components/source-tag";
 import { Button } from "@/components/ui/button";
 import { FlightBlock } from "@/components/trip-details/flight-block";
@@ -24,12 +24,14 @@ import { capitalise, peakMonth } from "@/lib/counterfactual";
 import { dayCount } from "@/lib/format";
 import { useT, type Fmt, type Messages } from "@/lib/i18n";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
-import { flipConditions, inputsHash } from "@/lib/scoring";
+import { inputsHash } from "@/lib/scoring";
 import { useTrip } from "@/lib/store";
 import type { Evidence, RankedRecommendation, Weights } from "@/lib/types";
 import { evidenceDisplay } from "@/lib/evidence-display";
 import { moneyOf } from "@/lib/money";
 import { overallOutOfFive } from "@/lib/stars";
+import { scoreGap } from "@/lib/compare";
+import { localCountry } from "@/lib/country";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { cn } from "@/lib/utils";
 
@@ -42,8 +44,9 @@ function Delta({ subject, pts, pln }: { subject: string; pts: number | null; pln
     <span>
       <b className="font-semibold text-ink">{subject}:</b>{" "}
       {pts != null && (
-        <span className={pts >= 0 ? "text-pine" : "text-clay"}>
-          {pts >= 0 ? r.ptsHigher(fmt.num(Math.abs(pts), 1)) : r.ptsLower(fmt.num(Math.abs(pts), 1))}
+        // under half a point the one-decimal number would read "0,0 pkt": call it what it is
+        <span className={{ tie: "text-ink-soft", higher: "text-pine", lower: "text-clay" }[scoreGap(pts)]}>
+          {{ tie: r.practicallyTie, higher: r.ptsHigher(fmt.num(Math.abs(pts), 1)), lower: r.ptsLower(fmt.num(Math.abs(pts), 1)) }[scoreGap(pts)]}
         </span>
       )}
       {pts != null && pln != null && " · "}
@@ -142,11 +145,6 @@ export default function ReceiptPage() {
   const rec = ranked[rank];
   const rival = rank === 0 ? ranked[1] : ranked[rank - 1];
 
-  const flips = useMemo(() => {
-    if (!rec || !rival) return [];
-    // If this is #1: what would let the runner-up win. Otherwise: what would put this one on top.
-    return rank === 0 ? flipConditions(rec, rival, weights) : flipConditions(rival, rec, weights);
-  }, [rec, rival, rank, weights]);
 
   if (!rec) {
     // Keep the shared header (language switch, back) even on a stale/shared link or while loading.
@@ -183,7 +181,6 @@ export default function ReceiptPage() {
   const counterfactuals = rec.counterfactuals.filter((c) => c.kind !== "runner_up");
   // The scorer's flip is about a specific neighbour at specific weights: only show it while both still hold.
   const scorerFlipValid = !!rec.flip && scoredAtCurrentWeights && rival?.id === rec.flip.rival_id;
-  const priceFlip = scorerFlipValid && rec.flip?.price_increase_pln != null ? rec.flip : null;
   const flipHi = rank === 0 ? rec.city : rival?.city;
   const flipLo = rank === 0 ? rival?.city : rec.city;
   // Rebuild the known counterfactual kinds in the UI language; if the month can't be read from the
@@ -196,18 +193,13 @@ export default function ReceiptPage() {
     if (c.kind === "next_window" && c.window) return r.nextWindow(fmt.range(c.window));
     return capitalise(c.label);
   };
-  // First flip as plain text, for the collapsed row's one-line hint.
-  const flipHint = priceFlip
-    ? `${r.priceFlipBefore(flipHi ?? "")}${r.priceFlipAmount(fmt.pln(priceFlip.price_increase_pln!))}${r.priceFlipAfter(flipLo ?? "")}`
-    : flips[0]
-      ? `${r.weightFlipBefore}${t.trips.factors[flips[0].factor].toLowerCase()}${r.weightFlipMiddle}${r.weightFlipAmount(fmt.num(Math.abs(flips[0].deltaPts), 1), flips[0].deltaPts > 0)}${r.weightFlipAfter(flipLo ?? "", flipHi ?? "")}`
-      : scorerFlipValid && rec.flip
-        ? rec.flip.text
-        : r.noFlip;
+  // "What would flip it": only the scorer's plain-language text (tripai.i18n "flip.*", PR #32), never
+  // frontend-computed weight points. It holds for a specific neighbour at specific weights.
+  const flipText = scorerFlipValid && rec.flip ? rec.flip.text : flipLo && flipHi ? r.noFlip(flipLo, flipHi) : null;
 
   return (
     <>
-      <CityPhoto rec={rec} className="h-60 shrink-0" credit="link">
+      <CityPhoto rec={rec} className="h-60 shrink-0">
         <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
           <button
             onClick={() => router.push("/trips")}
@@ -221,7 +213,7 @@ export default function ReceiptPage() {
         <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-3 text-white">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium tracking-wide text-white/80 uppercase">
-              {r.rankOf(rank + 1, ranked.length)} · {rec.country}
+              {r.rankOf(rank + 1, ranked.length)} · {localCountry(rec.country, fmt.locale)}
             </p>
             <h1 className="font-display text-[clamp(2rem,11cqw,3rem)] leading-none font-medium [overflow-wrap:anywhere]">{rec.city}</h1>
             <p className="mt-2 text-[15px] text-white/90">
@@ -313,30 +305,12 @@ export default function ReceiptPage() {
             </Disclosure>
           )}
 
-          <Disclosure title={r.flipTitle} hint={flipHint} tour="flip">
-            <ul className="space-y-2 text-sm text-ink">
-              {priceFlip && flipHi && flipLo && (
-                <li>
-                  {r.priceFlipBefore(flipHi)}
-                  <b className="tabular">{r.priceFlipAmount(fmt.pln(priceFlip.price_increase_pln!))}</b>
-                  {r.priceFlipAfter(flipLo)}
-                  <span className="block text-xs text-muted-foreground">{r.priceFlipSource(rec.scoring_version)}</span>
-                </li>
-              )}
-              {flips.slice(0, 2).map((f) => (
-                <li key={f.factor}>
-                  {r.weightFlipBefore}
-                  <b>{t.trips.factors[f.factor].toLowerCase()}</b>
-                  {r.weightFlipMiddle}
-                  <b className="tabular">{r.weightFlipAmount(fmt.num(Math.abs(f.deltaPts), 1), f.deltaPts > 0)}</b>
-                  {r.weightFlipAfter(flipLo ?? "", flipHi ?? "")}
-                  <span className="block text-xs text-muted-foreground">{r.weightFlipNote}</span>
-                </li>
-              ))}
-              {!priceFlip && !flips.length && scorerFlipValid && rec.flip && <li>{rec.flip.text}</li>}
-              {!rec.flip && !flips.length && <li className="text-ink-soft">{r.noFlip}</li>}
-            </ul>
-          </Disclosure>
+          {flipText && (
+            <Disclosure title={r.flipTitle} hint={flipText} tour="flip">
+              <p className="text-sm text-ink">{flipText}</p>
+              {scorerFlipValid && <p className="mt-1 text-xs text-muted-foreground">{r.flipSource(rec.scoring_version)}</p>}
+            </Disclosure>
+          )}
 
           <Disclosure title={r.evidenceTitle} count={r.sources(facts.length)}>
             <ul className="divide-y divide-line">
@@ -385,6 +359,7 @@ export default function ReceiptPage() {
             )}
           </Disclosure>
         </div>
+        <PhotoCreditsLink className="mt-10" />
       </main>
 
       <div className="sticky bottom-0 z-30 border-t border-line bg-paper/90 px-5 pt-3 pb-[max(env(safe-area-inset-bottom),0.9rem)] backdrop-blur-md">

@@ -8,7 +8,6 @@ export const en = {
   hintYesNo: "Right yes · left no",
   undo: "Undo",
   yesNoBadge: "Yes / No",
-  credit: "Photo",
   preferChat: "Prefer talking? Chat with TripAI",
   /** gesture/answer labels: 1..5 on the statement scale */
   answers: { 1: "Not me", 2: "Not really", 3: "Depends", 4: "That's me", 5: "So me!" },
@@ -89,7 +88,6 @@ export const pl: Shape<typeof en> = {
   hintYesNo: "W prawo tak · w lewo nie",
   undo: "Cofnij",
   yesNoBadge: "Tak / Nie",
-  credit: "Zdjęcie",
   preferChat: "Wolisz rozmowę? Porozmawiaj z TripAI",
   answers: { 1: "Nie ja", 2: "Raczej nie", 3: "Zależy", 4: "To ja", 5: "Bardzo ja!" },
   yesNo: { yes: "Tak", no: "Nie" },
