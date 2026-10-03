@@ -14,6 +14,7 @@ the cheap estimates. Concurrent processes may overshoot by a call or two (read-m
 import asyncio
 import json
 import logging
+import weakref
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -49,7 +50,11 @@ class SerpApiBudget:
     def __init__(self, daily_cap: int | None = None, root: Path | None = None) -> None:
         self._daily_cap = daily_cap
         self.root = root
-        self._lock = asyncio.Lock()
+        # One lock per event loop: an asyncio.Lock binds to the loop it first waits on, and
+        # this object outlives loops (warm CLI runs several asyncio.run, tests, reloads).
+        self._locks: weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Lock] = (
+            weakref.WeakKeyDictionary()
+        )
         self._day = ""
         self._used = 0
 
@@ -140,7 +145,11 @@ class SerpApiBudget:
 
     async def take(self) -> int:
         """Reserve one SerpApi call for today or raise BudgetExhausted. Returns the new count."""
-        async with self._lock:
+        loop = asyncio.get_running_loop()
+        lock = self._locks.get(loop)
+        if lock is None:
+            lock = self._locks[loop] = asyncio.Lock()
+        async with lock:
             day = self._today()
             if day != self._day:
                 self._day, self._used = day, 0
