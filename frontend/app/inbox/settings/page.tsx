@@ -101,7 +101,7 @@ export default function NotificationSettingsPage() {
         {st.intro}
       </PageTitle>
 
-      {!NOTIFY_AVAILABLE && <p className="rounded-xl bg-paper-deep p-4 text-sm text-ink-soft">{st.needsBackend}</p>}
+      {!NOTIFY_AVAILABLE && <p className="rounded-xl bg-paper-deep p-4 text-sm text-ink-soft">{st.needsLive}</p>}
       {error && <p className="mb-2 rounded-xl bg-clay-soft p-3 text-sm text-clay">{error}</p>}
 
       {prefs && (

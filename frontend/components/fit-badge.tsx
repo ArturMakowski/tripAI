@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 export function FitBadge({ fit, className }: { fit: FitVerdict; className?: string }) {
   const { lang } = useT();
   const m = fitMeta(fit.label, lang);
-  // Just the verdict: the check's confidence lives in the receipt's Audit row only (DECLUTTER).
+  // Just the verdict (no confidence or engine numbers anywhere in the UI).
   return (
     <span
       data-tour="fit"

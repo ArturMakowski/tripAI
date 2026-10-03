@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { disagreement, dnaQuotes, modelLabel } from "./fit";
+import { disagreement, dnaQuotes } from "./fit";
 import { scoreLocally } from "./mock/api";
-import { CLIENT_PREVIEW_MODEL, labelFromScore, rulesFit, withFit } from "./mock/fit";
+import { labelFromScore, rulesFit, withFit } from "./mock/fit";
 import { DEMO_PROFILE } from "./mock/fixtures";
 import { weightsFromSlider } from "./scoring";
 import type { TasteProfile } from "./types";
@@ -87,19 +87,12 @@ describe("rules fit (docs/FIT_VERDICT.md fallback)", () => {
 });
 
 describe("presentation", () => {
-  it("rule texts, labels and model names come back in Polish when asked", () => {
+  it("rule texts come back in Polish when asked", () => {
     const athens = recs.find((r) => r.city === "Athens")!;
     const fit = rulesFit(athens, DEMO_PROFILE, "rules", "pl");
     expect(fit.concerns[0].text).toMatch(/^Umiarkowany tłum, a/);
-    expect(modelLabel(fit, "pl")).toBe("Sprawdzenie regułami");
   });
 
-  it("labels rule-based verdicts plainly", () => {
-    const f = rulesFit(recs[0], DEMO_PROFILE);
-    expect(modelLabel(f)).toBe("Rule-based check");
-    expect(modelLabel({ ...f, model: CLIENT_PREVIEW_MODEL })).toMatch(/preview computed on this device/);
-    expect(modelLabel({ ...f, model: "anthropic:claude" })).toBe("AI check · anthropic:claude");
-  });
   it("quotes the DNA card and the swiped answer", () => {
     expect(dnaQuotes(["q11"], DEMO_PROFILE, "pl")).toEqual(["przesunięto „Bardzo ja!” przy: Lubię podróżować z dala od tłumów."]);
     expect(dnaQuotes(["q8"], DEMO_PROFILE, "en")).toEqual(["you swiped “That's me” on: I often pick less touristy places."]);

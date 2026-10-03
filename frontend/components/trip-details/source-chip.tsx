@@ -12,7 +12,7 @@ export function SourceChip({ source, fetched_at }: { source: string; fetched_at:
   return (
     <span
       className="inline-flex max-w-full items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] leading-4 text-muted-foreground"
-      title={sample ? source : `${source} · ${fmt.timestamp(fetched_at)}`}
+      title={sample ? name : `${name} · ${fmt.timestamp(fetched_at)}`}
     >
       <Info className="size-3 shrink-0" aria-hidden />
       <span className="truncate">

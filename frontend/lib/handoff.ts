@@ -1,3 +1,4 @@
+import { plainLabel } from "./evidence-display";
 import type { Recommendation } from "./types";
 
 /**
@@ -22,7 +23,7 @@ export function handoffLinks(
   const origin = originOf(rec, fallbackOrigin);
   const evidenceLinks = rec.evidence
     .filter((e) => e.url && (e.kind === "flight" || e.kind === "hotel"))
-    .map((e) => ({ label: e.label, url: e.url! }));
+    .map((e) => ({ label: plainLabel(e.label), url: e.url! })); // no data-layer jargon in link text
   return [
     {
       label: labels.flights,

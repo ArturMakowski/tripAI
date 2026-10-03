@@ -436,8 +436,8 @@ MESSAGES: dict[str, dict[str, str]] = {
     # ---- budget (two-phase /recommendations)
     "budget.within": {"en": "Within your {amount} budget", "pl": "W ramach budżetu {amount}"},
     "transfer.osrm": {
-        "en": "by car, estimate (OSRM route, no traffic)",
-        "pl": "samochodem, szacunek (trasa OSRM, bez korków)",
+        "en": "by car, route estimate, no traffic",
+        "pl": "samochodem, szacunek trasy, bez korków",
     },
     "party.label": {
         "en": "{n} travellers, {r} room(s): flights {n} × {flight} + hotel {r} × {room} = {group} "

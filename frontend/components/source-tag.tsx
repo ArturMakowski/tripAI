@@ -41,7 +41,8 @@ export function SourceTag({
       {e.url && <ExternalLink className="size-3 shrink-0" aria-hidden />}
     </>
   );
-  const title = sample ? e.source : `${e.source} · ${fmt.timestamp(e.fetched_at)}`;
+  // tooltip: the readable source and the exact fetch time, never the internal source id
+  const title = sample ? name : `${name} · ${fmt.timestamp(e.fetched_at)}`;
   const cls = chip
     ? "inline-flex max-w-full items-center gap-1 rounded-full bg-paper-deep px-2 py-0.5 font-sans text-xs text-ink-soft"
     : "inline-flex items-center gap-1 font-sans text-xs text-muted-foreground";
