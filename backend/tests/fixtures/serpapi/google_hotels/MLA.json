@@ -1,0 +1,3927 @@
+{
+ "source": "serpapi:google_hotels",
+ "params": {
+  "engine": "google_hotels",
+  "currency": "PLN",
+  "gl": "pl",
+  "hl": "en",
+  "q": "Valletta hotels",
+  "check_in_date": "2027-01-14",
+  "check_out_date": "2027-01-19",
+  "adults": 2
+ },
+ "fetched_at": "2026-10-03T11:44:17.809159+00:00",
+ "recorded": true,
+ "payload": {
+  "search_metadata": {
+   "id": "6ac0ea90d6eb7295f7614cd0",
+   "status": "Success",
+   "json_endpoint": "https://serpapi.com/searches/3QGDAia_Q7nxdUd0hUEe99PHfjD3xJz2amVg2l2ip3c/6ac0ea90d6eb7295f7614cd0.json",
+   "markdown_endpoint": "https://serpapi.com/searches/3QGDAia_Q7nxdUd0hUEe99PHfjD3xJz2amVg2l2ip3c/6ac0ea90d6eb7295f7614cd0.md",
+   "created_at": "2026-10-03T11:44:16.242Z",
+   "processed_at": "2026-10-03T11:44:16.243Z",
+   "google_hotels_url": "https://www.google.com/travel/search?q=Valletta+hotels&hl=en&gl=pl",
+   "raw_html_file": "https://serpapi.com/searches/3QGDAia_Q7nxdUd0hUEe99PHfjD3xJz2amVg2l2ip3c/6ac0ea90d6eb7295f7614cd0.html",
+   "prettify_html_file": "https://serpapi.com/searches/3QGDAia_Q7nxdUd0hUEe99PHfjD3xJz2amVg2l2ip3c/6ac0ea90d6eb7295f7614cd0.prettify",
+   "total_time_taken": {
+    "float": 1.5821573734283447
+   }
+  },
+  "search_parameters": {
+   "engine": "google_hotels",
+   "q": "Valletta hotels",
+   "gl": "pl",
+   "hl": "en",
+   "currency": "PLN",
+   "check_in_date": "2027-01-14",
+   "check_out_date": "2027-01-19",
+   "adults": 2,
+   "children": 0
+  },
+  "search_information": {
+   "total_results": 1449
+  },
+  "brands": [
+   {
+    "id": 18,
+    "name": "Best Western International",
+    "children": [
+     {
+      "id": 254,
+      "name": "Best Western Premier Collection"
+     }
+    ]
+   }
+  ],
+  "ads": [
+   {
+    "name": "1926 Le Soleil Hotel & Spa, Sliema Malta",
+    "source": "Expedia.com",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/ac238c97-1652-4830-8da8-bb8d8883af88.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQBRoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YASABEgL3ffD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_1wN-M1oSgXeVC7NZvrKLoEzHYngA&adurl=",
+    "property_token": "CgoIl4fS26Smt8QxEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgoIl4fS26Smt8QxEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.909597,
+     "longitude": 14.508749
+    },
+    "hotel_class": 4,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQo41QfsYusLKgHHHpWoBla5fNhfI4Beb8g8U-zsfNXHujkSQ&s=10",
+    "overall_rating": 4.4,
+    "reviews": 1783,
+    "price": "PLN 236",
+    "extracted_price": 236,
+    "amenities": [
+     "Hot tub",
+     "Spa",
+     "Pool",
+     "Fitness center",
+     "Free Wi-Fi",
+     "Wi-Fi"
+    ],
+    "free_cancellation": true
+   },
+   {
+    "name": "Castille Hotel",
+    "source": "Booking.com",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/icon_184.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQDxoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YAiABEgLJMfD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_1RUEmiPkhsiw7qLpuM3XSeOgWyHA&adurl=",
+    "property_token": "CgsImdnqs8TnmsnYARAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgsImdnqs8TnmsnYARAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.895590999999996,
+     "longitude": 14.511705
+    },
+    "hotel_class": 3,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuDtjsmhY30d0BkkYfLV8QOLnTQHYFkZ1zJfEvKHijABFyyg&s=10",
+    "overall_rating": 4,
+    "reviews": 606,
+    "price": "PLN 459",
+    "extracted_price": 459,
+    "amenities": [
+     "Free Wi-Fi",
+     "Wi-Fi"
+    ]
+   },
+   {
+    "name": "Palais Le Brun",
+    "source": "Hotels.com",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/306127930749010778.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQDRoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YAyABEgKnlPD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_28IVAGAjNbPUORlF1PkTOanLjtkQ&adurl=",
+    "property_token": "CgoI562ZyJf1z4wgEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgoI562ZyJf1z4wgEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.900591999999996,
+     "longitude": 14.514211000000001
+    },
+    "hotel_class": 4,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTk9Y0IjRVHR4oFJSf3E2KtEDldtXzlI9e74ai-C5giSCUsGg&s=10",
+    "overall_rating": 4.8,
+    "reviews": 435,
+    "price": "PLN 681",
+    "extracted_price": 681,
+    "amenities": [
+     "Hot tub",
+     "Pool",
+     "Fitness center",
+     "Free Wi-Fi",
+     "Outdoor pool",
+     "Free breakfast"
+    ],
+    "free_cancellation": true
+   },
+   {
+    "name": "AX The Saint John Boutique Hotel",
+    "source": "AX The Saint John Boutique Hotel",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/292016af-c15b-4d49-8378-586230ae1051.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQCxoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YBCABEgJGVPD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_0-rqANj5t0JJjJJFQyFZT5DJnnQQ&adurl=",
+    "property_token": "CgsIvte67_WO_aKtARAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgsIvte67_WO_aKtARAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.898700999999996,
+     "longitude": 14.515081
+    },
+    "hotel_class": 4,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9PnlUgRdY4B9vMTIgFimbpvIbaKSBp1ssANgJB5f_6yJriw&s=10",
+    "overall_rating": 4.7,
+    "reviews": 215,
+    "price": "PLN 562",
+    "extracted_price": 562,
+    "amenities": [
+     "Free Wi-Fi",
+     "Wi-Fi"
+    ]
+   },
+   {
+    "name": "Grand Hotel Excelsior Malta",
+    "source": "Grand Hotel Excelsior Malta",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/icon_default.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQARoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YBSABEgLevfD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_1iNPv5DLcV8fKo8dwpFznRpeV0pA&adurl=",
+    "property_token": "CgoIzuWhytbGxuwsEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgoIzuWhytbGxuwsEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.896862999999996,
+     "longitude": 14.505095999999998
+    },
+    "hotel_class": 5,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkWzT9M17PIWHEDWeKyZ6UUqMHh8MYYzZNlZmgtKyT_l--Lw&s=10",
+    "overall_rating": 4.4,
+    "reviews": 4708,
+    "price": "PLN 535",
+    "extracted_price": 535,
+    "amenities": [
+     "Hot tub",
+     "Spa",
+     "Pool",
+     "Free parking",
+     "Parking",
+     "Fitness center",
+     "Free Wi-Fi",
+     "Wi-Fi",
+     "Outdoor pool"
+    ]
+   },
+   {
+    "name": "1926 Les Bains Boutique Private Spa Suites, Sliema",
+    "source": "Expedia.com",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/ac238c97-1652-4830-8da8-bb8d8883af88.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQCRoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YBiABEgLI1vD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_3R9fppm5Hg329uHEPXRqDRkmaVwA&adurl=",
+    "property_token": "CgsIp6PBjpH8vt2_ARAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgsIp6PBjpH8vt2_ARAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.90968,
+     "longitude": 14.508424
+    },
+    "hotel_class": 5,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBXv-izD2-F4V25vTHr7RSrHI7HgAI7LfqbRqA0ie1CO0FIQ&s=10",
+    "overall_rating": 4.5,
+    "reviews": 105,
+    "price": "PLN 557",
+    "extracted_price": 557,
+    "amenities": [
+     "Spa",
+     "Pool",
+     "Parking",
+     "Fitness center",
+     "Free Wi-Fi",
+     "Wi-Fi",
+     "Outdoor pool"
+    ],
+    "free_cancellation": true
+   },
+   {
+    "name": "Courtyard by Marriott Sliema",
+    "source": "Travelocity.com",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/icon_185.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQAxoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YByABEgIwAPD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_0Qb3c2N5pzNJM-PXUGBmY3u-_RXQ&adurl=",
+    "property_token": "CgoI0PjV-Zzk1JpgEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgoI0PjV-Zzk1JpgEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.914071,
+     "longitude": 14.506004999999998
+    },
+    "hotel_class": 4,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCSlECr0nOVf6JZ3no5Yf9HVYO-R9RJ9nuSnF-MWk9tfOZiw&s=10",
+    "overall_rating": 4.8,
+    "reviews": 460,
+    "price": "PLN 299",
+    "extracted_price": 299,
+    "amenities": [
+     "Pool",
+     "Fitness center",
+     "Free Wi-Fi",
+     "Wi-Fi",
+     "Outdoor pool"
+    ],
+    "free_cancellation": true
+   },
+   {
+    "name": "1926 Le Parisot Boutique Suites, Valletta Malta",
+    "source": "Expedia.com",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/ac238c97-1652-4830-8da8-bb8d8883af88.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQBxoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YCCABEgIh7PD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_279klKRLPooPEH3TWFzaevFPvXFw&adurl=",
+    "property_token": "CgsIssXFpe-Kq4KPARAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgsIssXFpe-Kq4KPARAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.897397,
+     "longitude": 14.514154999999999
+    },
+    "hotel_class": 5,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2z4ai2JcW8ytQ0MN6Kwoa2y3moJijNkH82iTNyr_Zd-pxAA&s=10",
+    "overall_rating": 4.6,
+    "reviews": 99,
+    "price": "PLN 667",
+    "extracted_price": 667,
+    "amenities": [
+     "Hot tub",
+     "Free Wi-Fi",
+     "Free breakfast"
+    ],
+    "free_cancellation": true
+   },
+   {
+    "name": "Jean de Valette Boutique Living",
+    "source": "Booking.com",
+    "source_icon": "https://www.gstatic.com/travel-hotels/branding/icon_184.png",
+    "link": "https://www.google.com/aclk?sa=l&ai=DChsSEwi4veDZ4p2XAxV9TkcBHbGqFIMYACICCAEQERoCcXU&co=1&ase=2&gclid=EAIaIQobChMIuL3g2eKdlwMVfU5HAR2xqhSDEA0YCSABEgIOAvD_BwE&cid=CAASuwHkaHXgzjHtDvSvB9YLDyxnPd87Jr-KzwDd2-baxPdd-G0Lx3O1uzp7YCU-NXVVBTnySfo6O9Fo1Z_tFvaffuxWlbYyWs_vDqvTwaSCZPXYbQAPOmVfzPOGkTeaq6hNDFSjtxwEEXZd_MUJCd0EWAsDI9Dobt9OrLwVH9ujzbiemUMoggTJDP-ilED7MoUUquB2jCC7B7-iBLS8ZVGy2NEqBexKzAEU2l8kyhbg7MjJ2icaJx1tsDZR5z5e&category=acrcp_v1_48&sig=AOD64_2mzcAwTEe7vvorrbGNgX_raXS3Fg&adurl=",
+    "property_token": "CgsI75idiI2G-LHcARAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=CgsI75idiI2G-LHcARAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.896938,
+     "longitude": 14.511379999999999
+    },
+    "hotel_class": 4,
+    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSM5OeTc-cCjCDPQyTV9wGUdd6JuhFSaHI2o_GR1tpIyDekwQ&s=10",
+    "overall_rating": 4.3,
+    "reviews": 161,
+    "price": "PLN 504",
+    "extracted_price": 504,
+    "amenities": [
+     "Pet-friendly",
+     "Free Wi-Fi"
+    ],
+    "free_cancellation": true
+   }
+  ],
+  "properties": [
+   {
+    "type": "vacation rental",
+    "name": "136 Old Bakery",
+    "property_token": "ChoQ4IGAxcuKka2YARoNL2cvMTF3cXZmbF9mbhAC",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoQ4IGAxcuKka2YARoNL2cvMTF3cXZmbF9mbhAC&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.89920425415039,
+     "longitude": 14.512079238891602
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "457 PLN",
+     "extracted_lowest": 457,
+     "before_taxes_fees": "415 PLN",
+     "extracted_before_taxes_fees": 415
+    },
+    "total_rate": {
+     "lowest": "2.287 PLN",
+     "extracted_lowest": 2287,
+     "before_taxes_fees": "2.075 PLN",
+     "extracted_before_taxes_fees": 2075
+    },
+    "prices": [
+     {
+      "source": "Vrbo.com",
+      "logo": "https://www.gstatic.com/travel-hotels/branding/icon_1850600648__vrbo.com.png",
+      "num_guests": 2,
+      "rate_per_night": {
+       "lowest": "457 PLN",
+       "extracted_lowest": 457,
+       "before_taxes_fees": "415 PLN",
+       "extracted_before_taxes_fees": 415
+      },
+      "free_cancellation": true,
+      "free_cancellation_until_date": "Jun 15",
+      "free_cancellation_until_time": "2:00 AM"
+     }
+    ],
+    "nearby_places": [
+     {
+      "name": "Arcisqof",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "5 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "25 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "30 min"
+       }
+      ]
+     }
+    ],
+    "images": [
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/4you4KNd-rHof_0w0YRBtc3qx1D0wXof6MjqZAloC6fukLvRSSPsfM1O-sCLq-Atm_w_GtL-deAEYlq_7EfC_L_hEO-MVNbGaJSyiujSBHfsYztdwEwAD0SvOiAdHXR3Yl7Ym4Q4Ugb1-be-VbBmo99pjZ3wQA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/109000000/108150000/108140600/108140591/afae6ed4.jpg"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/IO1wTZjSq-ZwDyBFPkeJDLBb-pgfOe8rSMg8d9akA098MStbISlSwbNuKNc01F0DImgHxE0-CZZHzvO6obOzpjnumgZTf0uZcFELT1adUn02yR3zKXJmWpEgtBIg4oCmb4lDjTTuVlSDneTOFKUa-Bj79sV_vg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://p.fih.io/v2/nSr0o-3gbZN8o1xMecXCcG-BkDeQVo3k-wOeVogkTe7ajuFOX7O-WA8aRWhXz1jsToZif_TsA_xCWfhWRa0ZkKe2vzdwzyMdEy-FX4JlsGrmqUbuJLW4uTLjFbXataWDFR9c24y8LHurJTF4en3ketkYyx1j1dLbUfhlOgkNcIcn9PwNtk_AU2csbUk6dd9sGqAEVmr2qjQMPI095Pdv3pEtFPIxOxxOPC-YWoFEg4yVvBh63nG9m-EOYdDa2mQdKPhey0EzzJHoqbVDLkqv_4S58aiSYU8b-v9HlOObe345FS13HSOYXvQpRek9RwhY8ThxMhxmQibyYUENqAsC9106XlqiZ36zwce-jQk"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/C93zsJW92qGUTPIF6X5baIyKvk4YYXwZYUuJ0wopahBLIlHsk1dp8Q3H7ETG3KmzyBmp0wteY7xsfHHC0BavZuwygdu2YsDB2wObIM1eqZ6rmET3vTy9TfZV4LpDOaLm8Q43VRbQRNhJpUQeb6NNe4CvXox7Nw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/109000000/108150000/108140600/108140591/56c02aa1.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/SJPUg212d-oTcl8LYJE0YS4YlGAkrJrON5uLrX0nwTXk-3IignQs26FH-dQBn76J7LD0LXYl_A6R2ho0OJ0ony9hXmzE85xBB9ybeugZwCSxULjP1fb5Jzb0vM_O6ttz_YZSqZRDyvZzThVyaoyuHvH0eYjmu-k=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/109000000/108150000/108140600/108140591/3d2b5953.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/TDY9_Bwpw41fBOLKJoUllAqPbk4J5tDhfEofa9ddFvmxv3s2vABs8ezMIXu-mLMIEUPc1CTjlWVSxlpcsFkcGlfgfJ7oa0VfhdHXZWYj1vHFRK6LoAFMhcRLgYDB_uS9Ws0Rl7semPdxT8OYXnHl64dOvDKGDNw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/109000000/108150000/108140600/108140591/7acaf20e.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/5cD66lYYTTzun45KDBwPNGaAdaSJBLNGHnpGm1_qrBKmBPnnj8AtPuk_ADo1WysH-PKx3qS0DT4S7r5j-fEsGQrTYY04AAf8lJs7Qy12-kkeknHmIvy4NybuGrnLlWVEeVdkHaGQtMPFxOiCqYSO8X_Ug0q9GA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://p.fih.io/v2/nSr0o-3gbZN8o1xMecXCcG-BkDeQVo3k-wOeVogkTe7ajuFOX7O-WA8aRWhXz1jsToZif_TsA_xCWfhWRa0ZpreYnXcq8XU3BzqpcbJ2yTP9kWDIDuC_hTzeMI_ckLevQghF9pHuF3befjF4en3ketkYyx1j1dLbUfhlOgkNcIcn9PwNtk_AU2csbUk6dd9sGqAEVmr2qjQMPI095Pdv3pEtFPIxOxxOPC-YWoFEg4yVvBh63nG9m-EOYdDa2mQdKPhey0EzzJHoqbVDLkqv_4S58aiSYU8b-v9HlOObe345FS13HTfQdPU9e8M8Uw9m8ThxMhxmQibyYUENqO7GmmCcZdUQCS9LCPDEgoA"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/FiMsXGu3kLO_ddjx83_3LKJnDs6UPxrWeY77zWbtaWx5HDnMi_Mwo1TisARCwBnKapfayXfBloqfQKQk01NdFZhFHYvbAtMfFLVxJ2BriEKSLIOWccUJ5nLSHtuob2GZakX0eEJkbXmVz9kHzrrTlDpoxabuHDo=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://p.fih.io/v2/nSr0o-3gbZN8o1xMecXCcG-BkDeQVo3k-wOeVogkTe7ajuFOX7O-WA8aRWhXz1jsToZif_TsA_xCWfhWRa0Zi5aLowg2v1EKaUi1fptP8SvnsmHxEqmt_jXgA5KovqyYNF5ozK3tKkzXdjF4en3ketkYyx1j1dLbUfhlOgkNcIcn9PwNtk_AU2csbUk6dd9sGqAEVmr2qjQMPI095Pdv3pEtFPIxOxxOPC-YWoFEg4yVvBh63nG9m-EOYdDa2mQdKPhey0EzzJHoqbVDLkqv_4S58aiSYU8b-v9HlOObe345FS13HSClfPY9RfE9U1dA8ThxMhxmQibyYUENqGPqsgQdxajCGI9JhY01nfQ"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/4eArQYTxwg5p8LUeiC6uCwX3gYFldumMjiHPh3oYiKcoaPCj9KOQ4fIh_gWoNlHX_dEoXKmHED6S3V3NkRRrHBYrKP3QSiokdqZkG7-p5rlTDHw0nzCwGqgs5WQDU19IJhLevcsK_YT81Lb7sPHkdzNPoYrfwA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://p.fih.io/v2/nSr0o-3gbZN8o1xMecXCcG-BkDeQVo3k-wOeVogkTe7ajuFOX7O-WA8aRWhXz1jsToZif_TsA_xCWfhWRa0ZocDu5wcV1yIQCTuzY7pbshvRk33DApGNijLyAZTHvpnsSF4J1bnBNmz3CzF4en3ketkYyx1j1dLbUfhlOgkNcIcn9PwNtk_AU2csbUk6dd9sGqAEVmr2qjQMPI095Pdv3pEtFPIxOxxOPC-YWoFEg4yVvBh63nG9m-EOYdDa2mQdKPhey0EzzJHoqbVDLkqv_4S58aiSYU8b-v9HlOObe345FS13HTeYfPY9Vf5jRTJY8ThxMhxmQibyYUENqL2h43af2n3Pih8RwlEsqLw"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/gQM0FtHXXo1YSTJZlGkf9aM_jpyePIiUIvCQPgVPz9X8Y7PlHHjcxv1xnFKvI7HWCUnn0-8mut6E35ldpFHZD8rJg9_inONAR6_JIaZnxSzWrXbQhOja2c48e8d6PgF0AwxzgZVaqnsxUt1FORUFog9XVNHeJYI=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://p.fih.io/v2/nSr0o-3gbZN8o1xMecXCcG-BkDeQVo3k-wOeVogkTe7ajuFOX7O-WA8aRWhXz1jsToZif_TsA_xCWfhWRa0ZjMq3tnhw3TtnLCmxYZVVwmefmWPSL7ysgivsM7Thl5_iTEtvyfDeFAvPBzF4en3ketkYyx1j1dLbUfhlOgkNcIcn9PwNtk_AU2csbUk6dd9sGqAEVmr2qjQMPI095Pdv3pEtFPIxOxxOPC-YWoFEg4yVvBh63nG9m-EOYdDa2mQdKPhey0EzzJHoqbVDLkqv_4S58aiSYU8b-v9HlOObe345FS13HSCPbL09a_k9UwhY8ThxMhxmQibyYUENqNUUt13eD4T6PS6hEB539Fk"
+     }
+    ],
+    "overall_rating": 4.7,
+    "reviews": 172,
+    "location_rating": 4.8,
+    "amenities": [
+     "Air conditioning",
+     "Elevator",
+     "Heating",
+     "Ironing board",
+     "Oven stove",
+     "Smoke-free",
+     "Free Wi-Fi"
+    ],
+    "excluded_amenities": [
+     "No indoor pool",
+     "No outdoor pool",
+     "Not pet-friendly"
+    ],
+    "health_and_safety": {
+     "groups": [
+      {
+       "title": "Minimized contact",
+       "list": [
+        {
+         "title": "No-contact check-in and check-out",
+         "available": true
+        }
+       ]
+      }
+     ]
+    },
+    "essential_info": [
+     "Entire apartment",
+     "Sleeps 2",
+     "1 bedroom",
+     "1 bathroom",
+     "1 bed"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoQ4IGAxcuKka2YARoNL2cvMTF3cXZmbF9mbhAC",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoQ4IGAxcuKka2YARoNL2cvMTF3cXZmbF9mbhAC"
+   },
+   {
+    "type": "vacation rental",
+    "name": "Valletta Apartment with Harbour View",
+    "link": "https://www.booking.com/hotel/mt/valletta-apartment-with-harbour-veiw.en-gb.html?aid=2068758&utm_source=seogooglelocal&utm_medium=description&utm_term=hotel-9519867&utm_campaign=en-gb&label=seogooglelocal-link-imagesaow-hotel-9519867_grp-3_gendate-20260930",
+    "property_token": "ChkQ6b3Ni6GPsp9KGg0vZy8xMW53N2M5ZF9zEAI",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChkQ6b3Ni6GPsp9KGg0vZy8xMW53N2M5ZF9zEAI&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.89524841308594,
+     "longitude": 14.513028144836426
+    },
+    "check_in_time": "2:00 PM",
+    "check_out_time": "10:00 AM",
+    "rate_per_night": {
+     "lowest": "365 PLN",
+     "extracted_lowest": 365,
+     "before_taxes_fees": "338 PLN",
+     "extracted_before_taxes_fees": 338
+    },
+    "total_rate": {
+     "lowest": "1.824 PLN",
+     "extracted_lowest": 1824,
+     "before_taxes_fees": "1.688 PLN",
+     "extracted_before_taxes_fees": 1688
+    },
+    "prices": [
+     {
+      "source": "Booking.com",
+      "logo": "https://www.gstatic.com/travel-hotels/branding/61aadbe1-e141-4d2e-a831-b6a18727e130.png",
+      "num_guests": 2,
+      "rate_per_night": {
+       "lowest": "365 PLN",
+       "extracted_lowest": 365,
+       "before_taxes_fees": "338 PLN",
+       "extracted_before_taxes_fees": 338
+      }
+     }
+    ],
+    "images": [
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/nNvnyfHryaA52sf85UMJasFdt_yQ0zjNTlRWbaljBDnrogPQqc5vJusnAGrraS294J-VLXIyJ_Uqeeo1Cnpt4kdBNKT2CWLHxPXTFJLiSLpq0A7wVOmKkj_5QTV6d8PEY94s3OAob5WQGUSl5cNBGdxM9L5fi6s=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU-Aea-hzxynSYkHrDtSvQCLHm12bBsIG4rqjH48y0uzPoOGXOoLPdJEDSEld-fUQi9ziCOdUGnmn8HqlUYuMf64lXtmP9XAWpjjKhf7cxw==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/iFYoHddxPwdvc1nvRAQku_LLg_Xxix4OxEjwWKU3OUApMdJQdCJtRcv0VXUrGEo3oMNGaWttBEdkB3qqWijyrCBshza2md6Y88QqrpmZqezcpqJVCXrnExl9ztPYXTq5SAuu6QLyCu2gDFxbC7SnYPccThGHQw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU0RSTsW8TOliwxPRA7k9Wlq9Q6Sq8-JLWczr2nLT1m4EusymPFSCknat9EhsOTCx5iyza-oqQxRjwH8wrCWEPgeO26dNkzS2kW04qjVkPQ==.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/e-V0-R8BxE3yn99DwHrMNFcdL6GeUVcYvHSKiTr09sZyHE1_re7ISLAVwXblfKPoN97xBcDmHBtNx9PsNLz5bNo0Z5wZTyi17B1FUZbwxyEzf4EL_bopX0830dH8oIlJ9CfmTnulapfnmW6aImlaoLSHR2eLdhI=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU9sYJggKM_HwE0DtOeH8xmak7CDFMNDFUofnkuinHagutYELlr8i_2GiADtqQrP6xa8k-YhqZLNPd1XSu_bhulk7yyC5QHcHm2BzLtgWbQ==.jpg"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/ET8dPUbHs6LnaCOrtbkB7if1rvwahOXwXLkjyT-shLgejy4eqcGogMfk3s-5KRFzCmncGb9CdBBl2gsAGXtmwYRh5BuVCoG0uoO7gevauRSmchdD8BTkd5Hv3Qh4FWF0L6X0ltWjNpcNllZA9EkCz7H-IdVn_w=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU9HQdCNBTmx1CnAVrWMc0izstB5yTLlq0Hkn8DbQCcaGgBIdTdLtnA3Sf53k3KsgWKXnJCx7JX8gR_2qUfmVt0qEkXaru_nF9frvLqn1Lw==.jpg"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/NdAVTjBUzyuo_-W1luvtSeqDdWJlXiF_j7ljb-NByhB3mduz947bYZEGJ9_0We2ghTiMMQl3JvGZddKySDjL75C8Inl3oytTnVlHMq2TG18LJ6zAsjLbOpiA3id6Z38giu8IE4NJ_2gNDhsUOeI5Lvzw6NoaCw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBUw_9FSeRrHyJzakU5wTn9gBt1gy3FjCYgTCGub2LPOrRgY-4q_Yz0KfkeI-A8bPTVtIlACOVizd2GF6NByqktmqwuw31SHNG3Do6e2YiBg==.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/aymfVNlhLfN1gXJHa0FSXbsnumyJfWUV6dVywTGnRzxAibyvhfj5MpyOuzoKXC-BitUSZWyr37eitSVaXaVzg0cLWkOCz9FIf8_QMgZ__BsdBXZKzIXke8jFSIjd1PN0s_NzFrrn53YX8tuxXfi1VpKkDNkpmNk=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYG65CxyC0DxQEWLgqmOYI7U3wIK-djBxrHLeDiqz7Km_OEozHlTa8xAtg40VfJz1MzvhvzXRHCXCzXC_nMW2HG-7IVqo4TCDgZZdPjtMS3nR2awzhnbg==.jpg"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/M9Aaa8J4fpe4vlqsyewYGZDAhFKA7Jdbj__YHOZAIEb6obFS1W4YpG51Zn3WO-AZwpb2HZeefoVwJ02IbBYj57EWUW94CxkzwoDkNxyO5UksXhs5Xyv-afaD9AnSFVJ2bUAIjt9qHbpnVpKzsLIQk34oSOgPpg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU_H51BrXQNHBstpCsGc-jlqbBlv2XMnfPibiLcpT5PjrNk1wJtbXbL3o8RYpU7iLkcadIGUnV8oamaAuxS-2STnGtuCkvz6-dsg310vU8g==.jpg"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/K9zocBxlWc0v1QFtQfAoVF-j5LWZ10R_vtD1h3IyEpv_dKYtdcSfmthXVZdfi57aqIt5THQuiQD-IqRnqviG0UkqneoDx8wNIPWwWSem28UUKWnqWkdesLiF3CHZm1Z8tIECHpjtmSZuOp9Uwgq1HdzB4NvOwQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBUxGgv5ZlCBGpCusQL8P5TszPAW59AWcqXzqieQLSp96cIv_SqmOlMvHebZiFC3p-ddATXMtewqqsXZEsD_hmgdqrt2ywwkN7kX9kS3Fmlg==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/guq-_EgYQd14EKKUoYfzMw7NNQzg4wNgiNB2Wew2F-waPXQnOI4Y6fA9lnVwX4qvNPZnbKiNZqmO1uQ2dptZL-WlzkVow_gxm6RbecfF-BP3CMu3QaPHp0zQ68XGhOmCE5LVF88sXTEEvo__-aRoTYm5f-LDvA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU_sa1XNwkKpFHA3eGfUZusYc7xCIEem2IQvoN8apilhHQgDTfFNhpwE67HQs8gQjdbZE6EunDlZMqEmx4ORGzrmxEn-BNZZEWaOcKIWehA==.jpg"
+     }
+    ],
+    "overall_rating": 4.35,
+    "reviews": 132,
+    "amenities": [
+     "Air conditioning",
+     "Heating",
+     "Kitchen",
+     "Microwave",
+     "Oven stove",
+     "Washer"
+    ],
+    "excluded_amenities": [
+     "No crib",
+     "No elevator",
+     "No fitness center",
+     "No ironing board",
+     "No outdoor grill",
+     "No patio",
+     "Not pet-friendly",
+     "Not smoke-free",
+     "No cable TV",
+     "Not wheelchair accessible"
+    ],
+    "essential_info": [
+     "Entire apartment",
+     "Sleeps 4",
+     "1 bedroom",
+     "1 bathroom",
+     "2 beds"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChkQ6b3Ni6GPsp9KGg0vZy8xMW53N2M5ZF9zEAI",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChkQ6b3Ni6GPsp9KGg0vZy8xMW53N2M5ZF9zEAI"
+   },
+   {
+    "type": "vacation rental",
+    "name": "Charming duplex house, cinema room, Valletta centre",
+    "link": "https://www.booking.com/hotel/mt/duplex-traditional-house-in-valletta-centre.en-gb.html?aid=2068758&utm_source=seogooglelocal&utm_medium=description&utm_term=hotel-13500563&utm_campaign=en-gb&label=seogooglelocal-link-imagesaow-hotel-13500563_grp-3_gendate-20260930",
+    "property_token": "ChoQlf6h_7j8hqGoARoNL2cvMTF6NWNnd3lqcBAC",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoQlf6h_7j8hqGoARoNL2cvMTF6NWNnd3lqcBAC&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.900333404541016,
+     "longitude": 14.513099670410156
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "10:00 AM",
+    "rate_per_night": {
+     "lowest": "467 PLN",
+     "extracted_lowest": 467,
+     "before_taxes_fees": "426 PLN",
+     "extracted_before_taxes_fees": 426
+    },
+    "total_rate": {
+     "lowest": "2.333 PLN",
+     "extracted_lowest": 2333,
+     "before_taxes_fees": "2.130 PLN",
+     "extracted_before_taxes_fees": 2130
+    },
+    "prices": [
+     {
+      "source": "Booking.com",
+      "logo": "https://www.gstatic.com/travel-hotels/branding/61aadbe1-e141-4d2e-a831-b6a18727e130.png",
+      "num_guests": 2,
+      "rate_per_night": {
+       "lowest": "467 PLN",
+       "extracted_lowest": 467,
+       "before_taxes_fees": "426 PLN",
+       "extracted_before_taxes_fees": 426
+      }
+     }
+    ],
+    "nearby_places": [
+     {
+      "name": "Kristofru",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "5 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "25 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "35 min"
+       }
+      ]
+     }
+    ],
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW01XT_P2fZ9EDD57otC18Yu5UlYsGheOde9c1GCsmREMAz3h-McmzHUf8ly6Boj0kP4OPGM9w_wlDQaFCkX_0zvxXA7okAd2XEhR0PCEOZ9O7aJ6W9IvUt36gA6RC2-qDy3C8mfdCfrHZyt_AwzwxwfEuY-POPkDyD63kFKtPSfcu1OSP36tOCwgw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU2-5BhKYNrHxMo9VHJb9yBA5SrciwFfXOC6yx51_7LA8ghhT3YeMoI3tEyPVmdGbj2SklgWyOxHSB0cah8BZuhJZUJpdRIcchCPeYkZqdg==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3n9VaBPHzdRJHaPNUu6y-9gnzaN8r5qKlrhiVziMwAU0PIKIo5vQB3uBch333cU1PmGap9lsBoY0heO4L9iAR-avKLTf-vgODwXZJma8OSYsb8MgzIt1d58GjKpjq2IPHInAyRhOnFo6rT98NmtGtf7T-iUe19Zy-XwD1zXfAdynjIRxF5Bv4=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU2I0H6T9qsTs2tGUy-RRyklBPPQzddTbABb2yK_xJGCNldjOJGMcNYSpFjlEA9T-GMCgvY5z9eL1gF7XRc57JirImHWnX30voyBD5OPIZw==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3dXw6gqX14XOLwZK3wOb7gToFdbJ02JUdNvbgJKYTb-pKNqKqHqDve4wyCw4wIAzO1ejj4AveAUiRLBzbCsaOCNoGwnwZAU0Ie8wnXTxTs9GVgneanzo1YnOP-QaVm9ZcsdQ9R-IXWdw1ksnKAZdo53tHEF3zRIuH1ah9Gn8_mzZTFD0Axq5_Y=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU34DrH_GrljhfPvss6xGJx_JuHNcidFLyxCPtWE7G1RIgx8vennyjrtrPG9FQ08Nyno_YTmcKCeO5o6GG-HDClkx-_hGZ0zNZcsPSQDewQ==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2TIhgT9dJcNzuw-sybHyRT2d7XgWJhtq1p9pF6yX_xHy5rQ2CeJWELGakCwRCr9tto_0m46wN36uRYS_jkIgHLdG1EdLf6_1FKH_stigRu5F8bGEkp46elm0c1hOK7RpC3amy0oR6JBFWRpmEdf7LdwmR1PARSJOv8taL2mG77RR2xB4HBTSzl=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU5UcsMSddYbgeqOQi3gSDqqU-FJYBQdsPslCGcauOsqXQt4sXSiTfFIr_Vo2MkEcW-qrMMP-C6ghVV-MjyPW76-dehpvv2wUWt4sfE1ptg==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2c85wlYctfWh5NU0aOUQV5EKG9p3c6wWfb0T1U0GF0q8vDUCkQL73aGLp1COJMvdcnwhQeOvurL2VjaBb2K3IicUVYMiRgNnkJRlVENePXCC_l-SHX0t24c-Lc-eGg1Dh7Y3pqdFaDt9bNpAyLGrEmmt2HECUb-S7-uhxepmJJbSKPEW7g9tjp=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU4dr20X-W9vQpgziLhdJYrvc8eyOdbR50a1htrC5VCOn1fnxVDgBlTLXij7I8rmzNLtiobTZQOcJf3QUuTPUV7GKz6nNO67BhsTPukQj0Q==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2n7N56NnayXxMll0qaH40OMwmUndmR5PU6-N8wMQ-pTsKkKUL8Xz1qG5N7W4k9-z0ByIJQRQW7QMEQv3qD-S4IjaIs6AOiY4AUKeS4T0ZMXV2AEWbLACjZ50SE2U7Rqb5dE9mh5KWzZ_KODP2mkJxCBcy2sPRF_ujJKFmQ9cMBo9T2CF83EOWz=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU1P5j18Wq7bm85d0ftvgjkSkvdbUfiLh5-j_XkJtE-4BUi0DQUb8-Y-oe0oZGrBPjyMtsMKZJdru_cxswKx9Sf2zYnouf-rkZI3Dfzdi6g==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3yPl6fAsQU7eAsSJJHrAge_4rkLZnj85653a0f81Rr3Nf3Z1uCY9i2OOYvM0B9cP3WeAT1OvSxL2A6NSm710Sr9qKavXgW73MVz1hwrIHX1zQJC-z4Lex2SmhHK1o5W7Xxww6clXqVpRLMkN66_tlQF4tONbK4_o5CUm985JvagFEKckVaMRIe=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBUwe7YBF_6AkKwQ5RdRJlVDqAIetUkjtTL7_pCuOaSslyXCwl289aumPl18KuQeMLBeBoeKV02Ug6toSn3_Owcd-Xmy-AENdRE5I1X_ZwBA==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2qyM5eNwD_I8qHW375VX_n8NkcL8cctlKX_cGmzlsuOjBDwCskf8abYGdNh8igRSAraA-dhYDzONN5GAEAxhVfyxIrdDRKtCuYs6IT5ifOEuI_bautIcukvmd4Ppft7e-kjekRaSr6eJD040E3ty2ksL6s59h2iH-T8PnCWaGK1b0xnTekN0BO=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU8KbAYq_F1SIZaneXDtvuiLl_YYfK7POxHeeYeWsjdfQeQsa7E8u3GQ8FCobhqKRFl6C3yW_G21WV1vnyVx-3_3I5g5k7boF5i1qY5vBrA==.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0Bjjn7aBeOLP7uDhArS2K52d3liTNqJZzMd_A3i3q-VjMlBKmJ2dhWoTVka4fZoMubunckj26hWP9CyNTILANiv5KaIjXs0FIwxi_e6gnPfmIC0x5XVHBPCb_ty6e07JkuhMhOrwkgB-rTXxFZRt3721c8AzQdw5PGCqCggFnpdiqdJbb2rdIjAg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://xx.bstatic.com/xdata/w/hotel/840x460_watermarked_standard/UlYQ71XUYidBU365kQs-G83TtEAUJOaEf4d7iqXN3jC2b_UaqwqSaqQ8F9oml3AbqIE1gffEXUVSrzFgSoSENCWOsRat-fUXQ4anG-FxzzGPZKcdyRnryQ==.jpg"
+     }
+    ],
+    "overall_rating": 4.15,
+    "reviews": 57,
+    "location_rating": 4.7,
+    "amenities": [
+     "Air conditioning",
+     "Crib",
+     "Heating",
+     "Ironing board",
+     "Kitchen",
+     "Microwave",
+     "Oven stove",
+     "Pet-friendly",
+     "Cable TV",
+     "Washer"
+    ],
+    "excluded_amenities": [
+     "No elevator",
+     "No fitness center",
+     "No outdoor grill",
+     "No patio",
+     "Not smoke-free",
+     "Not wheelchair accessible"
+    ],
+    "essential_info": [
+     "Entire apartment",
+     "Sleeps 2",
+     "1 bedroom",
+     "1 bathroom",
+     "2 beds",
+     "70 sq m"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoQlf6h_7j8hqGoARoNL2cvMTF6NWNnd3lqcBAC",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoQlf6h_7j8hqGoARoNL2cvMTF6NWNnd3lqcBAC"
+   },
+   {
+    "type": "vacation rental",
+    "name": "Charming house in the heart of Valletta CPAC1-3 - One-Bedroom House",
+    "property_token": "ChoQ56i4kOGUjuPLARoNL2cvMTFrajVud2xyaxAC",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoQ56i4kOGUjuPLARoNL2cvMTFrajVud2xyaxAC&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.89657974243164,
+     "longitude": 14.512869834899902
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "10:00 AM",
+    "rate_per_night": {
+     "lowest": "409 PLN",
+     "extracted_lowest": 409,
+     "before_taxes_fees": "366 PLN",
+     "extracted_before_taxes_fees": 366
+    },
+    "total_rate": {
+     "lowest": "2.045 PLN",
+     "extracted_lowest": 2045,
+     "before_taxes_fees": "1.829 PLN",
+     "extracted_before_taxes_fees": 1829
+    },
+    "prices": [
+     {
+      "source": "Expedia.com",
+      "logo": "https://www.gstatic.com/travel-hotels/branding/384478467102568077.png",
+      "num_guests": 2,
+      "rate_per_night": {
+       "lowest": "409 PLN",
+       "extracted_lowest": 409,
+       "before_taxes_fees": "366 PLN",
+       "extracted_before_taxes_fees": 366
+      },
+      "free_cancellation": true,
+      "free_cancellation_until_date": "Jun 15",
+      "free_cancellation_until_time": "2:00 AM"
+     }
+    ],
+    "nearby_places": [
+     {
+      "name": "Gang",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "20 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "26 min"
+       }
+      ]
+     },
+     {
+      "name": "Grana Cucina - Valletta",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     }
+    ],
+    "images": [
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/WrvsO2_WvwqdWkUPy187L2n53Mc39pvTCBAz6VFmcFdUpE5qZtWwC9h7gRCLFfEw3AlFkAYTei7Huw6Rf9H0rn_7oc7-TRSov64tNdF3_kTJdMZjfuTUFfMml48kq_imTZOwkOM3dcAnFbZZ8VrVdSPgbMWIzI4=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://p.fih.io/v2/nSr0o-3gbZN8o1xMecXCcG-BkDeQVo3k-wOeVogkTe7ajuFOX7O-WA8aRWhXz1jsToZif_TsA_xCWfhWRa0ZpbzpvH8G_lF_CzmXF5pnuhXvslbgA-CC-QHkK5f0jensH15-1Je4M23iPTF4en3ketkYyx1j1dLbUfhlOgkNcIcn9PwNtk_AU2csbUk6dd9sHrY9VmP2oVtSPacx5dpRpY0tdfs0O2klORT9A5pSgO3ZvBhQ3nG9m-EPX8if2ko_a_hO30Ey8omsqLVfIEuB-8O4z6jWYXZ6-_xXsq6ZDWY6FEtgASOIVeAoDMd7awtI-XJidwhib54vrKwvDHbOAFSE4ZQ8Hw"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/GQ7mzhsAyyhXTbFm87w4exC0WoTxZOYryE2WuT9Ygaq36cUKA94eO11i70guQU6GYqmNy3EkK87k6_UYPnczbPB9F5pz6ai44vNcYIiMe8zoiKi4-mi-k4vRm10bRJOoQDKMraGYh8_EGQ_HRKqF5Q-s0-N3-Q=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/68000000/67370000/67362600/67362509/45eec30a.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/5okZsgR1CVgc6oWl8h2iQjr0sAKy2_W9tsSo1cjsY-KHteYyTbXy7WPVKzvyasi6IJDdsbxjYwt6JuQBNHoSkIGsqtUop2vPLzW9DgXNjabbOgzeuakZhzlXPE5ptO9f0O5BXRxxAtryFzXEXaI6B5gHQlM_Yg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://p.fih.io/v2/nSr0o-3gbZN8o1xMecXCcG-BkDeQVo3k-wOeVogkTe7ajuFOX7O-WA8aRWhXz1jsToZif_TsA_xCWfhWRa0ZrKq27yAbs29_bTm1TMdkuxjoi2fcEKObqyHuMrH9ge34EDdX85fLCwvfAzF4en3ketkYyx1j1dLbUfhlOgkNcIcn9PwNtk_AU2csbUk6dd9sHrY9VmP2oVtSPacx5dpRpY0tdfs0O2klORT9A5pSgO3ZvBhQ3nG9m-EPX8if2ko_a_hO30Ey8omsqLVfIEuB-8O4z6jWYXZ6-_xXsq6ZRVQ4AC5kATeYe-EoDMd7awtI-XJidwhi0xHXidEdv9SH1Wr5ioeRog"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/KpnJBtxU08ugdex9ui-OJN-9YWy3-4xjBYrfh9yxUWYS1FWZmwESa27fhySNYpdDV1r-uiuNsnqdgF0-mwjSP2O8zf3VoEfco0aKCJUvuJZZeIB4QJTwmJmrPz_s2Rtz5ZVlbmeOokwMuN5FZuQTUN3B5hEfBQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/68000000/67370000/67362600/67362509/9a4e7c33.jpg"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/wJL0wim_EnzWaMEJi3vbc_-I4zO93lS_CXicbrfy0iduRm9-9A-OhKQmenOpp3IJkVvpcSYbrwrl_fZs9LctJSJ_87Ewgqa4MRKzPOpfCTYWtNIBC5xSl4K36QlqeXu3jyvwz9YRJcxsaC6ud2F-Uk02jRCrSJg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/68000000/67370000/67362600/67362509/d0993be6.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/RYkG8Ca5Aaj1VmUOsoil3knCzTFVeyl1VjyyZ9AwXgnmIub7am1YhLVIDbR3SuEk4YHYiaKEuO3dD1hEEIPqOF2uZSwZDmGy3mbxqr09XMRyYplnzRyMHxMyRHVntryGZ0wjsenP5hM_Qe_dV65BzuDE0Yad5Q=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/68000000/67370000/67362600/67362509/7189870d.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/pHRLZqzpZlVpshw8iMfURL4206snYlkvYwAheJfywR3DNjrThm7A5e7vkMSpAyNWO6Z4N888sI9lAghk5kieqFCLUx7BpGRDlsxudfISdLWrZVf-LvlfCAFf_sCva0Ebre5WeINbl6kNysa4Ukt7i_FAa7YdrJs=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://media.vrbo.com/lodging/68000000/67370000/67362600/67362509/2caebb99.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/17lAl7mjXZz2WSkmhSs5BQhdmFbdoQ9pSPeJN5W2Md3nXkaPvgBZr385ozUIgAmNzzszjzuwbbOCj1fLzYFA0CsBdRkgkXM4Lt961GALpyrutraLOpqZOMUZbjNuDauo4nlkfPYgU7Kxnzge3O7LZKFo68RXaVs=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/68000000/67370000/67362600/67362509/8a04f971_z.jpg"
+     }
+    ],
+    "overall_rating": 4.5781817,
+    "reviews": 66,
+    "location_rating": 4.8,
+    "amenities": [
+     "Air conditioning",
+     "Balcony",
+     "Crib",
+     "Elevator",
+     "Ironing board",
+     "Kitchen",
+     "Microwave",
+     "Oven stove",
+     "Smoke-free",
+     "Cable TV",
+     "Washer",
+     "Free Wi-Fi"
+    ],
+    "excluded_amenities": [
+     "No airport shuttle",
+     "No indoor pool",
+     "No outdoor pool",
+     "Not pet-friendly"
+    ],
+    "essential_info": [
+     "Entire chalet",
+     "Sleeps 2",
+     "1 bedroom",
+     "1 bathroom",
+     "1 bed",
+     "22 sq m"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoQ56i4kOGUjuPLARoNL2cvMTFrajVud2xyaxAC",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoQ56i4kOGUjuPLARoNL2cvMTFrajVud2xyaxAC"
+   },
+   {
+    "type": "vacation rental",
+    "name": "Unique townhouse in Valletta centre",
+    "link": "https://vacation.beyondstay.eu/listings/429479?googleVR=1&utm_source=google&utm_medium=vacation_rentals",
+    "property_token": "ChkQjdSoiIXIo60xGg0vZy8xMXkzbnN6c3Q1EAI",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChkQjdSoiIXIo60xGg0vZy8xMXkzbnN6c3Q1EAI&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.897884368896484,
+     "longitude": 14.5159273147583
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "10:00 AM",
+    "rate_per_night": {
+     "lowest": "465 PLN",
+     "extracted_lowest": 465,
+     "before_taxes_fees": "465 PLN",
+     "extracted_before_taxes_fees": 465
+    },
+    "total_rate": {
+     "lowest": "2.326 PLN",
+     "extracted_lowest": 2326,
+     "before_taxes_fees": "2.326 PLN",
+     "extracted_before_taxes_fees": 2326
+    },
+    "prices": [
+     {
+      "source": "Beyond Stay",
+      "logo": "https://www.gstatic.com/travel-hotels/branding/3098747586834993771.png",
+      "official": true,
+      "num_guests": 2,
+      "rate_per_night": {
+       "lowest": "465 PLN",
+       "extracted_lowest": 465
+      },
+      "free_cancellation": true,
+      "free_cancellation_until_date": "Dec 15"
+     }
+    ],
+    "nearby_places": [
+     {
+      "name": "Kavallieri",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "5 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "25 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "35 min"
+       }
+      ]
+     }
+    ],
+    "images": [
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/iDLbUAlQ4drkI3pHnY-XqO49NzkFA-RyzZn9hNDsFWQHM7Vdhn20MMbSpCkRxs-D3CnliGB5fCLDigLuT6Dy-9q_eGc67UCRl-n8A4N82-MZlLYtTKLO1KtPZeS9dD9Y_IaboCHV-7h4ystZjJEI1MSyAJQt2i4=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://hostaway-platform.s3.us-west-2.amazonaws.com/listing/57148-429479-WK--3MF0wMgbHG5Al--PCus0uKPW2VoycEZ8Ey5ef6FNw-68b85b220dbc1-medium"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/wzqMPbqBubqa8PuQ9vItghVrCgYPTobKyZtVN4qHRoo5VxBWQOEvVXIy4Xr8tQf4lWshhWc0VnwgGuetkhjC_Ehh1SX-zcd1HLbIMfqGk-Y8JmFql_948C5ywsNQ8j0waddhpdiwe9g_E10Rfk7Gs-qG_H6N3Q=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://hostaway-platform.s3.us-west-2.amazonaws.com/listing/57148-429479-YsLfG--8ZgpZr--MK67HzrrJ7hJIIhD--j4y5gSkzIecrQ-68b85b03390a5-medium"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/ailUWmxcxEdCkn1dfsvTyr4XCuXbB37KejTMbCdmCi8Zi-b62q7bkD3U-2-U8iryxLM208dQX6eS6s0MPTB-1E8WVmgSFyIyd4wJhnLtlK3qldoW0U-uNnrqsW0jkhfmfAA57o0mqbDGb9XGl2SZ1OXrzk7PLQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://hostaway-platform.s3.us-west-2.amazonaws.com/listing/57148-429479-0VLnpUdIfwoWBk2MyuWj7nunBZul8--1k31Uk4CzLTD0-68b85b17970cb-medium"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/OkrPyenavPekpwEiAADcmsUWws6Kz6c5iCg1uuGKdKXvG-HEw9u8iMtQrVOpvFdkzNbfgcqRl8jkyaGGM48_tfyc77PoeNtJSBohjEkBonCPr2hgGe5ndodau0MiLgIUgGRHcHfJHsGpPHuuZGsKxId2SKj_Q2M=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://hostaway-platform.s3.us-west-2.amazonaws.com/listing/57148-429479-1thLYmtc2zEJY7oCeY--Bpzswq--7FN8p7ecsMGgeEZdI-68b85aae3092a-medium"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/e_i9kMKLWncXJpJdHVnSeMAI8n6cfYcWbuxga3QfXBMdW5iomyZUMoXgfEdP6XJTONwSn9k9GuARRDeQ58zBPemj5h9K8zq99dmK83JwjR9EeYYZGoc4H0XatJxUWPYqoYjZXu_nYk_Fqh8xP7gyctAc8NL_EZc=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://hostaway-platform.s3.us-west-2.amazonaws.com/listing/57148-429479-RpnayqdIgeLeUNfrXIKqR48AdpM64UEBrWttJRaAvBM-68b85a9bed176-medium"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/X_9WwFP_Qf8aKSKlz7-lFAGBDV-zW52NBudWCeVk2qu6f9FzS4dssmtXy5c1-P9rRpx55xzG741HIvqQq4BoqKAw3ky8lFAn17ylz7tJRcPRrRv6wzlzEBn7LUh1Lk3vZ2ywEQDCnv8mZHgSSoxMAV_hv1QBnw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://hostaway-platform.s3.us-west-2.amazonaws.com/listing/57148-429479-yg2aGlnrD8NEXD89rh954oXpDATP7--puVpt8MOy0v-c-68b85a9390a88-medium"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/TYRWn2aVKbDrefrgb6hdoDWJypSTMhCInPCv73ZM27SFzmobabcC9I2HjOCURa1c2T8AOlF-nhHFavpTctfsNHsLOIOfGENyAt1PNuh1QWLVDypVzmxMCVmn35I5uoBdJskucI-YCtMpVOrYQqhRQTb6bWaSLg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://freecancellationscdn-hsbgcwfragasdpfe.z01.azurefd.net/remote/static.cupid.travel/hotels/425133904.jpg?w=1024&h=683&mode=crop&scale=both&anchor=middlecenter&quality=80"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/jBV3JIA9eYxnXYzXrvYJspqG-M6Wl-QzaIHEtggmfhM_aUzyje3hF9CzYBOlE5rxUZBFlsE6tmjFARVFnv3AhFEIcnVEDcS8lvFTRa51UAoxtAckITpRXg3TVUw1JrQs_CSEHqL23JqKT7tjppaRBaiyyRVofwE=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://freecancellationscdn-hsbgcwfragasdpfe.z01.azurefd.net/remote/static.cupid.travel/hotels/425133985.jpg?w=1024&h=683&mode=crop&scale=both&anchor=middlecenter&quality=80"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/5wzmhL2sc0a2V1nhZVKeosu156lXBwdQKZxI09oGwJs36T1MpgfuQus_URN4no2Nw_TNM09e6FSMCQ6YEf6KZWVPHiFS8PC8keCn8sWh68FkhKm7i3rP09xeLCgVeVYuAOcy14I5fs8rr1s69y0W0tAF4hKz2w=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://hostaway-platform.s3.us-west-2.amazonaws.com/listing/57148-429479-MM3l2fUhExWvfypfbVw7AaX7dQ--rXSATIz5hG-QaI2Q-68b85b07395bf-medium"
+     }
+    ],
+    "overall_rating": 4.05,
+    "reviews": 64,
+    "location_rating": 4.7,
+    "amenities": [
+     "Air conditioning",
+     "Kid-friendly",
+     "Crib",
+     "Elevator",
+     "Heating",
+     "Ironing board",
+     "Kitchen",
+     "Microwave",
+     "Oven stove",
+     "Smoke-free",
+     "Cable TV",
+     "Washer",
+     "Free Wi-Fi"
+    ],
+    "excluded_amenities": [
+     "No airport shuttle",
+     "No parking"
+    ],
+    "health_and_safety": {
+     "groups": [
+      {
+       "title": "Minimized contact",
+       "list": [
+        {
+         "title": "No-contact check-in and check-out",
+         "available": true
+        }
+       ]
+      }
+     ]
+    },
+    "essential_info": [
+     "Entire house",
+     "Sleeps 4",
+     "2 bedrooms",
+     "1 bathroom",
+     "2 beds"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChkQjdSoiIXIo60xGg0vZy8xMXkzbnN6c3Q1EAI",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChkQjdSoiIXIo60xGg0vZy8xMXkzbnN6c3Q1EAI"
+   },
+   {
+    "type": "hotel",
+    "name": "Iniala Valletta",
+    "description": "Upmarket suites, some with plunge pools, in an elegant hotel offering dining, a spa & harbour views.",
+    "link": "http://www.iniala.com/iniala-valletta",
+    "property_token": "ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.8962596,
+     "longitude": 14.514270299999998
+    },
+    "check_in_time": "2:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "1.424 PLN",
+     "extracted_lowest": 1424,
+     "before_taxes_fees": "1.331 PLN",
+     "extracted_before_taxes_fees": 1331
+    },
+    "total_rate": {
+     "lowest": "7.118 PLN",
+     "extracted_lowest": 7118,
+     "before_taxes_fees": "6.654 PLN",
+     "extracted_before_taxes_fees": 6654
+    },
+    "nearby_places": [
+     {
+      "name": "The Lascaris War Rooms",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "4 min"
+       }
+      ]
+     },
+     {
+      "name": "Barrakka",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "18 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "27 min"
+       }
+      ]
+     },
+     {
+      "name": "Bottega Italia",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "3 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "5-star hotel",
+    "extracted_hotel_class": 5,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm50r6-apXxvh9GbLbY_xRMLdpYpG_epsefhWyc6fSuuFeR5IQiRqFjOrfmGvM4FQGrSQIXkwKh1zO_iGoyRVyb3emoys46j5ubozp1GotRuWojbzcOMZGd1INAnKjZftam2WDwnw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm50r6-apXxvh9GbLbY_xRMLdpYpG_epsefhWyc6fSuuFeR5IQiRqFjOrfmGvM4FQGrSQIXkwKh1zO_iGoyRVyb3emoys46j5ubozp1GotRuWojbzcOMZGd1INAnKjZftam2WDwnw=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnlxzqOLBqPDyYzyS365qKcx5f4d5FJ0CdJvkWzDTCSbqtb8UX1OZJ3y6WZHWfmzzF1HCIc9MnJI9HN3ONRhyfda3p09u0ymIWpMpZ7sSvJRfuT5uLPFU9YnXrlsX5RDjfAWtJVNBLQgME=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnlxzqOLBqPDyYzyS365qKcx5f4d5FJ0CdJvkWzDTCSbqtb8UX1OZJ3y6WZHWfmzzF1HCIc9MnJI9HN3ONRhyfda3p09u0ymIWpMpZ7sSvJRfuT5uLPFU9YnXrlsX5RDjfAWtJVNBLQgME=s10000"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/LYfOjP_jyIrg0rMtT-wM9YRJkrABW-foq2muUkx4qwUrh9jxdJqpKsOIzS0a8bv1YPAJMxNcNHroHeMQW-CmgPvl4MUaQ23ZkQk62aH4fIQ8Z1B7jyh7jF18AjltfA1jCN-YtcnUTArY6O9HAf-KV_TdQqYinw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://www.iceportal.com/data/2813-148004-f91750570_XXLejpg/Malta/Valletta/Iniala-Valletta/Photo/Iniala-Valletta-Valletta-Undefined-Iniala-Valletta-Superior-Grand-Harbour-View-Suite.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/fenIJTnAmogzsqezdbwpQVSKk3y8hgeN-9cQ75axwXxs8Jo6FLfkPuPZ114pgTfg8c_G_HmX9atvW-dZlm4q9_Gy5ZeT_u0pPLbaCuN4y7WgUpA4QfMDh9j1_gZeP2pCCG-uygY5xNIUDj346BpyUDKEwn1Nug=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/91/910352/910352a_hb_a_011_20251127_124731.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmdipRcvAqtggUfqIjMJHGHttxhl1TJk9O-sAv1_mo896t6KI_ZIOy4scLbyerzTlpeT_Asn3XTo9eufb18w5HB4KjZavpGcsVjNvREMn_FIohrNqs9XLW_yhzhhWtx-U3U14Q=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmdipRcvAqtggUfqIjMJHGHttxhl1TJk9O-sAv1_mo896t6KI_ZIOy4scLbyerzTlpeT_Asn3XTo9eufb18w5HB4KjZavpGcsVjNvREMn_FIohrNqs9XLW_yhzhhWtx-U3U14Q=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnU3Z8NElGdch8kt98U7HcLK6TlEdOmlBJzW1hCzUavp6U8ZpssahMwz-nHYQE5EnoByM3ekz3pMi8IHQdQ9oPOQ5RgeGUTdJ9Hm-IcrX97hbhTPWrfVHUOyIgzSN0hLbMETE25=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnU3Z8NElGdch8kt98U7HcLK6TlEdOmlBJzW1hCzUavp6U8ZpssahMwz-nHYQE5EnoByM3ekz3pMi8IHQdQ9oPOQ5RgeGUTdJ9Hm-IcrX97hbhTPWrfVHUOyIgzSN0hLbMETE25=s10000"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/GojE9S0-m2DR3YG3MNrvfPLO9-cX7R9d2cncx_GzEnUTUTL7VcWknz08snEB9hvV59zvdaBHE741JHjEOe7klaFz9_EMsqnekQ33bOxVS_SfhXxeOB_xuyOYI7HbTXhQyejUuxhIS3UokC-Y7lqBobmqfV1CeQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://www.iceportal.com/data/2813-148004-f91759212_XXLejpg/Malta/Valletta/Iniala-Valletta/Photo/Iniala-Valletta-Valletta-Undefined-Iniala-Valletta-Grand-Harbour-Penthouse-Suite.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWky3-UWYIopO5SiFh0ZwL6cYt5rxjqMlY3fRB3L_m-51ZRdXHPwFMTaZHNFnAIINYF7mpW2ZIYET9lKQ9wJ5PhBTVnYbOTZEpd7eiACXqDdSUo2X-frAySazrzdfUn4lqr6hbJc=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWky3-UWYIopO5SiFh0ZwL6cYt5rxjqMlY3fRB3L_m-51ZRdXHPwFMTaZHNFnAIINYF7mpW2ZIYET9lKQ9wJ5PhBTVnYbOTZEpd7eiACXqDdSUo2X-frAySazrzdfUn4lqr6hbJc=s10000"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/ew-wJO8PfG7wSVPtV7agrKw_E3TZe5sQao5fclZ8aF2ix4auc6OklPPg24ZpjiBDCxeBZItgk-h7lAo-1nc_aX_X-3UQeSGccEe6HLrugzZWTSokzcKJUghpSe5NGlFJCNo-gkaYjyUAsuSp1t2nUZ1_z-07sr0=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://www.iceportal.com/data/2813-148004-f91747709_XXLejpg/Malta/Valletta/Iniala-Valletta/Photo/Iniala-Valletta-Valletta-Undefined-Iniala-Valletta-La-Maison.jpg"
+     }
+    ],
+    "overall_rating": 4.7,
+    "reviews": 205,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 175
+     },
+     {
+      "stars": 4,
+      "count": 15
+     },
+     {
+      "stars": 3,
+      "count": 6
+     },
+     {
+      "stars": 2,
+      "count": 1
+     },
+     {
+      "stars": 1,
+      "count": 8
+     }
+    ],
+    "location_rating": 4.7,
+    "reviews_breakdown": [
+     {
+      "name": "Wellness",
+      "description": "Wellness",
+      "total_mentioned": 18,
+      "positive": 18,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "sp9xBHica1yRnFiSmp5fVDl5RXhqTk5eanExI5wFAM_4DQY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=sp9xBHica1yRnFiSmp5fVDl5RXhqTk5eanExI5wFAM_4DQY&engine=google_hotels_reviews&hl=en&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE"
+     },
+     {
+      "name": "Spa",
+      "description": "Spa",
+      "total_mentioned": 15,
+      "positive": 14,
+      "negative": 1,
+      "neutral": 0,
+      "category_token": "xb4k5nica1yRnFiSmp5fVDl5cXBBIiOIAABfNAiq",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=xb4k5nica1yRnFiSmp5fVDl5cXBBIiOIAABfNAiq&engine=google_hotels_reviews&hl=en&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 64,
+      "positive": 55,
+      "negative": 6,
+      "neutral": 3,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 55,
+      "positive": 48,
+      "negative": 4,
+      "neutral": 3,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE"
+     },
+     {
+      "name": "Fitness",
+      "description": "Fitness",
+      "total_mentioned": 11,
+      "positive": 8,
+      "negative": 2,
+      "neutral": 1,
+      "category_token": "PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg&engine=google_hotels_reviews&hl=en&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE"
+     },
+     {
+      "name": "Dining",
+      "description": "Food and Beverage",
+      "total_mentioned": 20,
+      "positive": 17,
+      "negative": 3,
+      "neutral": 0,
+      "category_token": "2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A&engine=google_hotels_reviews&hl=en&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE"
+     }
+    ],
+    "amenities": [
+     "Breakfast ($)",
+     "Free Wi-Fi",
+     "Free parking",
+     "Indoor pool",
+     "Hot tub",
+     "Air conditioning",
+     "Pet-friendly",
+     "Fitness center",
+     "Spa",
+     "Bar",
+     "Restaurant",
+     "Room service",
+     "Kitchen in some rooms",
+     "Full-service laundry",
+     "Accessible",
+     "Kid-friendly"
+    ],
+    "eco_certified": true,
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChkI7tHNv4Ss-LZRGg0vZy8xMWgwM2diOTVkEAE"
+   },
+   {
+    "type": "hotel",
+    "name": "Grand Hotel Excelsior Malta",
+    "description": "Upscale hotel set among 1500s fortifications offering refined rooms & suites, plus dining & a spa.",
+    "link": "http://www.excelsior.com.mt/",
+    "property_token": "ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.8968634,
+     "longitude": 14.5050961
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "12:00 PM",
+    "rate_per_night": {
+     "lowest": "488 PLN",
+     "extracted_lowest": 488,
+     "before_taxes_fees": "456 PLN",
+     "extracted_before_taxes_fees": 456
+    },
+    "total_rate": {
+     "lowest": "2.440 PLN",
+     "extracted_lowest": 2440,
+     "before_taxes_fees": "2.282 PLN",
+     "extracted_before_taxes_fees": 2282
+    },
+    "nearby_places": [
+     {
+      "name": "Lower Barrakka Gardens",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "7 min"
+       }
+      ]
+     },
+     {
+      "name": "Valletta Ditch 2",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "6 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "19 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "25 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "5-star hotel",
+    "extracted_hotel_class": 5,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmggOY240b82MHGjpA8_hCJqRDp5Tb2rbnUelasbA78_y11WKXbSm9D9N_svcLJnrAvEClptif0ydNRwmFTbFMP4L0Lf_t3u8HaGIh1T5iJj3lBZmck2QMXY5n2xR5PgDduo599_7O5l-k=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmggOY240b82MHGjpA8_hCJqRDp5Tb2rbnUelasbA78_y11WKXbSm9D9N_svcLJnrAvEClptif0ydNRwmFTbFMP4L0Lf_t3u8HaGIh1T5iJj3lBZmck2QMXY5n2xR5PgDduo599_7O5l-k=s10000"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/qiCBLdlby8miAUlN39gQN7xz5WqZDUMMQYJimD7F_gGOyuJesSWHd6yhPTpfkAHjmj5OvBrgQH53sMwq6H_Vv6UGIKZdfrEE17TLzcN8iP-LxPmVoqkn6V5odL6TDEPKX36j9IQcRkKB3M1QpwQPs_4tP9LtjC4=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://i.giatamedia.com/m.php?m=AQABAAAAla4KAErAzAYFAC3CeqhPrDo-ye2UCz2wbRY"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnVGkpt1KfJeW-sB_gaei7Ncsq2NS0yfbqPTHkcFbOToesRTJqT2uW7d_ypJXqjYS3zQvQBoFHsddktWOorVufaIoPqq9RPZJPI4QNPY5qCUfWGiBHZYDk7_1nWTLjaDnTaMTI=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnVGkpt1KfJeW-sB_gaei7Ncsq2NS0yfbqPTHkcFbOToesRTJqT2uW7d_ypJXqjYS3zQvQBoFHsddktWOorVufaIoPqq9RPZJPI4QNPY5qCUfWGiBHZYDk7_1nWTLjaDnTaMTI=s10000"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/b8ZWenXwInUXhX1-H-zLFr9R7g4W5a81N4O3gX8lfLrHcckd6vFBoyxy3gHThhDloJJgSQZFKnCLBF4KXaGYOrK0X3MZNVZzBQlbimHHCWLTdvQRrXEOyO0MP8n6Z72gDPdHolUSGdRrvcVkzXYzdklbFOxdIA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/09/096974/096974a_hb_w_089.jpg?20250108172411?20250521030724"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWk44MykPdmJWSymderINuTefshVXoUB0iQblFuVSvJOxkBreUwNHKDb5lXc_X97Gi6NHTQOF8Tcw-Tk6_kQJ3M6nE8fC0Y1xaweEtho8oUZD2l-AHIOVHAJLMNZwJqk0wAzXigICA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWk44MykPdmJWSymderINuTefshVXoUB0iQblFuVSvJOxkBreUwNHKDb5lXc_X97Gi6NHTQOF8Tcw-Tk6_kQJ3M6nE8fC0Y1xaweEtho8oUZD2l-AHIOVHAJLMNZwJqk0wAzXigICA=s10000"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/78ExmsFfD2PqC4eLhDw9AHgB0l0VMmdifv-UAknt6tF1o_7LxNFoQYS38mYqk1ZjmZDY9vAwyJRN4sQnnVkX4UgCTUnahdRTr6CREmTw_bGpz1SS6M32hQnGHP3RmbfrsAZVbA-iq9CKO432KAfh1ya67QTIIA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/2000000/1690000/1685900/1685894/2e85f3f6_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/8qVEO78ZBg-EgLRLQ2KhbSBtWA3vJJpO_lY_zLq9_6X2SQRXzsgrkK2G95o1RM_OdpamCtU3rZUHvkl6EnYrBwARFJ2hm_ymVNOQyfcNca2xDLpS3NYr173Ishbf377_Pf2UQZsYfrmQJq5orbhZ9ky-pP009g=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/09/096974/096974a_hb_w_059.jpg?20250108172411?20250521030722"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/Ux0Naw1PCzOveso6LOsSejBpS3lQNJEIze84OCcF2ISAf0Lj71wuBJKbI6uw-2SUmNzGdL7jcRILmnncb03BsGZ5ZGg9cShQu9UVdXdrs1JjzW15diiG7IxdN1RPzd7BwtkOYmnXokXVCKxKx54J97zY0XVrAWQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/09/096974/096974a_hb_a_079.jpg?20250107114502?20250521030718"
+     }
+    ],
+    "overall_rating": 4.4,
+    "reviews": 4710,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 2974
+     },
+     {
+      "stars": 4,
+      "count": 1076
+     },
+     {
+      "stars": 3,
+      "count": 355
+     },
+     {
+      "stars": 2,
+      "count": 115
+     },
+     {
+      "stars": 1,
+      "count": 190
+     }
+    ],
+    "location_rating": 4.3,
+    "reviews_breakdown": [
+     {
+      "name": "Dining",
+      "description": "Food and Beverage",
+      "total_mentioned": 235,
+      "positive": 158,
+      "negative": 59,
+      "neutral": 18,
+      "category_token": "2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A&engine=google_hotels_reviews&hl=en&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB"
+     },
+     {
+      "name": "Fitness",
+      "description": "Fitness",
+      "total_mentioned": 237,
+      "positive": 164,
+      "negative": 49,
+      "neutral": 24,
+      "category_token": "PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg&engine=google_hotels_reviews&hl=en&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB"
+     },
+     {
+      "name": "Bar",
+      "description": "Bar or lounge",
+      "total_mentioned": 181,
+      "positive": 93,
+      "negative": 65,
+      "neutral": 23,
+      "category_token": "L4-to3ica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirDYiAXAMhSDEA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=L4-to3ica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirDYiAXAMhSDEA&engine=google_hotels_reviews&hl=en&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB"
+     },
+     {
+      "name": "Breakfast",
+      "description": "Breakfast",
+      "total_mentioned": 276,
+      "positive": 185,
+      "negative": 66,
+      "neutral": 25,
+      "category_token": "B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U&engine=google_hotels_reviews&hl=en&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 630,
+      "positive": 451,
+      "negative": 137,
+      "neutral": 42,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 625,
+      "positive": 441,
+      "negative": 131,
+      "neutral": 53,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB"
+     }
+    ],
+    "amenities": [
+     "Breakfast",
+     "Free Wi-Fi",
+     "Free parking",
+     "Outdoor pool",
+     "Hot tub",
+     "Air conditioning",
+     "Fitness center",
+     "Spa",
+     "Bar",
+     "Restaurant",
+     "Room service",
+     "Kitchen",
+     "Airport shuttle",
+     "Full-service laundry",
+     "Accessible",
+     "Business center",
+     "Kid-friendly"
+    ],
+    "eco_certified": true,
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChcIzuWhytbGxuwsGgsvZy8xdmY1NHI0ehAB"
+   },
+   {
+    "type": "hotel",
+    "name": "Casa Asti",
+    "description": "Unfussy rooms, a TV lounge & free breakfast in a genteel guesthouse set in a 17th-century building.",
+    "link": "http://www.casaastimalta.com/",
+    "property_token": "ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.8957234,
+     "longitude": 14.5125754
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "10:00 AM",
+    "rate_per_night": {
+     "lowest": "430 PLN",
+     "extracted_lowest": 430,
+     "before_taxes_fees": "389 PLN",
+     "extracted_before_taxes_fees": 389
+    },
+    "total_rate": {
+     "lowest": "2.149 PLN",
+     "extracted_lowest": 2149,
+     "before_taxes_fees": "1.947 PLN",
+     "extracted_before_taxes_fees": 1947
+    },
+    "nearby_places": [
+     {
+      "name": "Upper Barrakka",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Kastilja",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "18 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "24 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "3-star hotel",
+    "extracted_hotel_class": 3,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnVabVzd0DvFAITGEFEpjJq_4bIAeDZmd1XWCzu5ET1TwYPUbcd_ZXZZii4V0vZppJxb7kLN0_xAwshzPSgMjXWAvVzvlXqcgxnAiTf0d5Mv9h48EmZ3CrbOxLR8ufpD1jZnl3c=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnVabVzd0DvFAITGEFEpjJq_4bIAeDZmd1XWCzu5ET1TwYPUbcd_ZXZZii4V0vZppJxb7kLN0_xAwshzPSgMjXWAvVzvlXqcgxnAiTf0d5Mv9h48EmZ3CrbOxLR8ufpD1jZnl3c=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWncf5OF8ypZCbzsSt4qCSNOrVId8265uh1ztdu4tEyghpq6YZAJuW_NC4XV6cfMX4_pyfq2Lh62owMu1ec4c8p2yauLkgu5cbkvEdFvIcv6Ojd1SLKmibfkSnG0Wx27vkgRRzva=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWncf5OF8ypZCbzsSt4qCSNOrVId8265uh1ztdu4tEyghpq6YZAJuW_NC4XV6cfMX4_pyfq2Lh62owMu1ec4c8p2yauLkgu5cbkvEdFvIcv6Ojd1SLKmibfkSnG0Wx27vkgRRzva=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmsSvNa5lMv-H-JAasPjT61ULvzBJyzoWwUGFBdpduzkSA4JSgGCvmmSObMLA2mT08TGPZabHFHMU0aUESMSDqZbtY2rUhXB32KWS76U0nDxPhK2fxumUioht2pMtLX4VUikzpE=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmsSvNa5lMv-H-JAasPjT61ULvzBJyzoWwUGFBdpduzkSA4JSgGCvmmSObMLA2mT08TGPZabHFHMU0aUESMSDqZbtY2rUhXB32KWS76U0nDxPhK2fxumUioht2pMtLX4VUikzpE=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnDRZIz9sLKXdOh8-FIIa4u4DxOspwI02qIEB4gddVEkEn1XahF4OXFGyj_-iaVDpc3dKOl1Dbh-QL1kzev06oK386Ey-SyDccofG0khLmV9oeodXq3L7CtjCMcquZFjBn5NXdLOA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnDRZIz9sLKXdOh8-FIIa4u4DxOspwI02qIEB4gddVEkEn1XahF4OXFGyj_-iaVDpc3dKOl1Dbh-QL1kzev06oK386Ey-SyDccofG0khLmV9oeodXq3L7CtjCMcquZFjBn5NXdLOA=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkChoQDHu7Hp5THKbj0jr5QaVgKIm2WcRnvWGeuPMbW9B0d-w0zjSjeM67LUrts8m9njv6SSQ4f63Vp8RAy_TuGyU_h7YV1_XP0B6ppQAhpz80kZmAUXSTf59fZouXpwPKMGgvU=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkChoQDHu7Hp5THKbj0jr5QaVgKIm2WcRnvWGeuPMbW9B0d-w0zjSjeM67LUrts8m9njv6SSQ4f63Vp8RAy_TuGyU_h7YV1_XP0B6ppQAhpz80kZmAUXSTf59fZouXpwPKMGgvU=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnJQWFSIYTYSQQmpK493XrSja8GGJkpatGB60MULowIp2hwEG_n23sh6v9mGcEJvd3tEmVGjiRwBS1fQquh3leJMQgGC8Y8WsUq3CV-vfavMWwUPoz9D2gNJZhVy54uxXksUTn4=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnJQWFSIYTYSQQmpK493XrSja8GGJkpatGB60MULowIp2hwEG_n23sh6v9mGcEJvd3tEmVGjiRwBS1fQquh3leJMQgGC8Y8WsUq3CV-vfavMWwUPoz9D2gNJZhVy54uxXksUTn4=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmHWxVilzJ0Y-u5lsDPFd7L5sVIctjwmlK04jhJfaxALn8HgyOLCuzIt91E1dPH2CqqvdlLnQ4QmLWmgXus9QFpza3TE6s2rLJ7mKLQ5613rQCvnCTMAcKt44wAVwJdtmfDb9V7BA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmHWxVilzJ0Y-u5lsDPFd7L5sVIctjwmlK04jhJfaxALn8HgyOLCuzIt91E1dPH2CqqvdlLnQ4QmLWmgXus9QFpza3TE6s2rLJ7mKLQ5613rQCvnCTMAcKt44wAVwJdtmfDb9V7BA=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnSJYDSjjLAKRAOVle83Q76Ygfsfmq1a4nmzTdP6JIgq-Y56JJ7PgYIHVsCBb2kM2BjNwKPxHfLu0Go4aG1PsE8YOMIHFWlyibEIU0mwe961GlNjonCoGRAzPD__FXEgxM5-8SNBw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnSJYDSjjLAKRAOVle83Q76Ygfsfmq1a4nmzTdP6JIgq-Y56JJ7PgYIHVsCBb2kM2BjNwKPxHfLu0Go4aG1PsE8YOMIHFWlyibEIU0mwe961GlNjonCoGRAzPD__FXEgxM5-8SNBw=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmT5jaeCN2YKy41sheF70FV5yzWgrGXGJIMDFgN9gqD64ZBT0Lz5hpxz3ibCzWDpnC5-misCb34bb8Gac_ZrK0arxcPBSPyxTibOQtK_enyGXTPtguaDc5QBjCT0K_B9YNm1hp7=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmT5jaeCN2YKy41sheF70FV5yzWgrGXGJIMDFgN9gqD64ZBT0Lz5hpxz3ibCzWDpnC5-misCb34bb8Gac_ZrK0arxcPBSPyxTibOQtK_enyGXTPtguaDc5QBjCT0K_B9YNm1hp7=s10000"
+     }
+    ],
+    "overall_rating": 4.7,
+    "reviews": 235,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 187
+     },
+     {
+      "stars": 4,
+      "count": 29
+     },
+     {
+      "stars": 3,
+      "count": 10
+     },
+     {
+      "stars": 2,
+      "count": 4
+     },
+     {
+      "stars": 1,
+      "count": 5
+     }
+    ],
+    "location_rating": 4.8,
+    "reviews_breakdown": [
+     {
+      "name": "Nightlife",
+      "description": "Nightlife",
+      "total_mentioned": 13,
+      "positive": 11,
+      "negative": 1,
+      "neutral": 1,
+      "category_token": "jCBqW3ica1yRnFiSmp5fVDl5pV9mekZJTmZaKiOCCQDpcg2i",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=jCBqW3ica1yRnFiSmp5fVDl5pV9mekZJTmZaKiOCCQDpcg2i&engine=google_hotels_reviews&hl=en&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE"
+     },
+     {
+      "name": "Family",
+      "description": "Family friendly",
+      "total_mentioned": 7,
+      "positive": 6,
+      "negative": 0,
+      "neutral": 1,
+      "category_token": "fLxeNnica1yRnFiSmp5fVDl5vVtibmZOpUJaUWZqXkpOJcMyiAAAEmQOsQ",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=fLxeNnica1yRnFiSmp5fVDl5vVtibmZOpUJaUWZqXkpOJcMyiAAAEmQOsQ&engine=google_hotels_reviews&hl=en&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 34,
+      "positive": 29,
+      "negative": 5,
+      "neutral": 0,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 40,
+      "positive": 39,
+      "negative": 0,
+      "neutral": 1,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE"
+     },
+     {
+      "name": "Bar",
+      "description": "Bar or lounge",
+      "total_mentioned": 13,
+      "positive": 10,
+      "negative": 1,
+      "neutral": 2,
+      "category_token": "qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE&engine=google_hotels_reviews&hl=en&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE"
+     },
+     {
+      "name": "Dining",
+      "description": "Food and Beverage",
+      "total_mentioned": 15,
+      "positive": 12,
+      "negative": 2,
+      "neutral": 1,
+      "category_token": "2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A&engine=google_hotels_reviews&hl=en&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE"
+     }
+    ],
+    "amenities": [
+     "Breakfast ($)",
+     "Free Wi-Fi",
+     "Air conditioning",
+     "Bar",
+     "Restaurant",
+     "Kid-friendly",
+     "Smoke-free property"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChkI-cisje_nicV0Gg0vZy8xMWNsdDdiYnNyEAE"
+   },
+   {
+    "type": "hotel",
+    "name": "Tritoni Borgo Suites",
+    "link": "http://shortletsmalta.com/Valletta.html",
+    "property_token": "ChkIn4XgstiQgeZlGg0vZy8xMWR5YmxtejlyEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChkIn4XgstiQgeZlGg0vZy8xMWR5YmxtejlyEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.899128399999995,
+     "longitude": 14.516891999999997
+    },
+    "rate_per_night": {
+     "lowest": "388 PLN",
+     "extracted_lowest": 388,
+     "before_taxes_fees": "350 PLN",
+     "extracted_before_taxes_fees": 350
+    },
+    "total_rate": {
+     "lowest": "1.941 PLN",
+     "extracted_lowest": 1941,
+     "before_taxes_fees": "1.752 PLN",
+     "extracted_before_taxes_fees": 1752
+    },
+    "nearby_places": [
+     {
+      "name": "Casa Rocca Piccola",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "3 min"
+       }
+      ]
+     },
+     {
+      "name": "Duminku",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "19 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "37 min"
+       }
+      ]
+     },
+     {
+      "name": "San Paolo Naufrago",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "6 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "3-star hotel",
+    "extracted_hotel_class": 3,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/VsHGp_Qz4WpR0bGA-0cAd6sglj6bm1g6-vkPMZY77UPzS1E5if5ZYti4K6h8fv-6GNvliggKetk-I5U9OEhTXv2o2aIufqUCSRpEJTs9jb_1Zz2IKJq0ymciUuZxfgYzsgQyZHfw5MQMLonjehp1z_Hc34IH-Bw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/92000000/91850000/91841200/91841114/f4a470d4_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/RBYN5QBIrEbfGAVAHNJJHLBSaQnKl2D4F_n7dSuzh8VT479YDroFyG-kJcx8T88wJnouEmO-aQsYg3x7JjOfItW6yBIODXeo1J9hwzR12WeD8CwegLFXvvbqHI0OD-mzoUq_5rh2ImMHDQbg4tvttmTd99ibleM=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/92000000/91850000/91841200/91841114/a8898ba5_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/9HEhkJUWR9r0aKuO9QmCf3DMDTIY3kkKrW1bPRfvZkwu-xz0ERCk000AQAzAABkgJE4qdG9yAkvIxBIIkRc4r1_Ef5vOWG-H9GFArp1AELK0ww0FyvC3ooucIMyHz0AfdjtR4QokW5bkULa1VaxB08I-fmd5bg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://cdn.worldota.net/t/1024x768/content/19/94/1994a04fadd7bfe7a3155b227422ae5976339a89.jpeg"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/SBJOZKiWtSbY5GRmWtSqnpJ2iTm-RGX7cuhQYcTxK-WchhHmDgTS83MjzhC_15x_KdaqLTS4HmUQ86URH7ZwmQrJ0gVlgvJvfog4yABcx7BMOBYrnYEazhrWvyIU8mPNTWcW9sNdUHdZZGuRpVAN5L9_olaoZQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/92000000/91850000/91841200/91841114/35f84e78_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/-dir07fZADcuTBilnFZKbeNWPE1BFNKAYOm6kGRbF3UPaHTwwemcvE_gpWdjsWVkB5Q8xZS3HPAWWlCiP9EfCiGYV4XVpEbx7t3h0_R_KJtD0oDQrQdWa8FeTvrgYd63iF89V1R4pxOAcSYufaSnDOLs8N8W1Q=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/92000000/91850000/91841200/91841114/e616be63_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/VwVrqYCyIrKDMi7yFlHTd6gSkq0yaC9RlyOkA07KClMxkZvhoNXzf0GcgMNjTGHuau3M_SCltRJzGhe7nlfci-X4XNP3jxTnw9j5Dgbs33pEhCXuV7WOXLIt1v3ECzZzT65NKdmDqJpyBHMru2VdOfMHy5aXJA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/92000000/91850000/91841200/91841114/d4e72b93_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/AfvJ-GqcdaShrTCdERkzl-0BcVU2nCRElYuv9W55o1r2n0-b0R-b0bh2cW9jvDCdLeyCPwfMI4fRbTMqZvxuHF98qSsA4f1Zy4r7YaKyKO3aFOhALNhlWl-uSIUM1x7gvjk_D1CRZvgkoxbqlv9Jh1mrxfLKvw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://cdn.ostrovok.ru/t/1024x768/content/99/76/99762fd76b95309625406b35c2b170b24af97487.JPEG"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/-Z4ggfScf2UEwVNnIRbZpzkR4xWhp26O0nvdwvaIuyxowlDE3Oh6JZgJlXFFV9ZYMGWx-2JcPyYHZCiTUxT9epzqogJvMccqZ9WZfQA3vCPkzKHXNE9FX4HQFBShkuHwwB_uIyyVw3M5RZ1Kh66NGf1mUqTyQQc=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/92000000/91850000/91841200/91841114/fcfdf1c9_z.jpg"
+     }
+    ],
+    "overall_rating": 3.5,
+    "reviews": 29,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 8
+     },
+     {
+      "stars": 4,
+      "count": 9
+     },
+     {
+      "stars": 3,
+      "count": 7
+     },
+     {
+      "stars": 2,
+      "count": 0
+     },
+     {
+      "stars": 1,
+      "count": 5
+     }
+    ],
+    "location_rating": 4.7,
+    "amenities": [
+     "Free Wi-Fi",
+     "Beach access",
+     "Kid-friendly"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChkIn4XgstiQgeZlGg0vZy8xMWR5YmxtejlyEAE",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChkIn4XgstiQgeZlGg0vZy8xMWR5YmxtejlyEAE"
+   },
+   {
+    "type": "hotel",
+    "name": "Ursulino Valletta",
+    "description": "Modern quarters & a rooftop terrace in a boutique hotel offering harbour views & free sunset drinks.",
+    "link": "https://www.ursulinovalletta.com/",
+    "property_token": "ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.8975436,
+     "longitude": 14.515332499999998
+    },
+    "rate_per_night": {
+     "lowest": "921 PLN",
+     "extracted_lowest": 921,
+     "before_taxes_fees": "862 PLN",
+     "extracted_before_taxes_fees": 862
+    },
+    "total_rate": {
+     "lowest": "4.605 PLN",
+     "extracted_lowest": 4605,
+     "before_taxes_fees": "4.308 PLN",
+     "extracted_before_taxes_fees": 4308
+    },
+    "nearby_places": [
+     {
+      "name": "Grand Master's Palace",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "4 min"
+       }
+      ]
+     },
+     {
+      "name": "Nawfragju",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "19 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "27 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "4-star hotel",
+    "extracted_hotel_class": 4,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmZLTuO5BdGXwVgvsQg74Ih4uZ-HZLymR0nJNpj__jrdlNK_k1cEhtcq2SrIXBIE7Dvs7RSmF0IQ5A8tRoHFwl50upyNNryx96lHOlyFe88o8fSTEfAPQVHiW_EoHcyZ8toxEP-A-e0km4g=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmZLTuO5BdGXwVgvsQg74Ih4uZ-HZLymR0nJNpj__jrdlNK_k1cEhtcq2SrIXBIE7Dvs7RSmF0IQ5A8tRoHFwl50upyNNryx96lHOlyFe88o8fSTEfAPQVHiW_EoHcyZ8toxEP-A-e0km4g=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmt_S59QCa-5GmqlEg_8S82F7Cb3FDJ7Qim0IiUihSvvkVAmyajf5Hvcxl8MI4O92gGktiVq5OgEpMdNeiXkEjIXVsjCGaEM2zyZFQLJ6lWpj4dBlh-oo-QypHxWb1QI-1w1EgO=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmt_S59QCa-5GmqlEg_8S82F7Cb3FDJ7Qim0IiUihSvvkVAmyajf5Hvcxl8MI4O92gGktiVq5OgEpMdNeiXkEjIXVsjCGaEM2zyZFQLJ6lWpj4dBlh-oo-QypHxWb1QI-1w1EgO=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWknj2vbvnwkr8Y6g2LV_Ipkt2dja3H0oEwWHQJbQslBiRPWdRgut3n8IJRtuMh1tc012hFMhpJj29MKrfDjtqKapPbhPiWmB9dXLHbIB3YvXeQPYvnepvDzKo_-Q8YzseKKL9MuIg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWknj2vbvnwkr8Y6g2LV_Ipkt2dja3H0oEwWHQJbQslBiRPWdRgut3n8IJRtuMh1tc012hFMhpJj29MKrfDjtqKapPbhPiWmB9dXLHbIB3YvXeQPYvnepvDzKo_-Q8YzseKKL9MuIg=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkX6Vg6q3TL1wKg-kO4Uc45YMAg2h6DOOw4m2Tfbgv0JZId4GH_auIxJ3V-NHRZQ6MmE3wJhD9J9iC07AempbbyEzFIRkCstbXNwN-I-jVUx018i8hJvvhAqpkZMWrbJdkyhBXr=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkX6Vg6q3TL1wKg-kO4Uc45YMAg2h6DOOw4m2Tfbgv0JZId4GH_auIxJ3V-NHRZQ6MmE3wJhD9J9iC07AempbbyEzFIRkCstbXNwN-I-jVUx018i8hJvvhAqpkZMWrbJdkyhBXr=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnC5u4PtCTsD5fAnA6f0kTMJkB4pEbKF0Ysj8M2hTBvOo3u0dR236AmgmsSUffN04beZFfCuWKXdwJOin0USI7i08uLX3vRHgrv-VCt7GFXY_vnj5GdF0yeN2Ioz7HY_9t0AEOG=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnC5u4PtCTsD5fAnA6f0kTMJkB4pEbKF0Ysj8M2hTBvOo3u0dR236AmgmsSUffN04beZFfCuWKXdwJOin0USI7i08uLX3vRHgrv-VCt7GFXY_vnj5GdF0yeN2Ioz7HY_9t0AEOG=s10000"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/YtQjFZ1XSe_Ua-wJzcuwKuhoA8Md25ew5qGLz3cC_KIw5I6IHE8eNhXcArHj1GNHFbYfMP0sx7lABZx1QwU_OS1WbnLUqNOCxU1iZoHpmbUdWwoedg-AjJr3wYpnvIeh-rDO2lzj2GA5iTBwzkVaG482pYYKbeQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/43/433458/433458a_hb_w_035.jpg"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/al6RHdeabgrjOpHGy3zXImqJRy06JjSWiJH9jnbxmBnwNVbFmIueauIYkRmQEzVxrBl9hr-YMDm9uD2Ip-3HJKlgn9z0vzCvVvUJ6gns4kUzStcadwBQuAAe-1lxyc7jl-ZhimO2eCSQD7rGLPmhSX8P9uQVUg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/43/433458/433458a_hb_l_017.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlohZVH0qs31wKajyfVUeUzTfIa3jBfXAu3CSFOS8GqiI_z3rb6Q3S_0fNUFsaNqABFowdnsTGtduJfbwWSU3ulO3xY2otDLqB5enHbLQXN9pTh4SDJ2CJrqIHsQfcc8iBMQyqfow=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlohZVH0qs31wKajyfVUeUzTfIa3jBfXAu3CSFOS8GqiI_z3rb6Q3S_0fNUFsaNqABFowdnsTGtduJfbwWSU3ulO3xY2otDLqB5enHbLQXN9pTh4SDJ2CJrqIHsQfcc8iBMQyqfow=s10000"
+     }
+    ],
+    "overall_rating": 4.8,
+    "reviews": 210,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 184
+     },
+     {
+      "stars": 4,
+      "count": 17
+     },
+     {
+      "stars": 3,
+      "count": 7
+     },
+     {
+      "stars": 2,
+      "count": 0
+     },
+     {
+      "stars": 1,
+      "count": 2
+     }
+    ],
+    "location_rating": 4.8,
+    "reviews_breakdown": [
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 68,
+      "positive": 66,
+      "negative": 2,
+      "neutral": 0,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 60,
+      "positive": 59,
+      "negative": 0,
+      "neutral": 1,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB"
+     },
+     {
+      "name": "Breakfast",
+      "description": "Breakfast",
+      "total_mentioned": 34,
+      "positive": 32,
+      "negative": 1,
+      "neutral": 1,
+      "category_token": "B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U&engine=google_hotels_reviews&hl=en&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB"
+     },
+     {
+      "name": "Location",
+      "description": "Location",
+      "total_mentioned": 41,
+      "positive": 40,
+      "negative": 0,
+      "neutral": 1,
+      "category_token": "jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g&engine=google_hotels_reviews&hl=en&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB"
+     },
+     {
+      "name": "Bar",
+      "description": "Bar or lounge",
+      "total_mentioned": 14,
+      "positive": 14,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE&engine=google_hotels_reviews&hl=en&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB"
+     },
+     {
+      "name": "Restaurant",
+      "description": "Restaurant",
+      "total_mentioned": 19,
+      "positive": 18,
+      "negative": 0,
+      "neutral": 1,
+      "category_token": "WeWj6Hica1yRnFiSmp5fVDl5VVBqcUliaVFiXgkjEhsACXMOwg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=WeWj6Hica1yRnFiSmp5fVDl5VVBqcUliaVFiXgkjEhsACXMOwg&engine=google_hotels_reviews&hl=en&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB"
+     }
+    ],
+    "amenities": [
+     "Breakfast",
+     "Free Wi-Fi",
+     "Pool",
+     "Air conditioning",
+     "Kitchen",
+     "Airport shuttle",
+     "Kid-friendly",
+     "Smoke-free property"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoI1ZHKtM70lJzrARoNL2cvMTFieXA4MDNjehAB"
+   },
+   {
+    "type": "hotel",
+    "name": "The Phoenicia Malta",
+    "description": "Upscale hotel with fashionable rooms, plus fine dining, an outdoor pool & an elegant cocktail bar.",
+    "link": "http://www.phoeniciamalta.com/?utm_source=google&utm_medium=organic&utm_campaign=google_local_the_phoenicia_malta",
+    "property_token": "ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.895400599999995,
+     "longitude": 14.5071474
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "12:00 PM",
+    "rate_per_night": {
+     "lowest": "1.066 PLN",
+     "extracted_lowest": 1066,
+     "before_taxes_fees": "996 PLN",
+     "extracted_before_taxes_fees": 996
+    },
+    "total_rate": {
+     "lowest": "5.329 PLN",
+     "extracted_lowest": 5329,
+     "before_taxes_fees": "4.981 PLN",
+     "extracted_before_taxes_fees": 4981
+    },
+    "nearby_places": [
+     {
+      "name": "National Museum of Archaeology | Valletta",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "6 min"
+       }
+      ]
+     },
+     {
+      "name": "Valletta A7",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "3 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "18 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "26 min"
+       }
+      ]
+     },
+     {
+      "name": "Balzunetta Restaurant",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "5 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "5-star hotel",
+    "extracted_hotel_class": 5,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmLRIIIYjwrrQ8JFElWMYFfKACx0UHy8xzCM_owlCi8_7VphYdo2tEQ61L3FXsnm7mLcUTOdmZBtQvcOE6LPRSZ2slE4BgPhr8rgkp0gAbJ5bEsXCizKjcJ4QBBw8z52N5cC_h_8w=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmLRIIIYjwrrQ8JFElWMYFfKACx0UHy8xzCM_owlCi8_7VphYdo2tEQ61L3FXsnm7mLcUTOdmZBtQvcOE6LPRSZ2slE4BgPhr8rgkp0gAbJ5bEsXCizKjcJ4QBBw8z52N5cC_h_8w=s10000"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/MFBG4jVsyvMuWIMB0jQdqyufDq8ZKs3V4wXFJ4SwNLKDehh8wuI3_2FHJorODuk1zGFInLyAMW50iGG9AeTysnK78PwHU9iPXZQDBkoMWTuXvX29BbkGB1iS44xu5Zoa_wbNwtNupWa2rH3Y4NgplHFVxmTJUho=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/00/007063/007063a_hb_a_122_20250411_153250.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkhAaDUlre0bwuJAC1rzf32wz0Mk1KSH8mE8Zebl48oTaW4ZRMaOFHFjlDiYLpI6LCn3Ikrzhp6wu6yFnRoST4vfBzMP2wovv-BZWK35QVz1b7_H4bv5NJ7QFKFftwlSGx0Qfi_Tw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkhAaDUlre0bwuJAC1rzf32wz0Mk1KSH8mE8Zebl48oTaW4ZRMaOFHFjlDiYLpI6LCn3Ikrzhp6wu6yFnRoST4vfBzMP2wovv-BZWK35QVz1b7_H4bv5NJ7QFKFftwlSGx0Qfi_Tw=s10000"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/CKv9Ptolhcl11-_pRDOVAUirwqGKU7hvYS9lF9PPXLGnFfoUaCdPFivYfuowa9HYZ8puMoPMLM_u6o6vvA7nGja837thUWRFlsytqk9IilznwpzCFRsTCi_7CXpm6B-KaP9DTQ6O6FqDVyvF42FgfpAM0h2bXA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/4/0/196/817/502/The_Phoenicia_Malta_gardens_O.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlimbpbO0JOis-PZsKkrcb5VaYQruW_FavkbTA0qePGanoH0Crph3B3tHgcJ_SWGzXAO1VJgtWdWnO6euVmsSbfz6p_bnySPSOoMoG13w5pQZm6FaFaB4k1lFe6daKxUFaevP_ifA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlimbpbO0JOis-PZsKkrcb5VaYQruW_FavkbTA0qePGanoH0Crph3B3tHgcJ_SWGzXAO1VJgtWdWnO6euVmsSbfz6p_bnySPSOoMoG13w5pQZm6FaFaB4k1lFe6daKxUFaevP_ifA=s10000"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/cXNppRAZhVNQu-jTCuAMc9o_OzutzWseLHzfV6CvBKHdteP7YIp1LY3u6hTnOjfAd9lG-YUzVJ2usDtr-VGI_gq5MK-wneoBN2xQWKyoAFDMIfbtv-Ej8J85ckLR8SnGGYOe2wGjoTqGmSdKCutKEtOygQKJzw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/00/007063/007063a_hb_r_061.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlYlTNFhbdhHYXYRTfQ3-twT4ZGK9BZ6hpKYhoBMnXLAPNrzw-IFr4oTi6UcBTekjReenmCIvg-c1JD-CY6w9_GgeGtYwVH4bJ-g7pw_WzElnEbcRcWYAm7npmBYirfle5g8w=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlYlTNFhbdhHYXYRTfQ3-twT4ZGK9BZ6hpKYhoBMnXLAPNrzw-IFr4oTi6UcBTekjReenmCIvg-c1JD-CY6w9_GgeGtYwVH4bJ-g7pw_WzElnEbcRcWYAm7npmBYirfle5g8w=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkXisrFUhx6V8qTOjj-4xFa1yXOlsqms6a9GmospnctWpNlSJ5EUUkrle1XdPGIlEcYApn8HxLLV5sC4KSlzsl0pV95MLHYsOY1U5Y8n8CnHk-_Hqgz9Yx4eUBdSw38spYCSSnsiQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkXisrFUhx6V8qTOjj-4xFa1yXOlsqms6a9GmospnctWpNlSJ5EUUkrle1XdPGIlEcYApn8HxLLV5sC4KSlzsl0pV95MLHYsOY1U5Y8n8CnHk-_Hqgz9Yx4eUBdSw38spYCSSnsiQ=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/pwoWVrmhwvOfriEVLXlnlmQ8sWOmkcZUOp-9hfrnDzweMv1xJqZD5rwgQvQG6uInDLpY9NBIlIDlI6TZhM1D9Df-xRn0ToKACRtuvVMUWyaBGST2qG_DGbi4g4_R7ck_gUiF-rz-P67e7rkY-9f5voDTekPiw54=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/00/007063/007063a_hb_ba_049_20250410_160634.jpg"
+     }
+    ],
+    "overall_rating": 4.8,
+    "reviews": 2164,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 1792
+     },
+     {
+      "stars": 4,
+      "count": 281
+     },
+     {
+      "stars": 3,
+      "count": 51
+     },
+     {
+      "stars": 2,
+      "count": 13
+     },
+     {
+      "stars": 1,
+      "count": 27
+     }
+    ],
+    "location_rating": 4.7,
+    "reviews_breakdown": [
+     {
+      "name": "Fitness",
+      "description": "Fitness",
+      "total_mentioned": 126,
+      "positive": 112,
+      "negative": 8,
+      "neutral": 6,
+      "category_token": "PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg&engine=google_hotels_reviews&hl=en&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB"
+     },
+     {
+      "name": "Dining",
+      "description": "Food and Beverage",
+      "total_mentioned": 119,
+      "positive": 104,
+      "negative": 8,
+      "neutral": 7,
+      "category_token": "2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A&engine=google_hotels_reviews&hl=en&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB"
+     },
+     {
+      "name": "Bar",
+      "description": "Bar or lounge",
+      "total_mentioned": 111,
+      "positive": 92,
+      "negative": 10,
+      "neutral": 9,
+      "category_token": "qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE&engine=google_hotels_reviews&hl=en&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 310,
+      "positive": 283,
+      "negative": 17,
+      "neutral": 10,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 311,
+      "positive": 287,
+      "negative": 14,
+      "neutral": 10,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB"
+     },
+     {
+      "name": "Wellness",
+      "description": "Wellness",
+      "total_mentioned": 47,
+      "positive": 44,
+      "negative": 3,
+      "neutral": 0,
+      "category_token": "sp9xBHica1yRnFiSmp5fVDl5RXhqTk5eanExI5wFAM_4DQY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=sp9xBHica1yRnFiSmp5fVDl5RXhqTk5eanExI5wFAM_4DQY&engine=google_hotels_reviews&hl=en&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB"
+     }
+    ],
+    "amenities": [
+     "Breakfast",
+     "Free Wi-Fi",
+     "Free parking",
+     "Pools",
+     "Hot tub",
+     "Air conditioning",
+     "Pet-friendly",
+     "Fitness center",
+     "Spa",
+     "Bar",
+     "Restaurant",
+     "Room service",
+     "Airport shuttle",
+     "Full-service laundry",
+     "Accessible",
+     "Kid-friendly",
+     "Smoke-free property"
+    ],
+    "eco_certified": true,
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoIrvDVwsDQpNrwARoNL2cvMTFieDFidnk2YxAB"
+   },
+   {
+    "type": "hotel",
+    "name": "Palazzo Consiglia",
+    "description": "Genteel rooms in a posh guesthouse offering free breakfast & a spa, plus a roof terrace with a pool.",
+    "link": "http://palazzoconsiglia.com/",
+    "property_token": "ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.8978867,
+     "longitude": 14.515914200000001
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "12:00 PM",
+    "rate_per_night": {
+     "lowest": "881 PLN",
+     "extracted_lowest": 881,
+     "before_taxes_fees": "811 PLN",
+     "extracted_before_taxes_fees": 811
+    },
+    "total_rate": {
+     "lowest": "4.407 PLN",
+     "extracted_lowest": 4407,
+     "before_taxes_fees": "4.057 PLN",
+     "extracted_before_taxes_fees": 4057
+    },
+    "nearby_places": [
+     {
+      "name": "Casa Rocca Piccola",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "4 min"
+       }
+      ]
+     },
+     {
+      "name": "Kavallieri",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "18 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "28 min"
+       }
+      ]
+     },
+     {
+      "name": "Bottega Italia",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "4 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "4-star hotel",
+    "extracted_hotel_class": 4,
+    "images": [
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/5rPIj4lfF7_bcNVSfhSI7va2Ggo61m64LXjIRD79P4-38dPvELt8-Fo0Q0uPEUaTcR_-4trlVVYpwnvh0KAbFJl561lnwfbIoBl3miSmdLEmyba0z74GQWPzF63Sy_kHgIm2Ez9lukuuJXHdVw1qP1ZN2Dg1zw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://i.giatamedia.com/m.php?m=AQABAAAAla4KAGaZYgQFADrRIvubctwXs_a8Bg3kcZE"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmk273UaxW4p0juoZF2LQaDyA2BPL9J852GivLcs_sXNZrGCeCjVUJkzPTT_35DlgouytGgEb8inOhVD0Dor0RW9fCaFsj6MqkzbM3t7a12mmWpbYYfiKvNkAJGMy0YHDkJ4k8RVg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmk273UaxW4p0juoZF2LQaDyA2BPL9J852GivLcs_sXNZrGCeCjVUJkzPTT_35DlgouytGgEb8inOhVD0Dor0RW9fCaFsj6MqkzbM3t7a12mmWpbYYfiKvNkAJGMy0YHDkJ4k8RVg=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmI1p_dH-fTIwPw5dn5gJ7Gtpujo10UyLp6lUtmF8qenWkdNMobvlDa4Pm3VLWKfbAfI48wj7ZBWHUhbAG4GlW3pAUXEzPGID652FZAciUCCUOsZZiq052sa9orJHqdwo-FheTU=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmI1p_dH-fTIwPw5dn5gJ7Gtpujo10UyLp6lUtmF8qenWkdNMobvlDa4Pm3VLWKfbAfI48wj7ZBWHUhbAG4GlW3pAUXEzPGID652FZAciUCCUOsZZiq052sa9orJHqdwo-FheTU=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlzh9o-a4q3PEnvfM8aPFmdRjbGJ1CvZ4qZmunBWmhROgJeN20WtOQULLaaHGqJbKBMgoPLdFvx9WbOHc3TBUHe44Dt1BIW6IQH9sTgDr97BPEzioh50Hx6fo0sEGasDYANFVi-=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlzh9o-a4q3PEnvfM8aPFmdRjbGJ1CvZ4qZmunBWmhROgJeN20WtOQULLaaHGqJbKBMgoPLdFvx9WbOHc3TBUHe44Dt1BIW6IQH9sTgDr97BPEzioh50Hx6fo0sEGasDYANFVi-=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkd_j4IVbFQkSIhVfb1hpaJx7K9QGF8basSJwuKZ-ThBCja2tYnUpzCJfc9nQ-qrkcOEBm5gMCSsy9FZMN-v7D-if_ppJKv4MV-3d-KnMrxNps0JzPfwi2AogyZM94Zpo2CPqyH=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkd_j4IVbFQkSIhVfb1hpaJx7K9QGF8basSJwuKZ-ThBCja2tYnUpzCJfc9nQ-qrkcOEBm5gMCSsy9FZMN-v7D-if_ppJKv4MV-3d-KnMrxNps0JzPfwi2AogyZM94Zpo2CPqyH=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkhlvdrCoPT5qlTLTrk8zvpbzzlTQbZ5wwMVfeD1v0qW5bddbYPvGKLWyO5cEWUH0Nv_GKvCCS0bdQPDaMzTJZklIAPMi30RzWIk-IqVTyt7Zh_xI0h8u-yOBJS_OhXd5Bt1bio2A=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkhlvdrCoPT5qlTLTrk8zvpbzzlTQbZ5wwMVfeD1v0qW5bddbYPvGKLWyO5cEWUH0Nv_GKvCCS0bdQPDaMzTJZklIAPMi30RzWIk-IqVTyt7Zh_xI0h8u-yOBJS_OhXd5Bt1bio2A=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWltQZGK5NagAOh84j6g4mcCg-17urd8TvgZCa_U6kAcn9yl88YkE8slWSdPUPZJInTb71byNVo85oa-z4PS1a3a9LPuVo7HS7mFFgK-B7JbmBKjKXiVzNIZIH0YWAwCSHXvHeUb=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWltQZGK5NagAOh84j6g4mcCg-17urd8TvgZCa_U6kAcn9yl88YkE8slWSdPUPZJInTb71byNVo85oa-z4PS1a3a9LPuVo7HS7mFFgK-B7JbmBKjKXiVzNIZIH0YWAwCSHXvHeUb=s10000"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/GiqWUxywALgmtLB_xVrghAxgEdBpmGX0UfbAQv3tEsSNyCnlNi7r4nqFG-_8pDXhFn5XZ4DwPwnq_opJKp0lR_1aR5RF7aF4wPybKqyotMZvxTPn6-EeVrhi5x7lwCFcstZX8Ko9yibqFxARatnxHZF4a1wU0Q=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/14000000/13060000/13055600/13055549/4d74f404_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/tXdvYfI16VtPavzSu1UhZYW8lc05PLBW1D2nKnnVyFyvbNoAaep9IeeRTMNLpnfETwJvwkrK3jTchPpG9fTWXmAwc4EuQFN4J_QU6PctwzMJd-Pdb8iV8b1MHUHKK-TY-pcLrQ2pn_4m4wnSPIin5eg6Alt6ZQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://i.giatamedia.com/m.php?m=AQABAAAAla4KAF-ZYgQFAGnAPHMzQreqEpj_havg44I"
+     }
+    ],
+    "overall_rating": 4.8,
+    "reviews": 289,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 249
+     },
+     {
+      "stars": 4,
+      "count": 32
+     },
+     {
+      "stars": 3,
+      "count": 4
+     },
+     {
+      "stars": 2,
+      "count": 4
+     },
+     {
+      "stars": 1,
+      "count": 0
+     }
+    ],
+    "location_rating": 4.8,
+    "reviews_breakdown": [
+     {
+      "name": "Wellness",
+      "description": "Wellness",
+      "total_mentioned": 31,
+      "positive": 27,
+      "negative": 3,
+      "neutral": 1,
+      "category_token": "sp9xBHica1yRnFiSmp5fVDl5RXhqTk5eanExI5wFAM_4DQY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=sp9xBHica1yRnFiSmp5fVDl5RXhqTk5eanExI5wFAM_4DQY&engine=google_hotels_reviews&hl=en&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB"
+     },
+     {
+      "name": "Spa",
+      "description": "Spa",
+      "total_mentioned": 27,
+      "positive": 24,
+      "negative": 2,
+      "neutral": 1,
+      "category_token": "xb4k5nica1yRnFiSmp5fVDl5cXBBIiOIAABfNAiq",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=xb4k5nica1yRnFiSmp5fVDl5cXBBIiOIAABfNAiq&engine=google_hotels_reviews&hl=en&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB"
+     },
+     {
+      "name": "Fitness",
+      "description": "Fitness",
+      "total_mentioned": 24,
+      "positive": 21,
+      "negative": 1,
+      "neutral": 2,
+      "category_token": "PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg&engine=google_hotels_reviews&hl=en&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 74,
+      "positive": 74,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB"
+     },
+     {
+      "name": "Pool",
+      "description": "Pool",
+      "total_mentioned": 17,
+      "positive": 14,
+      "negative": 1,
+      "neutral": 2,
+      "category_token": "ysOZZnica1yRnFiSmp5fVDl5SUB-fg4jmAQAcoYJmA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=ysOZZnica1yRnFiSmp5fVDl5SUB-fg4jmAQAcoYJmA&engine=google_hotels_reviews&hl=en&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 79,
+      "positive": 77,
+      "negative": 0,
+      "neutral": 2,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB"
+     }
+    ],
+    "amenities": [
+     "Free breakfast",
+     "Free Wi-Fi",
+     "Outdoor pool",
+     "Hot tub",
+     "Air conditioning",
+     "Spa",
+     "Bar",
+     "Restaurant",
+     "Room service",
+     "Kitchen",
+     "Airport shuttle",
+     "Full-service laundry",
+     "Kid-friendly",
+     "Smoke-free property"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoImrLss5nPyJPKARoNL2cvMTFjbG1qN2h0NRAB"
+   },
+   {
+    "type": "hotel",
+    "name": "The Embassy Valletta Hotel",
+    "description": "Refined hotel featuring restaurants & coffee shops, plus a rooftop pool, a gym & a cinema.",
+    "link": "http://www.embassyvallettahotel.com/",
+    "property_token": "ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.8987622,
+     "longitude": 14.512534800000001
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "618 PLN",
+     "extracted_lowest": 618,
+     "before_taxes_fees": "578 PLN",
+     "extracted_before_taxes_fees": 578
+    },
+    "total_rate": {
+     "lowest": "3.088 PLN",
+     "extracted_lowest": 3088,
+     "before_taxes_fees": "2.888 PLN",
+     "extracted_before_taxes_fees": 2888
+    },
+    "nearby_places": [
+     {
+      "name": "St John's Co-Cathedral Museum",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Arcisqof",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "21 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "26 min"
+       }
+      ]
+     },
+     {
+      "name": "The Rooftop Restaurant & Lounge Valletta",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "4-star hotel",
+    "extracted_hotel_class": 4,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnAoQVgOLppXMLDm2EUU8tmlk9mxR-qQTanw4VKhwcOuVKLwcKNPxgPHMw9gqQuvt6n1ui1UfloKpDwjDm4G0oJ_YWB4R26z_xq8HI4D3lEhb59tk6HolpMj7mrMrb-SkZLuks=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnAoQVgOLppXMLDm2EUU8tmlk9mxR-qQTanw4VKhwcOuVKLwcKNPxgPHMw9gqQuvt6n1ui1UfloKpDwjDm4G0oJ_YWB4R26z_xq8HI4D3lEhb59tk6HolpMj7mrMrb-SkZLuks=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkZ2tmGZ_kNLgRPiCm5x9au6WJ_KTrVBzeBTxtXlbK-WDa1kVwTPAcv9QxOmE0wEYVUbdh_Q2-6C1HrWK1a5hCa5qEbdcmNsOjah0P9RBNmzNw2d4dBLYtXDAHbhJVLg9CpgyZcQnSiSmFn=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkZ2tmGZ_kNLgRPiCm5x9au6WJ_KTrVBzeBTxtXlbK-WDa1kVwTPAcv9QxOmE0wEYVUbdh_Q2-6C1HrWK1a5hCa5qEbdcmNsOjah0P9RBNmzNw2d4dBLYtXDAHbhJVLg9CpgyZcQnSiSmFn=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkAvQvqKuov2FSRX5Apo1FsCHO29l9rafWKmO_m7WHt07IUH1Kh9O_LmX2c0rcitrs2Xan65TfmuauQJ1MJQzUovs7tckFMz9Q3gY3narJU5IJ3M-wQAKDMo-eGus0bhQH5oxi8=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkAvQvqKuov2FSRX5Apo1FsCHO29l9rafWKmO_m7WHt07IUH1Kh9O_LmX2c0rcitrs2Xan65TfmuauQJ1MJQzUovs7tckFMz9Q3gY3narJU5IJ3M-wQAKDMo-eGus0bhQH5oxi8=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm38pgMzL_6JXn5iw25wbWFP-vb2YVtxxtKNWRMiQ9favTKoPPlavpFef-Vx8oP-m59mlGheyGQgfbIt5BxH5a5foqA7LQsODOOLHJ5i6YWSMhZobe3HeOUtGWjEWUTbIz0y0R7=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm38pgMzL_6JXn5iw25wbWFP-vb2YVtxxtKNWRMiQ9favTKoPPlavpFef-Vx8oP-m59mlGheyGQgfbIt5BxH5a5foqA7LQsODOOLHJ5i6YWSMhZobe3HeOUtGWjEWUTbIz0y0R7=s10000"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/Vh-LSoQzeqKRt2Mg7lT48RmqcnKrqOgH4-21kZu7ytMCEzH9DpAuqm28WiEi44byVw4EKBUHhIf3Bjjnx9vwhfJL3Q31diOTyj_nZbHWVCzTRKbzmkkAS59f1HI2hVcYuW6ZDvZmcoyDNbPbTsxWyTWSJ2Mxqw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1c/b2/1c/90/at-the-centre-of-a-unesco.jpg?w=2100&h=1400&s=1"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmLY66w40Ktk-5-Fb6SLynSxSJvcTMAsiaQr11gJYM4XibJhAsSlILhc_g8QX_BbXkDcOZ7UkYaU29fSFhRxTkE652yOx4h8VJEZ29thuGJvsvsOzz20nId3me5v36rBk0zhns9=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmLY66w40Ktk-5-Fb6SLynSxSJvcTMAsiaQr11gJYM4XibJhAsSlILhc_g8QX_BbXkDcOZ7UkYaU29fSFhRxTkE652yOx4h8VJEZ29thuGJvsvsOzz20nId3me5v36rBk0zhns9=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlSBJk6ElQ6xwDI0QSAeOoaET5WnYdmgA6gzAOOZVmJLZ-wKx7C9loHC-ZgYPf8kYrZr_KNRRyVAJn0uGtP6OyFDcagHDuvGf9FzbCcVh5Jyxzi-9g3K_qozvZsRdXrbUh6-NRt=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlSBJk6ElQ6xwDI0QSAeOoaET5WnYdmgA6gzAOOZVmJLZ-wKx7C9loHC-ZgYPf8kYrZr_KNRRyVAJn0uGtP6OyFDcagHDuvGf9FzbCcVh5Jyxzi-9g3K_qozvZsRdXrbUh6-NRt=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl0mTOVD1IGr-zpn74_6Dl3vb9xFLBhYNWv0JI0u8NyfJQCIdil5GK1VWeNHnruJz3Q2lwkCmV3oflWwovREytc4IwkixOp0DbEgC7Zo5ZR8869VElWLKv1N6bUUt_7Neysbis=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl0mTOVD1IGr-zpn74_6Dl3vb9xFLBhYNWv0JI0u8NyfJQCIdil5GK1VWeNHnruJz3Q2lwkCmV3oflWwovREytc4IwkixOp0DbEgC7Zo5ZR8869VElWLKv1N6bUUt_7Neysbis=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWngkMpy7b9O0ZV8fjGd36Dox8nvjogpY1WfouuUhVHi-lY_4YlT-GigUEALMwBoimSvSaKUOVAFX8fEMLAwhmOt4zwgZiN2V_GYi2e9CHMvOcd9qL31bdQuFw5qn5J-mdAkut4VYy8DgSfD=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWngkMpy7b9O0ZV8fjGd36Dox8nvjogpY1WfouuUhVHi-lY_4YlT-GigUEALMwBoimSvSaKUOVAFX8fEMLAwhmOt4zwgZiN2V_GYi2e9CHMvOcd9qL31bdQuFw5qn5J-mdAkut4VYy8DgSfD=s10000"
+     }
+    ],
+    "overall_rating": 4.6,
+    "reviews": 1277,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 1013
+     },
+     {
+      "stars": 4,
+      "count": 154
+     },
+     {
+      "stars": 3,
+      "count": 47
+     },
+     {
+      "stars": 2,
+      "count": 29
+     },
+     {
+      "stars": 1,
+      "count": 34
+     }
+    ],
+    "location_rating": 4.8,
+    "reviews_breakdown": [
+     {
+      "name": "Fitness",
+      "description": "Fitness",
+      "total_mentioned": 120,
+      "positive": 99,
+      "negative": 12,
+      "neutral": 9,
+      "category_token": "PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg&engine=google_hotels_reviews&hl=en&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB"
+     },
+     {
+      "name": "Pool",
+      "description": "Pool",
+      "total_mentioned": 88,
+      "positive": 77,
+      "negative": 7,
+      "neutral": 4,
+      "category_token": "ysOZZnica1yRnFiSmp5fVDl5SUB-fg4jmAQAcoYJmA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=ysOZZnica1yRnFiSmp5fVDl5SUB-fg4jmAQAcoYJmA&engine=google_hotels_reviews&hl=en&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 277,
+      "positive": 245,
+      "negative": 24,
+      "neutral": 8,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB"
+     },
+     {
+      "name": "Bar",
+      "description": "Bar or lounge",
+      "total_mentioned": 106,
+      "positive": 89,
+      "negative": 14,
+      "neutral": 3,
+      "category_token": "qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE&engine=google_hotels_reviews&hl=en&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB"
+     },
+     {
+      "name": "Breakfast",
+      "description": "Breakfast",
+      "total_mentioned": 122,
+      "positive": 101,
+      "negative": 15,
+      "neutral": 6,
+      "category_token": "B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U&engine=google_hotels_reviews&hl=en&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB"
+     },
+     {
+      "name": "Dining",
+      "description": "Food and Beverage",
+      "total_mentioned": 111,
+      "positive": 89,
+      "negative": 14,
+      "neutral": 8,
+      "category_token": "2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=2aMhPHica1yRnFiSmp5fVDl5o1t-fopCYl6KglNqWWpRYnoq4zKXzLzMvHQAKAwO6A&engine=google_hotels_reviews&hl=en&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB"
+     }
+    ],
+    "amenities": [
+     "Breakfast ($)",
+     "Free Wi-Fi",
+     "Outdoor pool",
+     "Air conditioning",
+     "Pet-friendly",
+     "Fitness center",
+     "Bar",
+     "Restaurant",
+     "Room service",
+     "Airport shuttle",
+     "Golf",
+     "Full-service laundry",
+     "Accessible",
+     "Kid-friendly",
+     "Smoke-free property"
+    ],
+    "eco_certified": true,
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoI_PDT4KmRlq_DARoNL2cvMTFmZDRxeWRxdxAB"
+   },
+   {
+    "type": "hotel",
+    "name": "The Barrister",
+    "link": "http://www.thebarristerhotel.com/",
+    "property_token": "ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.899982400000006,
+     "longitude": 14.514421399999998
+    },
+    "check_in_time": "2:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "431 PLN",
+     "extracted_lowest": 431,
+     "before_taxes_fees": "391 PLN",
+     "extracted_before_taxes_fees": 391
+    },
+    "total_rate": {
+     "lowest": "2.155 PLN",
+     "extracted_lowest": 2155,
+     "before_taxes_fees": "1.953 PLN",
+     "extracted_before_taxes_fees": 1953
+    },
+    "nearby_places": [
+     {
+      "name": "Casa Rocca Piccola",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Kristofru",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "3 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "20 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "29 min"
+       }
+      ]
+     },
+     {
+      "name": "Casa Sotto",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "4-star hotel",
+    "extracted_hotel_class": 4,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmBzr6muCED4NfqFPE7mfcq-mWWl4NewJZ3FG1FzS7MW8vYOcTthplejjM239cMPwBpyzjvMp74LY8LytLLfTtkflfhsIgL71H4hsuAu0rG__sj1s2ZfbnWygran0HhrP57D3lQPA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmBzr6muCED4NfqFPE7mfcq-mWWl4NewJZ3FG1FzS7MW8vYOcTthplejjM239cMPwBpyzjvMp74LY8LytLLfTtkflfhsIgL71H4hsuAu0rG__sj1s2ZfbnWygran0HhrP57D3lQPA=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl3iXYTUG2BX_ayhZm0Wbx0C0b4WBDXXr00RBxrxNkoYKlfQDH5WsncIqfL9z6ej_Aui04E9um3rFJEqgbaVHxaSBUXB2587jMT7McU1LHIuD_PxbD-RSYn0KfzuwfaRQKaGFu3=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl3iXYTUG2BX_ayhZm0Wbx0C0b4WBDXXr00RBxrxNkoYKlfQDH5WsncIqfL9z6ej_Aui04E9um3rFJEqgbaVHxaSBUXB2587jMT7McU1LHIuD_PxbD-RSYn0KfzuwfaRQKaGFu3=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlUAfSNGQvNAuH4zX6Z2QxtVKXi8QqvhbE-_6973X60chUf1DDwzn3_oCFMz3GhKoA_Ic9peKgtOBhkX67bcniHzy8aJqEY4sP9WeKWPav72NjXeDQlty0NpF02RIncV-MoVoPfZQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlUAfSNGQvNAuH4zX6Z2QxtVKXi8QqvhbE-_6973X60chUf1DDwzn3_oCFMz3GhKoA_Ic9peKgtOBhkX67bcniHzy8aJqEY4sP9WeKWPav72NjXeDQlty0NpF02RIncV-MoVoPfZQ=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlevZfDmb9_LDOom7jGqrLG22uoR_GIU_slrLLSYLIM5yFiXUmQFfl9rK87ZpLBP5Ln_9tHN3WshjI3eDuoi1wFIexY4PyobPesPhRNhQU8Se4PBlAUSA5y3lQoxap9-XbtTAKz=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlevZfDmb9_LDOom7jGqrLG22uoR_GIU_slrLLSYLIM5yFiXUmQFfl9rK87ZpLBP5Ln_9tHN3WshjI3eDuoi1wFIexY4PyobPesPhRNhQU8Se4PBlAUSA5y3lQoxap9-XbtTAKz=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlIaGxbluTt0GjqhLz2vTCDe55i1AQRs0nSQ5TeglupDu4_9bSKR-X4M6UZScc-Ann6GHHpsrPpIQGIBPXOQO3dgejglRyHZNkTGVM0ZZuVKl31YKadi9PO2BcOJeQuVqYxclBgDA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlIaGxbluTt0GjqhLz2vTCDe55i1AQRs0nSQ5TeglupDu4_9bSKR-X4M6UZScc-Ann6GHHpsrPpIQGIBPXOQO3dgejglRyHZNkTGVM0ZZuVKl31YKadi9PO2BcOJeQuVqYxclBgDA=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmsBJ5y7o6NdVbTjd5obTFu3jwdGFl20y15QKcQV9k4RKK5C-tDyTDmB8znlz4C0W__jN9U_5wXIEdoNAabv8E1n8UF0HM38q86OZ9OPLSrzxVpvmwsdMrbXUNMHAj2-rC6QNgXnw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmsBJ5y7o6NdVbTjd5obTFu3jwdGFl20y15QKcQV9k4RKK5C-tDyTDmB8znlz4C0W__jN9U_5wXIEdoNAabv8E1n8UF0HM38q86OZ9OPLSrzxVpvmwsdMrbXUNMHAj2-rC6QNgXnw=s10000"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/hYdQ_X-HS-c2-zFaqt7MiNCIa1bt7-bbavKNGZl1FwB-3z6cyKlSgRemKA6KXkLSqISF8yI97r8JPDEFTaI3yeKEhVjyyqe5e5loFua4s-ZhXpGTPGVBVehFP-H9j_Fn4pFOdRaR9Qpry5-Yb7OmU3z5Kl575A=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/82/829007/829007a_hb_a_017.jpg"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/GIvXXgMgLZXoaEe7y1mi4ePT8z4FCaPNP9QdXYn5qP4Opkz1gva0s_F3ZtSab10NuBXCWb2DJYPyVRpgWwtFkJ7BtKEzf8V6wAuCQyZyrXSHZ_YtaFpbsdmKx0fYPhLP1EDtdOQcwUd02hmP4HcLIfRiWYJuIA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/82/829007/829007a_hb_r_002.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkwNpvizglhj0holwnIXBsDYOR9Qmq-30zTLe11Wchsy2-uEYkL7uIt_kUMHUsfn0SyiLx42DBqsZ899umP-KQAyh5ByjyJwy6Tjh2GbvirzP-H5qQbKACGEToHA-piVBGm9nnp=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkwNpvizglhj0holwnIXBsDYOR9Qmq-30zTLe11Wchsy2-uEYkL7uIt_kUMHUsfn0SyiLx42DBqsZ899umP-KQAyh5ByjyJwy6Tjh2GbvirzP-H5qQbKACGEToHA-piVBGm9nnp=s10000"
+     }
+    ],
+    "overall_rating": 4.8,
+    "reviews": 298,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 259
+     },
+     {
+      "stars": 4,
+      "count": 23
+     },
+     {
+      "stars": 3,
+      "count": 11
+     },
+     {
+      "stars": 2,
+      "count": 4
+     },
+     {
+      "stars": 1,
+      "count": 1
+     }
+    ],
+    "location_rating": 4.7,
+    "reviews_breakdown": [
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 87,
+      "positive": 84,
+      "negative": 0,
+      "neutral": 3,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 82,
+      "positive": 76,
+      "negative": 2,
+      "neutral": 4,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE"
+     },
+     {
+      "name": "Location",
+      "description": "Location",
+      "total_mentioned": 46,
+      "positive": 44,
+      "negative": 0,
+      "neutral": 2,
+      "category_token": "jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g&engine=google_hotels_reviews&hl=en&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE"
+     },
+     {
+      "name": "Breakfast",
+      "description": "Breakfast",
+      "total_mentioned": 27,
+      "positive": 27,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U&engine=google_hotels_reviews&hl=en&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE"
+     },
+     {
+      "name": "Cleanliness",
+      "description": "Cleanliness",
+      "total_mentioned": 34,
+      "positive": 32,
+      "negative": 1,
+      "neutral": 1,
+      "category_token": "JXKy3Xica1yRnFiSmp5fVDl5tXNOamJeTmZeanExIzIHACQKD1Q",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=JXKy3Xica1yRnFiSmp5fVDl5tXNOamJeTmZeanExIzIHACQKD1Q&engine=google_hotels_reviews&hl=en&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE"
+     },
+     {
+      "name": "Atmosphere",
+      "description": "Atmosphere",
+      "total_mentioned": 19,
+      "positive": 19,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "1EvKb3ica1yRnFiSmp5fVDl5lWNJbn5xQUZqUSojEhsACBsOoA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=1EvKb3ica1yRnFiSmp5fVDl5lWNJbn5xQUZqUSojEhsACBsOoA&engine=google_hotels_reviews&hl=en&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE"
+     }
+    ],
+    "amenities": [
+     "Breakfast",
+     "Free Wi-Fi",
+     "Hot tub",
+     "Air conditioning",
+     "Restaurant",
+     "Room service",
+     "Airport shuttle",
+     "Full-service laundry",
+     "Kid-friendly",
+     "Smoke-free property"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChkI5IOMg7yjqMAEGg0vZy8xMWY2NjJ5dnFuEAE"
+   },
+   {
+    "type": "hotel",
+    "name": "Battery House",
+    "link": "https://us2.cloudbeds.com/reservation/VtKzd8",
+    "property_token": "ChkI6PHu44bAp_FmGg0vZy8xMXkzanZfeTBfEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChkI6PHu44bAp_FmGg0vZy8xMXkzanZfeTBfEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.895628599999995,
+     "longitude": 14.512768900000001
+    },
+    "check_in_time": "2:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "507 PLN",
+     "extracted_lowest": 507,
+     "before_taxes_fees": "493 PLN",
+     "extracted_before_taxes_fees": 493
+    },
+    "total_rate": {
+     "lowest": "2.533 PLN",
+     "extracted_lowest": 2533,
+     "before_taxes_fees": "2.467 PLN",
+     "extracted_before_taxes_fees": 2467
+    },
+    "nearby_places": [
+     {
+      "name": "The Lascaris War Rooms",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Gang",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "3 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "18 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "25 min"
+       }
+      ]
+     },
+     {
+      "name": "San Paolo Naufrago",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "4 min"
+       }
+      ]
+     }
+    ],
+    "images": [
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/IzprJMq_DUsEHtBT7rkMkWzCGgyuEtjSgGLo3I1kpPEtG2yt11nad5_iKh53iBFV2s9M-J4f38k1i4zRrTAMPLgp7TMSILSAFYAz_DYIrBLfuT85m5mVIMj44Qa32Qq0WD6gdM2mtJEG-_EqdKLMQWH_dHuM3g=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://cdn.worldota.net/t/1024x768/content/c8/08/c8080ae5451c48605acd3737e8b00850f92e5c0b.JPEG"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/4qDopqYr_vD7_iYbuwJ8G83RvpGhPJ9HB4NrPrxHtXte92g3rB04peMISdiFpvdLX_fFgBMDZgJexdPxQuhhNirPAYIoZ0LD--69PcfJs3jw1GXMK8MPtyZ2WKnxs-ro_6a_0Fe0xHjSj_WMCEjnbundEoVLAg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/107000000/106390000/106388700/106388681/6ae5b6ed_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnJq6uH6ikaTDhkUOlwjt_B1ULy2vO3uH86xrLSCumO0XorVWLl63iixSThrYekwi7ABm93zbEgEj2AdFZDUXiXyXg4IS2qbV48PRXB1GIVQNejvL59VLlHJTqOXHdmPunK5_4=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnJq6uH6ikaTDhkUOlwjt_B1ULy2vO3uH86xrLSCumO0XorVWLl63iixSThrYekwi7ABm93zbEgEj2AdFZDUXiXyXg4IS2qbV48PRXB1GIVQNejvL59VLlHJTqOXHdmPunK5_4=s10000"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/XOnqz1zWFpaY2fa4jic3y_VC1sc3OQCO02nRifhJvieI4qOn7hZFUY_TKaUSkJNcA0ipUI6f54XnBU5o7fu8pNYx_kNeBjEoEoigPWFfaSVJVivKc-8C-_j-V-xlg-Q7ngXZM51420AVjEbV196RxAwAP7k00Q=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2c/d1/d8/ce/seaview-room.jpg?w=1900&h=1400&s=1"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmQBRCuX7skYCFice8LhNtJW7Il3b-EeiEmD7_5xrzPavOEwpISxa_yPnjNqWdtlbP3l-XxPHNJW-g3iIlzZH6r84YCT5CxxkTwj8p9e2yhFe3z5oP0uZViQTN8MviziCqb7vbOTUaSoO-7=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmQBRCuX7skYCFice8LhNtJW7Il3b-EeiEmD7_5xrzPavOEwpISxa_yPnjNqWdtlbP3l-XxPHNJW-g3iIlzZH6r84YCT5CxxkTwj8p9e2yhFe3z5oP0uZViQTN8MviziCqb7vbOTUaSoO-7=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWn89ncLQG1xql42JEX_7pyKmKhhpUWuHjxjEj57IyPriypg4A__r88vdAjRB7VSbbd5jsALlZwNSuDynmF8oAQIiKgveCLXlQB9xIvXa2zzKzSWo-Y2sOK4OJFOqi-gwS0rdPhaeA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWn89ncLQG1xql42JEX_7pyKmKhhpUWuHjxjEj57IyPriypg4A__r88vdAjRB7VSbbd5jsALlZwNSuDynmF8oAQIiKgveCLXlQB9xIvXa2zzKzSWo-Y2sOK4OJFOqi-gwS0rdPhaeA=s10000"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/P8F3snQSJC1B6NLSYkUi45NqdChCQ-Rzj6lVbQNFDMY9yfDHZfEAl556dbqgylOlRfD_YbZOJUwivPrhUD9gkdfjFRcPsynC3Woe_3FQwN17zHXRy4dYclUfilCJILadotZz0E-Kxrbt29aJyAx7rzbVOSrovA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://dweh1u36hoppi.cloudfront.net/ORIG/82888/82C04312-1C32-11EF-9CEB-8705E15A505C.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWke4i1opTK9tMmjtvV5X96yVLb0kUTyNpdwKL-lmCMqNEYDtzGBm31IehhNnnl4ncMyiICIFyP2NC5SEhKIwhKqLiRgbXOR-RTdcDCdG10GKoTRChuMhdRsEoDCN6aKQn39JdWw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWke4i1opTK9tMmjtvV5X96yVLb0kUTyNpdwKL-lmCMqNEYDtzGBm31IehhNnnl4ncMyiICIFyP2NC5SEhKIwhKqLiRgbXOR-RTdcDCdG10GKoTRChuMhdRsEoDCN6aKQn39JdWw=s10000"
+     }
+    ],
+    "overall_rating": 4.7,
+    "reviews": 29,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 25
+     },
+     {
+      "stars": 4,
+      "count": 2
+     },
+     {
+      "stars": 3,
+      "count": 0
+     },
+     {
+      "stars": 2,
+      "count": 0
+     },
+     {
+      "stars": 1,
+      "count": 2
+     }
+    ],
+    "location_rating": 4.7,
+    "reviews_breakdown": [
+     {
+      "name": "Bathroom",
+      "description": "Bathroom and toiletries",
+      "total_mentioned": 5,
+      "positive": 5,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "CStECHica1yRnFiSmp5fVDl5u1NiSUZRfn6uQmJeikJJfmZOaklRZmoxwwqYBAC6uRKp",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=CStECHica1yRnFiSmp5fVDl5u1NiSUZRfn6uQmJeikJJfmZOaklRZmoxwwqYBAC6uRKp&engine=google_hotels_reviews&hl=en&property_token=ChkI6PHu44bAp_FmGg0vZy8xMXkzanZfeTBfEAE"
+     },
+     {
+      "name": "Location",
+      "description": "Location",
+      "total_mentioned": 9,
+      "positive": 8,
+      "negative": 0,
+      "neutral": 1,
+      "category_token": "xyUYpHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cAZwEAzlYM3Q",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=xyUYpHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cAZwEAzlYM3Q&engine=google_hotels_reviews&hl=en&property_token=ChkI6PHu44bAp_FmGg0vZy8xMXkzanZfeTBfEAE"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 10,
+      "positive": 10,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChkI6PHu44bAp_FmGg0vZy8xMXkzanZfeTBfEAE"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 6,
+      "positive": 6,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "nHbA-nica1yRnFiSmp5fVDl5eXBqUVlmcioDjAEAtXYMCw",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=nHbA-nica1yRnFiSmp5fVDl5eXBqUVlmcioDjAEAtXYMCw&engine=google_hotels_reviews&hl=en&property_token=ChkI6PHu44bAp_FmGg0vZy8xMXkzanZfeTBfEAE"
+     }
+    ],
+    "amenities": [
+     "Free Wi-Fi",
+     "Air conditioning",
+     "Smoke-free property"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChkI6PHu44bAp_FmGg0vZy8xMXkzanZfeTBfEAE",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChkI6PHu44bAp_FmGg0vZy8xMXkzanZfeTBfEAE"
+   },
+   {
+    "type": "hotel",
+    "name": "The Gomerino Hotel",
+    "link": "https://thegomerinohotel.com/en/home.htm",
+    "property_token": "ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.8976501,
+     "longitude": 14.5149219
+    },
+    "check_in_time": "2:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "611 PLN",
+     "extracted_lowest": 611,
+     "before_taxes_fees": "572 PLN",
+     "extracted_before_taxes_fees": 572
+    },
+    "total_rate": {
+     "lowest": "3.057 PLN",
+     "extracted_lowest": 3057,
+     "before_taxes_fees": "2.858 PLN",
+     "extracted_before_taxes_fees": 2858
+    },
+    "nearby_places": [
+     {
+      "name": "Grand Master's Palace",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Nawfragju",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "19 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "27 min"
+       }
+      ]
+     },
+     {
+      "name": "San Paolo Naufrago",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "4-star hotel",
+    "extracted_hotel_class": 4,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkTJYt6wFW-2zdffxSStjWFiadNjYT-NyC_emdf8Xv5ICkz3AOmYMBHlFjlDAOv0eLMWMp8Xjhy3FO3JDDNPd5GEmlHaO1EJT3hTGkRojGexsFVSL4hu5mymp44DTEo_UUzTP9y=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkTJYt6wFW-2zdffxSStjWFiadNjYT-NyC_emdf8Xv5ICkz3AOmYMBHlFjlDAOv0eLMWMp8Xjhy3FO3JDDNPd5GEmlHaO1EJT3hTGkRojGexsFVSL4hu5mymp44DTEo_UUzTP9y=s10000"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/msbowlhq2mdjyECJ4BtOsptnb0RjBSLqKtGw8QxNGbkXcaXYJYn2XLIMpJ20h9uIjQfFWlcKV7ippTUAH_U0a44TGwFUwJf9iTiyZMHznkCbEH8hs2WSJv0GjlOKx-r797uMsuN9gEC4IRWLYveZxkdw4lhLWdo=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/11/1107422/1107422a_hb_a_001_20260311_000548.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm31UKoS39YirHv0r5Ir6vo2VUnPVyeRTv3ATsEmKsZCtuA88tdwCGr8Y7Vr801tv8njN7CAjzg1ym1C_BXqsuzrDigWAEcgQUHXwNbzak8A1Uy6brwwa8UnzbNmr60yzh_kfp5=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm31UKoS39YirHv0r5Ir6vo2VUnPVyeRTv3ATsEmKsZCtuA88tdwCGr8Y7Vr801tv8njN7CAjzg1ym1C_BXqsuzrDigWAEcgQUHXwNbzak8A1Uy6brwwa8UnzbNmr60yzh_kfp5=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm0VVC5EW8l6OFndA8bX1E4VXC2Kza4kZD7XVJEoxqqSsCTv_MAk803r8U40eks5vMcOJO8pDfih3Jba5H_f53p8cIRfiQtGPmzmu3aVTaoZ7dbllgyXj0Ol4p8UNFm-_5sqvb2kY1uBrc=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm0VVC5EW8l6OFndA8bX1E4VXC2Kza4kZD7XVJEoxqqSsCTv_MAk803r8U40eks5vMcOJO8pDfih3Jba5H_f53p8cIRfiQtGPmzmu3aVTaoZ7dbllgyXj0Ol4p8UNFm-_5sqvb2kY1uBrc=s10000"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/KoBrjRxHbE_F3ZEtbnvNG1SCdWGoj17AEvn4rOi-fTgRW41ZahG3v718zocHAS-46kusZC6lnc9DhsoCckS8QtHyhs9Y6Rp6DU5kxVFnTZjKELiFt1MIp_m4g_1dD7l3gyvwfQmfXhxx0KD0K4RPT8XPjm-XgA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://www.iceportal.com/data/2813-182165-f85079572_XXLejpg/Malta/IlBelt-Valletta/The-Gomerino-Hotel/Photo/The-Gomerino-Hotel-IlBelt-Valletta-Undefined-Fitness-Area.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl7K50XbpolFCAEer-pC_CWsgnClBzczguBiTsKgQFqTZLobwFsIk6YTcwd8R5NYl2TRKK0_H4GnOJPTTUr3uTXXPThE2gFFqjDAFCRPw5yPo9SYBWoqNlamnsZ2igfy1J3dhb3=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl7K50XbpolFCAEer-pC_CWsgnClBzczguBiTsKgQFqTZLobwFsIk6YTcwd8R5NYl2TRKK0_H4GnOJPTTUr3uTXXPThE2gFFqjDAFCRPw5yPo9SYBWoqNlamnsZ2igfy1J3dhb3=s10000"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/T3RWfvAeFOTjRQwqgOQHHUr816ypqxOdGAFK_TCzsvQpwStdMeFsZUKy8ME1BYE0VF8C-pz58CdMedH6IQJUkvn0Rs8JzhQy8KKWeGgfIw34ql66z-p21Zb_5e9G1Zj7evI4yHbl5gxUKsBksdN1Kpqd-qUXfA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/34/77/bd/89/caption.jpg?w=1900&h=1400&s=1"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/eK9ASU5GWVbOlKSNfHNgQvJ5LTeO9xphktyCPgKR0tUHTn-tz-bHd_RKG2oVCskGVKllEeTLQHw85ti5W3iaFBTsgvP0e9FyIiu6EYCWYABdEG5UMgudhfutC1f4IwrfQwXqeigT8yKLFZ3qUHvWpKFzYJJKYXU=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/11/1107422/1107422a_hb_r_001_20260311_000544.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWluw_Fyh_ZdyMigNabYiLQAoAtMQS8rREPo9qpNpDXh-wBn66g_Xk3Lizi9ninG3vEKFzTCJDGO43LUrGkyeb6Y-Bu3D_jwph1fUGpoy6kBl5sV2kPPPjSLTn74XaAQczVJdXFb=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWluw_Fyh_ZdyMigNabYiLQAoAtMQS8rREPo9qpNpDXh-wBn66g_Xk3Lizi9ninG3vEKFzTCJDGO43LUrGkyeb6Y-Bu3D_jwph1fUGpoy6kBl5sV2kPPPjSLTn74XaAQczVJdXFb=s10000"
+     }
+    ],
+    "overall_rating": 4.7,
+    "reviews": 329,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 264
+     },
+     {
+      "stars": 4,
+      "count": 44
+     },
+     {
+      "stars": 3,
+      "count": 11
+     },
+     {
+      "stars": 2,
+      "count": 3
+     },
+     {
+      "stars": 1,
+      "count": 7
+     }
+    ],
+    "location_rating": 4.7,
+    "reviews_breakdown": [
+     {
+      "name": "Fitness",
+      "description": "Fitness",
+      "total_mentioned": 61,
+      "positive": 55,
+      "negative": 5,
+      "neutral": 1,
+      "category_token": "PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg&engine=google_hotels_reviews&hl=en&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB"
+     },
+     {
+      "name": "Pool",
+      "description": "Pool",
+      "total_mentioned": 53,
+      "positive": 50,
+      "negative": 2,
+      "neutral": 1,
+      "category_token": "ysOZZnica1yRnFiSmp5fVDl5SUB-fg4jmAQAcoYJmA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=ysOZZnica1yRnFiSmp5fVDl5SUB-fg4jmAQAcoYJmA&engine=google_hotels_reviews&hl=en&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB"
+     },
+     {
+      "name": "Breakfast",
+      "description": "Breakfast",
+      "total_mentioned": 66,
+      "positive": 58,
+      "negative": 7,
+      "neutral": 1,
+      "category_token": "B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U&engine=google_hotels_reviews&hl=en&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 87,
+      "positive": 76,
+      "negative": 8,
+      "neutral": 3,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 85,
+      "positive": 72,
+      "negative": 7,
+      "neutral": 6,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB"
+     },
+     {
+      "name": "Bar",
+      "description": "Bar or lounge",
+      "total_mentioned": 30,
+      "positive": 25,
+      "negative": 2,
+      "neutral": 3,
+      "category_token": "qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE&engine=google_hotels_reviews&hl=en&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB"
+     }
+    ],
+    "amenities": [
+     "Free breakfast",
+     "Free Wi-Fi",
+     "Pools",
+     "Air conditioning",
+     "Fitness center",
+     "Spa",
+     "Bar",
+     "Restaurant",
+     "Room service",
+     "Full-service laundry",
+     "Accessible"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoIhL-s55Kd6P29ARoNL2cvMTFxMjVwM202MRAB"
+   },
+   {
+    "type": "hotel",
+    "name": "The Cumberland by NEU Collective",
+    "description": "Refined rooms & suites in a classic hotel offering a rooftop hot tub, dining & free breakfast.",
+    "link": "https://theneucollective.com/the-cumberland-hotel/",
+    "property_token": "ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.896816799999996,
+     "longitude": 14.5127142
+    },
+    "check_in_time": "2:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "536 PLN",
+     "extracted_lowest": 536,
+     "before_taxes_fees": "501 PLN",
+     "extracted_before_taxes_fees": 501
+    },
+    "total_rate": {
+     "lowest": "2.678 PLN",
+     "extracted_lowest": 2678,
+     "before_taxes_fees": "2.504 PLN",
+     "extracted_before_taxes_fees": 2504
+    },
+    "nearby_places": [
+     {
+      "name": "St. John's Co-Cathedral",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Gang",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "21 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "26 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "5-star hotel",
+    "extracted_hotel_class": 5,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl9e9f1AqS20A59f2fQEDtuzJr6PWEyCKPePZ2HVwm4smyjqDV9jdgrzVyMvx0DcI1v0OjkMcJXNSJEYSPg3qctPJVrCTT3CJ5HH0TVhwDfpbEDmugQsi2ziM5Yv9tGYgAwdqgszmWRUbE=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl9e9f1AqS20A59f2fQEDtuzJr6PWEyCKPePZ2HVwm4smyjqDV9jdgrzVyMvx0DcI1v0OjkMcJXNSJEYSPg3qctPJVrCTT3CJ5HH0TVhwDfpbEDmugQsi2ziM5Yv9tGYgAwdqgszmWRUbE=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmnKJIx1p6jUIU8R2riwABdkcX9_5x6WpgOtn6xD4yKcmiAJW7vX1I4XUOOvR2zbQpXGEFQixbGLqHqHMTYv2xV-_WqUuDTD9p_rv6FaLYAlgWsRKyf27ZtqISh6Dol6-kDA3LJlIoHTTXY=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmnKJIx1p6jUIU8R2riwABdkcX9_5x6WpgOtn6xD4yKcmiAJW7vX1I4XUOOvR2zbQpXGEFQixbGLqHqHMTYv2xV-_WqUuDTD9p_rv6FaLYAlgWsRKyf27ZtqISh6Dol6-kDA3LJlIoHTTXY=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm_lFCcm9gZeBxMdtG_Z4cmP6vJL2vKNLCKroJlrQVyYbPdveTjFkol8KC4R2r5TkYl0biL96mwleVPErQENdZ9VM15FdOUJKMTE8b2fiOsT2qf-P0Nw4yHyFWJ-w7vn9ugCWfXZQ3f9xU=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm_lFCcm9gZeBxMdtG_Z4cmP6vJL2vKNLCKroJlrQVyYbPdveTjFkol8KC4R2r5TkYl0biL96mwleVPErQENdZ9VM15FdOUJKMTE8b2fiOsT2qf-P0Nw4yHyFWJ-w7vn9ugCWfXZQ3f9xU=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnMOyKYd2_v4rdLsseK9L21e5ACEmZWyOM-SCNXdBR06IH6dlsUdLIeUSuEe-62cCGHud8SwD1C_Z8qViXqiagmmPlpb8mKia2r-boQCP2MWOwFpIDqXQc-uq2rCeXqUMDgup3hfrLzTZ7i=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnMOyKYd2_v4rdLsseK9L21e5ACEmZWyOM-SCNXdBR06IH6dlsUdLIeUSuEe-62cCGHud8SwD1C_Z8qViXqiagmmPlpb8mKia2r-boQCP2MWOwFpIDqXQc-uq2rCeXqUMDgup3hfrLzTZ7i=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm2RcNEEkjDHrTwTweMvjkXHHwGWfqjPbO8pHPtHotufZgXHhXJ2XZ7b7JiTH5kIrjrGnbY66k_I__41P7A_iIqKIEaK4tJaaUIdOhb6Zu-G8xW99X9IREQsha8xS1V1_RAmf_WnXZveIw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm2RcNEEkjDHrTwTweMvjkXHHwGWfqjPbO8pHPtHotufZgXHhXJ2XZ7b7JiTH5kIrjrGnbY66k_I__41P7A_iIqKIEaK4tJaaUIdOhb6Zu-G8xW99X9IREQsha8xS1V1_RAmf_WnXZveIw=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl1XgOLZA0ar4Ok8oUjZNu2hc4Km4CiNxtzStr3t5qD6-BFGye3GPRXwYffmaIkH9uIw-FzdbQnPuiW-rWCONTMHGo1gvdMZY0uFYEMSziblUjceC8L_phANrStWr-X0fLc8lgqaQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl1XgOLZA0ar4Ok8oUjZNu2hc4Km4CiNxtzStr3t5qD6-BFGye3GPRXwYffmaIkH9uIw-FzdbQnPuiW-rWCONTMHGo1gvdMZY0uFYEMSziblUjceC8L_phANrStWr-X0fLc8lgqaQ=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmf_Sm_TkYi0IlhkPcYSigW9KmGMj2Ksxtwz7GDpKPMIXEU-dXFPcHIglSvCtlFAaOfgFKFLwdiIylwk9AluzLvzuRvJ66biQ7dqOcCIPQDMmEERYBwV6IG-dV5c7n8Ca1dUkusiTgWxrtu=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmf_Sm_TkYi0IlhkPcYSigW9KmGMj2Ksxtwz7GDpKPMIXEU-dXFPcHIglSvCtlFAaOfgFKFLwdiIylwk9AluzLvzuRvJ66biQ7dqOcCIPQDMmEERYBwV6IG-dV5c7n8Ca1dUkusiTgWxrtu=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkxHCc5V2cFH4Z84cfUL0kJ-YOnd239nPXPqehSt31hxrWbWWUgHAeZqQMe-4gYrAVNe_GiCzreBbC5MY6Jb_OZNDq00BBcb8hhXkQIWqyG2r9212aCXKShI5nUeoxrq0RJi6w0WCjH5ObS=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkxHCc5V2cFH4Z84cfUL0kJ-YOnd239nPXPqehSt31hxrWbWWUgHAeZqQMe-4gYrAVNe_GiCzreBbC5MY6Jb_OZNDq00BBcb8hhXkQIWqyG2r9212aCXKShI5nUeoxrq0RJi6w0WCjH5ObS=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkzKWgBS_ONq88LX8m2j2KaQ3R1WumPIigdNBwsGtSrinubZD3BxDjKkpnZXqOTgkFL-v2k4kfaHae_PnpZdBE6ET70JCmA2QuhgYDfpIP5HWrsRdpLlO18jaRhh-hQITHT50iDjp0lZtg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkzKWgBS_ONq88LX8m2j2KaQ3R1WumPIigdNBwsGtSrinubZD3BxDjKkpnZXqOTgkFL-v2k4kfaHae_PnpZdBE6ET70JCmA2QuhgYDfpIP5HWrsRdpLlO18jaRhh-hQITHT50iDjp0lZtg=s10000"
+     }
+    ],
+    "overall_rating": 4.4,
+    "reviews": 330,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 233
+     },
+     {
+      "stars": 4,
+      "count": 48
+     },
+     {
+      "stars": 3,
+      "count": 21
+     },
+     {
+      "stars": 2,
+      "count": 7
+     },
+     {
+      "stars": 1,
+      "count": 21
+     }
+    ],
+    "location_rating": 4.9,
+    "reviews_breakdown": [
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 69,
+      "positive": 61,
+      "negative": 5,
+      "neutral": 3,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB"
+     },
+     {
+      "name": "Breakfast",
+      "description": "Breakfast",
+      "total_mentioned": 43,
+      "positive": 34,
+      "negative": 5,
+      "neutral": 4,
+      "category_token": "B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U&engine=google_hotels_reviews&hl=en&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 71,
+      "positive": 58,
+      "negative": 10,
+      "neutral": 3,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB"
+     },
+     {
+      "name": "Location",
+      "description": "Location",
+      "total_mentioned": 59,
+      "positive": 52,
+      "negative": 2,
+      "neutral": 5,
+      "category_token": "jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g&engine=google_hotels_reviews&hl=en&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB"
+     },
+     {
+      "name": "Wi-Fi",
+      "description": "Wi-Fi",
+      "total_mentioned": 7,
+      "positive": 3,
+      "negative": 1,
+      "neutral": 3,
+      "category_token": "8xDzSXica1yRnFiSmp5fVDl5aXimrlsmA4QCAIJVCZ0",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=8xDzSXica1yRnFiSmp5fVDl5aXimrlsmA4QCAIJVCZ0&engine=google_hotels_reviews&hl=en&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB"
+     },
+     {
+      "name": "Restaurant",
+      "description": "Restaurant",
+      "total_mentioned": 21,
+      "positive": 16,
+      "negative": 3,
+      "neutral": 2,
+      "category_token": "WeWj6Hica1yRnFiSmp5fVDl5VVBqcUliaVFiXgkjEhsACXMOwg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=WeWj6Hica1yRnFiSmp5fVDl5VVBqcUliaVFiXgkjEhsACXMOwg&engine=google_hotels_reviews&hl=en&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB"
+     }
+    ],
+    "amenities": [
+     "Free breakfast",
+     "Free Wi-Fi",
+     "Air conditioning",
+     "Bar",
+     "Restaurant",
+     "Airport shuttle",
+     "Kid-friendly",
+     "Smoke-free property"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoI6dj47onhrMmBARoNL2cvMTFmMzJkYjRkcBAB"
+   },
+   {
+    "type": "hotel",
+    "name": "Palais Le Brun",
+    "description": "Upscale boutique hotel offering plush rooms & suites, plus an elegant restaurant & an outdoor pool.",
+    "link": "https://www.palaislebrun.com/",
+    "property_token": "ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.9005915,
+     "longitude": 14.514210799999999
+    },
+    "check_in_time": "2:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "551 PLN",
+     "extracted_lowest": 551,
+     "before_taxes_fees": "515 PLN",
+     "extracted_before_taxes_fees": 515
+    },
+    "total_rate": {
+     "lowest": "2.753 PLN",
+     "extracted_lowest": 2753,
+     "before_taxes_fees": "2.575 PLN",
+     "extracted_before_taxes_fees": 2575
+    },
+    "nearby_places": [
+     {
+      "name": "Casa Rocca Piccola",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "3 min"
+       }
+      ]
+     },
+     {
+      "name": "Gendus",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "20 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "30 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "4-star hotel",
+    "extracted_hotel_class": 4,
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmcY5tO5480UPYhb-wqVAgoS5tu1p1aAiMax5bu7tdLRzOpYOdFX78aBBrMIRcB7NOCM_UEmmB_2IEyRqUQeHHctWu3gF1A4NESkv2cI6fOtf7_8KM3ZRQRS6fzEXwrWx8teZfO_Q=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmcY5tO5480UPYhb-wqVAgoS5tu1p1aAiMax5bu7tdLRzOpYOdFX78aBBrMIRcB7NOCM_UEmmB_2IEyRqUQeHHctWu3gF1A4NESkv2cI6fOtf7_8KM3ZRQRS6fzEXwrWx8teZfO_Q=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnCga5SkuIBqAyEEtDIjvxkO2PBN4OYayw1wrKhUYDK4wK_CbgcP9u5grskvWAhyvkNqnM5pzPplmHzrEaEm3V_F5tXq_g7mOfzJB-AvUzUIPMhWF8rkmejCT1NePewiE5AbO7m=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnCga5SkuIBqAyEEtDIjvxkO2PBN4OYayw1wrKhUYDK4wK_CbgcP9u5grskvWAhyvkNqnM5pzPplmHzrEaEm3V_F5tXq_g7mOfzJB-AvUzUIPMhWF8rkmejCT1NePewiE5AbO7m=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl3FFUVhhiGHaCYmC9VJTvFhH3aCvcA8qgF5_rAwQxZpCap-fkhOBabncbKKarWF5dVklOkFcVclVi_5QYOw-Y4MGmeUVv8cGiskRKtP2xAiUzoKyedYwIuj2mcgL0YKoqtMFmQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWl3FFUVhhiGHaCYmC9VJTvFhH3aCvcA8qgF5_rAwQxZpCap-fkhOBabncbKKarWF5dVklOkFcVclVi_5QYOw-Y4MGmeUVv8cGiskRKtP2xAiUzoKyedYwIuj2mcgL0YKoqtMFmQ=s10000"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/0IoCtHL7ATVlW4fP4eLYCUQaIn9OZhzk1A45HQE3zGEqSJ2vXO5sBOHQg03yMSh01_q6URBpLFuKPeMVNhFiZVIqMWr5T050Ji7GOcCeYOTS2KgSY9UQrw2ixwLFTyxoYwS3I0eaLcnEtIaGBeUzv9lztwb6AQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://www.iceportal.com/data/2813-182167-f85968328_XXLejpg/Malta/IlBelt-Valletta/Palais-Le-Brun/Photo/Palais-Le-Brun-IlBelt-Valletta-Undefined-PHOTO.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/proxy/EyEL8KFo9YhQ_Dv3a7miVW4n0RPMW1Go9VSwVYslWMTs0-Wt5FS7vpzPRo3foixmnbpYcObOjR8ro67bdj3v0cgq1o5zCZaiNfl8-TZFSjcmt0v4oM9uOZmupg_nACs2C4QrmnlTNMmxiQPuURjUnaQV4uXH-SM=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://www.iceportal.com/data/2813-182167-f85968350_XXLejpg/Malta/IlBelt-Valletta/Palais-Le-Brun/Photo/Palais-Le-Brun-IlBelt-Valletta-Undefined.jpg"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/_JhBS3gTD48GXTk_IPY5261e0oE9_iSpyKrvUBc27zileOAySYwFhJTfRk5mWiO0dH9V2A9W3lb-q7kEDNPFif86tolD0KevLNyV8ZCTpnEabwShtQcbx1W1Xoyjce_J2OYGT7OEYwvr2g2it8anHAijPh-9VCE=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://www.iceportal.com/data/2813-182167-f85079496_XXLejpg/Malta/IlBelt-Valletta/Palais-Le-Brun/Photo/Palais-Le-Brun-IlBelt-Valletta-Undefined.jpg"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/_ClbJFIfMF_6JBzFhh4EWJWuw0CHjSaTVS5CPe8FUFqt1JXOvdfAc8N2LirT4SuYT3kTKggOUsPz2qFtaAXwjSoWrmu5WoHTn9IqlDJ78Cad7SCAQ-Y14WbHWo49h2nDPkfEPWjeuAN69-kFLkWksZ6Nl5jetJA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/85/853229/853229a_hb_ba_007.jpg"
+     },
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/Wa2zXdCs4FHLleRMkkL56VC0NIjVqZCJvpmjTiD441WqnUE06O-DAjSERJpHQb-Cgp1u9U7MWPrEVHZOrWbMIbcrCftddi7PDwzLeJZqt4oAQP-AVXa6IZFOy4aK1pXggLnnhpJ6JoSpEz70z9bh0iqkIPuzkdg=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/85/853229/853229a_hb_a_005.jpg"
+     },
+     {
+      "thumbnail": "https://lh4.googleusercontent.com/proxy/XmRv8OwHZAaVtCOfasvvWPfqJfA2wCR8_43ps00Q0kueIXCxyf8E_h5zFBI5v2lAMnP2KS0OMviTt6LBIyuVUfUbIoOtECggrwJwESXuZSHPVpRCixxxpZB2GVFJqiMZKSMSkn_kk1P1ppg2c0Ul_bOHIz0IHuA=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/85/853229/853229a_hb_ba_006.jpg"
+     }
+    ],
+    "overall_rating": 4.8,
+    "reviews": 435,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 361
+     },
+     {
+      "stars": 4,
+      "count": 52
+     },
+     {
+      "stars": 3,
+      "count": 14
+     },
+     {
+      "stars": 2,
+      "count": 5
+     },
+     {
+      "stars": 1,
+      "count": 3
+     }
+    ],
+    "location_rating": 4.9,
+    "reviews_breakdown": [
+     {
+      "name": "Fitness",
+      "description": "Fitness",
+      "total_mentioned": 40,
+      "positive": 31,
+      "negative": 5,
+      "neutral": 4,
+      "category_token": "PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=PXioD3ica1yRnFiSmp5fVDl5uVtmSV5qcTEjjAEAtXQMIg&engine=google_hotels_reviews&hl=en&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE"
+     },
+     {
+      "name": "Pool",
+      "description": "Pool",
+      "total_mentioned": 28,
+      "positive": 24,
+      "negative": 2,
+      "neutral": 2,
+      "category_token": "ysOZZnica1yRnFiSmp5fVDl5SUB-fg4jmAQAcoYJmA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=ysOZZnica1yRnFiSmp5fVDl5SUB-fg4jmAQAcoYJmA&engine=google_hotels_reviews&hl=en&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE"
+     },
+     {
+      "name": "Breakfast",
+      "description": "Breakfast",
+      "total_mentioned": 59,
+      "positive": 57,
+      "negative": 2,
+      "neutral": 0,
+      "category_token": "B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U&engine=google_hotels_reviews&hl=en&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 91,
+      "positive": 83,
+      "negative": 4,
+      "neutral": 4,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 75,
+      "positive": 69,
+      "negative": 5,
+      "neutral": 1,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE"
+     },
+     {
+      "name": "Location",
+      "description": "Location",
+      "total_mentioned": 68,
+      "positive": 65,
+      "negative": 0,
+      "neutral": 3,
+      "category_token": "jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g&engine=google_hotels_reviews&hl=en&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE"
+     }
+    ],
+    "amenities": [
+     "Free breakfast",
+     "Free Wi-Fi",
+     "Outdoor pool",
+     "Hot tub",
+     "Air conditioning",
+     "Fitness center",
+     "Bar",
+     "Restaurant",
+     "Room service",
+     "Airport shuttle",
+     "Full-service laundry",
+     "Kid-friendly",
+     "Smoke-free property"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChkI562ZyJf1z4wgGg0vZy8xMWdneV92NmYxEAE"
+   },
+   {
+    "type": "hotel",
+    "name": "Mandera's Boutique Suites & Dorms",
+    "link": "https://mandera.mt/",
+    "property_token": "ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.8991629,
+     "longitude": 14.510365799999999
+    },
+    "check_in_time": "3:00 PM",
+    "check_out_time": "11:00 AM",
+    "rate_per_night": {
+     "lowest": "402 PLN",
+     "extracted_lowest": 402,
+     "before_taxes_fees": "363 PLN",
+     "extracted_before_taxes_fees": 363
+    },
+    "total_rate": {
+     "lowest": "2.009 PLN",
+     "extracted_lowest": 2009,
+     "before_taxes_fees": "1.816 PLN",
+     "extracted_before_taxes_fees": 1816
+    },
+    "nearby_places": [
+     {
+      "name": "National Museum of Archaeology | Valletta",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "6 min"
+       }
+      ]
+     },
+     {
+      "name": "Arcisqof",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "2 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "20 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "27 min"
+       }
+      ]
+     }
+    ],
+    "hotel_class": "2-star hotel",
+    "extracted_hotel_class": 2,
+    "images": [
+     {
+      "thumbnail": "https://lh6.googleusercontent.com/proxy/wKLJr4zP2Un_rPXvdxugNO3jHXQcgX2_mbtOsqfteIntS6X7qzmiQ3sLi8CAC8YQxWP8LbSv9fD7QnG0u1kHGkrmofAFbnb7rhhbSyZt5gy3AbO_FnxEiGdM9ccEC0uiDTbXQH5qtZXqih1z3oqIVezvZKBVLk4=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://images.trvl-media.com/lodging/102000000/101090000/101088000/101087992/8c4c6c9d_z.jpg"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmrOUeCwGD9bAzdbt4X0beCsQQbXV9Oqfxja-NRx5KGtVhW2LgaBoswhUhqCU1zuixvNyh_FGqiHyd7anXS2hk0EJ1l3gTi3rrM64XkSweurMNtjXXgSQmf7yIKT2sVqFPGqM4oGHSChAo=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmrOUeCwGD9bAzdbt4X0beCsQQbXV9Oqfxja-NRx5KGtVhW2LgaBoswhUhqCU1zuixvNyh_FGqiHyd7anXS2hk0EJ1l3gTi3rrM64XkSweurMNtjXXgSQmf7yIKT2sVqFPGqM4oGHSChAo=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnoly32cQMb2B_-d-GZff3Tc8I1GjckBAahahQs198AroCMPo_LGhZP5sOYt8Yx4PzUFOSbXjniJQXmkml5QqqC_03ohz6epM0_Jf4k3wD85LfhpDMRtLrZ9V9biBbzlQ2KvmO0IiU0aeHV=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnoly32cQMb2B_-d-GZff3Tc8I1GjckBAahahQs198AroCMPo_LGhZP5sOYt8Yx4PzUFOSbXjniJQXmkml5QqqC_03ohz6epM0_Jf4k3wD85LfhpDMRtLrZ9V9biBbzlQ2KvmO0IiU0aeHV=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlhFhZCMhytsMUO67kAzlu_idz0MynmrrtAFT_e2QpgIeq1peQyQBztfHXKwgVo7FPBA7nECUuUZI-aa5DsVZ6AcR2Knz2koqYI0ApksqxBah56r33wrXO5CYFFxzSQJT-ZkB5orq2luTxm=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlhFhZCMhytsMUO67kAzlu_idz0MynmrrtAFT_e2QpgIeq1peQyQBztfHXKwgVo7FPBA7nECUuUZI-aa5DsVZ6AcR2Knz2koqYI0ApksqxBah56r33wrXO5CYFFxzSQJT-ZkB5orq2luTxm=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWluqiv5vCZFo6FkmGOGLExS4fMGzTwFKFRWJww5GmjxKAdO81Tr44hOCRjAsuV2lkd_XF8LxWVmTgS3Y6ekRBSFM_zIqTDmV4fig1QB6LGPaOtqXMUkITWKW_DoUVIMHhiucGJVZE8nCmk=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWluqiv5vCZFo6FkmGOGLExS4fMGzTwFKFRWJww5GmjxKAdO81Tr44hOCRjAsuV2lkd_XF8LxWVmTgS3Y6ekRBSFM_zIqTDmV4fig1QB6LGPaOtqXMUkITWKW_DoUVIMHhiucGJVZE8nCmk=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmYHKn-Rr6FxbMgFCxKs0YS8tYOdegR6_JNB6NG3IDy6nEiBVNmo_iqriFfI0V-UUbAuBeqP01bZWjQmLmhovQ0x_tlOhJeAqafhOSXKSOJT9m54tSRlHXSPH1Vqm_9Bo_yRMwPwaYwf1vS=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmYHKn-Rr6FxbMgFCxKs0YS8tYOdegR6_JNB6NG3IDy6nEiBVNmo_iqriFfI0V-UUbAuBeqP01bZWjQmLmhovQ0x_tlOhJeAqafhOSXKSOJT9m54tSRlHXSPH1Vqm_9Bo_yRMwPwaYwf1vS=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlo6grSzx9qKR5-DTUFmBCGyb7a0I2fF9VX2JK6YaPsVkinwzHG2XMadhm7UxGvkHm4lIHp4DsYWx6k_qKIIs-q2oJHVI7Xqmsz43BrpUS-3uZo9iduzbd5Sr_UhRNXE2_4a9vMho1Ff9Ka=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlo6grSzx9qKR5-DTUFmBCGyb7a0I2fF9VX2JK6YaPsVkinwzHG2XMadhm7UxGvkHm4lIHp4DsYWx6k_qKIIs-q2oJHVI7Xqmsz43BrpUS-3uZo9iduzbd5Sr_UhRNXE2_4a9vMho1Ff9Ka=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmj4C7fWUXbY16rz4nXTH2slc7BWvjyVOfgWdzmnzXSD22xilXnjaHbMmCq7SHL1mgT4m8giHoK7eZVpWG4iQrnHSUSNRuQQ8Z-P3BrUIXH8Ue5oEZ67H3avYW_j_x1RlvLbBrXr5Qfa1Eh=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmj4C7fWUXbY16rz4nXTH2slc7BWvjyVOfgWdzmnzXSD22xilXnjaHbMmCq7SHL1mgT4m8giHoK7eZVpWG4iQrnHSUSNRuQQ8Z-P3BrUIXH8Ue5oEZ67H3avYW_j_x1RlvLbBrXr5Qfa1Eh=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnPzl_3UuPHjYc4R6fduhiYu7UR0M6_AQuLbAq9ggb-n5FGqV2zuul7Es0PD3CggSMXqDPnyl4EenFmNJVBSivOWTVqvbnEa3rDa5U-vx3g4BDq0a3sOINgcF-ewBbmpBcRgDbTfqXHSBKI=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnPzl_3UuPHjYc4R6fduhiYu7UR0M6_AQuLbAq9ggb-n5FGqV2zuul7Es0PD3CggSMXqDPnyl4EenFmNJVBSivOWTVqvbnEa3rDa5U-vx3g4BDq0a3sOINgcF-ewBbmpBcRgDbTfqXHSBKI=s10000"
+     }
+    ],
+    "overall_rating": 4.8,
+    "reviews": 189,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 172
+     },
+     {
+      "stars": 4,
+      "count": 7
+     },
+     {
+      "stars": 3,
+      "count": 3
+     },
+     {
+      "stars": 2,
+      "count": 3
+     },
+     {
+      "stars": 1,
+      "count": 4
+     }
+    ],
+    "location_rating": 4.7,
+    "reviews_breakdown": [
+     {
+      "name": "Cleanliness",
+      "description": "Cleanliness",
+      "total_mentioned": 32,
+      "positive": 29,
+      "negative": 1,
+      "neutral": 2,
+      "category_token": "JXKy3Xica1yRnFiSmp5fVDl5tXNOamJeTmZeanExIzIHACQKD1Q",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=JXKy3Xica1yRnFiSmp5fVDl5tXNOamJeTmZeanExIzIHACQKD1Q&engine=google_hotels_reviews&hl=en&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB"
+     },
+     {
+      "name": "Location",
+      "description": "Location",
+      "total_mentioned": 37,
+      "positive": 35,
+      "negative": 1,
+      "neutral": 1,
+      "category_token": "jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g&engine=google_hotels_reviews&hl=en&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB"
+     },
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 38,
+      "positive": 34,
+      "negative": 1,
+      "neutral": 3,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB"
+     },
+     {
+      "name": "Bathroom",
+      "description": "Bathroom and toiletries",
+      "total_mentioned": 21,
+      "positive": 14,
+      "negative": 4,
+      "neutral": 3,
+      "category_token": "iMUWyHica1yRnFiSmp5fVDl5u1NiSUZRfn6uQmJeikJJfmZOaklRZmox4wqYBAC6wxKq",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=iMUWyHica1yRnFiSmp5fVDl5u1NiSUZRfn6uQmJeikJJfmZOaklRZmox4wqYBAC6wxKq&engine=google_hotels_reviews&hl=en&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB"
+     },
+     {
+      "name": "Accessibility",
+      "description": "Accessibility",
+      "total_mentioned": 7,
+      "positive": 6,
+      "negative": 1,
+      "neutral": 0,
+      "category_token": "RQHLCHica1yRnFiSmp5fVDl5rWNycmpxcWZSZk5mSSUDKhcAZcgRBQ",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=RQHLCHica1yRnFiSmp5fVDl5rWNycmpxcWZSZk5mSSUDKhcAZcgRBQ&engine=google_hotels_reviews&hl=en&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB"
+     },
+     {
+      "name": "Sleep",
+      "description": "Sleep",
+      "total_mentioned": 21,
+      "positive": 20,
+      "negative": 1,
+      "neutral": 0,
+      "category_token": "WYlIUnica1yRnFiSmp5fVDl5aXBOamoBI4QCAIaxClg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=WYlIUnica1yRnFiSmp5fVDl5aXBOamoBI4QCAIaxClg&engine=google_hotels_reviews&hl=en&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB"
+     }
+    ],
+    "amenities": [
+     "Free Wi-Fi",
+     "Air conditioning",
+     "Kitchen in some rooms",
+     "Smoke-free property"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoIk__WrP655vPHARoNL2cvMTFsNnltcjA4MBAB"
+   },
+   {
+    "type": "hotel",
+    "name": "The Capital Boutique Hotel Valletta",
+    "description": "Genteel hotel offering sophisticated quarters, some with sea views, plus a bar & breakfast.",
+    "link": "http://www.thecapitalvallettahotel.com/",
+    "property_token": "ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB",
+    "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB&q=Valletta+hotels",
+    "gps_coordinates": {
+     "latitude": 35.9002328,
+     "longitude": 14.513129300000001
+    },
+    "rate_per_night": {
+     "lowest": "629 PLN",
+     "extracted_lowest": 629,
+     "before_taxes_fees": "589 PLN",
+     "extracted_before_taxes_fees": 589
+    },
+    "total_rate": {
+     "lowest": "3.145 PLN",
+     "extracted_lowest": 3145,
+     "before_taxes_fees": "2.943 PLN",
+     "extracted_before_taxes_fees": 2943
+    },
+    "nearby_places": [
+     {
+      "name": "Casa Rocca Piccola",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "4 min"
+       }
+      ]
+     },
+     {
+      "name": "Kristofru",
+      "transportations": [
+       {
+        "type": "Walking",
+        "duration": "1 min"
+       }
+      ]
+     },
+     {
+      "name": "Malta International Airport",
+      "transportations": [
+       {
+        "type": "Taxi",
+        "duration": "21 min"
+       },
+       {
+        "type": "Public transport",
+        "duration": "29 min"
+       }
+      ]
+     }
+    ],
+    "images": [
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnNuuMwECSFtKu0QypeyatADTze35EMsliPA611j5Se6CbFI4_gxazwqluPvJFG7U9f6R5lGR6IhlX3CHveXHZY7yQzp02tC_w95XQn5yLX1Ht-xhnJBh15a_I4Is9m0rlgKsWZ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnNuuMwECSFtKu0QypeyatADTze35EMsliPA611j5Se6CbFI4_gxazwqluPvJFG7U9f6R5lGR6IhlX3CHveXHZY7yQzp02tC_w95XQn5yLX1Ht-xhnJBh15a_I4Is9m0rlgKsWZ=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWk3heCI7twxGZQlkCSrp9QVMCXdSw1Ox-Eac3qaeOY9G-2OssHfIAL-9lUPffBBm9bBQoUEJ4tffzhOA8zVDyRVjv8AOz_LzDIt1bwgfjGXfJAr4CSpwqZDbp0iPI39qzgtnTiQ=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWk3heCI7twxGZQlkCSrp9QVMCXdSw1Ox-Eac3qaeOY9G-2OssHfIAL-9lUPffBBm9bBQoUEJ4tffzhOA8zVDyRVjv8AOz_LzDIt1bwgfjGXfJAr4CSpwqZDbp0iPI39qzgtnTiQ=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkwhfksmA8eLkFRmCiIwA8jiGuxZsy97i5_IRf4CefOquzX_1mwxJBsTqZoj6uhdm_8oFtNp6i4Ip3NRBMClWnjatwuPJrx0C1gC5x_FxHaBrUXCITLCNH2HVjLS6rv1rXoqjjb=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkwhfksmA8eLkFRmCiIwA8jiGuxZsy97i5_IRf4CefOquzX_1mwxJBsTqZoj6uhdm_8oFtNp6i4Ip3NRBMClWnjatwuPJrx0C1gC5x_FxHaBrUXCITLCNH2HVjLS6rv1rXoqjjb=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlSGvaT6l1DXDatKrWlCzilnWob08w6CCtK_IbGipTdj0HZ2N5LFJCMperbdOnx4pfYFLePf7QX40PsEDtvNkzATuMa-PU9M5nHE4-Ir2K15SZ3mJzqx91C8vGmtJx7gDhDDa2eAMByjJB3=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlSGvaT6l1DXDatKrWlCzilnWob08w6CCtK_IbGipTdj0HZ2N5LFJCMperbdOnx4pfYFLePf7QX40PsEDtvNkzATuMa-PU9M5nHE4-Ir2K15SZ3mJzqx91C8vGmtJx7gDhDDa2eAMByjJB3=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnBg7qLyzx78a7TbubpMhLWOIyhjagifjgrqBapq4p3QKP5tADeuHIasDPxT4-ozPG0cRhP-QMrOQz802gGbf1h2DwVAIl3gy4CCEvjqW1-IltdjuqgcyKu4FdyRbgPhtJ-1noe=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnBg7qLyzx78a7TbubpMhLWOIyhjagifjgrqBapq4p3QKP5tADeuHIasDPxT4-ozPG0cRhP-QMrOQz802gGbf1h2DwVAIl3gy4CCEvjqW1-IltdjuqgcyKu4FdyRbgPhtJ-1noe=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlMMX3auXzoU4szJmBSLBeV7-Q-yA31OzEPzuCmKRuUctJ8WNdT6IDaVbmI4-hcSdDwRUQvTkFxkBxhQ7mgd0nCUNHsrgsQQeU8oaeiICKC5rDulSjbgjIl3zPt9LU1FPIKmKRBHw=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlMMX3auXzoU4szJmBSLBeV7-Q-yA31OzEPzuCmKRuUctJ8WNdT6IDaVbmI4-hcSdDwRUQvTkFxkBxhQ7mgd0nCUNHsrgsQQeU8oaeiICKC5rDulSjbgjIl3zPt9LU1FPIKmKRBHw=s10000"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkZp43o4py-OuzoSs9Iqz8TXV-a84LuNKCdKBGpgYJPZarYo0uvHjKIL7DvxQVKOihDNWssRE9mNBbjzs36Q93P_AOcStEBR3Ao5zW-tCq046Fu4MqcT9eedKUKI3SYGjDhWj4K=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkZp43o4py-OuzoSs9Iqz8TXV-a84LuNKCdKBGpgYJPZarYo0uvHjKIL7DvxQVKOihDNWssRE9mNBbjzs36Q93P_AOcStEBR3Ao5zW-tCq046Fu4MqcT9eedKUKI3SYGjDhWj4K=s10000"
+     },
+     {
+      "thumbnail": "https://lh5.googleusercontent.com/proxy/ILpj_07LQXjHILx14G21uhbUd2QFt06U8BOKCWtbH2bVRpq2dwGRStr2i5AJJISN_Vpbh1q9g4Cuy1VXn7qf-CUwYaqBsnMHtbiZhhREULz7yViO08gpm1hb7RcdmqKhtGfplU3gySwkG4XWKCrVvXxQbMhZgL0=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://photos.hotelbeds.com/giata/original/10/1035989/1035989a_hb_r_001.jpg?20240628231357?20250501064016"
+     },
+     {
+      "thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlYp2UeLnuWOc2E06M2Fo5aElsPRWbn8ek9-7lmm1EeKzeUmQOOGPiTBrtU8PdJ2_6MaQzE0gNh26eybCXLwC6iK7BeXpFJ2zLZb_cnuT7NySzign2R7ruoa_46b9AuGMasTxzC=s287-w287-h192-n-k-no-v1",
+      "original_image": "https://lh3.googleusercontent.com/gps-cs-s/AHRPTWlYp2UeLnuWOc2E06M2Fo5aElsPRWbn8ek9-7lmm1EeKzeUmQOOGPiTBrtU8PdJ2_6MaQzE0gNh26eybCXLwC6iK7BeXpFJ2zLZb_cnuT7NySzign2R7ruoa_46b9AuGMasTxzC=s10000"
+     }
+    ],
+    "overall_rating": 4.9,
+    "reviews": 189,
+    "ratings": [
+     {
+      "stars": 5,
+      "count": 180
+     },
+     {
+      "stars": 4,
+      "count": 6
+     },
+     {
+      "stars": 3,
+      "count": 3
+     },
+     {
+      "stars": 2,
+      "count": 0
+     },
+     {
+      "stars": 1,
+      "count": 0
+     }
+    ],
+    "location_rating": 4.7,
+    "reviews_breakdown": [
+     {
+      "name": "Service",
+      "description": "Service",
+      "total_mentioned": 62,
+      "positive": 61,
+      "negative": 1,
+      "neutral": 0,
+      "category_token": "DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=DZ7RYHica1yRnFiSmp5fVDl5eXBqUVlmciojjAEAtX8MDA&engine=google_hotels_reviews&hl=en&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB"
+     },
+     {
+      "name": "Breakfast",
+      "description": "Breakfast",
+      "total_mentioned": 34,
+      "positive": 34,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=B2S1iHica1yRnFiSmp5fVDl5pVNRamJ2WmJxCSOCCQDoBQ2U&engine=google_hotels_reviews&hl=en&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB"
+     },
+     {
+      "name": "Property",
+      "description": "Property",
+      "total_mentioned": 47,
+      "positive": 47,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qPRjhHica1yRnFiSmp5fVDl5RUBRfkFqUUklI5wFANGQDTY&engine=google_hotels_reviews&hl=en&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB"
+     },
+     {
+      "name": "Bar",
+      "description": "Bar or lounge",
+      "total_mentioned": 16,
+      "positive": 16,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=qI-Rpnica1yRnFiSmp5fVDl5rVNikUJ-kUJOfmleeirjYiAXAMhXDEE&engine=google_hotels_reviews&hl=en&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB"
+     },
+     {
+      "name": "Location",
+      "description": "Location",
+      "total_mentioned": 41,
+      "positive": 40,
+      "negative": 1,
+      "neutral": 0,
+      "category_token": "jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=jLN0PHica1yRnFiSmp5fVDl5hU8-kJ2Zn8cIZwEAzmAM3g&engine=google_hotels_reviews&hl=en&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB"
+     },
+     {
+      "name": "Restaurant",
+      "description": "Restaurant",
+      "total_mentioned": 21,
+      "positive": 21,
+      "negative": 0,
+      "neutral": 0,
+      "category_token": "WeWj6Hica1yRnFiSmp5fVDl5VVBqcUliaVFiXgkjEhsACXMOwg",
+      "serpapi_link": "https://serpapi.com/search.json?category_token=WeWj6Hica1yRnFiSmp5fVDl5VVBqcUliaVFiXgkjEhsACXMOwg&engine=google_hotels_reviews&hl=en&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB"
+     }
+    ],
+    "amenities": [
+     "Free breakfast",
+     "Free Wi-Fi",
+     "Pool",
+     "Air conditioning",
+     "Restaurant",
+     "Airport shuttle",
+     "Full-service laundry"
+    ],
+    "serpapi_google_hotels_reviews_link": "https://serpapi.com/search.json?engine=google_hotels_reviews&hl=en&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB",
+    "serpapi_google_hotels_photos_link": "https://serpapi.com/search.json?engine=google_hotels_photos&property_token=ChoIkNmbgYzY6PXyARoNL2cvMTFwazlkcmhoehAB"
+   }
+  ],
+  "serpapi_pagination": {
+   "current_from": 1,
+   "current_to": 20,
+   "next_page_token": "CBI=",
+   "next": "https://serpapi.com/search.json?adults=2&check_in_date=2027-01-14&check_out_date=2027-01-19&children=0&currency=PLN&engine=google_hotels&gl=pl&hl=en&next_page_token=CBI%3D&q=Valletta+hotels"
+  }
+ }
+}

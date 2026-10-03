@@ -1,0 +1,972 @@
+{
+ "source": "serpapi:google_flights",
+ "params": {
+  "engine": "google_flights",
+  "currency": "PLN",
+  "gl": "pl",
+  "hl": "en",
+  "departure_id": "KRK",
+  "arrival_id": "VIE",
+  "type": 1,
+  "outbound_date": "2027-01-14",
+  "return_date": "2027-01-19",
+  "adults": 1
+ },
+ "fetched_at": "2026-10-03T11:43:48.519044+00:00",
+ "recorded": true,
+ "payload": {
+  "search_metadata": {
+   "id": "6ac0ea4bd114dfc5a1368a33",
+   "status": "Success",
+   "json_endpoint": "https://serpapi.com/searches/1LB874gIAZ-ax8JEo1ahC0XR3kipl8R49fDt3wRmcJE/6ac0ea4bd114dfc5a1368a33.json",
+   "markdown_endpoint": "https://serpapi.com/searches/1LB874gIAZ-ax8JEo1ahC0XR3kipl8R49fDt3wRmcJE/6ac0ea4bd114dfc5a1368a33.md",
+   "created_at": "2026-10-03 11:43:07 UTC",
+   "processed_at": "2026-10-03 11:43:07 UTC",
+   "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=PLN&tfs=CBwQAhoeEgoyMDI3LTAxLTE0agcIARIDS1JLcgcIARIDVklFGh4SCjIwMjctMDEtMTlqBwgBEgNWSUVyBwgBEgNLUktAAUgBcAGYAQE&tfu=EgIIAQ",
+   "raw_html_file": "https://serpapi.com/searches/1LB874gIAZ-ax8JEo1ahC0XR3kipl8R49fDt3wRmcJE/6ac0ea4bd114dfc5a1368a33.html",
+   "prettify_html_file": "https://serpapi.com/searches/1LB874gIAZ-ax8JEo1ahC0XR3kipl8R49fDt3wRmcJE/6ac0ea4bd114dfc5a1368a33.prettify",
+   "total_time_taken": 1.43
+  },
+  "search_parameters": {
+   "engine": "google_flights",
+   "hl": "en",
+   "gl": "pl",
+   "type": "1",
+   "departure_id": "KRK",
+   "arrival_id": "VIE",
+   "outbound_date": "2027-01-14",
+   "return_date": "2027-01-19",
+   "adults": 1,
+   "currency": "PLN"
+  },
+  "best_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 14:45"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 15:45"
+      },
+      "duration": 60,
+      "airplane": "Embraer 195",
+      "airline": "Austrian",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+      "travel_class": "Economy",
+      "flight_number": "OS 680",
+      "ticket_also_sold_by": [
+       "LOT"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 66 kg"
+      ],
+      "plane_and_crew_by": "Air Dolomiti"
+     }
+    ],
+    "total_duration": 60,
+    "carbon_emissions": {
+     "this_flight": 67000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 5
+    },
+    "price": 614,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZ1ZQVXpZNE1Cb0xDTmpmQXhBQ0dnTlFURTQ0SEhDUmV3PT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJWSUUiLG51bGwsIk9TIiwiNjgwIl1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 05:35"
+      },
+      "arrival_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-14 06:35"
+      },
+      "duration": 60,
+      "airplane": "Boeing 737MAX 8 Passenger",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 3910",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "In-seat power & USB outlets",
+       "Stream media to your device",
+       "Carbon emissions estimate: 38 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-14 07:15"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 08:35"
+      },
+      "duration": 80,
+      "airplane": "Embraer 190",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 223",
+      "ticket_also_sold_by": [
+       "Austrian"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 40,
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW"
+     }
+    ],
+    "total_duration": 180,
+    "carbon_emissions": {
+     "this_flight": 128000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 100
+    },
+    "price": 932,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZ3hNVHpNNU1UQjhURTh5TWpNYUN3anMxd1VRQWhvRFVFeE9PQnh3NnJvQiIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIldBVyIsbnVsbCwiTE8iLCIzOTEwIl0sWyJXQVciLCIyMDI3LTAxLTE0IiwiVklFIixudWxsLCJMTyIsIjIyMyJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 15:00"
+      },
+      "arrival_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-14 15:50"
+      },
+      "duration": 50,
+      "airplane": "Embraer 195",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 3906",
+      "legroom": "31 in",
+      "extensions": [
+       "Average legroom (31 in)",
+       "Carbon emissions estimate: 57 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-14 17:20"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 18:40"
+      },
+      "duration": 80,
+      "airplane": "Embraer 195",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 225",
+      "ticket_also_sold_by": [
+       "Austrian"
+      ],
+      "legroom": "31 in",
+      "extensions": [
+       "Average legroom (31 in)",
+       "Carbon emissions estimate: 80 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 90,
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW"
+     }
+    ],
+    "total_duration": 220,
+    "carbon_emissions": {
+     "this_flight": 138000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 116
+    },
+    "price": 932,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZ3hNVHpNNU1EWjhURTh5TWpVYUN3anMxd1VRQWhvRFVFeE9PQnh3NnJvQiIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIldBVyIsbnVsbCwiTE8iLCIzOTA2Il0sWyJXQVciLCIyMDI3LTAxLTE0IiwiVklFIixudWxsLCJMTyIsIjIyNSJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 17:35"
+      },
+      "arrival_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 19:35"
+      },
+      "duration": 120,
+      "airplane": "Embraer 195 E2",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1328",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 99 kg"
+      ],
+      "plane_and_crew_by": "KLM Cityhopper"
+     },
+     {
+      "departure_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 21:05"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 22:50"
+      },
+      "duration": 105,
+      "airplane": "Airbus A321neo",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1907",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "Free Wi-Fi",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 72 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 90,
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS"
+     }
+    ],
+    "total_duration": 315,
+    "carbon_emissions": {
+     "this_flight": 172000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 169
+    },
+    "price": 948,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZzFMVERFek1qaDhTMHd4T1RBM0dnc0l0T1FGRUFJYUExQk1UamdjY0llK0FRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJBTVMiLG51bGwsIktMIiwiMTMyOCJdLFsiQU1TIiwiMjAyNy0wMS0xNCIsIlZJRSIsbnVsbCwiS0wiLCIxOTA3Il1dXQ=="
+   }
+  ],
+  "other_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 14:00"
+      },
+      "arrival_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 16:00"
+      },
+      "duration": 120,
+      "airplane": "Embraer 190",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1326",
+      "legroom": "31 in",
+      "extensions": [
+       "Average legroom (31 in)",
+       "Carbon emissions estimate: 134 kg"
+      ],
+      "plane_and_crew_by": "German Airways"
+     },
+     {
+      "departure_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 21:05"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 22:50"
+      },
+      "duration": 105,
+      "airplane": "Airbus A321neo",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1907",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "Free Wi-Fi",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 72 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 305,
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS"
+     }
+    ],
+    "total_duration": 530,
+    "carbon_emissions": {
+     "this_flight": 207000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 223
+    },
+    "price": 893,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZzFMVERFek1qWjhTMHd4T1RBM0dnc0lscmtGRUFJYUExQk1UamdjY1B1eUFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJBTVMiLG51bGwsIktMIiwiMTMyNiJdLFsiQU1TIiwiMjAyNy0wMS0xNCIsIlZJRSIsbnVsbCwiS0wiLCIxOTA3Il1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 18:15"
+      },
+      "arrival_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-14 19:10"
+      },
+      "duration": 55,
+      "airplane": "Embraer 195",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 3924",
+      "legroom": "31 in",
+      "extensions": [
+       "Average legroom (31 in)",
+       "Carbon emissions estimate: 57 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-15 07:15"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-15 08:35"
+      },
+      "duration": 80,
+      "airplane": "Embraer 195",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 223",
+      "ticket_also_sold_by": [
+       "Austrian"
+      ],
+      "legroom": "31 in",
+      "extensions": [
+       "Average legroom (31 in)",
+       "Carbon emissions estimate: 80 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 725,
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW"
+     }
+    ],
+    "total_duration": 860,
+    "carbon_emissions": {
+     "this_flight": 138000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 116
+    },
+    "price": 932,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZ3hNVHpNNU1qUjhURTh5TWpNYUN3anMxd1VRQWhvRFVFeE9PQnh3NnJvQiIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIldBVyIsbnVsbCwiTE8iLCIzOTI0Il0sWyJXQVciLCIyMDI3LTAxLTE1IiwiVklFIixudWxsLCJMTyIsIjIyMyJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:00"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 07:20"
+      },
+      "duration": 80,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1627",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 08:00"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 09:05"
+      },
+      "duration": 65,
+      "airplane": "Embraer 195",
+      "airline": "Austrian",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+      "travel_class": "Economy",
+      "flight_number": "OS 182",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "Carbon emissions estimate: 70 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 40,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     }
+    ],
+    "total_duration": 185,
+    "carbon_emissions": {
+     "this_flight": 159000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 148
+    },
+    "price": 1482,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZ3hNU0RFMk1qZDhUMU14T0RJYUN3aUhoUWtRQWhvRFVFeE9PQnh3Z2FrQyIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIk1VQyIsbnVsbCwiTEgiLCIxNjI3Il0sWyJNVUMiLCIyMDI3LTAxLTE0IiwiVklFIixudWxsLCJPUyIsIjE4MiJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 17:40"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 19:00"
+      },
+      "duration": 80,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1625",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 73 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 21:35"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 22:40"
+      },
+      "duration": 65,
+      "airplane": "Airbus A320",
+      "airline": "Austrian",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+      "travel_class": "Economy",
+      "flight_number": "OS 190",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 59 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 155,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     }
+    ],
+    "total_duration": 300,
+    "carbon_emissions": {
+     "this_flight": 133000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 108
+    },
+    "price": 1482,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZ3hNU0RFMk1qVjhUMU14T1RBYUN3aUhoUWtRQWhvRFVFeE9PQnh3Z2FrQyIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIk1VQyIsbnVsbCwiTEgiLCIxNjI1Il0sWyJNVUMiLCIyMDI3LTAxLTE0IiwiVklFIixudWxsLCJPUyIsIjE5MCJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:20"
+      },
+      "arrival_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 08:00"
+      },
+      "duration": 100,
+      "airplane": "Airbus A321",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1371",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 95 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 09:20"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 10:45"
+      },
+      "duration": 85,
+      "airplane": "Airbus A320neo",
+      "airline": "Austrian",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+      "travel_class": "Economy",
+      "flight_number": "OS 202",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 70 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 80,
+      "name": "Frankfurt Airport",
+      "id": "FRA"
+     }
+    ],
+    "total_duration": 265,
+    "carbon_emissions": {
+     "this_flight": 166000,
+     "typical_for_this_route": 64000,
+     "difference_percent": 159
+    },
+    "price": 1519,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJV0VwVlRVRlhjMVZuV0ZWQlEzQkdNbWRDUnkwdExTMHRMUzB0TFMxMmQzbHFPVUZCUVVGQlIzSkJObXQzVGs1cFRXMUJFZ3hNU0RFek56RjhUMU15TURJYUN3aXFvZ2tRQWhvRFVFeE9PQnh3d3JBQyIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIkZSQSIsbnVsbCwiTEgiLCIxMzcxIl0sWyJGUkEiLCIyMDI3LTAxLTE0IiwiVklFIixudWxsLCJPUyIsIjIwMiJdXV0="
+   }
+  ],
+  "price_insights": {
+   "lowest_price": 614,
+   "price_level": "typical",
+   "typical_price_range": [
+    195,
+    780
+   ],
+   "price_history": [
+    [
+     1785708000,
+     552
+    ],
+    [
+     1785794400,
+     552
+    ],
+    [
+     1785880800,
+     552
+    ],
+    [
+     1785967200,
+     552
+    ],
+    [
+     1786053600,
+     552
+    ],
+    [
+     1786140000,
+     552
+    ],
+    [
+     1786226400,
+     550
+    ],
+    [
+     1786312800,
+     552
+    ],
+    [
+     1786399200,
+     552
+    ],
+    [
+     1786485600,
+     552
+    ],
+    [
+     1786572000,
+     554
+    ],
+    [
+     1786658400,
+     554
+    ],
+    [
+     1786744800,
+     553
+    ],
+    [
+     1786831200,
+     549
+    ],
+    [
+     1786917600,
+     553
+    ],
+    [
+     1787004000,
+     555
+    ],
+    [
+     1787090400,
+     555
+    ],
+    [
+     1787176800,
+     555
+    ],
+    [
+     1787263200,
+     555
+    ],
+    [
+     1787349600,
+     555
+    ],
+    [
+     1787436000,
+     555
+    ],
+    [
+     1787522400,
+     469
+    ],
+    [
+     1787608800,
+     468
+    ],
+    [
+     1787695200,
+     468
+    ],
+    [
+     1787781600,
+     469
+    ],
+    [
+     1787868000,
+     471
+    ],
+    [
+     1787954400,
+     472
+    ],
+    [
+     1788040800,
+     471
+    ],
+    [
+     1788127200,
+     471
+    ],
+    [
+     1788213600,
+     471
+    ],
+    [
+     1788300000,
+     471
+    ],
+    [
+     1788386400,
+     470
+    ],
+    [
+     1788472800,
+     550
+    ],
+    [
+     1788559200,
+     549
+    ],
+    [
+     1788645600,
+     549
+    ],
+    [
+     1788732000,
+     549
+    ],
+    [
+     1788818400,
+     548
+    ],
+    [
+     1788904800,
+     703
+    ],
+    [
+     1788991200,
+     686
+    ],
+    [
+     1789077600,
+     686
+    ],
+    [
+     1789164000,
+     687
+    ],
+    [
+     1789250400,
+     687
+    ],
+    [
+     1789336800,
+     687
+    ],
+    [
+     1789423200,
+     689
+    ],
+    [
+     1789509600,
+     689
+    ],
+    [
+     1789596000,
+     612
+    ],
+    [
+     1789682400,
+     612
+    ],
+    [
+     1789768800,
+     612
+    ],
+    [
+     1789855200,
+     612
+    ],
+    [
+     1789941600,
+     611
+    ],
+    [
+     1790028000,
+     611
+    ],
+    [
+     1790114400,
+     611
+    ],
+    [
+     1790200800,
+     613
+    ],
+    [
+     1790287200,
+     613
+    ],
+    [
+     1790373600,
+     613
+    ],
+    [
+     1790460000,
+     613
+    ],
+    [
+     1790546400,
+     613
+    ],
+    [
+     1790632800,
+     613
+    ],
+    [
+     1790719200,
+     612
+    ],
+    [
+     1790805600,
+     612
+    ],
+    [
+     1790892000,
+     614
+    ],
+    [
+     1790978400,
+     614
+    ]
+   ]
+  },
+  "airports": [
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "VIE",
+       "name": "Vienna International Airport"
+      },
+      "city": "Vienna",
+      "country": "Austria",
+      "country_code": "AT",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUMJiI7ANvfPZb4tOkAuhFb3AzyA0uytRbhk1j85qdP3rZIlXpD3rWxYNwTjq-6R1sYE52h53-fxWmqA",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUaqkr8MYBm9aZkpIbgIuXVZDwMLQcPijTY8boAtx-HsChlSXkIe8v5aBywGApu7ZIn2nfS0WUh5HFRbyPRW-WV38vyagxbnO78OkqnrY"
+     }
+    ]
+   },
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "VIE",
+       "name": "Vienna International Airport"
+      },
+      "city": "Vienna",
+      "country": "Austria",
+      "country_code": "AT",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUMJiI7ANvfPZb4tOkAuhFb3AzyA0uytRbhk1j85qdP3rZIlXpD3rWxYNwTjq-6R1sYE52h53-fxWmqA",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUaqkr8MYBm9aZkpIbgIuXVZDwMLQcPijTY8boAtx-HsChlSXkIe8v5aBywGApu7ZIn2nfS0WUh5HFRbyPRW-WV38vyagxbnO78OkqnrY"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ]
+   }
+  ]
+ }
+}
