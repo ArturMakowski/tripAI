@@ -6,9 +6,9 @@ export const en = {
   back: "Back",
   nav: { trips: "Trips", windows: "Free time", profile: "Profile", myTrips: "My trips", inbox: "Inbox" },
   mode: {
-    live: "Live prices",
+    live: "Live",
     fixture: "Demo data",
-    liveTitle: "Prices and dates are checked live",
+    liveTitle: "Each price shows its source and when it was checked",
     fixtureTitle: "Sample trips for the demo",
   },
   language: { label: "Language", pl: "Polski", en: "English", switchTo: "Change language" },
@@ -31,9 +31,9 @@ export const pl: Shape<typeof en> = {
   back: "Wstecz",
   nav: { trips: "Wyjazdy", windows: "Wolny czas", profile: "Profil", myTrips: "Podróże", inbox: "Skrzynka" },
   mode: {
-    live: "Ceny na żywo",
+    live: "Na żywo",
     fixture: "Dane demo",
-    liveTitle: "Ceny i terminy sprawdzamy na żywo",
+    liveTitle: "Każda cena ma źródło i datę sprawdzenia",
     fixtureTitle: "Przykładowe wyjazdy do prezentacji",
   },
   language: { label: "Język", pl: "Polski", en: "English", switchTo: "Zmień język" },

@@ -274,7 +274,7 @@ export default function ReceiptPage() {
               {facts.map((e) => (
                 <li key={ev(e)} id={ev(e)} className="-mx-2 scroll-mt-24 rounded-xl px-2 py-2.5">
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="min-w-0 truncate text-sm text-ink" title={e.label}>
+                    <span className="min-w-0 truncate text-sm text-ink" title={plainLabel(e.label)}>
                       {evidenceDisplay(e, r).label}
                     </span>
                     <span className="tabular max-w-[55%] shrink-0 text-right font-mono text-sm break-words text-ink-soft" title={String(e.value)}>

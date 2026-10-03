@@ -20,7 +20,7 @@ npm run test:bundle  # build with canary secrets, assert none reach .next/static
 | `/profile` | Editable profile chips: tap to change an interest's strength, toggle dislikes, set budget, stay, temperature, trip length and airports |
 | `/windows` | Free windows (`GET /windows`) plus the **Długi weekend radar** ("Take 1 day off → 4 days"), with day strips |
 | `/trips` | Proactive push card, recommendation cards (photo, where + when, all-in PLN, score ring, contribution bar), and the **price ↔ comfort ↔ experience** slider that re-ranks with layout animation |
-| `/trips/[id]` | **"Why this, why now" receipt**: weighted factor bars, cost lines with source and timestamp, deltas vs July / next-best window / runner-up, every evidence item, "what would flip it" and the inputs hash |
+| `/trips/[id]` | **"Why this, why now" receipt**: weighted factor bars, cost lines with source and timestamp, deltas vs July / next-best window / runner-up, every evidence item, "what would flip it" and the exact score math in Audit |
 | `/trips/[id]/confirm` | Explicit approval ("nothing is booked yet"), then hand-off links (Google Flights, Booking.com) and a tentative `.ics` |
 | `/my-trips` | **My trips / Moje podróże**: planned trips (approved + saved) with the latest price check and an editable target price; past trips → "Oceń wyjazd" |
 | `/survey` | Post-trip survey (`?trip=&city=` from My trips, else the demo Barcelona trip) → weight diff bars and profile diff → animated re-rank → "new top pick" (`POST /feedback`) |
@@ -80,7 +80,7 @@ The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12
 As before #23 (the user found the star ratings noisy): the overall score is a **ring** with the plain 0–100 number
 (`components/score-ring.tsx`) on cards, the trip hero and the swipe deck, and **one contribution bar** shows how the four
 factors add up (`ContributionBar` in `components/factor-bars.tsx`, no numeric labels). The exact math (factor score ×
-weight, the total, the formula, the inputs hash) is one tap away in the receipt's "Audyt". No "%" on cards or above the fold.
+weight, the total, the formula) is one tap away in the receipt's "Audyt". No "%" on cards or above the fold.
 
 ## Declutter and money (docs/DECLUTTER.md, docs/BUDGET.md)
 - **Less text, same trust.** Every screen keeps its numbers, sources and one primary action visible, and moves explanations
@@ -102,7 +102,7 @@ weight, the total, the formula, the inputs hash) is one tap away in the receipt'
   the receipt and confirm show "Loty × 2", "Nocleg, 4 noce × 2 pokoje", "Razem za 3 os." and "na osobę".
 - **Hotel line says what was priced:** "Hotel Raphael, 4 noce" for a specific hotel (`rec.hotel.name`), "Nocleg, 4 noce ·
   średnia w mieście" for a city average.
-- **Off the user view (Audit at most):** the inputs hash, the AI-check model and confidence line, and data confidence. Stock
+- **Off the user view entirely:** the inputs hash, the AI-check model and confidence line, and data confidence. Stock
   photos (image URLs, `serper:images`) are never listed as evidence. The crowd index reads "Tłum: 12% szczytu sezonu", and
   "what would flip it" names a concrete trigger: "Jeśli Rzym podrożeje o 193 zł, lepszą opcją będzie Lizbona".
 - **Price honesty.** `price_status: "estimate"` renders muted as "od ~1 718 zł (inne daty)" with the reason behind ⓘ, never
@@ -288,12 +288,12 @@ docs/DECLUTTER.md: numbers and chips first, details one tap away.
 and `diff`). It calls the same-origin `/api/*` proxy (`app/api/[...path]/route.ts` → `lib/proxy.ts`), which forwards to the private
 backend with `X-TripAI-Internal-Key` (see "Private backend (T12)" in the root README). If `NEXT_PUBLIC_MOCK=1`, or the backend can't be reached, every call is served by
 `lib/mock/api.ts`. That is a deterministic in-browser copy of the backend that returns the same shapes (`lib/mock/fixtures.ts`:
-KRK → Rome, Lisbon, Athens, Venice and Porto, Jan 2027). The header badge shows **Live API** or **Demo fixtures**. Evidence whose
+KRK → Rome, Lisbon, Athens, Venice and Porto, Jan 2027). The data badge on /credits shows **Live** / **Na żywo** (titled "Each price shows its source and when it was checked") or **Demo data** / **Dane demo**. Evidence whose
 `source` starts with `fixture:` is a recorded response and is labelled "(recorded)" in the receipt.
 
 The ranking updates instantly on the client. `lib/scoring.ts` recombines the backend's per-factor scores with the slider weights
 (normalised weighted sum, the same formula as `tripai.scoring`). In live mode the backend is queried again once the slider settles.
-The receipt shows the scorer's counterfactuals (peak season, next-best window), its price-based flip hint and `inputs_hash`. The
+The receipt shows the scorer's counterfactuals (peak season, next-best window), and its price-based flip hint (the API's `inputs_hash` is not shown). The
 runner-up comparison and the weight-based "what would flip it" are computed for the current slider position with exact algebra on the
 weighted sum.
 
