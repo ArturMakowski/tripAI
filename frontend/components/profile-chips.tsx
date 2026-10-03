@@ -11,7 +11,7 @@ import { nameOf } from "@/lib/i18n/messages/profile";
 import type { LuxuryLevel, TasteProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AirportPicker } from "@/components/airport-picker";
-import { formatOrigins } from "@/lib/airports";
+import { expandToCity, formatOrigins } from "@/lib/airports";
 
 const LEVELS = [
   { at: 0.35, key: "little" },
@@ -335,7 +335,7 @@ export function ProfileChips({
               className="mt-2"
               required
               value={profile.origin_airports}
-              onChange={(next) => update({ origin_airports: next })}
+              onChange={(next) => update({ origin_airports: expandToCity(next) })}
             />
           </div>
         </section>

@@ -1,7 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { DNA_DECK } from "./dna";
+import { DNA_DECK, licenseUrl } from "./dna";
 
 const PUBLIC = join(__dirname, "..", "public");
 
@@ -38,5 +38,12 @@ describe("Travel DNA deck photos", () => {
       expect(c.credit.source).toMatch(/^https:\/\/(commons\.wikimedia\.org|www\.flickr\.com|unsplash\.com)\//);
       expect(credits).toContain(`| ${c.id} | \`${c.image}\``);
     }
+  });
+
+  it("links every licence (CC BY asks for a link to the licence)", () => {
+    expect(licenseUrl("CC0")).toBe("https://creativecommons.org/publicdomain/zero/1.0/");
+    expect(licenseUrl("CC BY 2.0 DE")).toBe("https://creativecommons.org/licenses/by/2.0/de/");
+    expect(licenseUrl("Public domain")).toBeUndefined();
+    for (const c of own) if (c.credit.license !== "Public domain") expect(licenseUrl(c.credit.license)).toMatch(/^https:\/\/creativecommons\.org\//);
   });
 });

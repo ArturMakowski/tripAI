@@ -400,7 +400,7 @@ def origin_airports() -> list[Airport]:
 
 
 def airport_label(iata: str, lang: str = "en") -> str:
-    """'Warszawa-Modlin (WMI)' / 'Warsaw-Modlin (WMI)'; unknown or non-origin airports: the code."""
+    """'Warszawa-Modlin (WMI)' / 'Warsaw Modlin (WMI)'; unknown or non-origin airports: the code."""
     ap = airport(iata)
     if ap is None or not ap.label:
         return iata.upper()

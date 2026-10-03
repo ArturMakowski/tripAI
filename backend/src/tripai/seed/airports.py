@@ -25,7 +25,7 @@ ORIGIN_LABELS: dict[str, dict[str, dict[str, str]]] = {
     },
     "WMI": {
         "city": {"pl": "Warszawa", "en": "Warsaw"},
-        "label": {"pl": "Warszawa-Modlin", "en": "Warsaw-Modlin"},
+        "label": {"pl": "Warszawa-Modlin", "en": "Warsaw Modlin"},
     },
     "KTW": {
         "city": {"pl": "Katowice", "en": "Katowice"},

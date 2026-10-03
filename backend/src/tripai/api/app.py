@@ -63,6 +63,7 @@ from tripai.scoring import (
 from tripai.scoring.budget_fit import rank_within_budget
 from tripai.scoring.engine import candidate_id
 from tripai.scoring.feedback import Change
+from tripai.scoring.origins import candidates_for_origins
 from tripai.scoring.reactions import ReactionRecord, apply_reaction, undo_reaction
 from tripai.scoring.value import annotate_value, typical_spend
 from tripai.scoring.windows import MAX_LEAVE_DAYS, TZ
@@ -216,7 +217,6 @@ def create_app(
             radar = [b.window for b in long_weekends(today, end, max_leave=req.max_leave_days)]
             windows = _merge_windows(free_windows(busy, today, end, source="gcal") + radar)
         trips = trip_windows(windows, profile.trip_length_days)
-        origin = profile.origin_airports[0] if profile.origin_airports else "KRK"
         extra = {"fast": True} if fast and getattr(provider, "supports_fast", False) else {}
         # one price reference for everything: refinement targets, ranking, badges (BUDGET.md)
         typical = typical_spend(
@@ -224,9 +224,11 @@ def create_app(
         )
         if "typical_spend_pln" in inspect.signature(provider.candidates).parameters:
             extra["typical_spend_pln"] = typical.pln
-        candidates = await provider.candidates(
-            origin, trips, profile.luxury, profile=profile, weights=weights, **extra
-        )
+        # every origin the user picked (WAW + WMI), cheapest offer per trip (tripai.scoring.origins)
+        candidates = await candidates_for_origins(
+            provider, profile.origin_airports, trips, profile.luxury,
+            profile=profile, weights=weights, **extra,
+        )  # fmt: skip
         if trips and not candidates:
             # A live provider with no data left must not pass off synthetic numbers as live:
             # 503 lets the client show its own clearly-labelled fallback.

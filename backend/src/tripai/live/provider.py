@@ -176,6 +176,30 @@ def _party_evidence(
     ]
 
 
+def _codes(origin: str) -> list[str]:
+    """An origin is one airport ("KRK") or one city's airports ("WAW,WMI", tripai.scoring.origins)."""
+    return [c for c in origin.upper().split(",") if c] or [origin.upper()]
+
+
+def _lab(origin: str) -> str:
+    """Origin as written in evidence labels: "WAW/WMI" for a city group."""
+    return "/".join(_codes(origin))
+
+
+def _fare_origin(fare: Any, origin: str) -> str:
+    """The airport a cached fare actually departs from (Travelpayouts origin_airport)."""
+    return (getattr(fare, "origin_airport", None) or _codes(origin)[0]).upper()
+
+
+def _merge_calendars(cals: list[Any], origin: str) -> Any:
+    """One FlightCalendar per city group: every airport's fares (each keeps its own origin)."""
+    if len(cals) == 1:
+        return cals[0]
+    return cals[0].model_copy(
+        update={"origin": origin, "fares": [f for c in cals for f in c.fares]}
+    )
+
+
 def _plain(name: str) -> str:
     """Search-friendly city name: "Valletta (Malta)" -> "Valletta"."""
     return name.split(" (")[0]
@@ -563,7 +587,8 @@ class LiveProvider:
     # ------------------------------------------------------------------ seed
 
     def _seed_cities(self, origin: str) -> list[load.City]:
-        out = [c for c in load.cities() if origin.upper() not in c.airports]
+        codes = set(_codes(origin))
+        out = [c for c in load.cities() if not codes & set(c.airports)]
         if self.city_ids is not None:
             out = [c for c in out if c.id in self.city_ids or c.iata in self.city_ids]
         return out
@@ -571,7 +596,8 @@ class LiveProvider:
     def _shortlist(self, origin: str, profile: TasteProfile) -> list[load.City]:
         def key(c: load.City) -> tuple:
             fit = taste_score(_city_tags(c), profile.interests, profile.dislikes)
-            return (-(fit + (0.1 if origin.upper() in c.direct_from else 0.0)), c.id)
+            direct = bool(set(_codes(origin)) & set(c.direct_from))
+            return (-(fit + (0.1 if direct else 0.0)), c.id)
 
         return sorted(self._seed_cities(origin), key=key)[: self.max_cities]
 
@@ -606,9 +632,12 @@ class LiveProvider:
         weights: Weights | None = None,
         fast: bool = False,
         typical_spend_pln: float | None = None,
+        fallback: bool = True,
     ) -> list[Candidate]:
         """`fast=True` (POST /recommendations?phase=fast): cached SerpApi only, no exact-date
-        refinement, and a FAST_DEADLINE_S budget for the per-city fetches."""
+        refinement, and a FAST_DEADLINE_S budget for the per-city fetches. `fallback=False`:
+        nothing rather than labelled sample fixtures (a secondary origin must never mix sample
+        numbers into live results; tripai.scoring.origins)."""
         try:
             out = await self._live(
                 origin, list(windows), luxury, profile, weights, fast, typical_spend_pln
@@ -616,7 +645,7 @@ class LiveProvider:
         except Exception:
             log.exception("live provider failed; falling back")
             out = []
-        if not out and windows and self.fallback is not None:
+        if not out and windows and fallback and self.fallback is not None:
             log.warning("live provider produced no candidates; serving labelled fixtures")
             self.last_stats["fallback"] = type(self.fallback).__name__
             return await self.fallback.candidates(origin, windows, luxury)
@@ -644,7 +673,7 @@ class LiveProvider:
             s = _Session(client, self.cache, self.fixtures, self.today, self.budget, fast=fast)
             if fast:
                 s.deadline = started + self.fast_deadline
-            explore = await s.serpapi("explore", "explore", lambda c: c.explore(origin))
+            explore = await s.serpapi("explore", "explore", lambda c: c.explore(_codes(origin)[0]))
             tasks = [
                 asyncio.ensure_future(
                     self._city_data(s, origin, c, windows, trip_days, explore, profile)
@@ -766,10 +795,20 @@ class LiveProvider:
             dep_months.append(peak)
 
         async def calendar(y: int, m: int) -> FlightCalendar | None:
-            return await s.call(
-                f"travelpayouts {origin}-{c.iata} {y}-{m:02d}",
-                lambda: s.tp.month_calendar(origin, c.iata, f"{y}-{m:02d}", trip_days=trip_days),
+            # Travelpayouts takes one airport: loop the city's airports (free) and merge
+            got = await asyncio.gather(
+                *(
+                    s.call(
+                        f"travelpayouts {code}-{c.iata} {y}-{m:02d}",
+                        lambda code=code: s.tp.month_calendar(
+                            code, c.iata, f"{y}-{m:02d}", trip_days=trip_days
+                        ),
+                    )
+                    for code in _codes(origin)
+                )
             )
+            cals = [g for g in got if g is not None]
+            return _merge_calendars(cals, origin) if cals else None
 
         async def climate(y: int, m: int) -> WeatherSummary | None:
             # Month normals come from the committed ERA5 snapshot (same Open-Meteo archive, no
@@ -843,11 +882,14 @@ class LiveProvider:
                 back = f", back {fare.return_at:%d %b}" if fare.return_at else ""
                 stops = "direct" if not fare.transfers else f"{fare.transfers} stop(s)"
                 label = (
-                    f"Return {origin}-{d.city.iata} dep {fare.departure_at:%d %b}{back}, "
+                    f"Return {_fare_origin(fare, origin)}-{d.city.iata} "
+                    f"dep {fare.departure_at:%d %b}{back}, "
                     f"{fare.airline or '?'} {stops} (Aviasales cached fare, not bookable{note})"
                 )
                 ev = cal._ev("flight", label, fare.price, cal.currency, fare.link)
-                det = details.flight_from_fare(fare, origin, _src(cal), cal.fetched_at)
+                det = details.flight_from_fare(
+                    fare, _fare_origin(fare, origin), _src(cal), cal.fetched_at
+                )
                 exact = (
                     fare.departure_at.date() == w.start
                     and fare.return_at is not None
@@ -856,7 +898,7 @@ class LiveProvider:
                 return fare.price, ev, q, "Aviasales cached fare", det, exact
             med = round(statistics.median(f.price for f in cal.fares))
             label = (
-                f"Typical return {origin}-{d.city.iata} in {MONTHS[w.start.month - 1]} "
+                f"Typical return {_lab(origin)}-{d.city.iata} in {MONTHS[w.start.month - 1]} "
                 f"(median of {len(cal.fares)} Aviasales cached fares, not your exact dates)"
             )
             ev = cal._ev("flight", label, med, cal.currency)
@@ -865,12 +907,12 @@ class LiveProvider:
         if e is not None and e.flight_price is not None and d.explore_res is not None:
             dates = f" {_span(e.start_date, e.end_date)}" if e.start_date and e.end_date else ""
             label = (
-                f"Cheapest return {origin}-{e.iata}{dates} on Google Travel Explore "
+                f"Cheapest return {_codes(origin)[0]}-{e.iata}{dates} on Google Travel Explore "
                 "(not your exact dates)"
             )
             ev = d.explore_res._ev("flight", label, e.flight_price, d.explore_res.currency, e.link)
             res = d.explore_res
-            det = details.flight_from_explore(e, origin, _src(res), res.fetched_at)
+            det = details.flight_from_explore(e, _codes(origin)[0], _src(res), res.fetched_at)
             return e.flight_price, ev, 0.35, "Google Travel Explore", det, False
         return None
 
@@ -984,13 +1026,17 @@ class LiveProvider:
                         fetched_at=hm.fetched_at,
                     )
                 )
-            breaks = [b for b in load.school_breaks(airport=origin) if b.overlaps(w.start, w.end)]
+            breaks = [
+                b
+                for b in load.school_breaks(airport=_codes(origin)[0])
+                if b.overlaps(w.start, w.end)
+            ]
             if breaks:
                 hm = load.meta("holidays.json")
                 out.append(
                     Evidence(
                         kind="holiday",
-                        label=f"PL school break overlaps (flights from {origin} may be fuller)",
+                        label=f"PL school break overlaps (flights from {_lab(origin)} may be fuller)",
                         value="; ".join(f"{b.name} {b.start}..{b.end}" for b in breaks),
                         source=hm.source,
                         fetched_at=hm.fetched_at,
@@ -1053,7 +1099,7 @@ class LiveProvider:
         ev = cal._ev(
             "price_baseline",
             f"{BASELINE_PREFIX} median cached return fare "
-            f"{origin}-{d.city.iata} across {months} ({len(fares)} fares) + same hotel cost",
+            f"{_lab(origin)}-{d.city.iata} across {months} ({len(fares)} fares) + same hotel cost",
             round(med + hotel),
             "PLN",
         )
@@ -1300,7 +1346,7 @@ class LiveProvider:
                 flights._ev(
                     "price_baseline",
                     f"{BASELINE_PREFIX} mid of Google's typical "
-                    f"{origin}-{c.iata} fare range + same hotel cost",
+                    f"{_lab(origin)}-{c.iata} fare range + same hotel cost",
                     round(flight_base + hotel_cost / c.travelers),  # per person
                     "PLN",
                 )
@@ -1338,10 +1384,17 @@ class LiveProvider:
         """Cheapest Aviasales cached fare for exactly these dates (Travelpayouts prices_for_dates
         with departure_at/return_at), or None. Free; cached 6 h."""
         w = c.window
-        res = await s.call(
-            f"travelpayouts exact {origin}-{c.iata} {w.start}",
-            lambda: s.tp.prices_for_dates(origin, c.iata, w.start, w.end),
+        got = await asyncio.gather(
+            *(
+                s.call(
+                    f"travelpayouts exact {code}-{c.iata} {w.start}",
+                    lambda code=code: s.tp.prices_for_dates(code, c.iata, w.start, w.end),
+                )
+                for code in _codes(origin)
+            )
         )
+        found = [g for g in got if g is not None]
+        res = _merge_calendars(found, origin) if found else None
         fares = [
             f
             for f in (res.fares if res is not None else [])
@@ -1352,11 +1405,11 @@ class LiveProvider:
         f = min(fares, key=lambda f: f.price)
         stops = "direct" if not f.transfers else f"{f.transfers} stop(s)"
         label = (
-            f"Return {origin}-{c.iata} {_span(w.start, w.end)} (your dates), "
+            f"Return {_fare_origin(f, origin)}-{c.iata} {_span(w.start, w.end)} (your dates), "
             f"{f.airline or '?'} {stops}, cheapest of {len(fares)} Aviasales cached fares "
             "(not bookable)"
         )
-        det = details.flight_from_fare(f, origin, _src(res), res.fetched_at)
+        det = details.flight_from_fare(f, _fare_origin(f, origin), _src(res), res.fetched_at)
         return f.price, res._ev("flight", label, f.price, res.currency, f.link), det
 
     async def _exact_flights(

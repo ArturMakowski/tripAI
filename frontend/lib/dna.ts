@@ -26,6 +26,13 @@ export interface DnaCard {
   credit: Credit;
 }
 
+/** Deed URL of a CC licence name ("CC BY 2.0 DE" -> .../licenses/by/2.0/de/); undefined if none. */
+export function licenseUrl(license: string): string | undefined {
+  if (/^CC0\b/.test(license)) return "https://creativecommons.org/publicdomain/zero/1.0/";
+  const m = license.match(/^CC BY (\d\.\d)(?: ([A-Z]{2}))?$/);
+  return m ? `https://creativecommons.org/licenses/by/${m[1]}/${m[2] ? `${m[2].toLowerCase()}/` : ""}` : undefined;
+}
+
 const WM = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
 const FLICKR = (path: string) => `https://www.flickr.com/photos/${path}`;
 
@@ -131,8 +138,8 @@ export const DNA_DECK: DnaCard[] = [
     kind: "statement",
     text: { pl: "Chętnie wracam do miejsc, które już znam.", en: "I happily return to places I know." },
     short: { pl: "powrotach do znanych miejsc", en: "returning to places you know" },
-    image: "/swipe/cafe.jpg",
-    credit: { author: "Shixart1985", license: "CC BY 2.0", source: WM("Warm_cup_of_coffee_on_a_table_at_a_cafe.jpg") },
+    image: "/swipe/known-places.jpg",
+    credit: { author: "Marc Levin (mil8)", license: "CC BY 2.0", source: FLICKR("61237118@N00/380104461") },
   },
   {
     id: "y1",
@@ -150,8 +157,8 @@ export const DNA_DECK: DnaCard[] = [
       en: "Should the app tailor recommendations to your style?",
     },
     short: { pl: "dopasowywaniu rekomendacji", en: "tailored recommendations" },
-    image: "/swipe/your-style.jpg",
-    credit: { author: "John Beans", license: "CC BY 2.0", source: FLICKR("147592390@N06/40713216003") },
+    image: "/swipe/tailored.jpg",
+    credit: { author: "Igor Ovsyannykov", license: "CC0", source: WM("Igor_Ovsyannykov_2017-05-08_(Unsplash).jpg") },
   },
 ];
 

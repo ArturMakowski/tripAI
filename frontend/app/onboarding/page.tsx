@@ -18,6 +18,7 @@ import { useHydrated, useTrip, type DeckStep } from "@/lib/store";
 import { useUsableRanges } from "@/lib/windows-store";
 import { QuickDates } from "@/components/date-picker/free-dates-planner";
 import { AirportPicker } from "@/components/airport-picker";
+import { expandToCity } from "@/lib/airports";
 
 
 
@@ -128,7 +129,8 @@ export default function SwipeOnboarding() {
     setProfile({
       ...result.profile,
       budget_pln: profile?.budget_pln ?? null,
-      origin_airports: airports.length ? airports : ["KRK"],
+      // a city covers all its airports (Warszawa = WAW + WMI), also for selections saved earlier
+      origin_airports: expandToCity(airports.length ? airports : ["KRK"]),
       // party size from the airport step; flights are priced × travellers, the stay per room
       adults: deck.party ?? profile?.adults ?? 1,
       children: deck.party != null ? 0 : (profile?.children ?? 0),

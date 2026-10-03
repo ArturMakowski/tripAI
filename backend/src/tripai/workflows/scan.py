@@ -58,6 +58,7 @@ from tripai.scoring import (
     trip_windows,
 )
 from tripai.scoring.budget_fit import rank_within_budget
+from tripai.scoring.origins import candidates_for_origins
 from tripai.scoring.types import Candidate, RankedRecommendation
 from tripai.scoring.value import typical_spend
 from tripai.scoring.windows import TZ
@@ -179,12 +180,11 @@ async def _candidates(
 ) -> list[Candidate]:
     if not windows:
         return []
-    origin = profile.origin_airports[0] if profile.origin_airports else "KRK"
-    params = inspect.signature(deps.provider.candidates).parameters
-    extra = {"profile": profile, "weights": weights} if "profile" in params else {}
-    if "typical_spend_pln" in params:
-        extra["typical_spend_pln"] = typical
-    return await deps.provider.candidates(origin, windows, profile.luxury, **extra)
+    # every origin the user picked, cheapest offer per trip (tripai.scoring.origins)
+    return await candidates_for_origins(
+        deps.provider, profile.origin_airports, windows, profile.luxury,
+        profile=profile, weights=weights, typical_spend_pln=typical,
+    )  # fmt: skip
 
 
 class Scan:
