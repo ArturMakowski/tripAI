@@ -85,7 +85,7 @@ def conf(c):
 
 
 def test_top_n_get_exact_date_serpapi_prices(prof):
-    p = live(top_n=3, max_refine=6)
+    p = live(top_n=3, max_refine=6, exact_top=0)  # isolate SerpApi refinement
     cands = run(p, prof)
     assert 3 <= len(p.last_stats["refined"]) <= 6
     assert p.last_stats["serpapi_calls"] == 0  # fixtures only: no live SerpApi lookups
@@ -106,7 +106,8 @@ def test_top_n_get_exact_date_serpapi_prices(prof):
     )
     assert all(conf(c).value < lowest_refined for c in unrefined)
     top = rank(cands, prof, limit=3)
-    assert all(r.id in p.last_stats["refined"] for r in top)
+    # price honesty: a top card is either refined (exact dates) or visibly not exact
+    assert all(r.id in p.last_stats["refined"] or r.price_status != "exact" for r in top)
 
 
 def test_refinement_disabled_spends_one_serpapi_call(prof):
@@ -547,10 +548,10 @@ def test_one_bad_city_or_option_is_dropped_alone(prof, monkeypatch):
             raise RuntimeError("bad seed row")
         return await real_data(self, s, origin, c, *a)
 
-    def candidate(self, d, origin, w, luxury):
+    def candidate(self, d, origin, w, luxury, *rest):
         if d.city.id == "naples":
             raise KeyError("boom")
-        return real_cand(self, d, origin, w, luxury)
+        return real_cand(self, d, origin, w, luxury, *rest)
 
     monkeypatch.setattr(LiveProvider, "_city_data", city_data)
     monkeypatch.setattr(LiveProvider, "_candidate", candidate)
@@ -632,11 +633,11 @@ def test_confidence_ignores_unavailable_fixture_data(prof, monkeypatch):
                               currency="PLN", query={}, fares=[])  # fmt: skip
 
     monkeypatch.setattr(Travelpayouts, "month_calendar", uncovered)
-    p = live(top_n=0)
+    p = live(top_n=0, exact_top=0)
     a = run(p, prof)
     assert p.last_stats["failures"] == [] and p.last_stats["uncovered"]["travelpayouts"]
     monkeypatch.setattr(Travelpayouts, "month_calendar", empty)
-    b = run(live(top_n=0), prof)
+    b = run(live(top_n=0, exact_top=0), prof)
     assert confidences(a) == confidences(b) and len(a) == len(b) >= 8
     assert all("flight: Google Travel Explore" in conf(c).label for c in a)
 

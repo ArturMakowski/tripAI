@@ -13,6 +13,7 @@ from typing import Protocol
 from pydantic import BaseModel, Field
 
 from tripai.models import Evidence, FreeWindow, LuxuryLevel, TasteProfile, Weights
+from tripai.scoring import party
 from tripai.scoring.types import Candidate, PeakQuote
 from tripai.scoring.windows import BusyInterval, pl_holidays, work_calendar
 
@@ -211,7 +212,23 @@ class FixtureProvider:
         weights: Weights | None = None,
         typical_spend_pln: float | None = None,
     ) -> list[Candidate]:
-        return [self._candidate(c, origin, w, luxury) for c in self._cities for w in windows]
+        out = [self._candidate(c, origin, w, luxury) for c in self._cities for w in windows]
+        f = party.rooms(profile) / party.travelers(profile)  # per-person share of the rooms
+        if f == 1:
+            return out
+        return [
+            c.model_copy(
+                update={
+                    "hotel_cost_pln": c.hotel_cost_pln * f,
+                    "seasonal_median_cost_pln": c.seasonal_median_cost_pln
+                    - c.hotel_cost_pln * (1 - f),
+                    "peak": c.peak.model_copy(update={"hotel_cost_pln": c.peak.hotel_cost_pln * f})
+                    if c.peak
+                    else None,
+                }
+            )
+            for c in out
+        ]
 
 
 class FixtureCalendar:

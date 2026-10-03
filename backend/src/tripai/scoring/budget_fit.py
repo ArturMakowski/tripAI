@@ -2,6 +2,8 @@
 
 - within: total <= budget
 - slightly_over: budget < total <= budget * (1 + TOLERANCE); kept, ranked normally, flagged
+- price_status != "exact" (other dates / city average): no budget status; listed after every
+  exact option that fits, and only if even the estimate fits (docs/BUDGET.md "Price honesty").
 - over: dropped, unless fewer than MIN_RESULTS options fit. Then the closest over-budget options
   (smallest overage, one per city) are appended, flagged with the overage in PLN, and always
   ranked *below* every option that fits. `fallback=False` (proactive scan) never adds them.
@@ -81,23 +83,35 @@ def rank_within_budget(
     """Ranked recommendations with their budget status (None when the profile has no budget).
     The price factor's reference is the user's typical spend (docs/BUDGET.md); with a hard
     limit it is the limit itself, exactly as in #16 (a trip well inside the user's own limit is
-    not "expensive" just because their history is frugal)."""
+    not "expensive" just because their history is frugal).
+
+    Price honesty holds with or without a budget: exact-priced options first, then the ones
+    without a price for these dates (labelled, no flip hints); see docs/BUDGET.md."""
     budget = profile.budget_pln
-    if not budget:
-        recs = rank(candidates, profile, weights, limit=limit, typical_spend_pln=typical_spend_pln)
-        return [(r, None) for r in recs]
-    ref = float(budget)
+    ref = float(budget) if budget else typical_spend_pln
     # same dedup + hash as rank() over the full input, so receipts stay comparable
     unique = list({candidate_id(c): c for c in reversed(candidates)}.values())
     # the limit is in the profile already; the hash carries the real typical spend
     digest = inputs_hash(unique, profile, weights or Weights(), typical_spend_pln)
     kept, receipt = interest_filter(unique, profile)
-    cap = budget * (1 + TOLERANCE)
-    fits = [c for c in kept if c.total_cost_pln <= cap]
+    cap = budget * (1 + TOLERANCE) if budget else float("inf")
+    # price honesty: only a price for these dates can be checked against the budget
+    exact = [c for c in kept if c.price_status == "exact"]
+    unsure = [c for c in kept if c.price_status != "exact"]
+    fits = [c for c in exact if c.total_cost_pln <= cap]
     recs = rank(fits, profile, weights, limit=limit, typical_spend_pln=ref) if fits else []
+    n_exact = len(recs)
+    # then options without an exact price (labelled, no budget status): only when even their
+    # other-dates estimate fits, and always after every exact option (that fits)
+    maybe = [c for c in unsure if c.total_cost_pln <= cap and c.iata not in {r.iata for r in recs}]
+    if maybe and len(recs) < limit:
+        more = rank(maybe, profile, weights, limit=limit - len(recs), typical_spend_pln=ref)
+        for r in more:
+            r.flip = None  # never "would overtake" an exact-priced option on a guessed price
+        recs += more
     want = min(MIN_RESULTS, limit)
-    if fallback and len(recs) < want:
-        over = [c for c in kept if c.total_cost_pln > cap]
+    if budget and fallback and n_exact < want and len(recs) < want:
+        over = [c for c in exact if c.total_cost_pln > cap]
         extra = _closest_per_city(over, want - len(recs), {r.iata for r in recs})
         if extra:
             ranked = rank(extra, profile, weights, limit=len(extra), typical_spend_pln=ref)
@@ -110,5 +124,7 @@ def rank_within_budget(
         # the subset rank() calls re-ran the filter on already-filtered input: use the receipt
         # of the one real filter pass
         r.rank, r.inputs_hash, r.interest_filter = i + 1, digest, receipt
-        out.append((r, budget_status(r.total_cost_pln, budget)))
+        exact_price = r.price_status == "exact"
+        status = budget_status(r.total_cost_pln, budget) if budget and exact_price else None
+        out.append((r, status))
     return out
