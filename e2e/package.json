@@ -1,0 +1,21 @@
+{
+  "name": "tripai-e2e",
+  "private": true,
+  "description": "Agentic end-to-end tests for the TripAI web app (TesterArmy e2e + Playwright Chromium, iPhone 14 viewport)",
+  "type": "module",
+  "scripts": {
+    "e2e": "E2E_TELEMETRY_DISABLED=1 e2e run --exclude-tag live",
+    "e2e:prod": "E2E_TELEMETRY_DISABLED=1 E2E_BASE_URL=https://frontend-production-11c11.up.railway.app e2e run",
+    "e2e:local": "E2E_TELEMETRY_DISABLED=1 E2E_BASE_URL=http://localhost:3000 e2e run --exclude-tag live",
+    "e2e:replay": "E2E_TELEMETRY_DISABLED=1 e2e run --strict-cache",
+    "e2e:list": "E2E_TELEMETRY_DISABLED=1 e2e list"
+  },
+  "devDependencies": {
+    "@ai-sdk/openai": "^4.0.83",
+    "@e2e-dev/web": "^0.11.2",
+    "ai": "^7.0.127",
+    "e2e": "^0.16.0",
+    "playwright": "^1.63.0",
+    "zod": "^4.6.5"
+  }
+}

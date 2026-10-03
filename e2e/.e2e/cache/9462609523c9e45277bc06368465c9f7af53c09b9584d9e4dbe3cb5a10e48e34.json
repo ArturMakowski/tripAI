@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:39:48.259Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap button \"Chcę tam (→)\" in \"Przesuń w prawo, w lewo lub w górę. Str…\"",
+        "target": {
+          "role": "button",
+          "name": "Chcę tam (→)",
+          "within": "Przesuń w prawo, w lewo lub w górę. Strzałki też działają, Backspace cofa."
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/06-swipe-offers.e2e.ts::Swipe%20on%20offers%3A%20liking%20a%20card%20shows%20what%20was%20learned%2C%20and%20undo%20brings%20it%20back",
+      "targetId": "iphone14",
+      "instructionDigest": "4e237887d0b8ab5e2c574bf1ed7c95b7526162b66b8465db057204922d60a90a"
+    },
+    "summary": "Selected “Chcę tam” for the top offer, Málaga (1–3 Jan). The card advanced to Nice and the app showed “Zapamiętane” for Málaga preferences.",
+    "startPath": "/trips",
+    "endPath": "/trips",
+    "endAnchors": [
+      {
+        "role": "image",
+        "name": "Nice, France"
+      },
+      {
+        "text": "2 z 10"
+      },
+      {
+        "text": "Nice"
+      },
+      {
+        "text": "1,004 PLN"
+      },
+      {
+        "role": "listitem",
+        "name": "natura"
+      },
+      {
+        "text": "Ranking przeliczy się z nowym profilem, gdy wrócisz do listy."
+      },
+      {
+        "text": "Zapamiętane: lubisz Málaga: jedzenie, historia, sztuka · alerty cenowe działają z live API"
+      },
+      {
+        "role": "status",
+        "name": "Zapamiętane: lubisz Málaga: jedzenie, historia, sztuka · alerty cenowe działają z live API"
+      }
+    ],
+    "endWaitMs": 12923
+  }
+}

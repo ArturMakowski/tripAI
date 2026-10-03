@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:44:57.968Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap radio \"Polski\"",
+        "target": {
+          "role": "radio",
+          "name": "Polski",
+          "text": "pl"
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/02-language.e2e.ts::PL%2FEN%20toggle%20switches%20the%20visible%20text%20on%20Free%20time",
+      "targetId": "iphone14",
+      "instructionDigest": "dcb0e17afae0cfc556b310df04039dd1fa4a4ea2216cf7e730bd4babfc48535d"
+    },
+    "summary": "Switched the language from English to Polish using the on-screen language switch. The /windows screen is now in Polish and Polski is selected.",
+    "startPath": "/windows",
+    "endPath": "/windows",
+    "endAnchors": [
+      {
+        "role": "link",
+        "name": "Skrzynka"
+      },
+      {
+        "name": "Odpowiedzi pochodzą z backendu TripAI",
+        "text": "Dane na żywo"
+      },
+      {
+        "text": "Wolny czas"
+      },
+      {
+        "role": "heading",
+        "name": "Kiedy możesz jechać."
+      },
+      {
+        "text": "Z Twojego Kalendarza Google i polskich świąt. Nie musisz wpisywać żadnej daty."
+      },
+      {
+        "role": "heading",
+        "name": "Wybierz swoje terminy"
+      },
+      {
+        "text": "Stuknij dzień początku i dzień końca. Możesz dodać kilka terminów. Pokażemy, gdzie warto wtedy lecieć."
+      },
+      {
+        "role": "button",
+        "name": "Ten weekend"
+      }
+    ],
+    "endWaitMs": 12048
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:43:45.315Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap radio \"Polski\"",
+        "target": {
+          "role": "radio",
+          "name": "Polski",
+          "text": "pl"
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/02-language.e2e.ts::PL%2FEN%20toggle%20switches%20the%20visible%20text%20on%20Inbox",
+      "targetId": "iphone14",
+      "instructionDigest": "dcb0e17afae0cfc556b310df04039dd1fa4a4ea2216cf7e730bd4babfc48535d"
+    },
+    "summary": "Used the language switch on /inbox to change from English to Polish. The Polski option is checked and the page/navigation text is now in Polish.",
+    "startPath": "/inbox",
+    "endPath": "/inbox",
+    "endAnchors": [
+      {
+        "role": "link",
+        "name": "Ustawienia powiadomień"
+      },
+      {
+        "role": "link",
+        "name": "Skrzynka"
+      },
+      {
+        "text": "Proaktywna skrzynka"
+      },
+      {
+        "role": "heading",
+        "name": "My pilnujemy. Ty decydujesz."
+      },
+      {
+        "text": "Codziennie TripAI porównuje Twój wolny czas ze świeżymi cenami i daje znać tylko wtedy, gdy coś się zmienia: nowy #1, spadek ceny obserwowanego wyjazdu albo nadchodzący długi weekend. Każda liczba pochodzi z podanego źródła."
+      },
+      {
+        "text": "Uruchom skan teraz"
+      },
+      {
+        "role": "button",
+        "name": "Skanuj"
+      },
+      {
+        "text": "Nie ma jeszcze powiadomień. Uruchom skan, aby zobaczyć, co byśmy wysłali."
+      }
+    ],
+    "endWaitMs": 12003
+  }
+}

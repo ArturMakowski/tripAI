@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:45:26.811Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap radio \"Polski\" (1 of 2)",
+        "target": {
+          "role": "radio",
+          "name": "Polski",
+          "text": "pl",
+          "position": {
+            "index": 0,
+            "of": 2
+          }
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/02-language.e2e.ts::PL%2FEN%20toggle%20switches%20the%20visible%20text%20on%20Profile",
+      "targetId": "iphone14",
+      "instructionDigest": "dcb0e17afae0cfc556b310df04039dd1fa4a4ea2216cf7e730bd4babfc48535d"
+    },
+    "summary": "Used the language switch on /profile to change the app from English to Polish. The profile and navigation are now displayed in Polish, and Polski is selected.",
+    "startPath": "/profile",
+    "endPath": "/profile",
+    "endAnchors": [
+      {
+        "role": "link",
+        "name": "Skrzynka"
+      },
+      {
+        "text": "Profil gustu"
+      },
+      {
+        "role": "heading",
+        "name": "Oto, co usłyszeliśmy."
+      },
+      {
+        "text": "To wszystko, co ranking o Tobie wie. Zmień cokolwiek, a wyjazdy ułożą się na nowo."
+      },
+      {
+        "role": "heading",
+        "name": "Lubisz"
+      },
+      {
+        "role": "button",
+        "name": "Jedzenie: uwielbiam, dotknij, aby zmienić",
+        "text": "Jedzenie"
+      },
+      {
+        "role": "button",
+        "name": "Usuń: Jedzenie"
+      },
+      {
+        "role": "button",
+        "name": "Historia: uwielbiam, dotknij, aby zmienić",
+        "text": "Historia"
+      }
+    ],
+    "endWaitMs": 12263
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:45:38.601Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap radio \"Polski\"",
+        "target": {
+          "role": "radio",
+          "name": "Polski",
+          "text": "pl"
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/02-language.e2e.ts::PL%2FEN%20toggle%20switches%20the%20visible%20text%20on%20Feedback%20survey",
+      "targetId": "iphone14",
+      "instructionDigest": "dcb0e17afae0cfc556b310df04039dd1fa4a4ea2216cf7e730bd4babfc48535d"
+    },
+    "summary": "Switched the language from English to Polish using the language switch on /survey; the radio now shows Polski checked and the page content is displayed in Polish.",
+    "startPath": "/survey",
+    "endPath": "/survey",
+    "endAnchors": [
+      {
+        "role": "link",
+        "name": "Skrzynka"
+      },
+      {
+        "name": "Odpowiedzi pochodzą z backendu TripAI",
+        "text": "Dane na żywo"
+      },
+      {
+        "text": "Po wyjeździe"
+      },
+      {
+        "role": "heading",
+        "name": "Jak było: Barcelona?"
+      },
+      {
+        "text": "Cztery dotknięcia. Odpowiedzi zmienią wagi rankingu, a my pokażemy dokładnie jak."
+      },
+      {
+        "text": "12–17 sie 2026"
+      },
+      {
+        "text": "Jak było z tłokiem?"
+      },
+      {
+        "text": "Nie do zniesienia"
+      }
+    ],
+    "endWaitMs": 12100
+  }
+}

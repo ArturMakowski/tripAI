@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "trace-1",
+  "createdAt": "2026-10-03T16:39:48.261Z",
+  "payload": {
+    "actions": [
+      {
+        "name": "tap",
+        "summary": "tap button \"Cofnij (Backspace)\" in \"Przesuń w prawo, w lewo lub w górę. Str…\"",
+        "target": {
+          "role": "button",
+          "name": "Cofnij (Backspace)",
+          "within": "Przesuń w prawo, w lewo lub w górę. Strzałki też działają, Backspace cofa."
+        }
+      }
+    ],
+    "executor": {
+      "name": "e2e-default-agent",
+      "version": "2"
+    },
+    "recordedFor": {
+      "testId": "tests/06-swipe-offers.e2e.ts::Swipe%20on%20offers%3A%20liking%20a%20card%20shows%20what%20was%20learned%2C%20and%20undo%20brings%20it%20back",
+      "targetId": "iphone14",
+      "instructionDigest": "cf539e8b6b2cdd2ff0337ac161e632b2db7769251c0f36567e508d83df211f7b"
+    },
+    "summary": "Undid the last swipe. The deck returned to Málaga (1–3 Jan), and the app confirmed “Cofnięte: Málaga.”",
+    "startPath": "/trips",
+    "endPath": "/trips",
+    "endAnchors": [
+      {
+        "role": "image",
+        "name": "Málaga, Spain"
+      },
+      {
+        "text": "1 z 10"
+      },
+      {
+        "text": "Málaga"
+      },
+      {
+        "text": "1,096 PLN"
+      },
+      {
+        "role": "listitem",
+        "name": "historia"
+      },
+      {
+        "text": "Cofnięte: Málaga"
+      },
+      {
+        "role": "status",
+        "name": "Cofnięte: Málaga"
+      }
+    ],
+    "endWaitMs": 12773
+  }
+}
