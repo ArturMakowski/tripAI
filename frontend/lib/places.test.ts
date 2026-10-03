@@ -45,8 +45,9 @@ const dest = (over: Partial<DestinationPlaces> = {}): DestinationPlaces => ({
 
 describe("places", () => {
   it("formats only what Google gave: rating, compact count, price level, category", () => {
-    expect(placeFacts(place(), "en-GB")).toEqual(["★4.6", "2.1k", "€20–30", "Italian"]);
-    expect(placeFacts(place({ price_level: null, category: null, rating_count: null }), "pl-PL")).toEqual(["★4,6"]);
+    const price = (l: string) => `${l} (Google)`;
+    expect(placeFacts(place(), "en-GB", price)).toEqual(["★4.6", "2.1k", "€20–30 (Google)", "Italian"]);
+    expect(placeFacts(place({ price_level: null, category: null, rating_count: null }), "pl-PL", price)).toEqual(["★4,6"]);
   });
 
   it("puts where-to-eat first for food lovers and drops empty lists", () => {
@@ -74,6 +75,26 @@ describe("places", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("down", { status: 502 })));
     vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(await api.places("OPO", "en")).toBeNull();
+  });
+
+  it("concurrent calls share one request; empty or partial answers are never memoised", async () => {
+    let n = 0;
+    const fetch = vi.fn(async () => {
+      n += 1;
+      const body = n === 1 ? dest({ restaurants: [], notes: { restaurants: "budget" } }) : dest();
+      return new Response(JSON.stringify(body), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetch);
+    const api = await liveApi();
+    const [a, b] = await Promise.all([api.places("BCN", "en"), api.places("BCN", "en")]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(a).toBe(b);
+    expect(a?.restaurants).toEqual([]);
+    const c = await api.places("BCN", "en"); // partial answer was dropped: asked again
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(c?.restaurants.length).toBe(1);
+    await api.places("BCN", "en"); // complete answer is kept
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it("mock mode shows no places at all", async () => {

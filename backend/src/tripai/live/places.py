@@ -11,6 +11,7 @@ price level or category Google did not return stays null.
 import asyncio
 import logging
 import re
+import weakref
 from datetime import datetime
 from typing import Any, Literal
 
@@ -34,6 +35,7 @@ DEFAULT_WEEKLY_CAP = 2  # real Serper Places calls per city per week (= one of e
 MIN_REVIEWS = {"restaurant": 300, "activity": 500}  # below this a rating says little
 INTEREST_MIN = 0.5  # an interest counts for matching from this weight
 MATCH_BONUS = 0.3  # rating points added for a fully weighted (1.0) matching interest
+CAP_RECHECK_S = 0.5  # after a cap hit, wait this long and re-read the shared cache once
 FOOD_FIRST = 0.7  # food weight from which "where to eat" comes before "what to do"
 
 PlaceKind = Literal["restaurant", "activity"]
@@ -288,6 +290,15 @@ class PlacesService:
         client: httpx.AsyncClient | None = None,
     ) -> None:
         self._cache, self._fixtures, self._cap, self._client = cache, fixtures, cap, client
+        # single-flight per (city, query) and event loop: concurrent cold requests wait for the
+        # first one's search and then read it from the cache instead of spending or failing
+        self._flights: weakref.WeakKeyDictionary[
+            asyncio.AbstractEventLoop, dict[tuple[str, str], asyncio.Lock]
+        ] = weakref.WeakKeyDictionary()
+
+    def _flight(self, city_id: str, what: str) -> asyncio.Lock:
+        locks = self._flights.setdefault(asyncio.get_running_loop(), {})
+        return locks.setdefault((city_id, what), asyncio.Lock())
 
     def _serper(self, city_id: str) -> Serper:
         fixtures = sources.mode("serper") == "fixture" if self._fixtures is None else self._fixtures
@@ -298,8 +309,14 @@ class PlacesService:
         http = conn._http
 
         async def metered(*a: Any, **k: Any) -> Any:  # cache hits never get here
-            await cap.take(city_id)
-            return await http(*a, **k)
+            token = await cap.take(city_id)
+            try:
+                payload = await http(*a, **k)
+            except BaseException:
+                await cap.release(token)  # a failed call never burns the week's budget
+                raise
+            await cap.commit(token)
+            return payload
 
         conn._http = metered  # type: ignore[method-assign]
         return conn
@@ -319,9 +336,18 @@ class PlacesService:
         name = city.name.split(" (")[0]  # "Valletta (Malta)" -> "Valletta"
         notes: dict[str, str] = {}
 
+        async def fetch(what: str) -> PlaceResults:
+            async with self._flight(city.id, what):
+                try:
+                    return await serper.places(name, country=city.country_name, what=what)
+                except BudgetExhausted:
+                    # another process may be storing this very search: re-check the cache once
+                    await asyncio.sleep(CAP_RECHECK_S)
+                    return await serper.places(name, country=city.country_name, what=what)
+
         async def search(what: str, key: str) -> PlaceResults | None:
             try:
-                return await serper.places(name, country=city.country_name, what=what)
+                return await fetch(what)
             except FixtureNotFound:
                 notes[key] = "not_recorded"
             except BudgetExhausted as exc:

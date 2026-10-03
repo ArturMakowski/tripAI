@@ -412,20 +412,26 @@ refined.
 
 - `GET /destinations/FCO/places?lang=pl&interests=food:0.9,hiking:0.7&limit=3` returns `DestinationPlaces`, with the top
   `restaurants` and `things_to_do` from Google Maps via Serper Places (`tripai.live.places`). Each place has a name, ★ rating,
-  review count, Google's own `price_level` text (restaurants only; `null` when Google gives none, and we never fill it in),
+  review count, Google's own `price_level` text (restaurants only; `null` when Google gives none, and we never fill it in;
+  the UI always labels it with its source, e.g. `€20–30 (Google)`, never bare next to PLN totals),
   a category localised to PL/EN (`null` in PL when there is no translation), address, Maps link, `source` and `fetched_at`.
 - Spend: each city gets two fixed searches ("best restaurants in X" and "top attractions in X", `hl=en` for every language). They are
-  cached for 7 days in api_cache (`serper:places`), and a hard cap allows at most 2 real Serper calls per city per ISO week
-  (`WeeklyCap`, counter row `tripai:budget` / `serper_places:<city>:<week>`, override with `TRIPAI_SERPER_PLACES_WEEKLY_CAP`).
+  cached for 7 days in api_cache (`serper:places`), and a hard cap allows at most 2 *successful* real Serper calls per city
+  per ISO week (`WeeklyCap`, counter row `tripai:budget` / `serper_places:<city>:<week>`, override with
+  `TRIPAI_SERPER_PLACES_WEEKLY_CAP`). In-flight calls hold a slot, a failed call releases it, and attempts stop at
+  cap + 2 (slack, which also absorbs a cross-process race). Concurrent cold requests for a city share one search
+  (single-flight) and then read the cache. After a cap hit, the shared cache is re-checked once.
 - Interests re-rank the cached results and never trigger another search: `hiking`/`nature` → parks and viewpoints,
   `history`/`art`/`beach`/`nightlife` → the matching places, and a strong `food` interest → `food_first`. A list can be
   empty for one of these reasons, given in `notes`: `budget`, `not_recorded` (fixture mode) or `unavailable`.
 - Fixtures: `backend/tests/fixtures/serper/places/` has recorded restaurant searches for Rome, Lisbon, Barcelona,
   Athens, Porto and Prague, and attraction searches for 10 cities.
-- UI: on the receipt, the "Why it fits you" list is replaced by compact **Gdzie zjeść / Co robić** rows
+- UI: the receipt keeps "Why it fits you", compacted per DECLUTTER: at most 3 bold claims, with swipe quotes and cited sources
+  behind "Because you swiped… ›". Under it, it adds compact **Gdzie zjeść / Co robić** rows
   (`★4.6 · 2.1k · €20–30 · Italian`, tap → Google Maps). Each list shows 3 rows and puts the rest behind "+N more"
   (`components/places-section.tsx`). The rows come through the same-origin `/api` proxy and are never mocked: if
-  nothing is sourced, there is no section.
+  nothing is sourced, there is no section. Concurrent calls share one request, and only complete answers are
+  memoised, so an empty or partial answer is asked for again next time.
 
 ## Private backend (T12)
 

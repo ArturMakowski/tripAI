@@ -57,13 +57,21 @@ export function placesPath(iata: string, lang: Lang, interests?: Record<string, 
   return `/destinations/${encodeURIComponent(iata)}/places?${q}`;
 }
 
-/** "★4.6 · 2.1K · €20–30 · Italian": only the parts Google gave us. */
-export function placeFacts(p: PlaceItem, locale: string): string[] {
+/** Both lists filled and nothing flagged: safe to memoise for the page's lifetime. */
+export const isCompletePlaces = (d: DestinationPlaces | null): d is DestinationPlaces =>
+  !!d && d.restaurants.length > 0 && d.things_to_do.length > 0 && Object.keys(d.notes ?? {}).length === 0;
+
+/**
+ * "★4.6 · 2.1k · €20–30 (Google) · Italian": only the parts Google gave us. The price level is
+ * Google's own text in its own currency, so it is always labelled with its source (`price`)
+ * and never shown bare next to our PLN totals.
+ */
+export function placeFacts(p: PlaceItem, locale: string, price: (level: string) => string): string[] {
   const out: string[] = [];
   if (p.rating != null) out.push(`★${p.rating.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`);
   if (p.rating_count != null)
     out.push(new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 }).format(p.rating_count));
-  if (p.price_level) out.push(p.price_level);
+  if (p.price_level) out.push(price(p.price_level));
   if (p.category) out.push(p.category);
   return out;
 }

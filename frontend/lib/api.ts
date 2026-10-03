@@ -5,7 +5,7 @@
  * fixtures so the demo never dead-ends. Every call reports which one answered.
  */
 import type { Lang } from "./i18n/types";
-import { placesPath, type DestinationPlaces } from "./places";
+import { isCompletePlaces, placesPath, type DestinationPlaces } from "./places";
 import * as mock from "./mock/api";
 import { profileDna as mockDna } from "./mock/dna";
 import type {
@@ -208,11 +208,23 @@ export const api = {
     const path = placesPath(iata, lang, interests);
     let hit = placesMemo.get(path);
     if (!hit) {
-      hit = http<DestinationPlaces>(path, { headers: { "accept-language": acceptLanguage(lang) } }, 15_000).catch((err) => {
-        placesMemo.delete(path); // retry on the next visit
-        console.warn("[tripai] places unavailable:", err);
-        return null;
-      });
+      // Concurrent callers share this in-flight promise (they wait, never fire a second search).
+      const pending: Promise<DestinationPlaces | null> = http<DestinationPlaces>(
+        path,
+        { headers: { "accept-language": acceptLanguage(lang) } },
+        15_000,
+      )
+        .then((d) => {
+          // only a complete answer is kept: an empty/partial one (cap hit, source down) is retried next time
+          if (!isCompletePlaces(d) && placesMemo.get(path) === pending) placesMemo.delete(path);
+          return d;
+        })
+        .catch((err) => {
+          if (placesMemo.get(path) === pending) placesMemo.delete(path);
+          console.warn("[tripai] places unavailable:", err);
+          return null;
+        });
+      hit = pending;
       placesMemo.set(path, hit);
     }
     return hit;

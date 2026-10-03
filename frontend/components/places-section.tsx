@@ -12,7 +12,7 @@ import type { TasteProfile } from "@/lib/types";
 function Row({ p }: { p: PlaceItem }) {
   const { t, fmt } = useT();
   const c = t.receipt.places;
-  const facts = placeFacts(p, fmt.locale).join(" · ");
+  const facts = placeFacts(p, fmt.locale, c.price).join(" · ");
   const body = (
     <>
       <span className="min-w-0 flex-1">

@@ -137,3 +137,70 @@ def test_live_cache_hits_do_not_spend(monkeypatch, tmp_path):
     # gl/hl are fixed so the two cached searches serve every language
     body = json.loads(route.calls.last.request.content)
     assert body["hl"] == "en" and "serper-test" not in json.dumps(body)
+
+
+def _live(monkeypatch):
+    monkeypatch.setenv("TRIPAI_USE_FIXTURES", "0")
+    monkeypatch.setenv("SERPER_API_KEY", "serper-test")
+
+
+@respx.mock
+def test_failed_calls_are_released_but_bounded_by_slack(monkeypatch, tmp_path):
+    _live(monkeypatch)
+    ok = httpx.Response(200, json=_payload("best-restaurants-in-rome"))
+    route = respx.post(f"{BASE}/places").mock(return_value=httpx.Response(400, text="bad"))
+    cap = WeeklyCap("serper_places", 2, root=tmp_path / "budget", slack=2)
+    svc = PlacesService(cache=NullCache(), cap=cap)
+    failed = asyncio.run(svc.get("FCO"))
+    assert failed.notes == {"restaurants": "unavailable", "things_to_do": "unavailable"}
+    assert asyncio.run(cap.used("rome")) == {"used": 0, "tries": 2}  # nothing burnt
+
+    route.mock(return_value=ok)
+    good = asyncio.run(svc.get("FCO"))  # the week's 2 successes are still available
+    assert not good.notes and good.restaurants and good.things_to_do
+    assert asyncio.run(cap.used("rome")) == {"used": 2, "tries": 4}
+
+    # a flapping upstream: attempts stop at cap + slack even with no success
+    route.mock(return_value=httpx.Response(400, text="bad"))
+    other = WeeklyCap("serper_places", 2, root=tmp_path / "b2", slack=2)
+    svc2 = PlacesService(cache=NullCache(), cap=other)
+    asyncio.run(svc2.get("LIS"))
+    asyncio.run(svc2.get("LIS"))
+    calls = route.call_count
+    assert asyncio.run(svc2.get("LIS")).notes == {"restaurants": "budget", "things_to_do": "budget"}
+    assert route.call_count == calls
+
+
+@respx.mock
+def test_concurrent_cold_requests_share_one_search(monkeypatch, tmp_path):
+    _live(monkeypatch)
+
+    async def slow(request):
+        await asyncio.sleep(0.05)
+        return httpx.Response(200, json=_payload("best-restaurants-in-rome"))
+
+    route = respx.post(f"{BASE}/places").mock(side_effect=slow)
+    cap = WeeklyCap("serper_places", 2, root=tmp_path / "budget")
+    svc = PlacesService(cache=DiskCache(tmp_path / "c"), cap=cap)
+
+    async def both():
+        return await asyncio.gather(*(svc.get("FCO") for _ in range(4)))
+
+    results = asyncio.run(both())
+    assert route.call_count == 2  # one per query, the rest waited and read the cache
+    for r in results:
+        assert not r.notes and len(r.restaurants) == 3 and len(r.things_to_do) == 3
+
+
+def test_weekly_cap_counts_in_flight_reservations(tmp_path):
+    cap = WeeklyCap("t", 2, root=tmp_path)
+
+    async def run():
+        a = await cap.take("x")
+        await cap.take("x")
+        with pytest.raises(Exception, match="weekly cap"):
+            await cap.take("x")  # 2 in flight: a third would overshoot
+        await cap.release(a)
+        await cap.take("x")  # the failed slot is free again (tries 3 <= cap + slack)
+
+    asyncio.run(run())
