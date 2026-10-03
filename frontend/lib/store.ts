@@ -4,8 +4,9 @@ import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { DataMode } from "./api";
+import type { DnaSwipe, Lang } from "./dna";
 import { weightsFromSlider } from "./scoring";
-import type { BridgeWindow, Change, ChatMessage, FreeWindow, RankedRecommendation, TasteProfile, Weights } from "./types";
+import type { BridgeWindow, Change, DnaResponse, ChatMessage, FreeWindow, RankedRecommendation, TasteProfile, Weights } from "./types";
 
 export interface FeedbackDiff {
   tripId: string;
@@ -14,7 +15,11 @@ export interface FeedbackDiff {
   diff: Change[];
   /** Display info for every trip in either ranking (ids can differ between calls). */
   items: Record<string, { city: string; iata: string; window: FreeWindow; total_cost_pln: number }>;
+  /** Travel DNA y2 = No: feedback was recorded but deliberately not applied. */
+  frozen?: boolean;
 }
+
+export type DeckStep = "swipe" | "budget" | "airport" | "result";
 
 export type Dataset = "interview" | "windows" | "recs" | "feedback";
 
@@ -38,6 +43,8 @@ interface TripState {
   modes: Partial<Record<Dataset, DataMode>>;
   approved: string[];
   feedback: FeedbackDiff | null;
+  /** Swipe onboarding progress (survives a reload mid-deck). */
+  deck: { swipes: DnaSwipe[]; step: DeckStep; budget: number | null; airports: string[]; lang: Lang; result: DnaResponse | null };
 
   setMessages: (m: ChatMessage[]) => void;
   setProfile: (p: TasteProfile | null) => void;
@@ -48,6 +55,7 @@ interface TripState {
   setMode: (d: Dataset, m: DataMode) => void;
   approve: (id: string) => void;
   setFeedback: (f: FeedbackDiff | null) => void;
+  setDeck: (patch: Partial<TripState["deck"]>) => void;
   reset: () => void;
 }
 
@@ -64,6 +72,7 @@ const initial = {
   modes: {},
   approved: [],
   feedback: null,
+  deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, budget: 1800 as number | null, airports: ["KRK"], lang: "pl" as Lang, result: null as DnaResponse | null },
 };
 
 export const useTrip = create<TripState>()(
@@ -87,6 +96,7 @@ export const useTrip = create<TripState>()(
       setMode: (d, m) => set((s) => ({ modes: { ...s.modes, [d]: m } })),
       approve: (id) => set((s) => ({ approved: s.approved.includes(id) ? s.approved : [...s.approved, id] })),
       setFeedback: (feedback) => set({ feedback }),
+      setDeck: (patch) => set((s) => ({ deck: { ...s.deck, ...patch } })),
       reset: () => set({ ...initial }),
     }),
     { name: "tripai-v3", storage: createJSONStorage(() => localStorage) },

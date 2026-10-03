@@ -206,6 +206,11 @@ const ALIASES: Record<string, Factor> = { price: "price", value: "price", weathe
 
 /** Same rules as backend scoring/feedback.py: factor rated <=2 -> weight +0.1 per point below 3, etc. */
 export function applyFeedback(profile: TasteProfile, weights: Weights, req: FeedbackRequest): FeedbackResponse {
+  // Travel DNA y2 = No: feedback never changes the profile (user control).
+  if (profile.personalize === false) {
+    const w = normalise(weights);
+    return { ...profile, trip_id: req.trip_id, weights: w, diff: [], profile };
+  }
   const before = normalise(weights);
   const raw = { ...before };
   const interests = { ...profile.interests };
