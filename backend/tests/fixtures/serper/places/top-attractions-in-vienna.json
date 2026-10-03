@@ -1,0 +1,144 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Vienna, Austria"
+  }
+ },
+ "fetched_at": "2026-10-03T11:52:46.689424+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Vienna, Austria",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Hofburg",
+    "address": "Vienna, Austria",
+    "latitude": 48.205658,
+    "longitude": 16.36478,
+    "rating": 4.7,
+    "ratingCount": 60000,
+    "category": "Tourist attraction",
+    "website": "https://www.wien.info/de/kunst-kultur/imperiales/hofburg-wien",
+    "cid": "9693178512344891999"
+   },
+   {
+    "position": 2,
+    "title": "Belvedere Palace",
+    "address": "Vienna, Austria",
+    "latitude": 48.191475,
+    "longitude": 16.380932,
+    "rating": 4.7,
+    "ratingCount": 91000,
+    "category": "Tourist attraction",
+    "website": "https://www.belvedere.at/",
+    "cid": "5360968363265979911"
+   },
+   {
+    "position": 3,
+    "title": "Schönbrunn Palace",
+    "address": "Schönbrunner Schloßstraße 47",
+    "latitude": 48.185814,
+    "longitude": 16.312763,
+    "rating": 4.7,
+    "ratingCount": 186000,
+    "category": "Tourist attraction",
+    "website": "https://www.schoenbrunn.at/",
+    "cid": "5650252119948299209"
+   },
+   {
+    "position": 4,
+    "title": "Hundertwasser House",
+    "address": "Kegelgasse 36-38",
+    "latitude": 48.207336,
+    "longitude": 16.394295,
+    "rating": 4.5,
+    "ratingCount": 35000,
+    "category": "Tourist attraction",
+    "website": "http://www.hundertwasserhaus.info/",
+    "cid": "9535331515537916316"
+   },
+   {
+    "position": 5,
+    "title": "St. Stephen's Cathedral",
+    "address": "Stephansplatz 3",
+    "latitude": 48.208412,
+    "longitude": 16.37347,
+    "rating": 4.7,
+    "ratingCount": 140000,
+    "category": "Tourist attraction",
+    "website": "https://www.stephanskirche.at/",
+    "cid": "1699924089753055577"
+   },
+   {
+    "position": 6,
+    "title": "Kunsthistorisches Museum Wien",
+    "latitude": 48.2038,
+    "longitude": 16.361788,
+    "rating": 4.8,
+    "ratingCount": 36000,
+    "category": "Tourist attraction",
+    "website": "https://www.khm.at/",
+    "cid": "8025505475139647553"
+   },
+   {
+    "position": 7,
+    "title": "Prater",
+    "address": "Vienna, Austria",
+    "latitude": 48.215466,
+    "longitude": 16.400173,
+    "rating": 4.6,
+    "ratingCount": 142000,
+    "category": "Tourist attraction",
+    "website": "https://www.praterwien.com/startseite/",
+    "cid": "18223650539833962996"
+   },
+   {
+    "position": 8,
+    "title": "Viennese Giant Ferris Wheel",
+    "address": "Gaudeegasse 1",
+    "latitude": 48.216698,
+    "longitude": 16.3959,
+    "rating": 4.5,
+    "ratingCount": 50000,
+    "category": "Tourist attraction",
+    "website": "https://wienerriesenrad.com/",
+    "cid": "12454319285338461958"
+   },
+   {
+    "position": 9,
+    "title": "Imperial Treasury",
+    "address": "Schweizerhof, Hofburg",
+    "latitude": 48.206764,
+    "longitude": 16.365736,
+    "rating": 4.6,
+    "ratingCount": 9000,
+    "category": "Tourist attraction",
+    "website": "https://www.kaiserliche-schatzkammer.at/",
+    "cid": "12614954973056268927"
+   },
+   {
+    "position": 10,
+    "title": "Palais Equitable",
+    "address": "Stock-im-Eisen-Platz 3",
+    "latitude": 48.207832,
+    "longitude": 16.371449,
+    "rating": 4.6,
+    "ratingCount": 122,
+    "category": "Tourist attraction",
+    "cid": "14253745745244571863"
+   }
+  ],
+  "credits": 1
+ }
+}

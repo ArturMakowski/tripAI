@@ -1,0 +1,1098 @@
+{
+ "source": "serpapi:google_flights",
+ "params": {
+  "engine": "google_flights",
+  "currency": "PLN",
+  "gl": "pl",
+  "hl": "en",
+  "departure_id": "KRK",
+  "arrival_id": "LIS",
+  "type": 1,
+  "outbound_date": "2027-01-14",
+  "return_date": "2027-01-19",
+  "adults": 1
+ },
+ "fetched_at": "2026-10-03T11:43:27.549938+00:00",
+ "recorded": true,
+ "payload": {
+  "search_metadata": {
+   "id": "6ac0ea584a616b93e47a30e6",
+   "status": "Success",
+   "json_endpoint": "https://serpapi.com/searches/JA43nDJhsns4Wz8KoSZ9FRubCnZOfVfdiKVYtFa02TM/6ac0ea584a616b93e47a30e6.json",
+   "markdown_endpoint": "https://serpapi.com/searches/JA43nDJhsns4Wz8KoSZ9FRubCnZOfVfdiKVYtFa02TM/6ac0ea584a616b93e47a30e6.md",
+   "created_at": "2026-10-03 11:43:20 UTC",
+   "processed_at": "2026-10-03 11:43:20 UTC",
+   "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=PLN&tfs=CBwQAhoeEgoyMDI3LTAxLTE0agcIARIDS1JLcgcIARIDTElTGh4SCjIwMjctMDEtMTlqBwgBEgNMSVNyBwgBEgNLUktAAUgBcAGYAQE&tfu=EgIIAQ",
+   "raw_html_file": "https://serpapi.com/searches/JA43nDJhsns4Wz8KoSZ9FRubCnZOfVfdiKVYtFa02TM/6ac0ea584a616b93e47a30e6.html",
+   "prettify_html_file": "https://serpapi.com/searches/JA43nDJhsns4Wz8KoSZ9FRubCnZOfVfdiKVYtFa02TM/6ac0ea584a616b93e47a30e6.prettify",
+   "total_time_taken": 6.9
+  },
+  "search_parameters": {
+   "engine": "google_flights",
+   "hl": "en",
+   "gl": "pl",
+   "type": "1",
+   "departure_id": "KRK",
+   "arrival_id": "LIS",
+   "outbound_date": "2027-01-14",
+   "return_date": "2027-01-19",
+   "adults": 1,
+   "currency": "PLN"
+  },
+  "best_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 19:55"
+      },
+      "arrival_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-14 21:40"
+      },
+      "duration": 105,
+      "airplane": "Embraer 195",
+      "airline": "SWISS",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+      "travel_class": "Economy",
+      "flight_number": "LX 1371",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 113 kg"
+      ],
+      "often_delayed_by_over_30_min": true,
+      "plane_and_crew_by": "Helvetic"
+     },
+     {
+      "departure_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-15 09:35"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-15 11:35"
+      },
+      "duration": 180,
+      "airplane": "Airbus A320neo",
+      "airline": "SWISS",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+      "travel_class": "Economy",
+      "flight_number": "LX 2086",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 133 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 715,
+      "name": "Zurich Airport",
+      "id": "ZRH"
+     }
+    ],
+    "total_duration": 1000,
+    "carbon_emissions": {
+     "this_flight": 247000,
+     "typical_for_this_route": 247000,
+     "difference_percent": 0
+    },
+    "price": 817,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZzFNV0RFek56RjhURmd5TURnMkdnc0k4LzBFRUFJYUExQk1UamdjY04rakFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJaUkgiLG51bGwsIkxYIiwiMTM3MSJdLFsiWlJIIiwiMjAyNy0wMS0xNSIsIkxJUyIsbnVsbCwiTFgiLCIyMDg2Il1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 17:40"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 19:00"
+      },
+      "duration": 80,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1625",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 73 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 21:10"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-14 23:30"
+      },
+      "duration": 200,
+      "airplane": "Airbus A320neo",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1780",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 157 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 130,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     }
+    ],
+    "total_duration": 410,
+    "carbon_emissions": {
+     "this_flight": 231000,
+     "typical_for_this_route": 247000,
+     "difference_percent": -6
+    },
+    "price": 836,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZzFNU0RFMk1qVjhURWd4Tnpnd0dnc0lyNHdGRUFJYUExQk1UamdjY0xxbkFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJNVUMiLG51bGwsIkxIIiwiMTYyNSJdLFsiTVVDIiwiMjAyNy0wMS0xNCIsIkxJUyIsbnVsbCwiTEgiLCIxNzgwIl1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 17:35"
+      },
+      "arrival_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 19:35"
+      },
+      "duration": 120,
+      "airplane": "Embraer 195 E2",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1328",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 99 kg"
+      ],
+      "plane_and_crew_by": "KLM Cityhopper"
+     },
+     {
+      "departure_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 21:15"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-14 23:10"
+      },
+      "duration": 175,
+      "airplane": "Boeing 737",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1587",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 140 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 100,
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS"
+     }
+    ],
+    "total_duration": 395,
+    "carbon_emissions": {
+     "this_flight": 241000,
+     "typical_for_this_route": 247000,
+     "difference_percent": -2
+    },
+    "price": 940,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZzFMVERFek1qaDhTMHd4TlRnM0dnc0kwOTBGRUFJYUExQk1UamdjY0ttOEFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJBTVMiLG51bGwsIktMIiwiMTMyOCJdLFsiQU1TIiwiMjAyNy0wMS0xNCIsIkxJUyIsbnVsbCwiS0wiLCIxNTg3Il1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 08:45"
+      },
+      "arrival_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-14 09:40"
+      },
+      "duration": 55,
+      "airplane": "Embraer 190",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 3904",
+      "ticket_also_sold_by": [
+       "Tap Air Portugal"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 57 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-14 10:30"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-14 14:00"
+      },
+      "duration": 270,
+      "airplane": "Boeing 737MAX 8 Passenger",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 425",
+      "ticket_also_sold_by": [
+       "Tap Air Portugal"
+      ],
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat power & USB outlets",
+       "Carbon emissions estimate: 194 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 50,
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW"
+     }
+    ],
+    "total_duration": 375,
+    "carbon_emissions": {
+     "this_flight": 253000,
+     "typical_for_this_route": 247000,
+     "difference_percent": 2
+    },
+    "price": 1289,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZ3hNVHpNNU1EUjhURTgwTWpVYUN3aUI3d2NRQWhvRFVFeE9PQnh3djRJQyIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIldBVyIsbnVsbCwiTE8iLCIzOTA0Il0sWyJXQVciLCIyMDI3LTAxLTE0IiwiTElTIixudWxsLCJMTyIsIjQyNSJdXV0="
+   }
+  ],
+  "other_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 14:00"
+      },
+      "arrival_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 16:00"
+      },
+      "duration": 120,
+      "airplane": "Embraer 190",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1326",
+      "legroom": "31 in",
+      "extensions": [
+       "Average legroom (31 in)",
+       "Carbon emissions estimate: 134 kg"
+      ],
+      "plane_and_crew_by": "German Airways"
+     },
+     {
+      "departure_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 21:15"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-14 23:10"
+      },
+      "duration": 175,
+      "airplane": "Boeing 737",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1587",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 140 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 315,
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS"
+     }
+    ],
+    "total_duration": 610,
+    "carbon_emissions": {
+     "this_flight": 275000,
+     "typical_for_this_route": 247000,
+     "difference_percent": 11
+    },
+    "price": 884,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZzFMVERFek1qWjhTMHd4TlRnM0dnc0k4N0VGRUFJYUExQk1UamdjY0l5eEFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJBTVMiLG51bGwsIktMIiwiMTMyNiJdLFsiQU1TIiwiMjAyNy0wMS0xNCIsIkxJUyIsbnVsbCwiS0wiLCIxNTg3Il1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 12:50"
+      },
+      "arrival_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 14:30"
+      },
+      "duration": 100,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1365",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 85 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 20:40"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-14 22:50"
+      },
+      "duration": 190,
+      "airplane": "Airbus A320neo",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1172",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 152 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 370,
+      "name": "Frankfurt Airport",
+      "id": "FRA"
+     }
+    ],
+    "total_duration": 660,
+    "carbon_emissions": {
+     "this_flight": 239000,
+     "typical_for_this_route": 247000,
+     "difference_percent": -3
+    },
+    "price": 912,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZzFNU0RFek5qVjhURWd4TVRjeUdnc0lrY2dGRUFJYUExQk1UamdjY09hMkFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJGUkEiLG51bGwsIkxIIiwiMTM2NSJdLFsiRlJBIiwiMjAyNy0wMS0xNCIsIkxJUyIsbnVsbCwiTEgiLCIxMTcyIl1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 14:00"
+      },
+      "arrival_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 16:00"
+      },
+      "duration": 120,
+      "airplane": "Embraer 190",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1326",
+      "ticket_also_sold_by": [
+       "Air France"
+      ],
+      "legroom": "31 in",
+      "extensions": [
+       "Average legroom (31 in)",
+       "Carbon emissions estimate: 134 kg"
+      ],
+      "plane_and_crew_by": "German Airways for KLM Royal Dutch Airlines"
+     },
+     {
+      "departure_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 17:55"
+      },
+      "arrival_airport": {
+       "name": "Aéroport de Paris-Charles de Gaulle",
+       "id": "CDG",
+       "time": "2027-01-14 19:10"
+      },
+      "duration": 75,
+      "airplane": "Boeing 737",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1411",
+      "ticket_also_sold_by": [
+       "Air France"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 61 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Aéroport de Paris-Charles de Gaulle",
+       "id": "CDG",
+       "time": "2027-01-14 20:45"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-14 22:25"
+      },
+      "duration": 160,
+      "airplane": "Airbus A220-300 Passenger",
+      "airline": "Air France",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AF.png",
+      "travel_class": "Economy",
+      "flight_number": "AF 1124",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 149 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 115,
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS"
+     },
+     {
+      "duration": 95,
+      "name": "Aéroport de Paris-Charles de Gaulle",
+      "id": "CDG"
+     }
+    ],
+    "total_duration": 565,
+    "carbon_emissions": {
+     "this_flight": 345000,
+     "typical_for_this_route": 247000,
+     "difference_percent": 40
+    },
+    "price": 1055,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFaFJMVERFek1qWjhTMHd4TkRFeGZFRkdNVEV5TkJvTENNKzNCaEFDR2dOUVRFNDRISEMxMHdFPSIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIkFNUyIsbnVsbCwiS0wiLCIxMzI2Il0sWyJBTVMiLCIyMDI3LTAxLTE0IiwiQ0RHIixudWxsLCJLTCIsIjE0MTEiXSxbIkNERyIsIjIwMjctMDEtMTQiLCJMSVMiLG51bGwsIkFGIiwiMTEyNCJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 18:15"
+      },
+      "arrival_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-14 19:10"
+      },
+      "duration": 55,
+      "airplane": "Embraer 195",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 3924",
+      "legroom": "31 in",
+      "extensions": [
+       "Average legroom (31 in)",
+       "Carbon emissions estimate: 57 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Warsaw Chopin Airport",
+       "id": "WAW",
+       "time": "2027-01-15 10:25"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-15 13:55"
+      },
+      "duration": 270,
+      "airplane": "Boeing 737MAX 8 Passenger",
+      "airline": "LOT",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+      "travel_class": "Economy",
+      "flight_number": "LO 425",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat power & USB outlets",
+       "Carbon emissions estimate: 194 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 915,
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW"
+     }
+    ],
+    "total_duration": 1240,
+    "carbon_emissions": {
+     "this_flight": 252000,
+     "typical_for_this_route": 247000,
+     "difference_percent": 2
+    },
+    "price": 1177,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZ3hNVHpNNU1qUjhURTgwTWpVYUN3aVJsd2NRQWhvRFVFeE9PQnh3OStzQiIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIldBVyIsbnVsbCwiTE8iLCIzOTI0Il0sWyJXQVciLCIyMDI3LTAxLTE1IiwiTElTIixudWxsLCJMTyIsIjQyNSJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 11:55"
+      },
+      "arrival_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 13:55"
+      },
+      "duration": 120,
+      "airplane": "Boeing 737",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1324",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 105 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 16:30"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-14 18:30"
+      },
+      "duration": 180,
+      "airplane": "Airbus A321neo",
+      "airline": "Transavia",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/HV.png",
+      "travel_class": "Economy",
+      "flight_number": "HV 5955",
+      "ticket_also_sold_by": [
+       "KLM"
+      ],
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 125 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 155,
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS"
+     }
+    ],
+    "total_duration": 455,
+    "carbon_emissions": {
+     "this_flight": 231000,
+     "typical_for_this_route": 247000,
+     "difference_percent": -6
+    },
+    "price": 1205,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZzFMVERFek1qUjhTRlkxT1RVMUdnc0kxNndIRUFJYUExQk1UamdjY0x2eEFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJBTVMiLG51bGwsIktMIiwiMTMyNCJdLFsiQU1TIiwiMjAyNy0wMS0xNCIsIkxJUyIsbnVsbCwiSFYiLCI1OTU1Il1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:00"
+      },
+      "arrival_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 08:05"
+      },
+      "duration": 125,
+      "airplane": "Embraer 195 E2",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1322",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 99 kg"
+      ],
+      "plane_and_crew_by": "KLM Cityhopper"
+     },
+     {
+      "departure_airport": {
+       "name": "Amsterdam Airport Schiphol",
+       "id": "AMS",
+       "time": "2027-01-14 12:40"
+      },
+      "arrival_airport": {
+       "name": "Humberto Delgado Airport",
+       "id": "LIS",
+       "time": "2027-01-14 14:40"
+      },
+      "duration": 180,
+      "airplane": "Boeing 737",
+      "airline": "KLM",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+      "travel_class": "Economy",
+      "flight_number": "KL 1583",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 142 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 275,
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS"
+     }
+    ],
+    "total_duration": 580,
+    "carbon_emissions": {
+     "this_flight": 242000,
+     "typical_for_this_route": 247000,
+     "difference_percent": -2
+    },
+    "price": 1464,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+    "departure_token": "WyJDalJJV0Y4dGFuTTJZMnA2T0VsQlIwaFBNMUZDUnkwdExTMHRMUzB0TFhaMGEzQXhOa0ZCUVVGQlIzSkJObXcwUzJ0d1lUUkJFZzFMVERFek1qSjhTMHd4TlRnekdnc0lnL2NJRUFJYUExQk1UamdjY0xTbEFnPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJBTVMiLG51bGwsIktMIiwiMTMyMiJdLFsiQU1TIiwiMjAyNy0wMS0xNCIsIkxJUyIsbnVsbCwiS0wiLCIxNTgzIl1dXQ=="
+   }
+  ],
+  "price_insights": {
+   "lowest_price": 817,
+   "price_level": "typical",
+   "typical_price_range": [
+    530,
+    950
+   ],
+   "price_history": [
+    [
+     1785708000,
+     452
+    ],
+    [
+     1785794400,
+     452
+    ],
+    [
+     1785880800,
+     452
+    ],
+    [
+     1785967200,
+     452
+    ],
+    [
+     1786053600,
+     422
+    ],
+    [
+     1786140000,
+     422
+    ],
+    [
+     1786226400,
+     422
+    ],
+    [
+     1786312800,
+     422
+    ],
+    [
+     1786399200,
+     422
+    ],
+    [
+     1786485600,
+     392
+    ],
+    [
+     1786572000,
+     392
+    ],
+    [
+     1786658400,
+     392
+    ],
+    [
+     1786744800,
+     392
+    ],
+    [
+     1786831200,
+     392
+    ],
+    [
+     1786917600,
+     422
+    ],
+    [
+     1787004000,
+     392
+    ],
+    [
+     1787090400,
+     392
+    ],
+    [
+     1787176800,
+     392
+    ],
+    [
+     1787263200,
+     392
+    ],
+    [
+     1787349600,
+     392
+    ],
+    [
+     1787436000,
+     407
+    ],
+    [
+     1787522400,
+     407
+    ],
+    [
+     1787608800,
+     440
+    ],
+    [
+     1787695200,
+     440
+    ],
+    [
+     1787781600,
+     407
+    ],
+    [
+     1787868000,
+     407
+    ],
+    [
+     1787954400,
+     407
+    ],
+    [
+     1788040800,
+     407
+    ],
+    [
+     1788127200,
+     407
+    ],
+    [
+     1788213600,
+     407
+    ],
+    [
+     1788300000,
+     407
+    ],
+    [
+     1788386400,
+     422
+    ],
+    [
+     1788472800,
+     422
+    ],
+    [
+     1788559200,
+     754
+    ],
+    [
+     1788645600,
+     754
+    ],
+    [
+     1788732000,
+     754
+    ],
+    [
+     1788818400,
+     753
+    ],
+    [
+     1788904800,
+     753
+    ],
+    [
+     1788991200,
+     753
+    ],
+    [
+     1789077600,
+     753
+    ],
+    [
+     1789164000,
+     753
+    ],
+    [
+     1789250400,
+     753
+    ],
+    [
+     1789336800,
+     753
+    ],
+    [
+     1789423200,
+     744
+    ],
+    [
+     1789509600,
+     744
+    ],
+    [
+     1789596000,
+     745
+    ],
+    [
+     1789682400,
+     746
+    ],
+    [
+     1789768800,
+     746
+    ],
+    [
+     1789855200,
+     747
+    ],
+    [
+     1789941600,
+     747
+    ],
+    [
+     1790028000,
+     747
+    ],
+    [
+     1790114400,
+     747
+    ],
+    [
+     1790200800,
+     747
+    ],
+    [
+     1790287200,
+     747
+    ],
+    [
+     1790373600,
+     748
+    ],
+    [
+     1790460000,
+     749
+    ],
+    [
+     1790546400,
+     749
+    ],
+    [
+     1790632800,
+     748
+    ],
+    [
+     1790719200,
+     792
+    ],
+    [
+     1790805600,
+     791
+    ],
+    [
+     1790892000,
+     791
+    ],
+    [
+     1790978400,
+     817
+    ]
+   ]
+  },
+  "airports": [
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "LIS",
+       "name": "Humberto Delgado Airport"
+      },
+      "city": "Lisbon",
+      "country": "Portugal",
+      "country_code": "PT",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLxT3PIh1TwnGsLrG7G-JQRFMG0zIp4uiQ71FTwf1WQHKROUG_veOYAiGQTLGO36g5OCdu9DUrwHrzaA",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSG3-nF1u-sTIpnrbZ3a_ly_OcwqDxS9MCOGoiQTX3dJ3ZoIiUsVHqxHC-nmruwZ8aoJZJPM7O5YSmsHR6tp2L_EHV4CnsiNtatHuedKBE"
+     }
+    ]
+   },
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "LIS",
+       "name": "Humberto Delgado Airport"
+      },
+      "city": "Lisbon",
+      "country": "Portugal",
+      "country_code": "PT",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLxT3PIh1TwnGsLrG7G-JQRFMG0zIp4uiQ71FTwf1WQHKROUG_veOYAiGQTLGO36g5OCdu9DUrwHrzaA",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSG3-nF1u-sTIpnrbZ3a_ly_OcwqDxS9MCOGoiQTX3dJ3ZoIiUsVHqxHC-nmruwZ8aoJZJPM7O5YSmsHR6tp2L_EHV4CnsiNtatHuedKBE"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ]
+   }
+  ]
+ }
+}

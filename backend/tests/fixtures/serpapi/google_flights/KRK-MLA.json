@@ -1,0 +1,843 @@
+{
+ "source": "serpapi:google_flights",
+ "params": {
+  "engine": "google_flights",
+  "currency": "PLN",
+  "gl": "pl",
+  "hl": "en",
+  "departure_id": "KRK",
+  "arrival_id": "MLA",
+  "type": 1,
+  "outbound_date": "2027-01-14",
+  "return_date": "2027-01-19",
+  "adults": 1
+ },
+ "fetched_at": "2026-10-03T11:44:15.770370+00:00",
+ "recorded": true,
+ "payload": {
+  "search_metadata": {
+   "id": "6ac0ea8b7d6e702ce4774d07",
+   "status": "Success",
+   "json_endpoint": "https://serpapi.com/searches/qRB9ZUfbiZ0-FlNi1VDib88Me_MvxQdE14RP7cgK0Tw/6ac0ea8b7d6e702ce4774d07.json",
+   "markdown_endpoint": "https://serpapi.com/searches/qRB9ZUfbiZ0-FlNi1VDib88Me_MvxQdE14RP7cgK0Tw/6ac0ea8b7d6e702ce4774d07.md",
+   "created_at": "2026-10-03 11:44:11 UTC",
+   "processed_at": "2026-10-03 11:44:11 UTC",
+   "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=PLN&tfs=CBwQAhoeEgoyMDI3LTAxLTE0agcIARIDS1JLcgcIARIDTUxBGh4SCjIwMjctMDEtMTlqBwgBEgNNTEFyBwgBEgNLUktAAUgBcAGYAQE&tfu=EgIIAQ",
+   "raw_html_file": "https://serpapi.com/searches/qRB9ZUfbiZ0-FlNi1VDib88Me_MvxQdE14RP7cgK0Tw/6ac0ea8b7d6e702ce4774d07.html",
+   "prettify_html_file": "https://serpapi.com/searches/qRB9ZUfbiZ0-FlNi1VDib88Me_MvxQdE14RP7cgK0Tw/6ac0ea8b7d6e702ce4774d07.prettify",
+   "total_time_taken": 4.32
+  },
+  "search_parameters": {
+   "engine": "google_flights",
+   "hl": "en",
+   "gl": "pl",
+   "type": "1",
+   "departure_id": "KRK",
+   "arrival_id": "MLA",
+   "outbound_date": "2027-01-14",
+   "return_date": "2027-01-19",
+   "adults": 1,
+   "currency": "PLN"
+  },
+  "best_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 11:25"
+      },
+      "arrival_airport": {
+       "name": "Malta International Airport",
+       "id": "MLA",
+       "time": "2027-01-14 14:05"
+      },
+      "duration": 160,
+      "airplane": "Boeing 737MAX 8 Passenger",
+      "airline": "Ryanair",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/FR.png",
+      "travel_class": "Economy",
+      "flight_number": "FR 7115",
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "Carbon emissions estimate: 113 kg"
+      ],
+      "often_delayed_by_over_30_min": true,
+      "plane_and_crew_by": "Ryanair Sun"
+     }
+    ],
+    "total_duration": 160,
+    "carbon_emissions": {
+     "this_flight": 113000,
+     "typical_for_this_route": 115000,
+     "difference_percent": -2
+    },
+    "price": 385,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/FR.png",
+    "departure_token": "WyJDalJJTFhCWmJsSnBYMXBoTFVGQlRVVnNWbmRDUnkwdExTMHRMUzF2YTNCaE9TMXVNVUZCUVVGQlIzSkJObTg0UmtkbVZYbEJFZ1pHVWpjeE1UVWFDd2pCckFJUUFob0RVRXhPT0J4d2trMD0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJNTEEiLG51bGwsIkZSIiwiNzExNSJdXV0="
+   }
+  ],
+  "other_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 22:05"
+      },
+      "arrival_airport": {
+       "name": "Malta International Airport",
+       "id": "MLA",
+       "time": "2027-01-15 00:45"
+      },
+      "duration": 160,
+      "airplane": "Boeing 737MAX 8 Passenger",
+      "airline": "Ryanair",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/FR.png",
+      "travel_class": "Economy",
+      "flight_number": "FR 7141",
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "Carbon emissions estimate: 113 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "total_duration": 160,
+    "carbon_emissions": {
+     "this_flight": 113000,
+     "typical_for_this_route": 115000,
+     "difference_percent": -2
+    },
+    "price": 376,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/FR.png",
+    "departure_token": "WyJDalJJTFhCWmJsSnBYMXBoTFVGQlRVVnNWbmRDUnkwdExTMHRMUzF2YTNCaE9TMXVNVUZCUVVGQlIzSkJObTg0UmtkbVZYbEJFZ1pHVWpjeE5ERWFDd2pXcFFJUUFob0RVRXhPT0J4d3NVcz0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJNTEEiLG51bGwsIkZSIiwiNzE0MSJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 17:40"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 19:00"
+      },
+      "duration": 80,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1625",
+      "ticket_also_sold_by": [
+       "LOT"
+      ],
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 73 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 20:00"
+      },
+      "arrival_airport": {
+       "name": "Malta International Airport",
+       "id": "MLA",
+       "time": "2027-01-14 22:20"
+      },
+      "duration": 140,
+      "airplane": "Airbus A320neo",
+      "airline": "KM Malta Airlines",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KM.png",
+      "travel_class": "Economy",
+      "flight_number": "KM 309",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 107 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 60,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     }
+    ],
+    "total_duration": 280,
+    "carbon_emissions": {
+     "this_flight": 181000,
+     "typical_for_this_route": 115000,
+     "difference_percent": 57
+    },
+    "price": 942,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTFhCWmJsSnBYMXBoTFVGQlRVVnNWbmRDUnkwdExTMHRMUzF2YTNCaE9TMXVNVUZCUVVGQlIzSkJObTg0UmtkbVZYbEJFZ3hNU0RFMk1qVjhTMDB6TURrYUN3akwzd1VRQWhvRFVFeE9PQnh3NmJ3QiIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIk1VQyIsbnVsbCwiTEgiLCIxNjI1Il0sWyJNVUMiLCIyMDI3LTAxLTE0IiwiTUxBIixudWxsLCJLTSIsIjMwOSJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:00"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 07:20"
+      },
+      "duration": 80,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1627",
+      "ticket_also_sold_by": [
+       "LOT"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 11:10"
+      },
+      "arrival_airport": {
+       "name": "Malta International Airport",
+       "id": "MLA",
+       "time": "2027-01-14 13:30"
+      },
+      "duration": 140,
+      "airplane": "Airbus A320neo",
+      "airline": "KM Malta Airlines",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KM.png",
+      "travel_class": "Economy",
+      "flight_number": "KM 307",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 107 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 230,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     }
+    ],
+    "total_duration": 450,
+    "carbon_emissions": {
+     "this_flight": 196000,
+     "typical_for_this_route": 115000,
+     "difference_percent": 70
+    },
+    "price": 994,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTFhCWmJsSnBYMXBoTFVGQlRVVnNWbmRDUnkwdExTMHRMUzF2YTNCaE9TMXVNVUZCUVVGQlIzSkJObTg0UmtkbVZYbEJFZ3hNU0RFMk1qZDhTMDB6TURjYUN3aVppQVlRQWhvRFVFeE9PQnh3bjhjQiIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIk1VQyIsbnVsbCwiTEgiLCIxNjI3Il0sWyJNVUMiLCIyMDI3LTAxLTE0IiwiTUxBIixudWxsLCJLTSIsIjMwNyJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:20"
+      },
+      "arrival_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 08:00"
+      },
+      "duration": 100,
+      "airplane": "Airbus A321",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1371",
+      "ticket_also_sold_by": [
+       "LOT"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 95 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 10:25"
+      },
+      "arrival_airport": {
+       "name": "Malta International Airport",
+       "id": "MLA",
+       "time": "2027-01-14 13:00"
+      },
+      "duration": 155,
+      "airplane": "Airbus A320neo",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1310",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 133 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 145,
+      "name": "Frankfurt Airport",
+      "id": "FRA"
+     }
+    ],
+    "total_duration": 400,
+    "carbon_emissions": {
+     "this_flight": 229000,
+     "typical_for_this_route": 115000,
+     "difference_percent": 99
+    },
+    "price": 1035,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJTFhCWmJsSnBYMXBoTFVGQlRVVnNWbmRDUnkwdExTMHRMUzF2YTNCaE9TMXVNVUZCUVVGQlIzSkJObTg0UmtkbVZYbEJFZzFNU0RFek56RjhURWd4TXpFd0dnc0k2YWNHRUFJYUExQk1UamdjY0s3UEFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJGUkEiLG51bGwsIkxIIiwiMTM3MSJdLFsiRlJBIiwiMjAyNy0wMS0xNCIsIk1MQSIsbnVsbCwiTEgiLCIxMzEwIl1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 19:55"
+      },
+      "arrival_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-14 21:40"
+      },
+      "duration": 105,
+      "airplane": "Embraer 195",
+      "airline": "SWISS",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+      "travel_class": "Economy",
+      "flight_number": "LX 1371",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 113 kg"
+      ],
+      "often_delayed_by_over_30_min": true,
+      "plane_and_crew_by": "Helvetic"
+     },
+     {
+      "departure_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-15 17:40"
+      },
+      "arrival_airport": {
+       "name": "Malta International Airport",
+       "id": "MLA",
+       "time": "2027-01-15 20:00"
+      },
+      "duration": 140,
+      "airplane": "Airbus A320",
+      "airline": "KM Malta Airlines",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KM.png",
+      "travel_class": "Economy",
+      "flight_number": "KM 491",
+      "ticket_also_sold_by": [
+       "SWISS"
+      ],
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 105 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 1200,
+      "name": "Zurich Airport",
+      "id": "ZRH"
+     }
+    ],
+    "total_duration": 1445,
+    "carbon_emissions": {
+     "this_flight": 219000,
+     "typical_for_this_route": 115000,
+     "difference_percent": 90
+    },
+    "price": 1096,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTFhCWmJsSnBYMXBoTFVGQlRVVnNWbmRDUnkwdExTMHRMUzF2YTNCaE9TMXVNVUZCUVVGQlIzSkJObTg0UmtkbVZYbEJFZ3hNV0RFek56RjhTMDAwT1RFYUN3aUIyQVlRQWhvRFVFeE9PQnh3M2RzQiIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIlpSSCIsbnVsbCwiTFgiLCIxMzcxIl0sWyJaUkgiLCIyMDI3LTAxLTE1IiwiTUxBIixudWxsLCJLTSIsIjQ5MSJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 13:30"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 14:50"
+      },
+      "duration": 80,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1623",
+      "ticket_also_sold_by": [
+       "LOT"
+      ],
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 73 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 15:35"
+      },
+      "arrival_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-14 16:30"
+      },
+      "duration": 55,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 2370",
+      "ticket_also_sold_by": [
+       "SWISS"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 56 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-14 17:40"
+      },
+      "arrival_airport": {
+       "name": "Malta International Airport",
+       "id": "MLA",
+       "time": "2027-01-14 20:00"
+      },
+      "duration": 140,
+      "airplane": "Airbus A320",
+      "airline": "KM Malta Airlines",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KM.png",
+      "travel_class": "Economy",
+      "flight_number": "KM 491",
+      "ticket_also_sold_by": [
+       "SWISS"
+      ],
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 105 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 45,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     },
+     {
+      "duration": 70,
+      "name": "Zurich Airport",
+      "id": "ZRH"
+     }
+    ],
+    "total_duration": 390,
+    "carbon_emissions": {
+     "this_flight": 236000,
+     "typical_for_this_route": 115000,
+     "difference_percent": 105
+    },
+    "price": 5517,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTFhCWmJsSnBYMXBoTFVGQlRVVnNWbmRDUnkwdExTMHRMUzF2YTNCaE9TMXVNVUZCUVVGQlIzSkJObTg0UmtkbVZYbEJFaE5NU0RFMk1qTjhURWd5TXpjd2ZFdE5ORGt4R2dzSXZkVWhFQUlhQTFCTVRqZ2NjSnJTQ0E9PSIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIk1VQyIsbnVsbCwiTEgiLCIxNjIzIl0sWyJNVUMiLCIyMDI3LTAxLTE0IiwiWlJIIixudWxsLCJMSCIsIjIzNzAiXSxbIlpSSCIsIjIwMjctMDEtMTQiLCJNTEEiLG51bGwsIktNIiwiNDkxIl1dXQ=="
+   }
+  ],
+  "price_insights": {
+   "lowest_price": 376,
+   "price_level": "typical",
+   "typical_price_range": [
+    365,
+    690
+   ],
+   "price_history": [
+    [
+     1785708000,
+     336
+    ],
+    [
+     1785794400,
+     336
+    ],
+    [
+     1785880800,
+     336
+    ],
+    [
+     1785967200,
+     336
+    ],
+    [
+     1786053600,
+     306
+    ],
+    [
+     1786140000,
+     306
+    ],
+    [
+     1786226400,
+     306
+    ],
+    [
+     1786312800,
+     306
+    ],
+    [
+     1786399200,
+     306
+    ],
+    [
+     1786485600,
+     281
+    ],
+    [
+     1786572000,
+     281
+    ],
+    [
+     1786658400,
+     295
+    ],
+    [
+     1786744800,
+     295
+    ],
+    [
+     1786831200,
+     311
+    ],
+    [
+     1786917600,
+     281
+    ],
+    [
+     1787004000,
+     281
+    ],
+    [
+     1787090400,
+     281
+    ],
+    [
+     1787176800,
+     295
+    ],
+    [
+     1787263200,
+     368
+    ],
+    [
+     1787349600,
+     333
+    ],
+    [
+     1787436000,
+     333
+    ],
+    [
+     1787522400,
+     333
+    ],
+    [
+     1787608800,
+     333
+    ],
+    [
+     1787695200,
+     333
+    ],
+    [
+     1787781600,
+     306
+    ],
+    [
+     1787868000,
+     306
+    ],
+    [
+     1787954400,
+     306
+    ],
+    [
+     1788040800,
+     306
+    ],
+    [
+     1788127200,
+     306
+    ],
+    [
+     1788213600,
+     279
+    ],
+    [
+     1788300000,
+     279
+    ],
+    [
+     1788386400,
+     279
+    ],
+    [
+     1788472800,
+     268
+    ],
+    [
+     1788559200,
+     261
+    ],
+    [
+     1788645600,
+     256
+    ],
+    [
+     1788732000,
+     256
+    ],
+    [
+     1788818400,
+     268
+    ],
+    [
+     1788904800,
+     268
+    ],
+    [
+     1788991200,
+     281
+    ],
+    [
+     1789077600,
+     256
+    ],
+    [
+     1789164000,
+     256
+    ],
+    [
+     1789250400,
+     256
+    ],
+    [
+     1789336800,
+     256
+    ],
+    [
+     1789423200,
+     256
+    ],
+    [
+     1789509600,
+     256
+    ],
+    [
+     1789596000,
+     256
+    ],
+    [
+     1789682400,
+     372
+    ],
+    [
+     1789768800,
+     372
+    ],
+    [
+     1789855200,
+     372
+    ],
+    [
+     1789941600,
+     372
+    ],
+    [
+     1790028000,
+     372
+    ],
+    [
+     1790114400,
+     350
+    ],
+    [
+     1790200800,
+     325
+    ],
+    [
+     1790287200,
+     325
+    ],
+    [
+     1790373600,
+     399
+    ],
+    [
+     1790460000,
+     399
+    ],
+    [
+     1790546400,
+     398
+    ],
+    [
+     1790632800,
+     376
+    ],
+    [
+     1790719200,
+     376
+    ],
+    [
+     1790805600,
+     398
+    ],
+    [
+     1790892000,
+     398
+    ],
+    [
+     1790978400,
+     376
+    ]
+   ]
+  },
+  "airports": [
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "MLA",
+       "name": "Malta International Airport"
+      },
+      "city": "Malta",
+      "country": "Malta",
+      "country_code": "MT",
+      "image": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSSPrWuaL1DgwytPQuwhpOxm36Mh1GneonX6kzd4y_c3wKcQ4cHqx8tRAVG9fMblEEFPuaEPyduWS_g1A",
+      "thumbnail": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQGVpTjB_uhW82DXYKCwuh6E-GCP8VWwK1GRqTOKw-eOwLnrbG5NYqbefE0c44k-iIQi1qVmoKUvusmbEXWzJr3ui-3ILvz5l-t0DDfkHI"
+     }
+    ]
+   },
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "MLA",
+       "name": "Malta International Airport"
+      },
+      "city": "Malta",
+      "country": "Malta",
+      "country_code": "MT",
+      "image": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSSPrWuaL1DgwytPQuwhpOxm36Mh1GneonX6kzd4y_c3wKcQ4cHqx8tRAVG9fMblEEFPuaEPyduWS_g1A",
+      "thumbnail": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQGVpTjB_uhW82DXYKCwuh6E-GCP8VWwK1GRqTOKw-eOwLnrbG5NYqbefE0c44k-iIQi1qVmoKUvusmbEXWzJr3ui-3ILvz5l-t0DDfkHI"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ]
+   }
+  ]
+ }
+}

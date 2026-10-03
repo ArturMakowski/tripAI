@@ -1,0 +1,1036 @@
+{
+ "source": "serpapi:google_flights",
+ "params": {
+  "engine": "google_flights",
+  "currency": "PLN",
+  "gl": "pl",
+  "hl": "en",
+  "departure_id": "KRK",
+  "arrival_id": "NAP",
+  "type": 1,
+  "outbound_date": "2027-01-14",
+  "return_date": "2027-01-19",
+  "adults": 1
+ },
+ "fetched_at": "2026-10-03T11:44:08.633221+00:00",
+ "recorded": true,
+ "payload": {
+  "search_metadata": {
+   "id": "6ac0ea8206ca7f4852f44554",
+   "status": "Success",
+   "json_endpoint": "https://serpapi.com/searches/6jyfJSf50wsB08X3t1X3EJCpjHjARucdyXOKmdTHkJc/6ac0ea8206ca7f4852f44554.json",
+   "markdown_endpoint": "https://serpapi.com/searches/6jyfJSf50wsB08X3t1X3EJCpjHjARucdyXOKmdTHkJc/6ac0ea8206ca7f4852f44554.md",
+   "created_at": "2026-10-03 11:44:02 UTC",
+   "processed_at": "2026-10-03 11:44:02 UTC",
+   "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=PLN&tfs=CBwQAhoeEgoyMDI3LTAxLTE0agcIARIDS1JLcgcIARIDTkFQGh4SCjIwMjctMDEtMTlqBwgBEgNOQVByBwgBEgNLUktAAUgBcAGYAQE&tfu=EgIIAQ",
+   "raw_html_file": "https://serpapi.com/searches/6jyfJSf50wsB08X3t1X3EJCpjHjARucdyXOKmdTHkJc/6ac0ea8206ca7f4852f44554.html",
+   "prettify_html_file": "https://serpapi.com/searches/6jyfJSf50wsB08X3t1X3EJCpjHjARucdyXOKmdTHkJc/6ac0ea8206ca7f4852f44554.prettify",
+   "total_time_taken": 6.4
+  },
+  "search_parameters": {
+   "engine": "google_flights",
+   "hl": "en",
+   "gl": "pl",
+   "type": "1",
+   "departure_id": "KRK",
+   "arrival_id": "NAP",
+   "outbound_date": "2027-01-14",
+   "return_date": "2027-01-19",
+   "adults": 1,
+   "currency": "PLN"
+  },
+  "best_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 07:10"
+      },
+      "arrival_airport": {
+       "name": "Naples International Airport",
+       "id": "NAP",
+       "time": "2027-01-14 09:15"
+      },
+      "duration": 125,
+      "airplane": "Boeing 737MAX 8 Passenger",
+      "airline": "Ryanair",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/FR.png",
+      "travel_class": "Economy",
+      "flight_number": "FR 4046",
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "Carbon emissions estimate: 86 kg"
+      ],
+      "plane_and_crew_by": "Ryanair Sun"
+     }
+    ],
+    "total_duration": 125,
+    "carbon_emissions": {
+     "this_flight": 86000,
+     "typical_for_this_route": 89000,
+     "difference_percent": -3
+    },
+    "price": 696,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/FR.png",
+    "departure_token": "WyJDalJJTmkxa2RWUjNPRlJLUlhOQlVGSmlXV2RDUnkwdExTMHRMUzB0TFc5cmVIUXlOa0ZCUVVGQlIzSkJObTlqU21OQ1IzTkJFZ1pHVWpRd05EWWFDd2pnbndRUUFob0RVRXhPT0J4d3lvc0IiLFtbIktSSyIsIjIwMjctMDEtMTQiLCJOQVAiLG51bGwsIkZSIiwiNDA0NiJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:00"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 07:20"
+      },
+      "duration": 80,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1627",
+      "ticket_also_sold_by": [
+       "LOT"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 11:10"
+      },
+      "arrival_airport": {
+       "name": "Naples International Airport",
+       "id": "NAP",
+       "time": "2027-01-14 12:50"
+      },
+      "duration": 100,
+      "airplane": "Airbus A320neo",
+      "airline": "Lufthansa City Airlines",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/VL.png",
+      "travel_class": "Economy",
+      "flight_number": "VL 1876",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 78 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 230,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     }
+    ],
+    "total_duration": 410,
+    "carbon_emissions": {
+     "this_flight": 167000,
+     "typical_for_this_route": 89000,
+     "difference_percent": 88
+    },
+    "price": 743,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTmkxa2RWUjNPRlJLUlhOQlVGSmlXV2RDUnkwdExTMHRMUzB0TFc5cmVIUXlOa0ZCUVVGQlIzSkJObTlqU21OQ1IzTkJFZzFNU0RFMk1qZDhWa3d4T0RjMkdnc0lpTVFFRUFJYUExQk1UamdjY1BPVUFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJNVUMiLG51bGwsIkxIIiwiMTYyNyJdLFsiTVVDIiwiMjAyNy0wMS0xNCIsIk5BUCIsbnVsbCwiVkwiLCIxODc2Il1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 14:45"
+      },
+      "arrival_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 15:45"
+      },
+      "duration": 60,
+      "airplane": "Embraer 195",
+      "airline": "Austrian",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+      "travel_class": "Economy",
+      "flight_number": "OS 680",
+      "ticket_also_sold_by": [
+       "LOT"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 66 kg"
+      ],
+      "plane_and_crew_by": "Air Dolomiti"
+     },
+     {
+      "departure_airport": {
+       "name": "Vienna International Airport",
+       "id": "VIE",
+       "time": "2027-01-14 17:40"
+      },
+      "arrival_airport": {
+       "name": "Leonardo da Vinci International Airport",
+       "id": "FCO",
+       "time": "2027-01-14 19:15"
+      },
+      "duration": 95,
+      "airplane": "Airbus A320",
+      "airline": "Austrian",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+      "travel_class": "Economy",
+      "flight_number": "OS 557",
+      "legroom": "28 in",
+      "extensions": [
+       "Below average legroom (28 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 89 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Leonardo da Vinci International Airport",
+       "id": "FCO",
+       "time": "2027-01-14 21:45"
+      },
+      "arrival_airport": {
+       "name": "Naples International Airport",
+       "id": "NAP",
+       "time": "2027-01-14 22:40"
+      },
+      "duration": 55,
+      "airplane": "Airbus A319",
+      "airline": "ITA",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AZ.png",
+      "travel_class": "Economy",
+      "flight_number": "AZ 1267",
+      "ticket_also_sold_by": [
+       "Austrian"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 49 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 115,
+      "name": "Vienna International Airport",
+      "id": "VIE"
+     },
+     {
+      "duration": 150,
+      "name": "Leonardo da Vinci International Airport",
+      "id": "FCO"
+     }
+    ],
+    "total_duration": 475,
+    "carbon_emissions": {
+     "this_flight": 207000,
+     "typical_for_this_route": 89000,
+     "difference_percent": 133
+    },
+    "price": 800,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTmkxa2RWUjNPRlJLUlhOQlVGSmlXV2RDUnkwdExTMHRMUzB0TFc5cmVIUXlOa0ZCUVVGQlIzSkJObTlqU21OQ1IzTkJFaEpQVXpZNE1IeFBVelUxTjN4QldqRXlOamNhQ3dpNzhBUVFBaG9EVUV4T09CeHdwYUFCIixbWyJLUksiLCIyMDI3LTAxLTE0IiwiVklFIixudWxsLCJPUyIsIjY4MCJdLFsiVklFIiwiMjAyNy0wMS0xNCIsIkZDTyIsbnVsbCwiT1MiLCI1NTciXSxbIkZDTyIsIjIwMjctMDEtMTQiLCJOQVAiLG51bGwsIkFaIiwiMTI2NyJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 12:50"
+      },
+      "arrival_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 14:30"
+      },
+      "duration": 100,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1365",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 85 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Frankfurt Airport",
+       "id": "FRA",
+       "time": "2027-01-14 15:50"
+      },
+      "arrival_airport": {
+       "name": "Naples International Airport",
+       "id": "NAP",
+       "time": "2027-01-14 17:45"
+      },
+      "duration": 115,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 336",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 130 kg"
+      ]
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 80,
+      "name": "Frankfurt Airport",
+      "id": "FRA"
+     }
+    ],
+    "total_duration": 295,
+    "carbon_emissions": {
+     "this_flight": 217000,
+     "typical_for_this_route": 89000,
+     "difference_percent": 144
+    },
+    "price": 826,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+    "departure_token": "WyJDalJJTmkxa2RWUjNPRlJLUlhOQlVGSmlXV2RDUnkwdExTMHRMUzB0TFc5cmVIUXlOa0ZCUVVGQlIzSkJObTlqU21OQ1IzTkJFZ3hNU0RFek5qVjhURWd6TXpZYUN3aW1oUVVRQWhvRFVFeE9PQnh3MHFVQiIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIkZSQSIsbnVsbCwiTEgiLCIxMzY1Il0sWyJGUkEiLCIyMDI3LTAxLTE0IiwiTkFQIixudWxsLCJMSCIsIjMzNiJdXV0="
+   }
+  ],
+  "other_flights": [
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 19:55"
+      },
+      "arrival_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-14 21:40"
+      },
+      "duration": 105,
+      "airplane": "Embraer 195",
+      "airline": "SWISS",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+      "travel_class": "Economy",
+      "flight_number": "LX 1371",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 113 kg"
+      ],
+      "often_delayed_by_over_30_min": true,
+      "plane_and_crew_by": "Helvetic"
+     },
+     {
+      "departure_airport": {
+       "name": "Zurich Airport",
+       "id": "ZRH",
+       "time": "2027-01-15 07:30"
+      },
+      "arrival_airport": {
+       "name": "Naples International Airport",
+       "id": "NAP",
+       "time": "2027-01-15 09:15"
+      },
+      "duration": 105,
+      "airplane": "Airbus A321neo",
+      "airline": "SWISS",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+      "travel_class": "Economy",
+      "flight_number": "LX 1710",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 78 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 590,
+      "name": "Zurich Airport",
+      "id": "ZRH"
+     }
+    ],
+    "total_duration": 800,
+    "carbon_emissions": {
+     "this_flight": 192000,
+     "typical_for_this_route": 89000,
+     "difference_percent": 116
+    },
+    "price": 723,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+    "departure_token": "WyJDalJJTmkxa2RWUjNPRlJLUlhOQlVGSmlXV2RDUnkwdExTMHRMUzB0TFc5cmVIUXlOa0ZCUVVGQlIzSkJObTlqU21OQ1IzTkJFZzFNV0RFek56RjhURmd4TnpFd0dnc0k2TFFFRUFJYUExQk1UamdjY1A2UUFRPT0iLFtbIktSSyIsIjIwMjctMDEtMTQiLCJaUkgiLG51bGwsIkxYIiwiMTM3MSJdLFsiWlJIIiwiMjAyNy0wMS0xNSIsIk5BUCIsbnVsbCwiTFgiLCIxNzEwIl1dXQ=="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 13:30"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 14:50"
+      },
+      "duration": 80,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1623",
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 73 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 16:30"
+      },
+      "arrival_airport": {
+       "name": "Leonardo da Vinci International Airport",
+       "id": "FCO",
+       "time": "2027-01-14 18:00"
+      },
+      "duration": 90,
+      "airplane": "Airbus A321",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1870",
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Leonardo da Vinci International Airport",
+       "id": "FCO",
+       "time": "2027-01-14 21:45"
+      },
+      "arrival_airport": {
+       "name": "Naples International Airport",
+       "id": "NAP",
+       "time": "2027-01-14 22:40"
+      },
+      "duration": 55,
+      "airplane": "Airbus A319",
+      "airline": "ITA",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AZ.png",
+      "travel_class": "Economy",
+      "flight_number": "AZ 1267",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 49 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 100,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     },
+     {
+      "duration": 225,
+      "name": "Leonardo da Vinci International Airport",
+      "id": "FCO"
+     }
+    ],
+    "total_duration": 550,
+    "carbon_emissions": {
+     "this_flight": 212000,
+     "typical_for_this_route": 89000,
+     "difference_percent": 138
+    },
+    "price": 808,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTmkxa2RWUjNPRlJLUlhOQlVGSmlXV2RDUnkwdExTMHRMUzB0TFc5cmVIUXlOa0ZCUVVGQlIzSkJObTlqU21OQ1IzTkJFaFJNU0RFMk1qTjhURWd4T0Rjd2ZFRmFNVEkyTnhvTENKUDNCQkFDR2dOUVRFNDRISENCb2dFPSIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIk1VQyIsbnVsbCwiTEgiLCIxNjIzIl0sWyJNVUMiLCIyMDI3LTAxLTE0IiwiRkNPIixudWxsLCJMSCIsIjE4NzAiXSxbIkZDTyIsIjIwMjctMDEtMTQiLCJOQVAiLG51bGwsIkFaIiwiMTI2NyJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:00"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 07:20"
+      },
+      "duration": 80,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1627",
+      "ticket_also_sold_by": [
+       "ITA"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 09:50"
+      },
+      "arrival_airport": {
+       "name": "Leonardo da Vinci International Airport",
+       "id": "FCO",
+       "time": "2027-01-14 11:20"
+      },
+      "duration": 90,
+      "airplane": "Airbus A320",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1866",
+      "ticket_also_sold_by": [
+       "ITA"
+      ],
+      "legroom": "29 in",
+      "extensions": [
+       "Below average legroom (29 in)",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 79 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Leonardo da Vinci International Airport",
+       "id": "FCO",
+       "time": "2027-01-14 13:20"
+      },
+      "arrival_airport": {
+       "name": "Naples International Airport",
+       "id": "NAP",
+       "time": "2027-01-14 14:15"
+      },
+      "duration": 55,
+      "airplane": "Airbus A319",
+      "airline": "ITA",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AZ.png",
+      "travel_class": "Economy",
+      "flight_number": "AZ 1269",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 49 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 150,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     },
+     {
+      "duration": 120,
+      "name": "Leonardo da Vinci International Airport",
+      "id": "FCO"
+     }
+    ],
+    "total_duration": 495,
+    "carbon_emissions": {
+     "this_flight": 218000,
+     "typical_for_this_route": 89000,
+     "difference_percent": 145
+    },
+    "price": 854,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTmkxa2RWUjNPRlJLUlhOQlVGSmlXV2RDUnkwdExTMHRMUzB0TFc5cmVIUXlOa0ZCUVVGQlIzSkJObTlqU21OQ1IzTkJFaFJNU0RFMk1qZDhURWd4T0RZMmZFRmFNVEkyT1JvTENJbWJCUkFDR2dOUVRFNDRISENkcXdFPSIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIk1VQyIsbnVsbCwiTEgiLCIxNjI3Il0sWyJNVUMiLCIyMDI3LTAxLTE0IiwiRkNPIixudWxsLCJMSCIsIjE4NjYiXSxbIkZDTyIsIjIwMjctMDEtMTQiLCJOQVAiLG51bGwsIkFaIiwiMTI2OSJdXV0="
+   },
+   {
+    "flights": [
+     {
+      "departure_airport": {
+       "name": "John Paul II Kraków Balice International Airport",
+       "id": "KRK",
+       "time": "2027-01-14 06:00"
+      },
+      "arrival_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 07:20"
+      },
+      "duration": 80,
+      "airplane": "Airbus A319",
+      "airline": "Lufthansa",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+      "travel_class": "Economy",
+      "flight_number": "LH 1627",
+      "ticket_also_sold_by": [
+       "ITA"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "Carbon emissions estimate: 88 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Munich International Airport",
+       "id": "MUC",
+       "time": "2027-01-14 11:00"
+      },
+      "arrival_airport": {
+       "name": "Leonardo da Vinci International Airport",
+       "id": "FCO",
+       "time": "2027-01-14 12:35"
+      },
+      "duration": 95,
+      "airplane": "Airbus A220-300 Passenger",
+      "airline": "ITA",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AZ.png",
+      "travel_class": "Economy",
+      "flight_number": "AZ 437",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Wi-Fi for a fee",
+       "In-seat USB outlet",
+       "Carbon emissions estimate: 82 kg"
+      ]
+     },
+     {
+      "departure_airport": {
+       "name": "Leonardo da Vinci International Airport",
+       "id": "FCO",
+       "time": "2027-01-14 13:20"
+      },
+      "arrival_airport": {
+       "name": "Naples International Airport",
+       "id": "NAP",
+       "time": "2027-01-14 14:15"
+      },
+      "duration": 55,
+      "airplane": "Airbus A319",
+      "airline": "ITA",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AZ.png",
+      "travel_class": "Economy",
+      "flight_number": "AZ 1269",
+      "ticket_also_sold_by": [
+       "Lufthansa"
+      ],
+      "legroom": "30 in",
+      "extensions": [
+       "Average legroom (30 in)",
+       "Carbon emissions estimate: 49 kg"
+      ],
+      "often_delayed_by_over_30_min": true
+     }
+    ],
+    "layovers": [
+     {
+      "duration": 220,
+      "name": "Munich International Airport",
+      "id": "MUC"
+     },
+     {
+      "duration": 45,
+      "name": "Leonardo da Vinci International Airport",
+      "id": "FCO"
+     }
+    ],
+    "total_duration": 495,
+    "carbon_emissions": {
+     "this_flight": 221000,
+     "typical_for_this_route": 89000,
+     "difference_percent": 148
+    },
+    "price": 913,
+    "type": "Round trip",
+    "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+    "departure_token": "WyJDalJJTmkxa2RWUjNPRlJLUlhOQlVGSmlXV2RDUnkwdExTMHRMUzB0TFc5cmVIUXlOa0ZCUVVGQlIzSkJObTlqU21OQ1IzTkJFaE5NU0RFMk1qZDhRVm8wTXpkOFFWb3hNalk1R2dzSWs4a0ZFQUlhQTFCTVRqZ2NjSWUzQVE9PSIsW1siS1JLIiwiMjAyNy0wMS0xNCIsIk1VQyIsbnVsbCwiTEgiLCIxNjI3Il0sWyJNVUMiLCIyMDI3LTAxLTE0IiwiRkNPIixudWxsLCJBWiIsIjQzNyJdLFsiRkNPIiwiMjAyNy0wMS0xNCIsIk5BUCIsbnVsbCwiQVoiLCIxMjY5Il1dXQ=="
+   }
+  ],
+  "price_insights": {
+   "lowest_price": 696,
+   "price_level": "typical",
+   "typical_price_range": [
+    320,
+    750
+   ],
+   "price_history": [
+    [
+     1785708000,
+     628
+    ],
+    [
+     1785794400,
+     627
+    ],
+    [
+     1785880800,
+     627
+    ],
+    [
+     1785967200,
+     627
+    ],
+    [
+     1786053600,
+     602
+    ],
+    [
+     1786140000,
+     602
+    ],
+    [
+     1786226400,
+     600
+    ],
+    [
+     1786312800,
+     602
+    ],
+    [
+     1786399200,
+     602
+    ],
+    [
+     1786485600,
+     602
+    ],
+    [
+     1786572000,
+     603
+    ],
+    [
+     1786658400,
+     603
+    ],
+    [
+     1786744800,
+     603
+    ],
+    [
+     1786831200,
+     599
+    ],
+    [
+     1786917600,
+     603
+    ],
+    [
+     1787004000,
+     604
+    ],
+    [
+     1787090400,
+     604
+    ],
+    [
+     1787176800,
+     604
+    ],
+    [
+     1787263200,
+     603
+    ],
+    [
+     1787349600,
+     604
+    ],
+    [
+     1787436000,
+     604
+    ],
+    [
+     1787522400,
+     603
+    ],
+    [
+     1787608800,
+     602
+    ],
+    [
+     1787695200,
+     602
+    ],
+    [
+     1787781600,
+     603
+    ],
+    [
+     1787868000,
+     606
+    ],
+    [
+     1787954400,
+     607
+    ],
+    [
+     1788040800,
+     606
+    ],
+    [
+     1788127200,
+     605
+    ],
+    [
+     1788213600,
+     605
+    ],
+    [
+     1788300000,
+     605
+    ],
+    [
+     1788386400,
+     605
+    ],
+    [
+     1788472800,
+     604
+    ],
+    [
+     1788559200,
+     604
+    ],
+    [
+     1788645600,
+     604
+    ],
+    [
+     1788732000,
+     604
+    ],
+    [
+     1788818400,
+     603
+    ],
+    [
+     1788904800,
+     603
+    ],
+    [
+     1788991200,
+     604
+    ],
+    [
+     1789077600,
+     605
+    ],
+    [
+     1789164000,
+     605
+    ],
+    [
+     1789250400,
+     605
+    ],
+    [
+     1789336800,
+     605
+    ],
+    [
+     1789423200,
+     606
+    ],
+    [
+     1789509600,
+     607
+    ],
+    [
+     1789596000,
+     633
+    ],
+    [
+     1789682400,
+     634
+    ],
+    [
+     1789768800,
+     634
+    ],
+    [
+     1789855200,
+     635
+    ],
+    [
+     1789941600,
+     635
+    ],
+    [
+     1790028000,
+     635
+    ],
+    [
+     1790114400,
+     635
+    ],
+    [
+     1790200800,
+     635
+    ],
+    [
+     1790287200,
+     635
+    ],
+    [
+     1790373600,
+     636
+    ],
+    [
+     1790460000,
+     637
+    ],
+    [
+     1790546400,
+     637
+    ],
+    [
+     1790632800,
+     636
+    ],
+    [
+     1790719200,
+     693
+    ],
+    [
+     1790805600,
+     693
+    ],
+    [
+     1790892000,
+     695
+    ],
+    [
+     1790978400,
+     696
+    ]
+   ]
+  },
+  "airports": [
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "NAP",
+       "name": "Naples International Airport"
+      },
+      "city": "Naples",
+      "country": "Italy",
+      "country_code": "IT",
+      "image": "https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcTr8VwMKmPxJjaWZXW0Vp6YzaY_xtcV8tgDxFcTD4-VcH0M9nGW3aDN8C2S5Udl3lgg8u2yKqVv25k_MjD6cki3uEm_NoJb_pDo6wMtTXQ",
+      "thumbnail": "https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcQleuS2ISCTm-02t3oQNdNBwohkc5CF5C-eTlHdfwQj1J67x87ltVsD-lqK0icGG8NARffcMo6Vk0SeiGg-NCbxsBPLIpfLtTUadH-JNdQ"
+     }
+    ]
+   },
+   {
+    "departure": [
+     {
+      "airport": {
+       "id": "NAP",
+       "name": "Naples International Airport"
+      },
+      "city": "Naples",
+      "country": "Italy",
+      "country_code": "IT",
+      "image": "https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcTr8VwMKmPxJjaWZXW0Vp6YzaY_xtcV8tgDxFcTD4-VcH0M9nGW3aDN8C2S5Udl3lgg8u2yKqVv25k_MjD6cki3uEm_NoJb_pDo6wMtTXQ",
+      "thumbnail": "https://encrypted-tbn3.gstatic.com/licensed-image?q=tbn:ANd9GcQleuS2ISCTm-02t3oQNdNBwohkc5CF5C-eTlHdfwQj1J67x87ltVsD-lqK0icGG8NARffcMo6Vk0SeiGg-NCbxsBPLIpfLtTUadH-JNdQ"
+     }
+    ],
+    "arrival": [
+     {
+      "airport": {
+       "id": "KRK",
+       "name": "John Paul II Kraków Balice International Airport"
+      },
+      "city": "Kraków",
+      "country": "Poland",
+      "country_code": "PL",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTNA55ZPijK4cFFEsgB0Tzr917JIXoN-DiLspCiGKINr7BHn5OWgZBjwWyFxxq9IaGYtmuqkZkY4VxGQ",
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7U0cTcbFlHY51NVpnIREIHre5BzkCQzr6lOCAU_hss4Hr6WpjZFEXmsWLJ4t2QkwML9uiWSxp3D11Z6OnejLY72ZbKlGhiDeJhlVHoko"
+     }
+    ]
+   }
+  ]
+ }
+}

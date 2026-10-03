@@ -1,0 +1,139 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Lisbon, Portugal"
+  }
+ },
+ "fetched_at": "2026-10-03T11:52:34.231090+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Lisbon, Portugal",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Castelo de São Jorge",
+    "latitude": 38.71391,
+    "longitude": -9.133476,
+    "rating": 4.5,
+    "ratingCount": 103000,
+    "category": "Tourist attraction",
+    "website": "https://castelodesaojorge.pt/",
+    "cid": "13024533549412529111"
+   },
+   {
+    "position": 2,
+    "title": "Belém Tower",
+    "latitude": 38.691586,
+    "longitude": -9.215978,
+    "rating": 4.5,
+    "ratingCount": 117000,
+    "category": "Tourist attraction",
+    "website": "https://www.museusemonumentos.pt/pt/museus-e-monumentos/torre-de-belem",
+    "cid": "3459570102839693631"
+   },
+   {
+    "position": 3,
+    "title": "Lisbon Cathedral",
+    "address": "Largo da Sé 1",
+    "latitude": 38.709835,
+    "longitude": -9.132954,
+    "rating": 4.4,
+    "ratingCount": 36000,
+    "category": "Tourist attraction",
+    "website": "https://www.sedelisboa.pt/",
+    "cid": "10551402986858832409"
+   },
+   {
+    "position": 4,
+    "title": "Jerónimos Monastery",
+    "address": "Praça do Império 1400-206 Lisboa",
+    "latitude": 38.69789,
+    "longitude": -9.206704,
+    "rating": 4.4,
+    "ratingCount": 63000,
+    "category": "Tourist attraction",
+    "website": "https://www.museusemonumentos.pt/pt/museus-e-monumentos/mosteiro-dos-jeronimos-e-capela-de-sao-jeronimo",
+    "cid": "9760810247707356141"
+   },
+   {
+    "position": 5,
+    "title": "Carmo Archaeological Museum",
+    "latitude": 38.71204,
+    "longitude": -9.140613,
+    "rating": 4.5,
+    "ratingCount": 22000,
+    "category": "Tourist attraction",
+    "website": "https://museuarqueologicodocarmo.pt/",
+    "cid": "3663666638493854959"
+   },
+   {
+    "position": 6,
+    "title": "Praça do Comércio",
+    "address": "Lisbon, Portugal",
+    "latitude": 38.707283,
+    "longitude": -9.136361,
+    "rating": 4.7,
+    "ratingCount": 135000,
+    "category": "Plaza",
+    "website": "https://www.visitlisboa.com/pt-pt/locais/praca-do-comercio-terreiro-do-paco",
+    "cid": "3482179023753764932"
+   },
+   {
+    "position": 7,
+    "title": "Miradouro de Santa Luzia",
+    "latitude": 38.711697,
+    "longitude": -9.130198,
+    "rating": 4.6,
+    "ratingCount": 44000,
+    "category": "Tourist attraction",
+    "website": "https://informacoeseservicos.lisboa.pt/contactos/diretorio-da-cidade/miradouro-de-santa-luzia",
+    "cid": "4692815828629661545"
+   },
+   {
+    "position": 8,
+    "title": "National Pantheon",
+    "latitude": 38.714993,
+    "longitude": -9.124683,
+    "rating": 4.5,
+    "ratingCount": 13000,
+    "category": "Tourist attraction",
+    "website": "https://www.panteaonacional.gov.pt/",
+    "cid": "13752737960035175991"
+   },
+   {
+    "position": 9,
+    "title": "Our Lady of the Mount Viewpoint",
+    "latitude": 38.719208,
+    "longitude": -9.132777,
+    "rating": 4.8,
+    "ratingCount": 29000,
+    "category": "Tourist attraction",
+    "website": "https://www.lisboa.pt/espacos-e-servicos/detalhe/miradouro-da-senhora-do-monte",
+    "cid": "6998468387917687540"
+   },
+   {
+    "position": 10,
+    "title": "Historic Giant Plant of Lisbon",
+    "address": "R. de S. Cristóvão 24",
+    "latitude": 38.713123,
+    "longitude": -9.135679,
+    "rating": 4.6,
+    "ratingCount": 392,
+    "category": "Tourist attraction",
+    "cid": "6304810829721723925"
+   }
+  ],
+  "credits": 1
+ }
+}

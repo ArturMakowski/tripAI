@@ -1,0 +1,143 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Budapest, Hungary"
+  }
+ },
+ "fetched_at": "2026-10-03T11:52:52.369422+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Budapest, Hungary",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Fisherman's Bastion",
+    "address": "Budapest, Hungary",
+    "latitude": 47.502182,
+    "longitude": 19.03478,
+    "rating": 4.8,
+    "ratingCount": 119000,
+    "category": "Tourist attraction",
+    "website": "https://budavar.hu/halaszbastya/",
+    "cid": "3397469662292958790"
+   },
+   {
+    "position": 2,
+    "title": "Vajdahunyad Castle",
+    "address": "Budapest, Hungary",
+    "latitude": 47.51489,
+    "longitude": 19.08306,
+    "rating": 4.7,
+    "ratingCount": 28000,
+    "category": "Tourist attraction",
+    "website": "https://www.mezogazdasagimuzeum.hu/",
+    "cid": "13616603132990431118"
+   },
+   {
+    "position": 3,
+    "title": "Buda Castle",
+    "address": "Budapest, Hungary",
+    "latitude": 47.496204,
+    "longitude": 19.039566,
+    "rating": 4.7,
+    "ratingCount": 71000,
+    "category": "Tourist attraction",
+    "website": "https://budavar.hu/budai-var/",
+    "cid": "4453561264047727990"
+   },
+   {
+    "position": 4,
+    "title": "Hungarian Parliament Building",
+    "address": "Budapest, Hungary",
+    "latitude": 47.507122,
+    "longitude": 19.04567,
+    "rating": 4.8,
+    "ratingCount": 32000,
+    "category": "Tourist attraction",
+    "website": "https://www.parlament.hu/",
+    "cid": "3756321742160596846"
+   },
+   {
+    "position": 5,
+    "title": "Heroes' Square",
+    "address": "Budapest, Hungary",
+    "latitude": 47.514942,
+    "longitude": 19.077862,
+    "rating": 4.7,
+    "ratingCount": 88000,
+    "category": "Plaza",
+    "cid": "3765427913479432511"
+   },
+   {
+    "position": 6,
+    "title": "The Church of Our Lady of Buda Castle",
+    "address": "Budapest, Hungary",
+    "latitude": 47.501953,
+    "longitude": 19.034163,
+    "rating": 4.8,
+    "ratingCount": 27000,
+    "category": "Tourist attraction",
+    "website": "https://matyas-templom.hu/",
+    "cid": "7120316958362913493"
+   },
+   {
+    "position": 7,
+    "title": "St. Stephen's Basilica",
+    "address": "Budapest, Hungary",
+    "latitude": 47.50089,
+    "longitude": 19.05399,
+    "rating": 4.7,
+    "ratingCount": 81000,
+    "category": "Tourist attraction",
+    "website": "https://bazilikabudapest.hu/",
+    "cid": "15943583449437158603"
+   },
+   {
+    "position": 8,
+    "title": "Széchenyi Chain Bridge",
+    "address": "Budapest, Hungary",
+    "latitude": 47.498993,
+    "longitude": 19.0437,
+    "rating": 4.7,
+    "ratingCount": 65000,
+    "category": "Bridge",
+    "cid": "2180022421263796644"
+   },
+   {
+    "position": 9,
+    "title": "Budapest Sign",
+    "address": "Budapest, Hungary",
+    "latitude": 47.51984,
+    "longitude": 19.046291,
+    "rating": 4.1,
+    "ratingCount": 477,
+    "category": "Tourist attraction",
+    "cid": "12452321059183763185"
+   },
+   {
+    "position": 10,
+    "title": "Citadel",
+    "address": "Budapest, Hungary",
+    "latitude": 47.48702,
+    "longitude": 19.045698,
+    "rating": 4.6,
+    "ratingCount": 23000,
+    "category": "Tourist attraction",
+    "website": "https://citadella.hu/",
+    "cid": "16470093346710015401"
+   }
+  ],
+  "credits": 1
+ }
+}
