@@ -28,7 +28,11 @@ export interface DnaCard {
 
 const WM = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
 /** Cards that reuse a bundled city photo carry that photo's credit (public/cities/CREDITS.md). */
-const CITY = (iata: string): Credit => cityPhotoCredit(iata)!;
+const CITY = (iata: string): Credit => {
+  const credit = cityPhotoCredit(iata);
+  if (!credit) throw new Error(`No bundled city photo credit for ${iata}`);
+  return credit;
+};
 
 export const DNA_DECK: DnaCard[] = [
   {

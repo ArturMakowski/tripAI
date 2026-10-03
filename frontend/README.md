@@ -65,9 +65,13 @@ Every one of the 36 cities in `data/cities.json`, plus Edinburgh from the backen
 The photos are landscape Wikimedia Commons images (CC0, public domain, CC BY or CC BY-SA), 1200 px wide and under 250 KB each.
 - **Lookup.** `lib/photos.ts` maps every city code and airport code (for example LHR/LGW/STN/LTN → London, PMI → Palma) to a photo
   and its credit (author, license, source URL).
-- **Credits.** The receipt hero shows a small "Photo: author · license" link to the source page. The full list is in
+- **Credits.** Recommendation cards show a small "Photo: author · license" line, and the receipt hero shows the same credit as a
+  link to the source. Every screen built on `AppShell`, and the landing page, has a "Photo credits" link to `/credits`. That
+  page lists every city photo and Travel DNA card photo with its author, license link and source. The same list is in
   `public/cities/CREDITS.md`.
-- **Fallback.** Unknown codes, or a file that fails to load, get an illustrated dusk gradient with hills and the city name, never a blank card.
+- **Landing collage.** The photos are landscape but the frames are 3:4, so each image sets an `object-position` that keeps
+  its landmark in frame.
+- **Fallback.** Unknown codes, or a file that fails to load (cards, receipt and survey thumbnails), get an illustrated dusk gradient with hills and the city name, never a blank card.
   The hue comes from the city name, so it stays the same across renders.
 - **Guard.** `lib/photos.test.ts` reads `data/cities.json` and checks that every city and airport code resolves to an existing file
   under 250 KB that has a credit and a row in `CREDITS.md`. It runs the same check on every code in `scoring/provider.py`. If a city is added without a photo, the test fails.

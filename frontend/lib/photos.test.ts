@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { cityPhoto, cityPhotoCredit, fallbackHue } from "./photos";
+import { allCityPhotos, cityPhoto, cityPhotoCredit, fallbackHue } from "./photos";
 
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), "utf8");
 const publicFile = (src: string) => fileURLToPath(new URL(`../public${src}`, import.meta.url));
@@ -36,6 +36,17 @@ describe("city photos cover every seed destination", () => {
       expect(existsSync(publicFile(src!))).toBe(true);
       expect(statSync(publicFile(src!)).size).toBeLessThan(250_000);
       expect(credits).toContain(cityPhotoCredit(code)!.source);
+    }
+  });
+
+  it("lists every bundled photo for /credits with an https license link (or public domain)", () => {
+    const photos = allCityPhotos();
+    expect(photos.length).toBeGreaterThanOrEqual(cities.length);
+    for (const p of photos) {
+      expect(existsSync(publicFile(p.src)), `${p.src} missing`).toBe(true);
+      if (p.license === "Public domain") expect(p.licenseUrl).toBe("");
+      else expect(p.licenseUrl).toMatch(/^https:\/\/creativecommons\.org\/(licenses|publicdomain)\//);
+      expect(credits).toContain(p.licenseUrl);
     }
   });
 
