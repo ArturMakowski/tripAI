@@ -344,8 +344,8 @@ class LiveProvider:
         self.budget = budget
         self.last_stats: dict[str, Any] = {}
 
-    def budget_status(self) -> dict[str, Any]:
-        return (self.budget or global_budget()).status()
+    async def budget_status(self) -> dict[str, Any]:
+        return await (self.budget or global_budget()).status()
 
     def source_modes(self) -> dict[str, str]:
         """Per-source 'live' | 'fixture' (reported by GET /health)."""
@@ -493,16 +493,17 @@ class LiveProvider:
                 "uncovered": dict(s.uncovered),
                 "capped": s.capped,
             }
-            if s.uncovered or s.capped or s.failures:
-                log.info(
-                    "live provider: %d candidates from %d cities; fixtures without coverage: %s; "
-                    "SerpApi capped: %d; failures: %d",
-                    len(cands),
-                    len(cities),
-                    ", ".join(f"{k} x{v}" for k, v in sorted(s.uncovered.items())) or "none",
-                    s.capped,
-                    len(s.failures),
-                )
+            # one summary line per request (no per-call noise for expected gaps)
+            log.info(
+                "live provider: %d candidates from %d cities; SerpApi searches: %d, capped: %d; "
+                "fixtures without coverage: %s; failures: %d",
+                len(cands),
+                len(cities),
+                s.serpapi_network,
+                s.capped,
+                ", ".join(f"{k} x{v}" for k, v in sorted(s.uncovered.items())) or "none",
+                len(s.failures),
+            )
             return cands
 
     # ------------------------------------------------------------------ cheap pass

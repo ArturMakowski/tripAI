@@ -440,7 +440,7 @@ def test_budget_daily_cap_is_shared_and_hard(tmp_path):
     other = SerpApiBudget(daily_cap=2, root=tmp_path)  # another process / restart
     with pytest.raises(BudgetExhausted):
         asyncio.run(other.take())
-    assert other.status()["used"] == 2
+    assert asyncio.run(other.status())["used"] == 2
 
 
 def test_budget_reads_the_supabase_counter(tmp_path, monkeypatch):
@@ -501,7 +501,7 @@ def test_serpapi_caps_then_recorded_fixtures(prof, monkeypatch, tmp_path, daily,
         cands = run(p, prof)
     cap = min(daily, per_request)
     assert route.call_count == cap == p.last_stats["serpapi_network"]
-    assert budget.status()["used"] == cap
+    assert asyncio.run(budget.status())["used"] == cap
     assert p.last_stats["capped"] > 0 and p.last_stats["failures"] == []
     srcs = {e.source for c in cands for e in c.evidence}
     assert "serpapi:google_travel_explore" in srcs  # the first (metered) call was live
@@ -624,3 +624,25 @@ def test_confidence_ignores_unavailable_fixture_data(prof, monkeypatch):
     b = run(live(top_n=0), prof)
     assert confidences(a) == confidences(b) and len(a) == len(b) >= 8
     assert all("flight: Google Travel Explore" in conf(c).label for c in a)
+
+
+def test_health_budget_reports_the_shared_supabase_counter(tmp_path, monkeypatch):
+    """/health must show what enforcement sees: max(process, disk, Supabase), not just disk."""
+    import respx
+
+    from tripai.live import budget as budget_mod
+
+    monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_test")
+    b = budget_mod.SerpApiBudget(root=tmp_path)  # fresh process: nothing local, nothing on disk
+    app = create_app(provider=live(budget=b))
+    with respx.mock() as mock:
+        row = mock.get(url__startswith="https://x.supabase.co/rest/v1/api_cache")
+        row.respond(json=[{"payload": {"used": 11}}])
+        c = TestClient(app)
+        assert c.get("/health").json()["serpapi_budget"]["used"] == 11
+        row.respond(json=[{"payload": {"used": 12}}])
+        assert c.get("/health").json()["serpapi_budget"]["used"] == 11  # cached ~30 s
+        assert row.call_count == 1
+        monkeypatch.setattr(budget_mod, "STATUS_TTL_S", 0)
+        assert c.get("/health").json()["serpapi_budget"]["used"] == 12
