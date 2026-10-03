@@ -70,5 +70,7 @@ async def test_supabase_errors_are_misses():
 def test_default_cache_adds_supabase_when_configured(monkeypatch):
     assert len(default_cache().layers) == 1
     monkeypatch.setenv("SUPABASE_URL", "https://proj.supabase.co")
-    monkeypatch.setenv("SUPABASE_KEY", "anon")
+    monkeypatch.setenv("SUPABASE_KEY", "publishable")
+    assert len(default_cache().layers) == 1  # publishable key alone is not enough (RLS)
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "secret")
     assert isinstance(default_cache().layers[1], SupabaseCache)

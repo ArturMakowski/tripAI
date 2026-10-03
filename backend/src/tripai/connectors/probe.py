@@ -162,7 +162,18 @@ async def probe(args: argparse.Namespace) -> int:
         if "gcal" in only:
 
             async def gcal() -> None:
-                res = await GCalFreeBusy(**kw).query(out.replace(day=1), back.replace(day=28))
+                # A real calendar is personal data: never written to the committed fixtures
+                # unless explicitly asked for with --record-gcal.
+                prev = os.environ.get("TRIPAI_RECORD_FIXTURES")
+                if not getattr(args, "record_gcal", False):
+                    os.environ["TRIPAI_RECORD_FIXTURES"] = "0"
+                try:
+                    res = await GCalFreeBusy(**kw).query(out.replace(day=1), back.replace(day=28))
+                finally:
+                    if prev is None:
+                        os.environ.pop("TRIPAI_RECORD_FIXTURES", None)
+                    else:
+                        os.environ["TRIPAI_RECORD_FIXTURES"] = prev
                 wins = ", ".join(f"{w.start:%d %b}-{w.end:%d %b}" for w in res.free_windows())
                 _ok("gcal freebusy", res, f"{len(res.busy)} busy blocks; free: {wins or 'none'}")
 
@@ -188,6 +199,11 @@ def main() -> None:
     parser.add_argument("--outbound", default="2027-01-14")
     parser.add_argument("--inbound", default="2027-01-19")
     parser.add_argument("--no-record", action="store_true", help="don't write fixtures")
+    parser.add_argument(
+        "--record-gcal",
+        action="store_true",
+        help="also record your real calendar as a fixture (personal data; off by default)",
+    )
     args = parser.parse_args()
     os.environ["TRIPAI_USE_FIXTURES"] = "0"
     os.environ["TRIPAI_RECORD_FIXTURES"] = "0" if args.no_record else "1"

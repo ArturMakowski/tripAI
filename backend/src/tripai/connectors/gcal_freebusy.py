@@ -23,10 +23,16 @@ from urllib.parse import parse_qs, urlencode, urlparse
 from zoneinfo import ZoneInfo
 
 import httpx
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from tripai.connectors import config
-from tripai.connectors.base import Connector, ConnectorError, MissingCredentials, SourcedResult
+from tripai.connectors.base import (
+    Connector,
+    ConnectorError,
+    FixtureNotFound,
+    MissingCredentials,
+    SourcedResult,
+)
 from tripai.models import Evidence, FreeWindow
 
 FREEBUSY_URL = "https://www.googleapis.com/calendar/v3/freeBusy"
@@ -165,7 +171,6 @@ class FreeBusyResult(SourcedResult):
     time_max: datetime
     timezone: str
     busy: list[BusyInterval]
-    errors: dict[str, list[dict]] = Field(default_factory=dict)
 
     def free_days(self) -> list[date]:
         """Calendar days (in `timezone`) with no busy interval at all."""
@@ -219,11 +224,29 @@ class FreeBusyResult(SourcedResult):
         ]
 
 
-def parse_freebusy(payload: dict, fetched_at: datetime, tz: str) -> FreeBusyResult:
-    busy, errors = [], {}
+def parse_freebusy(
+    payload: dict,
+    fetched_at: datetime,
+    tz: str,
+    time_min: datetime | None = None,
+    time_max: datetime | None = None,
+) -> FreeBusyResult:
+    """`time_min`/`time_max` clip the result to the requested range (a fixture may cover more).
+    Any calendar-level error (notFound, rateLimitExceeded, revoked share…) raises: an unreadable
+    calendar must never look free."""
+    errors = {
+        cid: cal["errors"] for cid, cal in payload.get("calendars", {}).items() if cal.get("errors")
+    }
+    if errors:
+        detail = "; ".join(
+            f"{cid}: {', '.join(e.get('reason', '?') for e in errs)}"
+            for cid, errs in errors.items()
+        )
+        raise ConnectorError(f"gcal freebusy errors ({detail})")
+    t_min = time_min or datetime.fromisoformat(payload["timeMin"])
+    t_max = time_max or datetime.fromisoformat(payload["timeMax"])
+    busy = []
     for cal_id, cal in payload.get("calendars", {}).items():
-        if cal.get("errors"):
-            errors[cal_id] = cal["errors"]
         busy += [
             BusyInterval(
                 calendar=cal_id,
@@ -235,11 +258,10 @@ def parse_freebusy(payload: dict, fetched_at: datetime, tz: str) -> FreeBusyResu
     return FreeBusyResult(
         source="gcal:freebusy",
         fetched_at=fetched_at,
-        time_min=datetime.fromisoformat(payload["timeMin"]),
-        time_max=datetime.fromisoformat(payload["timeMax"]),
+        time_min=t_min,
+        time_max=t_max,
         timezone=tz,
-        busy=sorted(busy, key=lambda b: b.start),
-        errors=errors,
+        busy=sorted((b for b in busy if b.end > t_min and b.start < t_max), key=lambda b: b.start),
     )
 
 
@@ -262,7 +284,9 @@ class GCalFreeBusy(Connector):
         headers = None
         if not self.fixtures:
             headers = {"Authorization": f"Bearer {await access_token(self._client)}"}
-        payload, fetched_at = await self._fetch(
+        # Per-user data: never stored in the (shared disk / Supabase) cache. freebusy is free
+        # and fast, and the key has no user identity to scope it by.
+        f = await self._fetch(
             "gcal:freebusy",
             FREEBUSY_URL,
             {},
@@ -270,8 +294,18 @@ class GCalFreeBusy(Connector):
             method="POST",
             json_body=body,
             headers=headers,
+            cache=False,
         )
-        return parse_freebusy(payload, fetched_at, timezone)
+        t_min, t_max = (datetime.fromisoformat(body[k]) for k in ("timeMin", "timeMax"))
+        if self.fixtures:
+            f_min, f_max = (datetime.fromisoformat(f.payload[k]) for k in ("timeMin", "timeMax"))
+            if t_min < f_min or t_max > f_max:
+                raise FixtureNotFound(
+                    f"gcal fixture covers {f_min:%Y-%m-%d}..{f_max:%Y-%m-%d}, not {start}..{end}"
+                )
+        res = parse_freebusy(f.payload, f.fetched_at, timezone, t_min, t_max)
+        res.synthetic = f.synthetic
+        return res
 
 
 if __name__ == "__main__":

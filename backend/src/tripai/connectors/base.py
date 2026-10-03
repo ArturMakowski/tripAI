@@ -3,10 +3,10 @@
 import asyncio
 import json
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import httpx
 from pydantic import BaseModel
@@ -16,6 +16,8 @@ from tripai.connectors.cache import Cache, default_cache, public_params
 from tripai.models import Evidence
 
 log = logging.getLogger(__name__)
+# httpx logs full request URLs at INFO, and SerpApi takes its key as a query param.
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 RETRY_STATUS = {429, 500, 502, 503, 504}
 
@@ -32,11 +34,24 @@ class FixtureNotFound(ConnectorError):
     pass
 
 
+SYNTHETIC_TAG = " [synthetic fixture]"
+
+
+class Fetched(NamedTuple):
+    payload: Any
+    fetched_at: datetime
+    synthetic: bool = False  # served from a hand-modelled fixture, not a real API response
+    params: dict[str, Any] | None = None  # fixture's recorded request params (fixture mode)
+
+
 class SourcedResult(BaseModel):
-    """Every connector result says where its numbers came from and when."""
+    """Every connector result says where its numbers came from and when. `synthetic` results
+    come from hand-modelled fixtures; their evidence source is tagged so the UI never shows
+    them as real API data."""
 
     source: str
     fetched_at: datetime
+    synthetic: bool = False
 
     def evidence(self) -> list[Evidence]:
         return []
@@ -49,7 +64,7 @@ class SourcedResult(BaseModel):
             label=label,
             value=value,
             unit=unit,
-            source=self.source,
+            source=self.source + (SYNTHETIC_TAG if self.synthetic else ""),
             fetched_at=self.fetched_at,
             url=url,
         )
@@ -60,7 +75,9 @@ def fixture_path(source: str, name: str) -> Path:
     return config.fixtures_dir() / folder / f"{name}.json"
 
 
-def load_fixture(source: str, name: str) -> tuple[Any, datetime]:
+def load_fixture(source: str, name: str, match: dict[str, Any] | None = None) -> Fetched:
+    """Load a fixture; every key in `match` must equal the recorded request param, otherwise
+    FixtureNotFound (never serve data for other dates under the requested label)."""
     path = fixture_path(source, name)
     if not path.exists():
         available = (
@@ -68,7 +85,19 @@ def load_fixture(source: str, name: str) -> tuple[Any, datetime]:
         )
         raise FixtureNotFound(f"no fixture {path} (have: {', '.join(available) or 'none'})")
     entry = json.loads(path.read_text())
-    return entry["payload"], datetime.fromisoformat(entry["fetched_at"])
+    recorded = entry.get("params") or {}
+    flat = {**recorded, **(recorded.get("_body") or {})}
+    for key, want in (match or {}).items():
+        if str(flat.get(key)) != str(want):
+            raise FixtureNotFound(
+                f"fixture {path.name} was recorded for {key}={flat.get(key)!r}, not {want!r}"
+            )
+    return Fetched(
+        entry["payload"],
+        datetime.fromisoformat(entry["fetched_at"]),
+        synthetic=not entry.get("recorded", False),
+        params=flat,
+    )
 
 
 def write_fixture(
@@ -124,27 +153,32 @@ class Connector:
         json_body: Any = None,
         headers: dict[str, str] | None = None,
         validate: Callable[[Any], None] | None = None,
-    ) -> tuple[Any, datetime]:
-        """Return `(payload, fetched_at)`. `params` are both query params and the cache key;
-        `json_body` (POST) is folded into the key too. `validate` raises ConnectorError for
-        error payloads served with HTTP 200, so they are never cached."""
+        match: Iterable[str] = (),
+        cache: bool = True,
+    ) -> Fetched:
+        """`params` are both query params and the cache key; `json_body` (POST) is folded into
+        the key too. `validate` raises ConnectorError for error payloads served with HTTP 200, so
+        they are never cached. `match`: request keys a fixture must have been recorded with.
+        `cache=False` bypasses the (possibly shared) cache, e.g. for per-user data."""
         if self.fixtures:
-            return load_fixture(source, fixture)
+            req = {**params, **(json_body or {})}
+            return load_fixture(source, fixture, {k: req[k] for k in match if k in req})
 
         key_params = {**params, "_body": json_body} if json_body is not None else params
-        hit = await self.cache.get(source, key_params)
+        hit = await self.cache.get(source, key_params) if cache else None
         if hit is not None:
-            return hit.payload, hit.fetched_at
+            return Fetched(hit.payload, hit.fetched_at)
 
         payload = await self._http(method, url, params, json_body, headers)
         if validate is not None:
             validate(payload)
         fetched_at = datetime.now(UTC)
-        await self.cache.set(source, key_params, payload, fetched_at)
+        if cache:
+            await self.cache.set(source, key_params, payload, fetched_at)
         if config.record_fixtures():
             path = write_fixture(source, fixture, key_params, payload, fetched_at)
             log.info("recorded fixture %s", path)
-        return payload, fetched_at
+        return Fetched(payload, fetched_at)
 
     async def _http(
         self,

@@ -12,6 +12,7 @@ def _isolated_env(monkeypatch, tmp_path):
         "TRIPAI_FIXTURES_DIR",
         "SUPABASE_URL",
         "SUPABASE_KEY",
+        "SUPABASE_SECRET_KEY",
         "SERPAPI_API_KEY",
         "SERPER_API_KEY",
         "TRAVELPAYOUTS_TOKEN",

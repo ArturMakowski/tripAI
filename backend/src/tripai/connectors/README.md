@@ -19,9 +19,18 @@ All prices are in PLN (`currency` field on each result). Failures raise `Connect
 
 ## Fixtures, cache, probe
 - `TRIPAI_USE_FIXTURES=1` serves `backend/tests/fixtures/<source>/<name>.json` with no network and no keys.
-  The names are route-level (`KRK-FCO`, `FCO`, `KRK`). Weather uses the nearest recorded city within 75 km.
+  The names are route-level (`KRK-FCO`, `FCO`, `KRK`), but the request's dates must match the recorded ones,
+  otherwise `FixtureNotFound`. Data for other dates is never served under the requested label.
+  The recorded set is: flights and hotels for 14–19 Jan 2027; Travelpayouts for month `2027-01`;
+  explore with `month=1`; a calendar covering Jan–Feb 2027, clipped to the requested range; weather for
+  any January window, using the nearest recorded city within 75 km.
+- Results from synthetic fixtures (`"recorded": false`: Travelpayouts and the demo calendar) have
+  `synthetic=True`, and their evidence `source` ends in ` [synthetic fixture]`.
+- `gcal:freebusy` is never cached: it's per-user data, and the cache may be shared. Calendar-level errors raise
+  `ConnectorError`, so an unreadable calendar never looks free. The probe only records a real calendar
+  with `--record-gcal`.
 - Cache: `(source, params)` maps to the payload, with a TTL per source (`cache.TTL_BY_SOURCE`). It is stored on disk under
-  `backend/.cache/api/` and in the Supabase `api_cache` table when `SUPABASE_URL` and `SUPABASE_KEY` are set
+  `backend/.cache/api/` and in the Supabase `api_cache` table when `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (server-side only; the table has RLS) are set
   (table shape: `source, cache_key, payload, fetched_at, expires_at`, owned by T1). Secrets never enter keys
   or files. Cache errors count as misses. Set `TRIPAI_NO_CACHE=1` to disable the cache.
 - `uv run python -m tripai.connectors.probe [--only travelpayouts,open_meteo] [--routes FCO,LIS] [--no-record]`

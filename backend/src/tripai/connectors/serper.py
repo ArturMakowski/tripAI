@@ -8,7 +8,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from tripai.connectors import config
-from tripai.connectors.base import Connector, MissingCredentials, SourcedResult
+from tripai.connectors.base import Connector, Fetched, MissingCredentials, SourcedResult
 from tripai.models import Evidence
 
 BASE = "https://google.serper.dev"
@@ -127,7 +127,7 @@ class Serper(Connector):
         super().__init__(*args, **kw)
         self.gl, self.hl = gl, hl
 
-    async def _post(self, endpoint: str, body: dict, fixture: str) -> tuple[dict, datetime]:
+    async def _post(self, endpoint: str, body: dict, fixture: str) -> Fetched:
         key = config.env("SERPER_API_KEY")
         if not key and not self.fixtures:
             raise MissingCredentials("SERPER_API_KEY not set")
@@ -145,8 +145,10 @@ class Serper(Connector):
         self, city: str, *, country: str | None = None, query: str | None = None, num: int = 10
     ) -> ImageResults:
         q = query or f"{city}{f' {country}' if country else ''} city skyline"
-        payload, fetched_at = await self._post("images", {"q": q, "num": num}, fixture=_slug(city))
-        return parse_images(payload, fetched_at, q)
+        f = await self._post("images", {"q": q, "num": num}, fixture=_slug(city))
+        res = parse_images(f.payload, f.fetched_at, q)
+        res.synthetic = f.synthetic
+        return res
 
     async def places(
         self, city: str, *, country: str | None = None, what: str = "top attractions"
@@ -155,5 +157,7 @@ class Serper(Connector):
         disambiguate (Naples, Italy vs Naples, FL). Fixture name ignores country."""
         q = f"{what} in {city}{f', {country}' if country else ''}"
         fixture = _slug(f"{what} in {city}")
-        payload, fetched_at = await self._post("places", {"q": q}, fixture=fixture)
-        return parse_places(payload, fetched_at, q)
+        f = await self._post("places", {"q": q}, fixture=fixture)
+        res = parse_places(f.payload, f.fetched_at, q)
+        res.synthetic = f.synthetic
+        return res

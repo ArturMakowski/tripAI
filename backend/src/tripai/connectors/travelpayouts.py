@@ -99,7 +99,7 @@ def _fare(item: dict) -> FareQuote:
         transfers=item.get("transfers"),
         return_transfers=item.get("return_transfers"),
         duration_min=item.get("duration"),
-        link=LINK_BASE + item["link"] if item.get("link", "").startswith("/") else item.get("link"),
+        link=LINK_BASE + link if (link := item.get("link") or "").startswith("/") else link or None,
     )
 
 
@@ -139,15 +139,18 @@ class Travelpayouts(Connector):
         }
         query = {k: v for k, v in query.items() if v is not None}
         source = f"travelpayouts:{endpoint}"
-        payload, fetched_at = await self._fetch(
+        f = await self._fetch(
             source,
             f"{BASE}/{endpoint}",
             query,
             fixture=fixture,
             headers={"X-Access-Token": token or "", "Accept-Encoding": "gzip, deflate"},
             validate=_validate,
+            match=("departure_at", "return_at"),
         )
-        return parse_calendar(payload, fetched_at, source, origin, destination, query)
+        res = parse_calendar(f.payload, f.fetched_at, source, origin, destination, query)
+        res.synthetic = f.synthetic
+        return res
 
     async def month_calendar(
         self,

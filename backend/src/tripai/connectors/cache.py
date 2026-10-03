@@ -1,7 +1,7 @@
 """Response cache: key = (source, params) → raw payload + fetched_at, with a TTL per source.
 
 Backends: JSON files on disk (always) and the Supabase `api_cache` table (when SUPABASE_URL and
-SUPABASE_KEY are set). A cache failure never breaks a fetch: errors are logged and treated as a miss.
+SUPABASE_SECRET_KEY are set). A cache failure never breaks a fetch: errors are logged and treated as a miss.
 """
 
 import hashlib
@@ -126,7 +126,7 @@ class DiskCache:
 
 
 class SupabaseCache:
-    """PostgREST access to the T1-owned table
+    """PostgREST access (with the service/secret key, sent as `apikey` + `Authorization: Bearer`) to the T1-owned table
     `api_cache(source text, cache_key text, payload jsonb, fetched_at timestamptz,
     expires_at timestamptz, primary key (source, cache_key))`."""
 
@@ -220,7 +220,9 @@ def default_cache() -> Cache:
     if config.cache_disabled():
         return NullCache()
     layers: list[Cache] = [DiskCache()]
-    url, key = config.env("SUPABASE_URL"), config.env("SUPABASE_KEY")
+    # Server-side secret key: api_cache has RLS with no anon policies, so the publishable
+    # SUPABASE_KEY can't read/write it. Never ship SUPABASE_SECRET_KEY to the frontend.
+    url, key = config.env("SUPABASE_URL"), config.env("SUPABASE_SECRET_KEY")
     if url and key:
         layers.append(SupabaseCache(url, key))
     return LayeredCache(*layers)

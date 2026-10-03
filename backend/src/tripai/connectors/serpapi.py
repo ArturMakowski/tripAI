@@ -12,7 +12,13 @@ from typing import Any
 from pydantic import BaseModel, Field, computed_field
 
 from tripai.connectors import config
-from tripai.connectors.base import Connector, ConnectorError, MissingCredentials, SourcedResult
+from tripai.connectors.base import (
+    Connector,
+    ConnectorError,
+    Fetched,
+    MissingCredentials,
+    SourcedResult,
+)
 from tripai.models import Evidence
 
 SEARCH_URL = "https://serpapi.com/search.json"
@@ -42,7 +48,9 @@ class _SerpApi(Connector):
         super().__init__(*args, **kw)
         self.currency, self.gl, self.hl = currency, gl, hl
 
-    async def _search(self, params: dict[str, Any], fixture: str) -> tuple[dict, datetime]:
+    async def _search(
+        self, params: dict[str, Any], fixture: str, match: tuple[str, ...] = ()
+    ) -> Fetched:
         key = config.env("SERPAPI_API_KEY")
         if not key and not self.fixtures:
             raise MissingCredentials("SERPAPI_API_KEY not set")
@@ -55,7 +63,12 @@ class _SerpApi(Connector):
             "api_key": key,
         }
         return await self._fetch(
-            f"serpapi:{self.engine}", SEARCH_URL, full, fixture=fixture, validate=_validate
+            f"serpapi:{self.engine}",
+            SEARCH_URL,
+            full,
+            fixture=fixture,
+            validate=_validate,
+            match=match,
         )
 
 
@@ -171,8 +184,14 @@ class SerpApiExplore(_SerpApi):
             "max_price": max_price,
         }
         params = {k: v for k, v in params.items() if v is not None}
-        payload, fetched_at = await self._search(params, fixture=origin)
-        return parse_explore(payload, fetched_at, origin, self.currency)
+        f = await self._search(
+            params,
+            fixture=origin,
+            match=("month", "travel_duration", "outbound_date", "return_date"),
+        )
+        res = parse_explore(f.payload, f.fetched_at, origin, self.currency)
+        res.synthetic = f.synthetic
+        return res
 
 
 # ---------------------------------------------------------------- flights
@@ -309,10 +328,17 @@ class SerpApiFlights(_SerpApi):
             "stops": stops,
         }
         params = {k: v for k, v in params.items() if v is not None}
-        payload, fetched_at = await self._search(params, fixture=f"{origin}-{destination}")
-        return parse_flights(
+        f = await self._search(
+            params,
+            fixture=f"{origin}-{destination}",
+            match=("departure_id", "arrival_id", "outbound_date", "return_date"),
+        )
+        payload, fetched_at = f.payload, f.fetched_at
+        res = parse_flights(
             payload, fetched_at, origin, destination, outbound_date, return_date, self.currency
         )
+        res.synthetic = f.synthetic
+        return res
 
 
 # ---------------------------------------------------------------- hotels
@@ -450,5 +476,11 @@ class SerpApiHotels(_SerpApi):
             "sort_by": sort_by,
         }
         params = {k: v for k, v in params.items() if v is not None}
-        payload, fetched_at = await self._search(params, fixture=iata or _slug(city))
-        return parse_hotels(payload, fetched_at, city, check_in, check_out, adults, self.currency)
+        f = await self._search(
+            params, fixture=iata or _slug(city), match=("check_in_date", "check_out_date", "adults")
+        )
+        res = parse_hotels(
+            f.payload, f.fetched_at, city, check_in, check_out, adults, self.currency
+        )
+        res.synthetic = f.synthetic
+        return res

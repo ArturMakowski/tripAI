@@ -50,11 +50,12 @@ class WeatherSummary(SourcedResult):
     def evidence(self) -> list[Evidence]:
         where = self.place or f"{self.latitude:.2f},{self.longitude:.2f}"
         span = f"{self.start:%d %b}–{self.end:%d %b}"
-        basis = (
-            "forecast"
-            if self.mode == "forecast"
-            else f"same dates {min(self.years)}–{max(self.years)} avg"
-        )
+        if self.mode == "forecast":
+            basis = "forecast"
+        elif self.years:
+            basis = f"same dates {min(self.years)}–{max(self.years)} avg"
+        else:
+            basis = "historical avg"
         out: list[Evidence] = []
         if self.avg_temp_max_c is not None:
             out.append(
@@ -157,13 +158,16 @@ class OpenMeteo(Connector):
             "start_date": start.isoformat(),
             "end_date": end.isoformat(),
         }
-        payload, fetched_at = await self._fetch(
+        f = await self._fetch(
             source, FORECAST_URL, params, fixture=self._fixture_name("forecast", lat, lon)
         )
-        days = [d for k, d in sorted(_parse_daily(payload).items()) if start <= k <= end]
-        return self._summary(
-            source, fetched_at, lat, lon, place, start, end, "forecast", [], days, days
+        # slicing by date: a fixture recorded for other days yields no values, never wrong ones
+        days = [d for k, d in sorted(_parse_daily(f.payload).items()) if start <= k <= end]
+        res = self._summary(
+            source, f.fetched_at, lat, lon, place, start, end, "forecast", [], days, days
         )
+        res.synthetic = f.synthetic
+        return res
 
     async def climate_normals(
         self,
@@ -191,10 +195,11 @@ class OpenMeteo(Connector):
         results = await asyncio.gather(*jobs)
 
         by_day: dict[date, DailyWeather] = {}
-        fetched = []
-        for days, fetched_at in results:
+        fetched, synthetic = [], False
+        for days, fetched_at, synth in results:
             by_day.update(days)
             fetched.append(fetched_at)
+            synthetic |= synth
 
         per_md: dict[tuple[int, int], list[DailyWeather]] = defaultdict(list)
         raw: list[DailyWeather] = []
@@ -222,7 +227,7 @@ class OpenMeteo(Connector):
             )
             d += timedelta(days=1)
         used_years = sorted({_shift_year(start, off).year for off in offsets})
-        return self._summary(
+        res = self._summary(
             "open-meteo:archive",
             min(fetched),
             lat,
@@ -235,10 +240,12 @@ class OpenMeteo(Connector):
             normals,
             raw,
         )
+        res.synthetic = synthetic
+        return res
 
     async def _archive_month(
         self, lat: float, lon: float, year: int, month: int
-    ) -> tuple[dict[date, DailyWeather], datetime]:
+    ) -> tuple[dict[date, DailyWeather], datetime, bool]:
         last = calendar.monthrange(year, month)[1]
         params = {
             "latitude": round(lat, 2),
@@ -249,10 +256,8 @@ class OpenMeteo(Connector):
             "end_date": f"{year:04d}-{month:02d}-{last:02d}",
         }
         fixture = self._fixture_name("archive", lat, lon, f"{year:04d}-{month:02d}")
-        payload, fetched_at = await self._fetch(
-            "open-meteo:archive", ARCHIVE_URL, params, fixture=fixture
-        )
-        return _parse_daily(payload), fetched_at
+        f = await self._fetch("open-meteo:archive", ARCHIVE_URL, params, fixture=fixture)
+        return _parse_daily(f.payload), f.fetched_at, f.synthetic
 
     def _fixture_name(self, prefix: str, lat: float, lon: float, suffix: str = "") -> str:
         """Exact name when live (recording); in fixture mode, the nearest recorded location."""
