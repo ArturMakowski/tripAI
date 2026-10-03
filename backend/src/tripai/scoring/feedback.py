@@ -23,6 +23,7 @@ class FeedbackResult(BaseModel):
     profile: TasteProfile
     weights: Weights
     diff: list[Change]
+    note: str | None = None
 
 
 def _rating(v) -> float | None:
@@ -48,6 +49,14 @@ def apply_feedback(
     - tag rated r       -> interest moves halfway toward r/5
     - weather rated <=2 with a temperature inside your range -> range narrows away from it
     """
+    if not profile.personalize:
+        return FeedbackResult(
+            profile=profile,
+            weights=normalise_weights(weights),
+            diff=[],
+            note="Personalisation is off (your choice in Travel DNA), so feedback does not "
+            "change your profile or weights.",
+        )
     before_w = normalise_weights(weights)
     raw = {f: getattr(before_w, f) for f in FACTORS}
     interests = dict(profile.interests)

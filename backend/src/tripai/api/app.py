@@ -21,6 +21,7 @@ from tripai.api.session import HEADER as SESSION_HEADER
 from tripai.api.session import session_user
 from tripai.api.state import MemoryStore, Store
 from tripai.models import FreeWindow, TasteProfile, Weights
+from tripai.profile import DnaRequest, DnaResult, map_dna
 from tripai.scoring import (
     SCORING_VERSION,
     BridgeWindow,
@@ -125,7 +126,9 @@ def create_app(
         req: RecommendationsRequest, uid: User
     ) -> list[RankedRecommendation]:
         profile = req.profile.model_copy(update={"user_id": uid})
-        weights = req.weights or await store.get_weights(uid) or Weights()
+        # personalize=False: neutral defaults unless the user moves the slider explicitly
+        stored = await store.get_weights(uid) if profile.personalize else None
+        weights = req.weights or stored or Weights()
         if req.windows:
             windows = req.windows
         else:
@@ -157,6 +160,14 @@ def create_app(
         await store.save_recommendations(uid, recs)
         return recs
 
+    @app.post("/profile/dna")
+    async def post_profile_dna(req: DnaRequest, uid: User) -> DnaResult:
+        """Travel DNA swipe answers -> profile + weights + reasons (docs/TRAVEL_DNA.md)."""
+        result = map_dna(req.model_copy(update={"user_id": uid}), base=await store.get_profile(uid))
+        await store.save_profile(result.profile)
+        await store.save_weights(uid, result.weights)
+        return result
+
     @app.post("/feedback")
     async def post_feedback(req: FeedbackRequest, uid: User) -> FeedbackResponse:
         profile = req.profile or await store.get_profile(uid) or TasteProfile(user_id=uid)
@@ -182,6 +193,7 @@ def create_app(
             trip_id=req.trip_id,
             weights=result.weights,
             diff=result.diff,
+            note=result.note,
             profile=result.profile,
         )
 

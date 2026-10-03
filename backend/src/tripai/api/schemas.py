@@ -50,4 +50,5 @@ class FeedbackResponse(TasteProfile):
     trip_id: str
     weights: Weights
     diff: list[Change]
+    note: str | None = None  # e.g. why nothing changed (personalize=False)
     profile: TasteProfile

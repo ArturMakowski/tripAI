@@ -72,6 +72,15 @@ class FlipHint(BaseModel):
     text: str
 
 
+class InterestFilter(BaseModel):
+    """Receipt for the personalize=False interest filter (so nothing is hidden silently)."""
+
+    liked: list[str]  # interests >= 0.5 used as the filter
+    dropped_cities: list[str]
+    applied: bool  # False when nothing matched (fallback: no filtering) or nothing to drop
+    text: str
+
+
 class RankedRecommendation(Recommendation):
     """Recommendation + the 'why this, why now' receipt (counterfactuals, flip, reproducibility hash)."""
 
@@ -79,6 +88,7 @@ class RankedRecommendation(Recommendation):
     counterfactuals: list[Counterfactual] = Field(default_factory=list)
     flip: FlipHint | None = None
     inputs_hash: str
+    interest_filter: InterestFilter | None = None  # set only when personalize=False
     scoring_version: str
     tags: list[str] = Field(default_factory=list)
     temp_c: float | None = None

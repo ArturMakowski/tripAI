@@ -7,7 +7,13 @@ from collections.abc import Sequence
 from datetime import timedelta
 
 from tripai.models import LuxuryLevel, ScoreBreakdown, TasteProfile, Weights
-from tripai.scoring.types import Candidate, Counterfactual, FlipHint, RankedRecommendation
+from tripai.scoring.types import (
+    Candidate,
+    Counterfactual,
+    FlipHint,
+    InterestFilter,
+    RankedRecommendation,
+)
 
 SCORING_VERSION = "2026.10.03-1"
 FACTORS = ("price", "weather", "crowds", "taste")
@@ -82,10 +88,45 @@ def score_candidate(c: Candidate, profile: TasteProfile, weights: Weights) -> Sc
         ),
         "weather": weather_score(c.temp_c, profile.preferred_temp_c, profile.dislikes),
         "crowds": crowd_score(c.crowd),
-        "taste": taste_score(c.tags, profile.interests, profile.dislikes),
+        # personalize=False: interests act only as a filter (see rank), never as a ranking signal;
+        # disliked tags still cost (dislikes are not interests)
+        "taste": taste_score(c.tags, profile.interests, profile.dislikes)
+        if profile.personalize
+        else taste_score(c.tags, {}, profile.dislikes),
     }
     total = sum(getattr(w, f) * parts[f] for f in FACTORS)
     return ScoreBreakdown(**{f: round(v, 4) for f, v in parts.items()}, total=round(total, 4))
+
+
+INTEREST_FILTER_MIN = 0.5
+
+
+def interest_filter(
+    candidates: Sequence[Candidate], profile: TasteProfile
+) -> tuple[list[Candidate], InterestFilter | None]:
+    """personalize=False (Travel DNA y2 = No): interests are kept only as a filter. Keep the cities
+    matching at least one interest >= 0.5; if that would leave nothing, keep everything.
+    Returns the kept candidates plus a receipt of what the filter did (None when it didn't run)."""
+    if profile.personalize:
+        return list(candidates), None
+    liked = sorted(t for t, w in profile.interests.items() if w >= INTEREST_FILTER_MIN)
+    matching = [c for c in candidates if set(liked) & set(c.tags)]
+    kept = matching or list(candidates)  # nothing matches -> don't filter at all
+    applied = len(kept) < len(candidates)
+    dropped = sorted({c.city for c in candidates} - {c.city for c in kept})
+    shown = ", ".join(liked)
+    if not liked:
+        text = "Personalisation is off and no interests are set, so nothing was filtered."
+    elif applied:
+        text = (
+            f"Personalisation is off: showing only cities matching your interests ({shown}); "
+            f"filtered out: {', '.join(dropped)}."
+        )
+    elif not matching:
+        text = f"Personalisation is off: no city matches your interests ({shown}), so none were filtered."
+    else:
+        text = f"Personalisation is off: every city matches your interests ({shown})."
+    return kept, InterestFilter(liked=liked, dropped_cities=dropped, applied=applied, text=text)
 
 
 def candidate_id(c: Candidate) -> str:
@@ -279,7 +320,9 @@ def rank(
     """Score every candidate, keep the best window per city, attach the receipt."""
     weights = normalise_weights(weights)
     candidates = list({candidate_id(c): c for c in reversed(candidates)}.values())  # first wins
+    # hash the inputs *before* filtering: the filter is a deterministic function of them
     digest = inputs_hash(candidates, profile, weights)
+    candidates, filter_receipt = interest_filter(candidates, profile)
     scored = [(c, score_candidate(c, profile, weights)) for c in candidates]
     scored.sort(key=lambda cs: (-cs[1].total, cs[0].total_cost_pln, cs[0].iata, cs[0].window.start))
 
@@ -339,6 +382,7 @@ def rank(
                 counterfactuals=cfs,
                 flip=flip,
                 inputs_hash=digest,
+                interest_filter=filter_receipt,
                 scoring_version=SCORING_VERSION,
                 tags=c.tags,
                 temp_c=c.temp_c,
