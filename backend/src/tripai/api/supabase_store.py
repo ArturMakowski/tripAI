@@ -17,6 +17,7 @@ import httpx
 
 from tripai.api.state import MemoryStore
 from tripai.models import TasteProfile, Weights
+from tripai.scoring.reactions import ReactionRecord
 from tripai.scoring.types import RankedRecommendation
 
 log = logging.getLogger(__name__)
@@ -39,6 +40,7 @@ class SupabaseStore(MemoryStore):
             ThreadPoolExecutor(1, thread_name_prefix="supabase-store") if background else None
         )
         self._misses: dict[str, float] = {}  # user_id -> monotonic time of the empty read
+        self._reactions_loaded: dict[str, float] = {}  # user_id -> monotonic time of the last load
 
     # ---------------------------------------------------------------- plumbing
 
@@ -95,6 +97,14 @@ class SupabaseStore(MemoryStore):
                 "Prefer": "return=minimal",
             },
             json=row,
+        )
+        resp.raise_for_status()
+
+    def _delete(self, table: str, match: dict[str, str]) -> None:
+        resp = self._client.delete(
+            f"{self.base}/{table}",
+            params={k: f"eq.{v}" for k, v in match.items()},
+            headers={**self.headers, "Prefer": "return=minimal"},
         )
         resp.raise_for_status()
 
@@ -208,3 +218,44 @@ class SupabaseStore(MemoryStore):
             "diff": [d.model_dump(mode="json") if hasattr(d, "model_dump") else d for d in diff],
         }
         self._write(self._insert, "feedback", row)
+
+    # ---------------------------------------------------------------- T6 reactions
+
+    def _load_reactions(self, user_id: str) -> None:
+        """Blocking: run via `asyncio.to_thread`. Memory wins for anything written since."""
+        rows = self._select("reactions", {"user_id": f"eq.{user_id}", "select": "payload"})
+        mine = self.reactions.setdefault(user_id, {})
+        for row in rows:
+            try:
+                rec = ReactionRecord.model_validate(row["payload"])
+            except (ValueError, KeyError) as exc:
+                log.warning("supabase reaction row for %s unreadable: %s", user_id, exc)
+                continue
+            mine.setdefault(rec.recommendation_id, rec)
+        self._reactions_loaded[user_id] = time.monotonic()
+
+    async def get_reactions(self, user_id: str) -> dict[str, ReactionRecord]:
+        if user_id not in self._reactions_loaded:
+            await asyncio.to_thread(self._load_reactions, user_id)
+        return await super().get_reactions(user_id)
+
+    async def save_reaction(self, record: ReactionRecord) -> None:
+        await super().save_reaction(record)
+        row = {
+            "user_id": record.user_id,
+            "recommendation_id": record.recommendation_id,
+            "reaction": record.reaction,
+            "city": record.city,
+            "iata": record.iata,
+            "start": record.start,
+            "end": record.end,
+            "personalized": record.personalized,
+            "diff": [c.model_dump(mode="json") for c in record.diff],
+            "payload": record.model_dump(mode="json"),
+            "created_at": record.created_at.isoformat(),
+        }
+        self._write(self._upsert, "reactions", [row], "user_id,recommendation_id")
+
+    async def delete_reaction(self, user_id: str, rec_id: str) -> None:
+        await super().delete_reaction(user_id, rec_id)
+        self._write(self._delete, "reactions", {"user_id": user_id, "recommendation_id": rec_id})

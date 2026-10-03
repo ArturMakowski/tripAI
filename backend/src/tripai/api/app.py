@@ -21,6 +21,8 @@ from tripai.api.schemas import (
     FeedbackResponse,
     InterviewRequest,
     Phase,
+    ReactionRequest,
+    ReactionResponse,
     RecommendationsRequest,
     WindowsRequest,
 )
@@ -46,6 +48,9 @@ from tripai.scoring import (
     trip_windows,
 )
 from tripai.scoring.budget_fit import rank_within_budget
+from tripai.scoring.engine import candidate_id
+from tripai.scoring.feedback import Change
+from tripai.scoring.reactions import ReactionRecord, apply_reaction, undo_reaction
 from tripai.scoring.windows import MAX_LEAVE_DAYS, TZ
 
 
@@ -175,6 +180,10 @@ def create_app(
             # A live provider with no data left must not pass off synthetic numbers as live:
             # 503 lets the client show its own clearly-labelled fallback.
             raise HTTPException(503, "no trip data available right now; try again shortly")
+        # T6: city+dates swiped "Nie dla mnie" stay out of this user's lists (undo brings them back)
+        hidden = {k for k, r in (await store.get_reactions(uid)).items() if r.hidden}
+        if hidden:
+            candidates = [c for c in candidates if candidate_id(c) not in hidden]
         ranked = rank_within_budget(candidates, profile, weights, limit=req.limit)
         recs = [
             ApiRecommendation(
@@ -245,6 +254,70 @@ def create_app(
             note=result.note,
             profile=result.profile,
         )
+
+    async def _profile_and_weights(
+        uid: str, profile: TasteProfile | None, weights: Weights | None
+    ) -> tuple[TasteProfile, Weights]:
+        p = profile or await store.get_profile(uid) or TasteProfile(user_id=uid)
+        return p.model_copy(update={"user_id": uid}), (
+            weights or await store.get_weights(uid) or Weights()
+        )
+
+    def _reaction_response(
+        rec_id: str, record: ReactionRecord | None, city: str, profile, weights, diff, note
+    ) -> ReactionResponse:
+        return ReactionResponse(
+            recommendation_id=rec_id,
+            reaction=record.reaction if record else None,
+            city=city,
+            profile=profile,
+            weights=weights,
+            diff=diff,
+            note=note,
+            hidden=bool(record and record.hidden),
+            learned=[c.field.split(".", 1)[1] for c in diff if c.field.startswith("interests.")],
+        )
+
+    @app.get("/reactions")
+    async def get_reactions(uid: User) -> list[ReactionRecord]:
+        """This session's swipes, newest first (dislikes = hidden city+dates)."""
+        recs = await store.get_reactions(uid)
+        return sorted(recs.values(), key=lambda r: r.created_at, reverse=True)
+
+    @app.post("/reactions")
+    async def post_reaction(req: ReactionRequest, uid: User) -> ReactionResponse:
+        """T6 swipe -> small deterministic nudge of interests (and maybe one weight), with reasons.
+        personalize=False: recorded, nothing changes, `note` says so."""
+        rec = await store.get_recommendation(uid, req.recommendation_id)
+        if rec is None:
+            raise HTTPException(404, "unknown recommendation id (fetch recommendations first)")
+        profile, weights = await _profile_and_weights(uid, req.profile, req.weights)
+        previous = (await store.get_reactions(uid)).get(rec.id)
+        undo_diff: list[Change] = []
+        if previous is not None:  # re-swiping a card replaces the old reaction
+            profile, weights, undo_diff, _ = undo_reaction(profile, weights, previous)
+        result = apply_reaction(profile, weights, rec, req.reaction)
+        await store.save_profile(result.profile)
+        await store.save_weights(uid, result.weights)
+        await store.save_reaction(result.record)
+        return _reaction_response(rec.id, result.record, rec.city, result.profile, result.weights,
+                                  undo_diff + result.diff, result.note)  # fmt: skip
+
+    @app.delete("/reactions/{recommendation_id}")
+    async def delete_reaction(
+        recommendation_id: str, uid: User, profile: TasteProfile | None = None
+    ) -> ReactionResponse:
+        """Undo a swipe: revert exactly what it changed (unless changed again since) and unhide."""
+        previous = (await store.get_reactions(uid)).get(recommendation_id)
+        if previous is None:
+            raise HTTPException(404, "no reaction for this recommendation")
+        base, weights = await _profile_and_weights(uid, profile, None)
+        new_profile, new_weights, diff, note = undo_reaction(base, weights, previous)
+        await store.save_profile(new_profile)
+        await store.save_weights(uid, new_weights)
+        await store.delete_reaction(uid, recommendation_id)
+        return _reaction_response(recommendation_id, None, previous.city, new_profile,
+                                  new_weights, diff, note)  # fmt: skip
 
     # T5b: proactive scan, inbox, prefs, web push (tripai.api.notify)
     app.state.scan_deps = install_notifications(

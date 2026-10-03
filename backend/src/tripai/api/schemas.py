@@ -7,6 +7,7 @@ from tripai.agents.interview import ChatMessage
 from tripai.models import FreeWindow, TasteProfile, Weights
 from tripai.scoring.budget_fit import BudgetStatus
 from tripai.scoring.feedback import Change
+from tripai.scoring.reactions import Reaction
 from tripai.scoring.types import RankedRecommendation
 from tripai.scoring.windows import MAX_LEAVE_DAYS, BusyInterval
 
@@ -72,3 +73,27 @@ class ApiRecommendation(RankedRecommendation):
     over_budget_pln: float | None = None
     phase: Phase = "full"  # "fast": cache/Travelpayouts/seed estimates; "full": final answer
     refined: bool = False  # flight/hotel verified with exact-date Google prices (SerpApi)
+
+
+class ReactionRequest(BaseModel):
+    """T6: a swipe on a recommendation card."""
+
+    recommendation_id: str = Field(min_length=1, max_length=80)
+    # like = "Chcę tam" (right), dislike = "Nie dla mnie" (left), love = "Super!" (up)
+    reaction: Reaction
+    user_id: str = "demo"  # ignored: the server-issued session decides (tripai.api.session)
+    profile: TasteProfile | None = None  # defaults to the session user's stored profile
+    weights: Weights | None = None
+
+
+class ReactionResponse(BaseModel):
+    recommendation_id: str
+    reaction: Reaction | None  # None after an undo
+    city: str
+    profile: TasteProfile
+    weights: Weights
+    diff: list[Change]  # same shape as /feedback's diff
+    note: str | None = None  # e.g. why nothing changed (personalize=False)
+    hidden: bool  # this city+dates is now left out of /recommendations for you
+    # interest tags this swipe moved, for the toast
+    learned: list[str] = Field(default_factory=list)
