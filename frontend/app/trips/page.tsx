@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { Bell, CalendarDays, Check, ChevronDown, Wallet, X } from "lucide-react";
+import { overallOutOfFive } from "@/lib/stars";
 import { cn } from "@/lib/utils";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
@@ -51,7 +52,7 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
           {tp.title(fmt.range(rec.window), rec.city)}
         </p>
         <p className="mt-0.5 text-sm text-ink-soft">
-          {tp.body(fmt.pln(rec.total_cost_pln), fmt.pln(rec.flight_cost_pln), Math.round(rec.score.total * 100))}
+          {tp.body(fmt.pln(rec.total_cost_pln), fmt.pln(rec.flight_cost_pln), fmt.num(overallOutOfFive(rec.score.total), 1))}
         </p>
       </Link>
     </motion.div>

@@ -1,7 +1,7 @@
 /**
  * Glanceable star ratings, derived deterministically from the scorer's 0–1 numbers.
  * The stars are a display rounding only; the exact math (factor score × weight, sources,
- * inputs hash) stays on the receipt under "How we scored it".
+ * inputs hash) stays on the receipt in the collapsed Audit.
  *
  * Overall score  → half stars 0–5:   stars = round(total × 10) / 2
  *                  exact number:     (total × 5) with one decimal   (0.882 → ★★★★½ 4.4)

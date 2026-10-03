@@ -7,11 +7,13 @@ import type { Lang } from "@/lib/dna";
 import { disagreement, dnaQuotes, fitMeta, modelLabel } from "@/lib/fit";
 import { useT } from "@/lib/i18n";
 import type { FitPoint, RankedRecommendation, TasteProfile } from "@/lib/types";
+import { overallOutOfFive } from "@/lib/stars";
 import { cn } from "@/lib/utils";
 
-/** Scroll to an evidence row and flash it, so every claim is one tap from its source. */
-/** Fired to expand the receipt's collapsed "How we scored it" section (where most evidence rows live). */
+/** Fired to expand the receipt's collapsed Audit section (where most evidence rows live). */
 export const OPEN_MATH_EVENT = "tripai:open-math";
+
+/** Scroll to an evidence row and flash it, so every claim is one tap from its source. */
 
 function jumpTo(i: number) {
   const target = document.getElementById(`ev-${i}`);
@@ -97,14 +99,14 @@ export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; 
             <p>
               {split === "high_score_poor_fit" ? (
                 <>
-                  <b>{c.highScoreB(Math.round(rec.score.total * 100))}</b>
+                  <b>{c.highScoreB(fmt.num(overallOutOfFive(rec.score.total), 1))}</b>
                   {c.highScoreC}
                   <b>{fitMeta(fit.label, lang).label.toLowerCase()}</b>
                   {c.highScoreD}
                 </>
               ) : (
                 <>
-                  <b>{c.lowScoreB(Math.round(rec.score.total * 100))}</b>
+                  <b>{c.lowScoreB(fmt.num(overallOutOfFive(rec.score.total), 1))}</b>
                   {c.lowScoreC}
                   <b>{fitMeta(fit.label, lang).label.toLowerCase()}</b>
                   {c.lowScoreD}

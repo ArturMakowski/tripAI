@@ -33,6 +33,7 @@ import { useT } from "@/lib/i18n";
 import { useTrip } from "@/lib/store";
 import { originOf } from "@/lib/handoff";
 import { capitalise, peakMonth } from "@/lib/counterfactual";
+import { overallOutOfFive } from "@/lib/stars";
 import { cn } from "@/lib/utils";
 
 
@@ -130,7 +131,7 @@ function HashLine({ rec, weights }: { rec: RankedRecommendation; weights: Weight
 export default function ReceiptPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  // "How we scored it": collapsed by default; evidence links elsewhere on the page open it (OPEN_MATH_EVENT).
+  // Audit: collapsed by default (score math, flip, evidence, inputs hash); evidence links open it (OPEN_MATH_EVENT).
   const [showMath, setShowMath] = useState(false);
   useEffect(() => {
     const open = () => setShowMath(true);
@@ -203,17 +204,17 @@ export default function ReceiptPage() {
             <ModeBadge />
           </div>
         </div>
-        <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 text-white">
-          <div>
+        <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-3 text-white">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-medium tracking-wide text-white/80 uppercase">
               {r.rankOf(rank + 1, ranked.length)} · {rec.country}
             </p>
-            <h1 className="font-display text-5xl leading-none font-medium">{rec.city}</h1>
+            <h1 className="font-display text-[clamp(2rem,11cqw,3rem)] leading-none font-medium [overflow-wrap:anywhere]">{rec.city}</h1>
             <p className="mt-2 text-[15px] text-white/90">
               {fmt.range(rec.window)} · {nightsText} · {fmt.pln(rec.total_cost_pln)}
             </p>
           </div>
-          <OverallStars total={rec.score.total} size={18} tone="light" className="rounded-full bg-black/40 px-3 py-2 backdrop-blur-md" />
+          <OverallStars total={rec.score.total} size={14} tone="light" className="shrink-0 rounded-full bg-black/40 px-2.5 py-1.5 backdrop-blur-md" />
         </div>
       </CityPhoto>
 
@@ -236,79 +237,82 @@ export default function ReceiptPage() {
             aria-controls="how-we-scored"
             className="mt-3 flex w-full items-center justify-between border-t border-dashed border-line pt-2.5 text-left text-sm font-medium text-pine"
           >
-            {showMath ? t.stars.hideAudit : t.stars.audit}
+            {showMath ? t.stars.hideAudit : t.stars.auditCount(facts.length)}
             <ChevronDown className={cn("size-4 shrink-0 transition-transform", showMath && "rotate-180")} aria-hidden />
           </button>
         </div>
 
         <div id="how-we-scored" hidden={!showMath}>
           <div className="mt-4">
-          <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
-            <FactorBars score={rec.score} weights={weights} />
-            <div className="mt-4 flex items-baseline justify-between border-t border-dashed border-line pt-3">
-              <span className="text-sm font-semibold text-ink">{r.totalScore}</span>
-              <span className="tabular font-mono text-lg font-semibold text-ink">{fmt.num(rec.score.total * 100, 1)} / 100</span>
+            <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
+              <FactorBars score={rec.score} weights={weights} />
+              <div className="mt-4 flex items-baseline justify-between border-t border-dashed border-line pt-3">
+                <span className="text-sm font-semibold text-ink">{r.totalScore}</span>
+                <span className="tabular font-mono text-lg font-semibold text-ink">
+                  {fmt.num(rec.score.total * 100, 1)} / 100
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">= {fmt.num(overallOutOfFive(rec.score.total), 1)}/5</span>
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {r.formulaBefore}
+                <span className="font-mono">tripai.scoring</span>
+                {r.formulaAfter}
+              </p>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {r.formulaBefore}
-              <span className="font-mono">tripai.scoring</span>
-              {r.formulaAfter}
-            </p>
-          </div>
             <p className="mt-2 text-xs text-muted-foreground">{t.stars.mappingNote}</p>
           </div>
-        <Section title={r.flipTitle} icon={Shuffle}>
-          <ul className="space-y-2">
-            {priceFlip && flipHi && flipLo && (
-              <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">
-                {r.priceFlipBefore(flipHi)}
-                <b className="tabular">{r.priceFlipAmount(fmt.pln(priceFlip.price_increase_pln!))}</b>
-                {r.priceFlipAfter(flipLo)}
-                <span className="mt-1 block text-xs text-muted-foreground">{r.priceFlipSource(rec.scoring_version)}</span>
-              </li>
-            )}
-            {flips.slice(0, 2).map((f) => (
-              <li key={f.factor} className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">
-                {r.weightFlipBefore}
-                <b>{t.trips.factors[f.factor].toLowerCase()}</b>
-                {r.weightFlipMiddle}
-                <b className="tabular">{r.weightFlipAmount(Math.abs(f.deltaPts), f.deltaPts > 0)}</b>
-                {r.weightFlipAfter(flipLo ?? "", flipHi ?? "")}
-                <span className="mt-1 block text-xs text-muted-foreground">{r.weightFlipNote}</span>
-              </li>
-            ))}
-            {!priceFlip && !flips.length && scorerFlipValid && rec.flip && (
-              <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">{rec.flip.text}</li>
-            )}
-            {!rec.flip && !flips.length && (
-              <li className="rounded-2xl border border-dashed border-line p-3.5 text-sm text-ink-soft">
-                {r.noFlip}
-              </li>
-            )}
-          </ul>
-        </Section>
-        <Section title={r.evidenceTitle} icon={ExternalLink}>
-          <ul className="divide-y divide-line rounded-3xl border border-line bg-card px-4 shadow-soft">
-            {facts.map((e, i) => (
-              <li key={i} id={`ev-${rec.evidence.indexOf(e)}`} className="-mx-2 scroll-mt-24 rounded-xl px-2 py-3">
-                <div className={cn("flex justify-between gap-x-3 gap-y-1", typeof e.value === "string" ? "flex-col" : "items-baseline")}>
-                  <span className="text-sm text-ink">{e.label}</span>
-                  <span className={cn("tabular font-mono text-sm text-ink", typeof e.value === "string" ? "text-[13px] text-ink-soft" : "shrink-0")}>
-                    {typeof e.value === "number" && e.unit === "0-1" ? `${Math.round(e.value * 100)}%` : e.value}
-                    {e.unit && e.unit !== "0-1" ? ` ${e.unit}` : ""}
-                  </span>
-                </div>
-                <SourceTag e={e} />
-              </li>
-            ))}
-          </ul>
-        </Section>
-        <Section title={r.hashTitle} icon={Fingerprint}>
-          <HashLine rec={rec} weights={weights} />
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            {r.hashNote}
-          </p>
-        </Section>
+          <Section title={r.flipTitle} icon={Shuffle}>
+            <ul className="space-y-2">
+              {priceFlip && flipHi && flipLo && (
+                <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">
+                  {r.priceFlipBefore(flipHi)}
+                  <b className="tabular">{r.priceFlipAmount(fmt.pln(priceFlip.price_increase_pln!))}</b>
+                  {r.priceFlipAfter(flipLo)}
+                  <span className="mt-1 block text-xs text-muted-foreground">{r.priceFlipSource(rec.scoring_version)}</span>
+                </li>
+              )}
+              {flips.slice(0, 2).map((f) => (
+                <li key={f.factor} className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">
+                  {r.weightFlipBefore}
+                  <b>{t.trips.factors[f.factor].toLowerCase()}</b>
+                  {r.weightFlipMiddle}
+                  <b className="tabular">{r.weightFlipAmount(Math.abs(f.deltaPts), f.deltaPts > 0)}</b>
+                  {r.weightFlipAfter(flipLo ?? "", flipHi ?? "")}
+                  <span className="mt-1 block text-xs text-muted-foreground">{r.weightFlipNote}</span>
+                </li>
+              ))}
+              {!priceFlip && !flips.length && scorerFlipValid && rec.flip && (
+                <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">{rec.flip.text}</li>
+              )}
+              {!rec.flip && !flips.length && (
+                <li className="rounded-2xl border border-dashed border-line p-3.5 text-sm text-ink-soft">
+                  {r.noFlip}
+                </li>
+              )}
+            </ul>
+          </Section>
+          <Section title={r.evidenceTitle} icon={ExternalLink}>
+            <ul className="divide-y divide-line rounded-3xl border border-line bg-card px-4 shadow-soft">
+              {facts.map((e, i) => (
+                <li key={i} id={`ev-${rec.evidence.indexOf(e)}`} className="-mx-2 scroll-mt-24 rounded-xl px-2 py-3">
+                  <div className={cn("flex justify-between gap-x-3 gap-y-1", typeof e.value === "string" ? "flex-col" : "items-baseline")}>
+                    <span className="text-sm text-ink">{e.label}</span>
+                    <span className={cn("tabular font-mono text-sm text-ink", typeof e.value === "string" ? "text-[13px] text-ink-soft" : "shrink-0")}>
+                      {typeof e.value === "number" && e.unit === "0-1" ? `${Math.round(e.value * 100)}%` : e.value}
+                      {e.unit && e.unit !== "0-1" ? ` ${e.unit}` : ""}
+                    </span>
+                  </div>
+                  <SourceTag e={e} />
+                </li>
+              ))}
+            </ul>
+          </Section>
+          <Section title={r.hashTitle} icon={Fingerprint}>
+            <HashLine rec={rec} weights={weights} />
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {r.hashNote}
+            </p>
+          </Section>
         </div>
 
         <Section title={r.receiptTitle} icon={Fingerprint}>

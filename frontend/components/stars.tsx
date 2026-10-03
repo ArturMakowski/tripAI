@@ -70,7 +70,8 @@ export function FactorStars({ score, columns = 1, className }: { score: ScoreBre
         const n = factorStars(score[f]);
         const label = columns === 2 ? t.trips.factorsShort[f] : t.trips.factors[f];
         return (
-          <li key={f} role="img" aria-label={t.stars.factorAria(t.trips.factors[f], n)} className="flex min-w-0 items-center gap-1.5 text-[13px]">
+          <li key={f} className="min-w-0 text-[13px]">
+            <span role="img" aria-label={t.stars.factorAria(t.trips.factors[f], n)} className="flex min-w-0 items-center gap-1.5">
             <span aria-hidden className="w-5 shrink-0 text-center leading-none">
               {FACTOR_EMOJI[f]}
             </span>
@@ -78,6 +79,7 @@ export function FactorStars({ score, columns = 1, className }: { score: ScoreBre
               {label}
             </span>
             <StarRow value={n} size={columns === 2 ? 11 : 14} />
+            </span>
           </li>
         );
       })}
