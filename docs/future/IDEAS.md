@@ -19,3 +19,8 @@ Demo option later: a teammate plays the receptionist; keep a recorded backup.
 - MCP server exposing TripAI tools to other assistants
 - Integrations with existing travel apps
 - Monetisation: affiliate, premium; (rejected: paid ranking boosts — conflicts with trust)
+
+## From user testing (3 Oct)
+- Cost splitting for group trips (Tricount/Splitwise-like), integrated with party pricing
+- Post-booking itinerary / day plan
+- MCP server exposing TripAI tools to ChatGPT/Claude (see docs/USER_TESTING.md)
