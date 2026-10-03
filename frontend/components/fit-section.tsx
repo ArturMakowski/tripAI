@@ -7,7 +7,6 @@ import type { Lang } from "@/lib/dna";
 import { disagreement, dnaQuotes, fitMeta, modelLabel } from "@/lib/fit";
 import { useT } from "@/lib/i18n";
 import type { FitPoint, RankedRecommendation, TasteProfile } from "@/lib/types";
-import { overallOutOfFive } from "@/lib/stars";
 import { cn } from "@/lib/utils";
 
 /** Scroll to an evidence row (opening any collapsed section around it) and flash it. */
@@ -144,11 +143,11 @@ export function FitClaims({
 
 /** Score and fit pointing different ways: one line, stated openly; the why behind ⓘ. */
 export function FitDisagreement({ rec, lang }: { rec: RankedRecommendation; lang: Lang }) {
-  const { t, fmt } = useT();
+  const { t } = useT();
   const c = t.receipt.fit;
   const split = disagreement(rec);
   if (!split || !rec.fit) return null;
-  const score = fmt.num(overallOutOfFive(rec.score.total), 1);
+  const score = Math.round(rec.score.total * 100);
   const label = fitMeta(rec.fit.label, lang).label.toLowerCase();
   return (
     <div role="note" className="mt-3 flex gap-2 rounded-2xl bg-sun-soft px-3 py-2 text-sm text-ink">

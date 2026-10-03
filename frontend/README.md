@@ -76,25 +76,17 @@ The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12
   - An over-budget #1 is never shown without a banner. Either "Nothing fits {budget} for these dates — closest options" (naming the
     cheapest trip), or "Your top pick is X over your budget · N trips fit · Show those first" (a stable within-budget-first sort).
 
-## Star ratings
-Cards and the receipt show the score as stars, so it reads at a glance. Every visible score uses the same 5-point scale: the
-overall rating is half stars with the exact value in small text (`★★★★½ 4.4`); each factor gets an icon and 1–5 stars
-(💰 price, ☀️ weather, 👥 crowds, ❤️ taste fit). The receipt shows one compact row (no numbers); the trips push says "★ 4.4/5".
-
-- **Mapping** (deterministic, `lib/stars.ts`, pinned by `lib/stars.test.ts`):
-  - overall stars = `round(total × 10) / 2`, i.e. half steps on 0–5
-  - the small number = `total × 5`, one decimal
-  - each factor = `clamp(round(score × 5), 1, 5)`
-- **Auditability is one tap away.** The receipt's collapsed rows hold the precise parts: "Compare", "What would flip it",
-  "Evidence · N sources" (every row with its source and timestamp) and "Audit" (factor score × weight bars, the total as
-  `NN.N / 100 = 4.4/5`, the formula, the inputs hash, the fit-check model). Evidence links in the fit section open the right row.
-- **Accessibility:** each rating has an `aria-label` such as "Pogoda: 4 z 5 gwiazdek" or "Weather: 4 out of 5 stars".
+## Score display
+As before #23 (the user found the star ratings noisy): the overall score is a **ring** with the plain 0–100 number
+(`components/score-ring.tsx`) on cards, the trip hero and the swipe deck, and **one contribution bar** shows how the four
+factors add up (`ContributionBar` in `components/factor-bars.tsx`, no numeric labels). The exact math (factor score ×
+weight, the total, the formula, the inputs hash) is one tap away in the receipt's "Audyt". No "%" on cards or above the fold.
 
 ## Declutter and money (docs/DECLUTTER.md, docs/BUDGET.md)
 - **Less text, same trust.** Every screen keeps its numbers, sources and one primary action visible, and moves explanations
   behind small primitives in `components/declutter.tsx`: `Disclosure` (a collapsed "Evidence · 8 sources ›" row that opens
   itself when a link targets something inside), `InfoTip` (ⓘ expands one line in place) and `Chip` (a compact source or fact).
-  The data-source pill moved to `/credits`. The receipt keeps the hero, a two-line AI "why" with More, the stars row, bold fit
+  The data-source pill moved to `/credits`. The receipt keeps the hero, a two-line AI "why" with More, the score ring and bar, bold fit
   claims and the money lines with one source chip each. Everything else is one tap away.
 - **Lines always add up.** Backend semantics: `flight_cost_pln` per traveller, `hotel_cost_pln` the whole stay for all rooms.
   The receipt and confirm show "Loty × n" = flight × n and the stay as-is, and **the total shown is always their sum**;
@@ -122,8 +114,8 @@ overall rating is half stars with the exact value in small text (`★★★★½
   (Travel Explore / "not your exact dates" / Aviasales month median / `estimate:*` sources). An API "exact" never hides an
   other-dates price; `lib/money.test.ts` pins the Nice 11–15 Nov case (358 + 1 292 zł → estimate). Estimates never enter a
   comparison: no "vs runner-up" money delta, no value badge against them, no push.
-- **Receipt order (round 3, ≤ 25 words above the fold):** hero (country, city, dates, stars) → fit badge → money lines
-  with one "ⓘ Źródła" toggle for their source chips → stars → collapsed rows: "Dlaczego teraz" (the AI why), "Dlaczego
+- **Receipt order (round 3, ≤ 25 words above the fold):** hero (country, city, dates, score ring) → fit badge → money lines
+  with one "ⓘ Źródła" toggle for their source chips → contribution bar → collapsed rows: "Dlaczego teraz" (the AI why), "Dlaczego
   pasuje · N" (fit claims), flight, stay + map, "Porównaj" (typical price, runner-up, counterfactuals: every % and "pkt"
   lives here), "Co by to zmieniło", "Dowody", "Audyt". No percentages on cards or above the fold anywhere.
 - **Evidence values** go through `lib/evidence-display.ts`: crowds with peak data read "Tłum · 46% szczytu sezonu"; a

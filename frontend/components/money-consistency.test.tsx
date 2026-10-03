@@ -100,13 +100,15 @@ describe.each(["pl", "en"] as const)("money consistency (%s)", (lang) => {
       expect(confirm.length, rec.id).toBeGreaterThanOrEqual(1);
       const want = card[0];
       for (const got of [...receipt, ...confirm]) expect(got[0], `${rec.id} amount`).toBe(want[0]);
-      // same visible number (the estimate is phrased "od ~X zł (inne daty)" everywhere it appears)
+      // same visible number (the estimate is phrased "~X zł · szacunek" everywhere it appears)
       const num = (t: string) => t.replace(/&nbsp;|\u00a0|\u202f/g, " ").match(/[\d\s.,]+(?=\s?(zł|PLN))/)?.[0].trim();
-      // an estimate reads "od ~X" / "from ~X" on every screen, never as a bare price
+      // an estimate reads "~X" on every screen, never as a bare price
       if (rec.price_status === "estimate") {
         for (const got of [card[0], ...receipt, ...confirm]) expect(got[1], rec.id).toMatch(/~/);
-        // and says "other dates" in words on every screen, not only in a tooltip (review #41)
-        for (const html of [s.card, s.receipt, s.confirm]) expect(html, rec.id).toMatch(/inne daty|other dates/);
+        // and says "estimate" in words on every screen, not only in a tooltip (review #41)
+        for (const html of [s.card, s.receipt, s.confirm]) expect(html, rec.id).toMatch(/szacunek|estimate/);
+        // the card adds the one plain line on what that means
+        expect(s.card, rec.id).toMatch(/Brak jeszcze ceny na dokładnie te daty|No live price for these exact dates yet/);
       }
       // the visible text shows that same per-person number (party headlines read "1 704 zł razem · 852 zł/os.")
       const digits = (t: string) => t.replace(/[^\d]/g, " ").split(/\s+/).join("");

@@ -2,6 +2,7 @@
 
 import { ExternalLink } from "lucide-react";
 import { isSampleSource, sourceNameFor } from "@/lib/format";
+import { estimatedLeg } from "@/lib/money";
 import { useT } from "@/lib/i18n";
 import type { Evidence } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,12 +18,16 @@ export function SourceTag({
   variant = "caption",
   className,
 }: {
-  e: Pick<Evidence, "source" | "fetched_at" | "url">;
+  e: Pick<Evidence, "source" | "fetched_at" | "url"> & Partial<Pick<Evidence, "kind" | "label">>;
   variant?: "caption" | "chip";
   className?: string;
 }) {
   const { t, fmt } = useT();
-  const name = sourceNameFor(e.source, t.receipt.source);
+  // An estimated price leg keeps its source name and date, plus what kind of estimate it is:
+  // "Google Travel Explore · cena z innych terminów", "TripAI · średnia dla miasta, nie konkretny hotel".
+  const base = /^estimate:/.test(e.source) ? "TripAI" : sourceNameFor(e.source, t.receipt.source);
+  const est = e.kind === "flight" || e.kind === "hotel" ? estimatedLeg(e as Pick<Evidence, "kind" | "source" | "label">) : false;
+  const name = est ? `${base} · ${e.kind === "flight" ? t.money.fareOtherDates : t.money.cityAverageHotel}` : base;
   // sample data was never fetched, so no "fetched at" time
   const sample = isSampleSource(e.source);
   const chip = variant === "chip";

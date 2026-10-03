@@ -5,12 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowRight, BedDouble, Bot, Check, ChevronLeft, Copy, MapPinned, Plane } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Chip, Disclosure, InfoTip } from "@/components/declutter";
-import { FactorBars } from "@/components/factor-bars";
+import { ContributionBar, FactorBars } from "@/components/factor-bars";
 import { FitBadge } from "@/components/fit-badge";
 import { FitAudit, FitClaims, FitDisagreement, isStockPhoto } from "@/components/fit-section";
-import { CompactStars, OverallStars } from "@/components/stars";
+import { ScoreRing } from "@/components/score-ring";
 import { LangSwitch } from "@/components/lang-switch";
-import { MoneyLines } from "@/components/money";
+import { EstimateNote, MoneyLines } from "@/components/money";
 import { PlacesSection } from "@/components/places-section";
 import { CityPhoto } from "@/components/rec-card";
 import { AppShell } from "@/components/shell";
@@ -29,7 +29,6 @@ import { useTrip } from "@/lib/store";
 import type { Evidence, RankedRecommendation, Weights } from "@/lib/types";
 import { evidenceDisplay } from "@/lib/evidence-display";
 import { moneyOf } from "@/lib/money";
-import { overallOutOfFive } from "@/lib/stars";
 import { scoreGap } from "@/lib/compare";
 import { localCountry } from "@/lib/country";
 import { useRecommendations } from "@/lib/use-recommendations";
@@ -202,8 +201,9 @@ export default function ReceiptPage() {
             <p className="mt-2 text-[15px] text-white/90">
               {fmt.range(rec.window)} · {nightsText}
             </p>
+            {recEstimate && <EstimateNote light />}
           </div>
-          <OverallStars total={rec.score.total} size={14} tone="light" className="shrink-0 rounded-full bg-black/40 px-2.5 py-1.5 backdrop-blur-md" />
+          <ScoreRing value={rec.score.total} size={68} stroke={5} tone="light" />
         </div>
       </CityPhoto>
 
@@ -216,9 +216,8 @@ export default function ReceiptPage() {
           <MoneyLines rec={rec} nights={nightsText} idFor={ev} collapseSources />
         </section>
 
-        <section className="mt-4 rounded-3xl border border-line bg-card px-4 py-3 shadow-soft" aria-label={t.stars.overall}>
-          <CompactStars score={rec.score} />
-        </section>
+        {/* how the four factors add up (as before #23): one bar, no numbers; the exact math is in Audit */}
+        <ContributionBar score={rec.score} weights={weights} className="mt-4" />
 
         <div className="mt-4 space-y-2.5">
           <Disclosure title={r.whyTitle} icon={<Bot className="size-4" aria-hidden />}>
@@ -330,11 +329,9 @@ export default function ReceiptPage() {
               <span className="text-sm font-semibold text-ink">{r.totalScore}</span>
               <span className="tabular font-mono text-lg font-semibold text-ink">
                 {fmt.num(rec.score.total * 100, 1)} / 100
-                <span className="ml-2 text-sm font-normal text-muted-foreground">= {fmt.num(overallOutOfFive(rec.score.total), 1)}/5</span>
               </span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{r.formulaTip}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{t.stars.mappingNote}</p>
             <div className="mt-4 border-t border-dashed border-line pt-3">
               <HashLine rec={rec} weights={weights} />
             </div>

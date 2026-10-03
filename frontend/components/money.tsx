@@ -23,7 +23,7 @@ type Priced = Pick<
   Partial<Pick<Recommendation, "hotel">>;
 
 /**
- * The headline price. Exact: "1 442 zł" (+ party line). Estimate: muted "od ~1 718 zł (inne daty)",
+ * The headline price. Exact: "1 442 zł" (+ party line). Estimate: muted "~1 718 zł · szacunek" + "Brak jeszcze ceny na dokładnie te daty",
  * never styled like a real price. `data-testid="trip-total"` is what the consistency test reads.
  */
 export function TripPrice({
@@ -52,6 +52,7 @@ export function TripPrice({
         >
           {m.travelers > 1 ? t.money.fromEstimateParty(fmt.pln(m.partyTotal), fmt.pln(m.perPerson)) : t.money.fromEstimate(fmt.pln(m.perPerson))}
         </span>
+        <EstimateNote light={light} />
       </span>
     );
   }
@@ -75,7 +76,7 @@ export function TripPrice({
 
 /**
  * The headline price as plain text, for places that can't render <TripPrice> (aria labels, the
- * calendar file, push copy): "852 zł/os.", "1 442 zł", or "od ~1 718 zł (inne daty)".
+ * calendar file, push copy): "852 zł/os.", "1 442 zł", or "~1 718 zł · szacunek".
  */
 export function priceText(rec: Priced, t: Messages, fmt: Fmt): string {
   const m = moneyOf(rec);
@@ -99,6 +100,12 @@ export function PriceInline({ rec, tone = "default", className }: { rec: Priced;
       {priceText(rec, t, fmt)}
     </span>
   );
+}
+
+/** "Brak jeszcze ceny na dokładnie te daty": one short line under an estimate (card, trip hero). */
+export function EstimateNote({ light = false, className }: { light?: boolean; className?: string }) {
+  const { t } = useT();
+  return <span className={cn("mt-0.5 block text-xs", light ? "text-white/80" : "text-muted-foreground", className)}>{t.money.noLivePrice}</span>;
 }
 
 /** "label …… value" money row; `sub` is the source chip line under it. */

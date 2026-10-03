@@ -57,6 +57,9 @@ function hotelIsPerRoom(rec: Pick<Recommendation, "evidence">): boolean {
 const ESTIMATE_RE =
   /^estimate:|travel_explore|travel explore|not your (exact )?dates|month(ly)? median|median of \d+ .*fares|city.?average|other dates|inne (daty|terminy)|nie (na )?twoje( dokładne)? daty|średni[aą] (w|dla) miast/i;
 
+/** Is this flight/hotel evidence row an estimate (other dates, a city average)? */
+export const estimatedLeg = (e: Pick<Recommendation["evidence"][number], "source" | "label">) => ESTIMATE_RE.test(`${e.source} ${e.label}`);
+
 export function legEstimated(rec: Pick<Recommendation, "evidence">, kind: "flight" | "hotel"): boolean {
   const ev = rec.evidence.find((e) => e.kind === kind);
   if (!ev) return false;

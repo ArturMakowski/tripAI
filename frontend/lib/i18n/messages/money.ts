@@ -8,23 +8,28 @@ export const en = {
   perRoomShort: "/room",
   /** "2 people · 2,480 PLN total · 1,240 PLN/person" */
   party: (n: number, total: string, per: string) => `${n} ${plural("en", n, { one: "person", other: "people" })} · ${total} total · ${per}/person`,
-  /** "from ~1,718 PLN (other dates)" */
-  fromEstimate: (amount: string) => `from ~${amount} (other dates)`,
+  /** "~1,973 PLN · estimate": no live price for these exact dates yet */
+  fromEstimate: (amount: string) => `~${amount} · estimate`,
   /** party headline: "2,480 PLN total · 1,240 PLN/person" */
   partyShort: (total: string, per: string) => `${total} total · ${per}/person`,
-  /** party estimate: "from ~2,258 PLN total · ~1,129 PLN/person (other dates)" */
-  fromEstimateParty: (total: string, per: string) => `from ~${total} total · ~${per}/person (other dates)`,
+  /** party estimate: "~2,258 PLN total · ~1,129 PLN/person · estimate" */
+  fromEstimateParty: (total: string, per: string) => `~${total} total · ~${per}/person · estimate`,
+  /** one short line under an estimate on the card and the trip hero */
+  noLivePrice: "No live price for these exact dates yet",
+  /** source-chip qualifiers for estimated legs (receipt) */
+  fareOtherDates: "fare seen for different dates",
+  cityAverageHotel: "city average, not a specific hotel",
   estimateTitle: "Estimate, not this trip's price",
   estimateTip:
-    "We couldn't price these exact dates. This comes from other dates or a city-average hotel, so it isn't used for ranking, budget or value badges.",
-  partialTip: (leg: string) => `The ${leg} price is an estimate (other dates or city average); the rest is priced for your dates.`,
+    "No live price for these exact dates yet: the flight is a fare seen for different dates and the stay is a city average, not a specific hotel. Estimates never count toward ranking, budget or value badges.",
+  partialTip: (leg: string) => `No live price for the ${leg} on these exact dates yet; the rest is priced for your dates.`,
   legFlight: "flight",
   legHotel: "hotel",
   est: "est.",
   /** one toggle per receipt section that shows the source chips of its lines */
   sources: "Sources",
   /** an estimate's total says so in words, not only with "~" (review #41) */
-  otherDates: "other dates",
+  otherDates: "estimate",
   flight: (n: number) => (n > 1 ? `Flights × ${n}` : "Return flight"),
   hotel: (nights: string, rooms: number) => (rooms > 1 ? `Stay, ${nights} × ${rooms} rooms` : `Stay, ${nights}`),
   /** a specific priced hotel: "Hotel Raphael, 4 nights" */
@@ -59,18 +64,21 @@ export const pl: Shape<typeof en> = {
   perRoomShort: "/pokój",
   party: (n, total, per) =>
     `${n} ${plural("pl", n, { one: "osoba", few: "osoby", many: "osób", other: "osoby" })} · ${total} razem · ${per}/os.`,
-  fromEstimate: (amount) => `od ~${amount} (inne daty)`,
+  fromEstimate: (amount) => `~${amount} · szacunek`,
   partyShort: (total, per) => `${total} razem · ${per}/os.`,
-  fromEstimateParty: (total, per) => `od ~${total} razem · ~${per}/os. (inne daty)`,
+  fromEstimateParty: (total, per) => `~${total} razem · ~${per}/os. · szacunek`,
+  noLivePrice: "Brak jeszcze ceny na dokładnie te daty",
+  fareOtherDates: "cena z innych terminów",
+  cityAverageHotel: "średnia dla miasta, nie konkretny hotel",
   estimateTitle: "Szacunek, nie cena tego wyjazdu",
   estimateTip:
-    "Nie udało się wycenić tych dokładnych dat. Kwota pochodzi z innych terminów albo ze średniej hotelowej dla miasta, więc nie liczy się do rankingu, budżetu ani odznak.",
-  partialTip: (leg) => `Cena (${leg}) to szacunek z innych dat lub średniej dla miasta; reszta jest wyceniona na Twoje daty.`,
+    "Brak jeszcze ceny na dokładnie te daty: lot to cena z innych terminów, a nocleg to średnia dla miasta, nie konkretny hotel. Szacunki nie liczą się do rankingu, budżetu ani odznak.",
+  partialTip: (leg) => `Brak jeszcze ceny (${leg}) na dokładnie te daty; reszta jest wyceniona na Twoje daty.`,
   legFlight: "lot",
   legHotel: "nocleg",
   est: "szac.",
   sources: "Źródła",
-  otherDates: "inne daty",
+  otherDates: "szacunek",
   flight: (n) => (n > 1 ? `Loty × ${n}` : "Lot w obie strony"),
   hotel: (nights, rooms) => (rooms > 1 ? `Nocleg, ${nights} × ${rooms} ${plPokoj(rooms)}` : `Nocleg, ${nights}`),
   hotelNamed: (name, nights, rooms) => (rooms > 1 ? `${name}, ${nights} × ${rooms} ${plPokoj(rooms)}` : `${name}, ${nights}`),

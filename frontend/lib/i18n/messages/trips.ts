@@ -71,7 +71,8 @@ export const en = {
     now: "· now",
     dismiss: "Dismiss",
     title: (range: string, city: string) => `You’re free ${range} → ${city}`,
-    body: (total: string, flights: string, score: string) => `${total} all-in · flights ${flights} · ★ ${score}/5`,
+    /** score = the ring's plain 0–100 number */
+    body: (total: string, flights: string, score: number) => `${total} all-in · flights ${flights} · score ${score}`,
   },
 
   notYourStyle: "Not your style",
@@ -160,8 +161,8 @@ export const pl: Shape<typeof en> = {
     now: "· teraz",
     dismiss: "Zamknij",
     title: (range: string, city: string) => `Masz wolne ${range} → ${city}`,
-    body: (total: string, flights: string, score: string) =>
-      `${total} łącznie · loty ${flights} · ★ ${score}/5`,
+    body: (total: string, flights: string, score: number) =>
+      `${total} łącznie · loty ${flights} · wynik ${score}`,
   },
 
   notYourStyle: "Nie w Twoim stylu",

@@ -65,8 +65,8 @@ export const en = {
     modelPreview: "Rule-based check · preview computed on this device",
     modelAi: (model: string) => `AI check · ${model}`,
     /** score vs fit disagreement, one line; the explanation sits behind ⓘ */
-    disagreeHigh: (score: string, label: string) => `Score ${score}/5, but the fit check says: ${label}.`,
-    disagreeLow: (score: string, label: string) => `Score only ${score}/5, yet the fit check says: ${label}.`,
+    disagreeHigh: (score: number, label: string) => `Score ${score}, but the fit check says: ${label}.`,
+    disagreeLow: (score: number, label: string) => `Score only ${score}, yet the fit check says: ${label}.`,
     disagreeTip: "We show both. The score weighs price, weather, crowds and taste; the fit check reads your Travel DNA answers.",
     match: "Fits you",
     whyFitsTitle: "Why it fits you",
@@ -78,8 +78,7 @@ export const en = {
   source: {
     sample: "Demo data",
     scorer: "TripAI scorer",
-    estimate: "Estimate · city average",
-    otherDates: "Google Travel Explore · other dates",
+
   },
   handoff: { flights: "Flights on Google Flights", hotels: "Hotels on Booking.com" },
   places: {
@@ -147,8 +146,8 @@ export const pl: Shape<typeof en> = {
     modelRules: "Sprawdzenie regułami",
     modelPreview: "Sprawdzenie regułami · podgląd policzony na tym urządzeniu",
     modelAi: (model) => `Sprawdzenie AI · ${model}`,
-    disagreeHigh: (score, label) => `Wynik ${score}/5, ale dopasowanie: ${label}.`,
-    disagreeLow: (score, label) => `Wynik tylko ${score}/5, a dopasowanie: ${label}.`,
+    disagreeHigh: (score, label) => `Wynik ${score}, ale dopasowanie: ${label}.`,
+    disagreeLow: (score, label) => `Wynik tylko ${score}, a dopasowanie: ${label}.`,
     disagreeTip: "Pokazujemy oba. Wynik waży cenę, pogodę, tłok i gust, a dopasowanie czyta Twoje odpowiedzi z DNA podróżnika.",
     match: "Pasuje",
     whyFitsTitle: "Dlaczego pasuje",
@@ -160,8 +159,7 @@ export const pl: Shape<typeof en> = {
   source: {
     sample: "Dane demo",
     scorer: "Kalkulator TripAI",
-    estimate: "Szacunek · średnia miasta",
-    otherDates: "Google Travel Explore · inne daty",
+
   },
   handoff: { flights: "Loty w Google Flights", hotels: "Hotele w Booking.com" },
   places: {
