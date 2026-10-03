@@ -70,7 +70,7 @@ def test_feedback_spec_shape_without_stored_profile():
                                          "answers": {"crowds": 1, "food": 5}})  # fmt: skip
     assert r.status_code == 200
     body = r.json()
-    assert body["user_id"] == "demo" and "crowds" in body["dislikes"]
+    assert body["user_id"].startswith("s_") and "crowds" in body["dislikes"]  # server session
     assert body["interests"] == body["profile"]["interests"]
     assert body["interests"]["food"] == 0.75  # Rome has a food tag: 0.5 -> halfway to 1.0
     assert body["diff"] and body["weights"]["crowds"] > 0.15
