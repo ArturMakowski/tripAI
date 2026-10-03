@@ -1,4 +1,36 @@
-# tripAI
+# TripAI
+
+Proactive AI travel planner (HackYeah 2026): from your taste, budget and free days it recommends **where and when** to go, with a sourced, reproducible score.
+
+## Hosted
+| | URL |
+|---|---|
+| App (frontend) | https://frontend-production-11c11.up.railway.app |
+| API (backend) | https://backend-production-f17bd.up.railway.app/docs |
+
+Both are Railway services in project `tripai`; the backend deploys automatically from `main`.
+
+## Run locally (for devs)
+Prerequisites: [uv](https://docs.astral.sh/uv/), Node 20+, git.
+
+```bash
+git clone https://github.com/ArturMakowski/tripAI.git && cd tripAI
+cp .env.example .env            # optional: fill keys (ask Artur); without keys everything runs on recorded fixtures
+
+# backend → http://localhost:8000/docs
+cd backend && uv sync && uv run uvicorn tripai.main:app --reload
+
+# frontend (second terminal) → http://localhost:3000
+cd frontend && npm install
+NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
+#   or against the hosted API:  NEXT_PUBLIC_API_URL=https://backend-production-f17bd.up.railway.app npm run dev
+#   or no backend at all (in-browser demo data):  npm run dev
+```
+
+Tests: `cd backend && uv run pytest && uv run ruff check .` · `cd frontend && npm test && npm run build`
+
+Docs: [concept](docs/CONCEPT.md) · [architecture](docs/ARCHITECTURE.md) · [data sources](docs/DATA_SOURCES.md) · [competitors](docs/COMPETITORS.md) · [backlog](docs/BACKLOG.md)
+
 
 ## Backend core (T1): scoring, agents, API
 
