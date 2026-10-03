@@ -38,7 +38,7 @@ export const SESSION_HEADER = "X-TripAI-Session";
 const SESSION_KEY = "tripai-session";
 let session: string | null = null;
 
-function readSession(): string | null {
+export function readSession(): string | null {
   if (session) return session;
   try {
     session = localStorage.getItem(SESSION_KEY);

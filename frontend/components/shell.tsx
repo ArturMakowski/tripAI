@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, Compass, MessageSquareHeart, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
+import { InboxBell } from "@/components/inbox-bell";
 import { FORCE_MOCK } from "@/lib/api";
 import { overallMode, useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -101,6 +102,7 @@ export function AppShell({
         )}
         <div className="flex items-center gap-2">
           {action}
+          <InboxBell />
           <ModeBadge />
         </div>
       </header>

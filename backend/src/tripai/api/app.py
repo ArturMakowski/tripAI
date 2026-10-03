@@ -13,6 +13,7 @@ from tripai.agents.fit import fit, fit_engine
 from tripai.agents.interview import InterviewResult, interview
 from tripai.agents.jev import jev_enabled, jev_model_name
 from tripai.agents.llm import llm_enabled, model_name
+from tripai.api.notify import install_notifications
 from tripai.api.schemas import (
     FeedbackRequest,
     FeedbackResponse,
@@ -24,6 +25,8 @@ from tripai.api.session import HEADER as SESSION_HEADER
 from tripai.api.session import session_user
 from tripai.api.state import MemoryStore, Store
 from tripai.models import FreeWindow, TasteProfile, Weights
+from tripai.notify.push import WebPusher
+from tripai.notify.store import NotifyStore
 from tripai.profile import DnaRequest, DnaResult, map_dna
 from tripai.scoring import (
     SCORING_VERSION,
@@ -54,6 +57,8 @@ def create_app(
     provider: TripDataProvider | None = None,
     calendar: CalendarProvider | None = None,
     store: Store | None = None,
+    notify_store: NotifyStore | None = None,
+    pusher: WebPusher | None = None,
 ) -> FastAPI:
     provider = provider or FixtureProvider()
     calendar = calendar or FixtureCalendar()
@@ -213,6 +218,10 @@ def create_app(
             profile=result.profile,
         )
 
+    # T5b: proactive scan, inbox, prefs, web push (tripai.api.notify)
+    app.state.scan_deps = install_notifications(
+        app, provider, calendar, store, notify_store, pusher
+    )
     return app
 
 
