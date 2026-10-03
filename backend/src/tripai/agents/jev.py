@@ -12,12 +12,13 @@ Decision points (docs/FIT_VERDICT.md "Engines"):
 - notification gate for the proactive scan  -> `InterruptDecision` / `jev_worth_interrupting()`
 """
 
+import asyncio
 import logging
 import os
 import re
 import time
+import weakref
 from dataclasses import dataclass, field
-from functools import lru_cache
 from typing import Annotated, Any, Literal
 
 from pydantic import AfterValidator, BaseModel, Field, WithJsonSchema
@@ -30,7 +31,8 @@ log = logging.getLogger(__name__)
 
 DEFAULT_JEV_MODEL = "jev-latest"
 KEY_ENV = ("TYPESAFE_API_KEY", "TYPESAFEAI_API_KEY")
-LOW_CONFIDENCE = 0.6  # below this a decision is "not sure" (fit -> mixed, DNA -> follow-up)
+# below this a decision is "not sure" (fit label -> mixed, DNA card -> follow-up)
+LOW_CONFIDENCE = float(os.getenv("TRIPAI_JEV_MIN_CONFIDENCE", "0.6"))
 NOTIFY_MIN_P = 0.8  # push only if P(worth interrupting) >= this
 
 
@@ -46,20 +48,29 @@ def jev_enabled() -> bool:
     return os.getenv("TRIPAI_JEV", "1") != "0" and bool(jev_api_key())
 
 
-@lru_cache(maxsize=4)
-def _model(name: str, key: str) -> Model:
-    from pydantic_ai.models.typesafe import TypeSafeModel
-    from pydantic_ai.providers.typesafe import TypeSafeProvider
-
-    return TypeSafeModel(name, provider=TypeSafeProvider(api_key=key))
+# one client per event loop: an httpx client can't be reused once its loop is closed
+_MODELS: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, dict[tuple[str, str], Model]]" = (
+    weakref.WeakKeyDictionary()
+)
 
 
 def jev_model() -> Model:
-    """The shared Jev model (one HTTP client per key/model). Raises if no key is configured."""
+    """The shared Jev model for the running loop. Raises if no key is configured."""
+    from pydantic_ai.models.typesafe import TypeSafeModel
+    from pydantic_ai.providers.typesafe import TypeSafeProvider
+
     key = jev_api_key()
     if not key:
         raise RuntimeError(f"no TypeSafe key: set one of {', '.join(KEY_ENV)}")
-    return _model(jev_model_name(), key)
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:  # called outside a loop: a fresh, uncached model
+        return TypeSafeModel(jev_model_name(), provider=TypeSafeProvider(api_key=key))
+    models = _MODELS.setdefault(loop, {})
+    k = (jev_model_name(), key)
+    if k not in models:
+        models[k] = TypeSafeModel(k[0], provider=TypeSafeProvider(api_key=key))
+    return models[k]
 
 
 # ---------------------------------------------------------------- running a decision

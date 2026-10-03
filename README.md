@@ -105,7 +105,7 @@ writes text, prices or scores. Every decision point has a deterministic fallback
   (DNA cards the user answered 4-5, plus evidence indexes) are set in code, not by a model. The LLM (or a
   template) then only *phrases* those points (`phrase_agent`): it must return the same number of points, and
   the grounding validator still applies. A label confidence below 0.6 becomes `mixed` + "We're not sure about
-  this one; here's why". Fallback chain: jev -> llm -> rules. `FitVerdict.model` records both parts, e.g.
+  this one; here's why" (threshold `TRIPAI_JEV_MIN_CONFIDENCE`, default 0.6; also used for DNA follow-ups). Fallback chain: jev -> llm -> rules. `FitVerdict.model` records both parts, e.g.
   `typesafe:jev-1.13.0+openai:gpt-6-luna`. `/health` shows `fit_engine` and `jev`.
 - **Chat -> Travel DNA** `POST /interview/dna` (`tripai.agents.dna_chat`): Jev reads q1..q12 (1-5 or
   "not said") and y1 from the conversation. Answers with confidence >= 0.6 are kept. For the rest it asks a
