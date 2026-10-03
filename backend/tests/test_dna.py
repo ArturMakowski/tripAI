@@ -56,7 +56,8 @@ def test_all_ones():
 def test_all_fives():
     res = dna(all_(5))
     # raw: price .45, crowds .3, taste .45, weather .25 (sum 1.45)
-    assert res.weights == Weights(price=0.3103, crowds=0.2069, taste=0.3103, weather=0.1724)
+    expected = {"price": 0.3103, "crowds": 0.2069, "taste": 0.3103, "weather": 0.1724}
+    assert res.weights.model_dump() == pytest.approx(expected, abs=1e-4)  # 4-dp rounding
     i = res.profile.interests
     assert i["history"] == 0.8 and i["discovery"] == 0.5 and i["nature"] == 1.0
     assert all(i[t] == 1.0 for t in ("food", "culture", "beach", "wellness", "hiking", "offbeat"))
