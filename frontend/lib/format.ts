@@ -59,7 +59,11 @@ export function sourceName(source: string): string {
     [/gcal/, "Google Calendar"],
     [/tripai\.scoring/, "TripAI scorer"],
   ];
+  // hand-curated sample numbers: never fetched, never recorded, say so plainly
+  if (isSampleSource(source)) return "TripAI sample data";
   const name = map.find(([re]) => re.test(source))?.[1] ?? source;
-  // "fixture:..." = a recorded response replayed by the backend, not a fresh fetch
+  // "fixture:..." = a real recorded response replayed by the backend, not a fresh fetch
   return source.startsWith("fixture:") ? `${name} (recorded)` : name;
 }
+
+export const isSampleSource = (source: string) => source === "fixture:sample";

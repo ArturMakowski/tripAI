@@ -956,6 +956,8 @@ class LiveProvider:
 
         if weather is not None and weather.avg_temp_max_c is not None:
             upd["temp_c"] = weather.avg_temp_max_c
+            upd["rainy_day_share"] = weather.rainy_day_share
+            upd["sunshine_h"] = weather.avg_sunshine_h
             wev = weather.evidence()
             ev = [e for e in ev if e.kind != "weather"]  # avg max temp stays the first one
             ev.extend(wev)

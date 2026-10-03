@@ -20,9 +20,10 @@ from tripai.scoring.types import Candidate
 def test_component_scores():
     assert price_score(1000, 2500, 1000) == 0.5 * 1 + 0.5 * 0.5
     assert price_score(4000, 2500, 1000) == 0.0
-    assert weather_score(20, (15, 26), []) == 1.0
-    assert weather_score(30, (15, 26), []) == pytest.approx(0.6)
-    assert weather_score(30, (15, 26), ["heat"]) == pytest.approx(0.2)
+    assert weather_score(20.5, (15, 26), []) == 1.0  # middle of the range
+    assert weather_score(15, (15, 26), []) == pytest.approx(0.75)  # edge
+    assert weather_score(30, (15, 26), []) == pytest.approx(0.75 - 4 * 0.08)
+    assert weather_score(30, (15, 26), ["heat"]) == pytest.approx(0.75 - 4 * 0.16)
     assert crowd_score(0.3) == 0.7
     assert taste_score(["food"], {"food": 1.0, "beach": 1.0}, []) == 0.5
     assert taste_score(["food", "nightlife"], {"food": 1.0}, ["nightlife"]) == 0.75
