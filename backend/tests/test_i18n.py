@@ -118,8 +118,9 @@ def test_rank_receipts_in_both_languages_same_scores():
     ]
     en_cf = " ".join(c.text for r in en for c in r.counterfactuals)
     pl_cf = " ".join(c.text for r in pl for c in r.counterfactuals)
-    assert "cheaper than" in en_cf and "taniej niż" in pl_cf and "cheaper" not in pl_cf
-    assert "w lipcu (szczyt sezonu)" in pl_cf or "w sierpniu (szczyt sezonu)" in pl_cf
+    assert " more, " in en_cf and "pts lower" in en_cf and "cheaper" not in en_cf
+    assert "drożej" in pl_cf and "wynik niższy o" in pl_cf and "more" not in pl_cf
+    assert "Ten sam wyjazd w lipcu (szczyt sezonu): o" in pl_cf
     assert "zł" in pl_cf and "PLN" not in pl_cf
     assert "would overtake" in en[0].flip.text and "wyprzedziłoby" in pl[0].flip.text
 
@@ -276,7 +277,7 @@ def test_api_header_and_body_language():
                 headers={"Accept-Language": "en"})  # fmt: skip
     assert pl.headers["content-language"] == "pl"
     top = pl.json()[0]
-    assert "zł" in top["why"] and "taniej" in top["counterfactuals"][0]["text"]
+    assert "zł" in top["why"] and "drożej" in top["counterfactuals"][0]["text"]
     assert top["fit"]["summary"][0] in "ŚDPR"
     en = c.post("/recommendations", json=body).json()[0]
     assert "PLN" in en["why"] and en["inputs_hash"] == top["inputs_hash"]

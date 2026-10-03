@@ -1,12 +1,14 @@
 """FastAPI app, API v0 (see docs/ARCHITECTURE.md)."""
 
 import asyncio
+import logging
 from datetime import date, datetime, timedelta
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
+from tripai import i18n
 from tripai.agents.dna_chat import DnaChatResult, chat_dna
 from tripai.agents.explain import explain, template_why
 from tripai.agents.fit import fit, fit_engine
@@ -51,7 +53,10 @@ from tripai.scoring.budget_fit import rank_within_budget
 from tripai.scoring.engine import candidate_id
 from tripai.scoring.feedback import Change
 from tripai.scoring.reactions import ReactionRecord, apply_reaction, undo_reaction
+from tripai.scoring.value import annotate_value, typical_spend
 from tripai.scoring.windows import MAX_LEAVE_DAYS, TZ
+
+log = logging.getLogger(__name__)
 
 
 def _merge_windows(windows: list[FreeWindow]) -> list[FreeWindow]:
@@ -149,6 +154,24 @@ def create_app(
         _check_range(start, end)
         return long_weekends(start, end, max_leave=max_leave)
 
+    async def _spend_history(uid: str) -> list[float]:
+        """What this user spent on trips they showed interest in: watched picks' prices and
+        the totals of trips they swiped like/love on (docs/BUDGET.md typical spend)."""
+        spent: list[float] = []
+        notify = getattr(app.state, "notify", None)
+        if notify is not None:
+            try:
+                picks = await asyncio.to_thread(notify.picks, uid)  # may hit Supabase
+                spent += [p.baseline_pln for p in picks]
+            except Exception as exc:  # noqa: BLE001 - history is a nicety, never a failure
+                log.warning("spend history (picks) failed for %s: %s", uid, exc)
+        for rec_id, r in (await store.get_reactions(uid)).items():
+            if r.reaction in ("like", "love") and (
+                rec := await store.get_recommendation(uid, rec_id)
+            ):
+                spent.append(rec.total_cost_pln)
+        return spent
+
     @app.post("/recommendations")
     async def post_recommendations(
         req: RecommendationsRequest, uid: User, phase: Phase = "full"
@@ -184,7 +207,11 @@ def create_app(
         hidden = {k for k, r in (await store.get_reactions(uid)).items() if r.hidden}
         if hidden:
             candidates = [c for c in candidates if candidate_id(c) not in hidden]
-        ranked = rank_within_budget(candidates, profile, weights, limit=req.limit)
+        typical = typical_spend(profile, await _spend_history(uid))
+        ranked = rank_within_budget(
+            candidates, profile, weights, limit=req.limit, typical_spend_pln=typical.pln
+        )
+        chip = i18n.t("value.typical_chip", amount=i18n.fmt_pln(typical.pln))
         recs = [
             ApiRecommendation(
                 **r.model_dump(),
@@ -192,6 +219,9 @@ def create_app(
                 over_budget_pln=None if status is None else status.overage_pln,
                 phase=phase,
                 refined=not fast and _refined(r),
+                typical_spend_pln=typical.pln,
+                typical_spend_source=typical.source,
+                typical_spend_label=chip,
             )
             for r, status in ranked
         ]
@@ -209,6 +239,7 @@ def create_app(
             r.why = template_why(r, profile.interests)
         for r, verdict in zip(fit_recs, results[len(top) :]):
             r.fit = verdict
+        annotate_value(recs, profile, weights, typical)  # after fit: great_value needs it
 
         if not fast:  # the full call always follows; persist the final answer only
             await store.save_profile(profile)

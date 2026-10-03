@@ -92,6 +92,18 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   or `PUT /notifications/prefs`; needs migration `0004`). Strings live in `tripai.i18n`; scores and
   `inputs_hash` don't depend on the language. Polish numbers use `1 098 zł` / `18,5 °C`, and the grounding
   guards accept both forms. Jev's decision prompts stay English (decisions, not text).
+- **Budget = value (docs/BUDGET.md):** `budget_pln` is an optional hard limit (null by default). When it's set,
+  the #16 rule applies unchanged, and the price reference is min(typical spend, limit). The price factor compares
+  against the user's **typical spend**: the median of their history (watched picks + liked/loved swipes, ≥ 3 trips),
+  else the DNA luxury level (`scoring.value.typical_spend`). It's part of `inputs_hash` when it differs from the
+  default. Without a limit, cards get a deterministic `value_badge`. `great_value` means a price factor ≥ 0.75 and in
+  the list's top quarter, with fit ≥ good. `worth_splurge` means above typical spend, ≥ 15% over the cheapest exact
+  top-5 option and ≥ 0.10 better on weather/crowds/taste. Each badge has a `value_reason` carrying its real numbers;
+  only `price_status == "exact"` cards get badges. `/recommendations` also returns `typical_spend_pln/_source/_label`
+  for the chip.
+- **Money consistency:** `total_cost_pln == flight_cost_pln + hotel_cost_pln` exactly (rounded parts), and
+  comparisons always name the option they describe ("Same trip in Jul (peak season): 1046 PLN more, 42 pts lower",
+  flip "Naples: 59 PLN more"). Property tests check every card in both phases and both languages.
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache
