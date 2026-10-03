@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { ArrowRight, BadgeCheck, Hand, Receipt } from "lucide-react";
 import { LangSwitch } from "@/components/lang-switch";
-import { Logo, PhotoCreditsLink } from "@/components/shell";
+import { Logo } from "@/components/shell";
 import { Chip } from "@/components/declutter";
 import { Button } from "@/components/ui/button";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
@@ -130,7 +130,6 @@ export default function Welcome() {
             </p>
           </>
         )}
-        <PhotoCreditsLink className="pt-1" />
       </div>
     </div>
   );

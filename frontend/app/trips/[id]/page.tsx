@@ -13,7 +13,7 @@ import { LangSwitch } from "@/components/lang-switch";
 import { MoneyLines, PriceInline } from "@/components/money";
 import { PlacesSection } from "@/components/places-section";
 import { CityPhoto } from "@/components/rec-card";
-import { AppShell, PhotoCreditsLink } from "@/components/shell";
+import { AppShell } from "@/components/shell";
 import { SourceTag } from "@/components/source-tag";
 import { Button } from "@/components/ui/button";
 import { FlightBlock } from "@/components/trip-details/flight-block";
@@ -359,7 +359,6 @@ export default function ReceiptPage() {
             )}
           </Disclosure>
         </div>
-        <PhotoCreditsLink className="mt-10" />
       </main>
 
       <div className="sticky bottom-0 z-30 border-t border-line bg-paper/90 px-5 pt-3 pb-[max(env(safe-area-inset-bottom),0.9rem)] backdrop-blur-md">
