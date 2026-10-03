@@ -196,3 +196,60 @@ and sessions reset on restart.
 opts out) writes profiles + weights, recommendations (`inputs_hash`, rank, full payload) and feedback
 (`answers` + `diff`) through PostgREST. Memory stays the primary copy. Writes go out on one background thread,
 in order. Reads fall back to Supabase on a miss in a worker thread, never on the event loop, and empty reads are remembered for 60 s. The `Store` protocol is async. Errors are logged and never fail a request.
+
+  (server only). Not wired yet; the API uses an in-memory `Store`.
+
+
+## Proactive scan + notifications (T5b)
+
+`proactive_scan(user_id)` (`backend/src/tripai/workflows/`): free windows (calendar + długi-weekend radar, next 90 days)
+× candidates → `rank()` → rules (`tripai/notify/rules.py`) → in-app inbox + web push. Every I/O step (context, windows,
+ranking, long weekends, watched-pick prices, dedupe check, save, push, run record) goes through `run_step`, so:
+
+- **`DATABASE_URL` set** → a durable **DBOS** workflow: each step checkpointed in Postgres and retried (3 attempts,
+  exponential backoff); a crashed scan resumes from the last finished step. A DBOS schedule runs `daily_scan`
+  every day at 07:00 Europe/Warsaw (`TRIPAI_SCAN_CRON`, 6-field cron) for every known user.
+  Use the Supabase pooler in **session mode** (port 5432; `aws-0-eu-west-1` is the host that knows this project):
+  `postgresql://postgres.nvonqduyallbiggricdl:<url-encoded SUPABASE_PASSWORD>@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require`.
+  DBOS creates its own `dbos` schema (not exposed through PostgREST).
+- **unset** → the same body runs inline (tests, local dev). If DBOS fails to launch, the API logs it and stays inline.
+
+When does it ping? (all numbers in title/body are copied from the ranked card and its evidence, never generated)
+
+| Trigger | Condition |
+|---|---|
+| `new_top` | this scan's #1 differs from the last scan's #1 (first scan counts) and score ≥ 0.6 |
+| `price_drop` | a watched pick (`POST /picks`) is ≥ 15% cheaper than the last price we told the user |
+| `long_weekend` | a radar window starts within 21 days and its best trip scores ≥ 0.8 |
+
+If `rec.fit` (AI fit verdict, docs/FIT_VERDICT.md) is present it replaces the score gate: only `good_fit`/`great_fit`
+notify, and `fit.summary` + `concerns` travel with the notification. User control: in-app inbox always on, push only
+after an explicit opt-in tap, max N per week (price drops first, then long weekends, then new #1), muted cities
+(name or IATA), snooze, one notification per dedupe key. `personalize=False` still notifies, but ranks on neutral
+default weights. Every rule evaluation, including the ones that didn't fire, is kept on the scan run (`GET /scan/last`).
+
+| Endpoint | What |
+|---|---|
+| `POST /scan/run` `{user_id, today?, profile?, weights?}` | run the scan now ("Run scan now" demo button); `{run, notifications}` |
+| `GET /scan/last?user_id` | last scan run with every decision and its reason |
+| `GET /notifications?user_id` · `POST /notifications/{id}/read?user_id` | inbox `{items, unread}` / mark read |
+| `GET`/`PUT /notifications/prefs` | `{push_opt_in, max_per_week, muted_cities, snooze_until}` |
+| `GET /push/vapid-public-key` · `POST`/`DELETE /push/subscribe` | VAPID key / store or drop a browser `PushSubscription` |
+| `GET`/`POST /picks`, `DELETE /picks/{id}` | watch a recommendation's price |
+
+Each notification carries `title`, `body`, `recommendation_id`, `inputs_hash`, `why` (evidence-only template),
+`evidence`, `score`, fit fields and the full card. Storage: `SUPABASE_URL` + `SUPABASE_SECRET_KEY` → tables from
+`supabase/migrations/0003_notifications.sql` (RLS on, no anon policies; apply it before deploying), else in memory
+(`TRIPAI_NOTIFY_STORE=memory` forces memory).
+
+**VAPID setup** (web push):
+```bash
+cd backend && uv run python -m tripai.notify.vapid   # prints VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT
+```
+Put the three lines into the backend's env (Railway variables; the private key is a secret). The frontend fetches the
+public key from `GET /push/vapid-public-key`, so it needs no extra env. Rotating keys invalidates existing subscriptions.
+
+Frontend: `public/sw.js` (shows pushes; a tap opens `/inbox/open?n=…`, which loads the card and lands on `/trips/[id]`),
+`app/manifest.ts` (installable PWA; iOS needs Home Screen install for push), `/inbox` (list, "Run scan now",
+"why (not) pinged", watch price), `/inbox/settings` (push toggle: the browser permission prompt appears only on that
+tap; frequency, muted cities, snooze) and a bell with the unread count in the header.
