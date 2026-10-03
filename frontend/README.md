@@ -132,6 +132,30 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
 - **Fixture mode.** `lib/reactions.ts` mirrors the backend rules, and `lib/reactions.test.ts` pins them to the backend test cases. Copy is
   one PL + EN object (`SWIPE_COPY`), ready to move into `lib/i18n`. The language follows the Travel DNA toggle.
 
+## First-run tutorial (T11)
+A new user should get what TripAI does in under 30 seconds.
+- **Intro.** Four full-screen steps on the first visit, each with a small looping illustration built from app pieces
+  (DNA card, calendar with the long-weekend band, ranked rows with fit badge and source tag, approve button + alert):
+  *Powiedz nam, jak lubisz podróżować → Znajdziemy, kiedy masz wolne → Gdzie i kiedy, z dowodami → Ty decydujesz*.
+  - Swipe, Next/Back, the dots or ←/→ move between steps. "Pomiń" and Esc close it.
+  - The last step opens the Travel DNA deck. If you already have a profile, it just closes.
+- **Coach marks.** One-time spotlight tips the first time you open a screen: Trips (slider, fit badge, list/swipe toggle),
+  receipt (source tag, "what would flip it"), Free time (calendar), inbox ("Run the scan now", live backend only).
+  - Each tip targets `[data-tour="…"]`. Anchors that don't render are skipped. If none render, the tour stays unseen.
+  - "Hide tips", ✕ or Esc ends that screen's tour.
+- **Replay.** "How it works" on Profile resets every flag and opens the intro again.
+- **Flags.** `localStorage["tripai-tutorial-v1"]` holds `{intro, tours}`. If storage is missing or throws, the flags live in
+  memory for the session.
+- **Accessibility.** Both are modal dialogs with a focus trap; focus returns to the opener on close.
+  - In the intro, each step's heading takes focus and the step counter is a live region.
+  - Targets are at least 40px.
+  - With `prefers-reduced-motion`: no loops, slides or drag, and each illustration shows its final frame.
+- **Copy.** Follows docs/DECLUTTER.md: a headline of at most 6 words and one line of at most 10, enforced by
+  `lib/tutorial-store.test.ts`. PL + EN are in the i18n namespace `tutorial` (`lib/i18n/messages/tutorial.ts`) and follow the
+  app-wide language setting.
+- **Code.** `lib/tutorial-store.ts` holds the flags, routing and step logic. `components/tutorial/*` holds the UI. Pages only get
+  `data-tour` attributes, plus `<TutorialHost />` in the layout and `<HowItWorksButton />` on Profile.
+
 ## Data: live vs fixture
 `lib/api.ts` implements API v0 exactly as `backend/src/tripai/api/app.py` serves it: `POST /interview`, `GET /windows`,
 `GET /windows/long-weekends`, `POST /recommendations` (→ `RankedRecommendation[]`), and `POST /feedback` (→ the profile plus `weights`

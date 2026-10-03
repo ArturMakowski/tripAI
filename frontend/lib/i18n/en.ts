@@ -13,6 +13,7 @@ import * as credits from "./messages/credits";
 import * as survey from "./messages/survey";
 import * as swipeOffers from "./messages/swipeOffers";
 import * as inbox from "./messages/inbox";
+import * as tutorial from "./messages/tutorial";
 
 export const en = {
   common: common.en,
@@ -28,6 +29,7 @@ export const en = {
   survey: survey.en,
   swipeOffers: swipeOffers.en,
   inbox: inbox.en,
+  tutorial: tutorial.en,
 };
 
 export type Messages = Shape<typeof en>;

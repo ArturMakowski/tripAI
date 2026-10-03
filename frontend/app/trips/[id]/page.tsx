@@ -323,7 +323,7 @@ export default function ReceiptPage() {
         </Section>
 
         <Section title={r.flipTitle} icon={Shuffle}>
-          <ul className="space-y-2">
+          <ul data-tour="flip" className="space-y-2">
             {priceFlip && flipHi && flipLo && (
               <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">
                 {r.priceFlipBefore(flipHi)}

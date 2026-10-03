@@ -119,7 +119,7 @@ function Planner({ today }: { today: string }) {
   };
 
   return (
-    <section id="pick" aria-labelledby="pick-title" className="scroll-mt-16 rounded-3xl border border-line bg-card p-4 shadow-soft">
+    <section id="pick" data-tour="calendar" aria-labelledby="pick-title" className="scroll-mt-16 rounded-3xl border border-line bg-card p-4 shadow-soft">
       <h2 id="pick-title" className="flex items-center gap-2 font-display text-xl text-ink">
         <CalendarHeart className="size-5 text-clay" aria-hidden /> {t.sectionTitle}
       </h2>

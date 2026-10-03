@@ -26,7 +26,7 @@ export function TripsViewToggle({ className }: { className?: string }) {
     { v: "swipe" as const, label: t.swipe, icon: Layers },
   ];
   return (
-    <div role="group" aria-label={t.viewLabel} className={cn("inline-flex rounded-full border border-line bg-card p-1 shadow-soft", className)}>
+    <div data-tour="swipe-toggle" role="group" aria-label={t.viewLabel} className={cn("inline-flex rounded-full border border-line bg-card p-1 shadow-soft", className)}>
       {options.map(({ v, label, icon: Icon }) => (
         <button
           key={v}

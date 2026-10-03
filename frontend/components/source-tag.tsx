@@ -19,11 +19,11 @@ export function SourceTag({ e }: { e: Pick<Evidence, "source" | "fetched_at" | "
   );
   const cls = "inline-flex items-center gap-1 font-sans text-xs text-muted-foreground";
   return e.url ? (
-    <a href={e.url} target="_blank" rel="noreferrer" className={cn(cls, "underline-offset-2 hover:text-pine hover:underline")} title={e.source}>
+    <a data-tour="source" href={e.url} target="_blank" rel="noreferrer" className={cn(cls, "underline-offset-2 hover:text-pine hover:underline")} title={e.source}>
       {inner}
     </a>
   ) : (
-    <span className={cls} title={e.source}>
+    <span data-tour="source" className={cls} title={e.source}>
       {inner}
     </span>
   );
