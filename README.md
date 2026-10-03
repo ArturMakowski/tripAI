@@ -8,9 +8,9 @@ uv run uvicorn tripai.main:app --reload     # http://localhost:8000/docs
 uv run pytest && uv run ruff check . && uv run ruff format --check .
 ```
 
-Works offline: without `ANTHROPIC_API_KEY`, the interview runs a scripted 3-question flow and
-explanations use a deterministic template. With the key set, pydantic-ai agents are used
-(`TRIPAI_MODEL`, default `anthropic:claude-sonnet-5-5`; `TRIPAI_LLM=0` forces them off).
+Works offline: without the model provider's key, the interview runs a scripted 3-question flow and
+explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KEY`), pydantic-ai agents are used
+(`TRIPAI_MODEL`: any pydantic-ai model string, default `openai:gpt-6-luna`; `TRIPAI_LLM=0` forces them off).
 
 | Endpoint | What |
 |---|---|

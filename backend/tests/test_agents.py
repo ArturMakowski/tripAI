@@ -112,3 +112,16 @@ async def test_scripted_interview_without_llm():
     assert set(p.interests) == {"food", "history", "beach"}
     assert p.budget_pln == 3000 and p.luxury == LuxuryLevel.comfort
     assert p.dislikes == ["crowds"] and p.preferred_temp_c == (19, 25)
+
+
+def test_model_selection(monkeypatch):
+    from tripai.agents.llm import llm_enabled, model_name
+
+    monkeypatch.delenv("TRIPAI_LLM")
+    assert model_name() == "openai:gpt-6-luna" and not llm_enabled()
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    assert llm_enabled()
+    monkeypatch.setenv("TRIPAI_MODEL", "anthropic:claude-sonnet-5-5")
+    assert not llm_enabled()  # key of the selected provider is missing
+    monkeypatch.setenv("TRIPAI_LLM", "0")
+    assert not llm_enabled()

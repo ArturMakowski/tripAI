@@ -10,7 +10,8 @@ from tripai.scoring import FixtureProvider
 @pytest.fixture(autouse=True)
 def _offline(monkeypatch):
     """Tests never hit an LLM, even if the developer has a key exported."""
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    for key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "TRIPAI_MODEL"):
+        monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("TRIPAI_LLM", "0")
 
 
