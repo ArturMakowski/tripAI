@@ -15,7 +15,7 @@ npm run test:bundle  # build with canary secrets, assert none reach .next/static
 ## Screens and demo flow
 | Route | What it shows |
 |---|---|
-| `/` | Welcome screen and the trust promises |
+| `/` | Welcome screen and the trust promises; for a returning user, the "today" summary (#1 trip, next time off) |
 | `/onboarding` | Interview chat with quick-reply chips → taste profile summary (`POST /interview`) |
 | `/profile` | Editable profile chips: tap to change an interest's strength, toggle dislikes, set budget, stay, temperature, trip length and airports |
 | `/windows` | Free windows (`GET /windows`) plus the **Długi weekend radar** ("Take 1 day off → 4 days"), with day strips |
@@ -343,3 +343,21 @@ no contract changes.
   past trip, with no price checks. Targets are kept in the store (`tripTargets`), and the header badge switches to "Demo data" (dataset `trips`).
 - **Code.** Logic is in `lib/trips.ts`, pinned by `lib/trips.test.ts`; copy is in the i18n namespace `myTrips`; the inbox shows the new
   `target_price` kind.
+
+## Returning-user home (`/`, T16)
+Once a profile exists, `/` stops being an empty welcome and shows what the product promises, where **and** when, from data already on
+the device. Nothing on this screen fetches (no search and no SerpApi call):
+- **Your #1 right now / Twój nr 1 teraz.** A compact preview of the best-ranked trip in the stored ranking (`useTrip().recs`) whose dates
+  haven't started yet. It shows the photo thumbnail, city, dates · nights and the price via `PriceInline`, so an estimate reads
+  "~X zł · szacunek", muted, exactly as on the card. It also shows "sprawdzone 2 godz. temu" from `recsMeta.at`. Tapping it opens
+  `/trips/[id]`. Without a stored ranking the block is not shown.
+- **Next time off / Najbliższe wolne.** The user's next picked dates (`useDates`) plus the next długi weekend: the backend radar if it is
+  already in the store, otherwise the local PL holidays + bridge days (`localBridges`), for example "11–15 lis · Święto Niepodległości ·
+  Weź 2 dni urlopu → 5 dni". Tapping it opens `/windows`.
+- **My trips / unread.** One line of links that appears only when there are approved trips or unread notifications (the count the
+  inbox bell already holds).
+- The returning view uses a smaller collage, wrapping chips and a sticky CTA, so "Zobacz swoje wyjazdy" stays above the fold on an
+  iPhone 14. The first-run welcome only gets the restored headline ("Powiedz, kiedy masz wolne." + "Podpowiemy, **dokąd** i **kiedy**
+  jechać — z dowodami.").
+- **Code.** The logic lives in `lib/home-today.ts` (`topPick`, `nextLongWeekend`, `freeWindows`) and the UI in `components/home-today.tsx`.
+  Tests: `lib/home-today.test.ts` and `components/home-today.test.tsx` (PL + EN, estimate labelling, no "%").
