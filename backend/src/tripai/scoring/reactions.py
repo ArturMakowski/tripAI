@@ -37,7 +37,7 @@ VERB = {"like": "you swiped 'Chcę tam' on", "love": "you swiped 'Super!' on",
 
 
 class ReactionRecord(BaseModel):
-    """One stored swipe (table `reactions`, supabase/migrations/0004_reactions.sql)."""
+    """One stored swipe (table `reactions`, supabase/migrations/0005_reactions.sql)."""
 
     user_id: str
     recommendation_id: str

@@ -354,5 +354,5 @@ still shows. `personalize=false` records the reaction (and still hides a dislike
 nothing, and `note` says so. Re-swiping a card replaces the old reaction. `DELETE /reactions/{id}` (undo) reverts exactly what the
 swipe changed, unless that field changed again since (`note` names it), and unhides the trip. `GET /reactions` lists the session's swipes.
 
-Storage: `SupabaseStore` upserts into `reactions` (`supabase/migrations/0004_reactions.sql`, RLS on, no anon policy;
+Storage: `SupabaseStore` upserts into `reactions` (`supabase/migrations/0005_reactions.sql`, RLS on, no anon policy;
 **the president applies it**). Until then, writes are logged and ignored, and memory serves.
