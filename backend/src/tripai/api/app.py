@@ -13,11 +13,14 @@ from tripai.agents.fit import fit, fit_engine
 from tripai.agents.interview import InterviewResult, interview
 from tripai.agents.jev import jev_enabled, jev_model_name
 from tripai.agents.llm import llm_enabled, model_name
+from tripai.api.budget_fit import rank_within_budget
 from tripai.api.notify import install_notifications
 from tripai.api.schemas import (
+    ApiRecommendation,
     FeedbackRequest,
     FeedbackResponse,
     InterviewRequest,
+    Phase,
     RecommendationsRequest,
     WindowsRequest,
 )
@@ -40,7 +43,6 @@ from tripai.scoring import (
     apply_feedback,
     free_windows,
     long_weekends,
-    rank,
     trip_windows,
 )
 from tripai.scoring.windows import MAX_LEAVE_DAYS, TZ
@@ -137,8 +139,12 @@ def create_app(
 
     @app.post("/recommendations")
     async def post_recommendations(
-        req: RecommendationsRequest, uid: User
-    ) -> list[RankedRecommendation]:
+        req: RecommendationsRequest, uid: User, phase: Phase = "full"
+    ) -> list[ApiRecommendation]:
+        """phase=fast: < ~2 s answer from cache + Travelpayouts + seed (no exact-date SerpApi
+        checks, no LLM), every rec `refined=false`; phase=full (default): the final answer.
+        The frontend shows fast first and swaps in full when it arrives."""
+        fast = phase == "fast"
         profile = req.profile.model_copy(update={"user_id": uid})
         # personalize=False: neutral defaults unless the user moves the slider explicitly
         stored = await store.get_weights(uid) if profile.personalize else None
@@ -153,17 +159,24 @@ def create_app(
             windows = _merge_windows(free_windows(busy, today, end, source="gcal") + radar)
         trips = trip_windows(windows, profile.trip_length_days)
         origin = profile.origin_airports[0] if profile.origin_airports else "KRK"
+        extra = {"fast": True} if fast and getattr(provider, "supports_fast", False) else {}
         candidates = await provider.candidates(
-            origin, trips, profile.luxury, profile=profile, weights=weights
+            origin, trips, profile.luxury, profile=profile, weights=weights, **extra
         )
         if trips and not candidates:
             # A live provider with no data left must not pass off synthetic numbers as live:
             # 503 lets the client show its own clearly-labelled fallback.
             raise HTTPException(503, "no trip data available right now; try again shortly")
-        recs = rank(candidates, profile, weights, limit=req.limit)
+        ranked = rank_within_budget(candidates, profile, weights, limit=req.limit)
+        recs = [
+            ApiRecommendation(
+                **r.model_dump(), budget=status, phase=phase, refined=not fast and _refined(r)
+            )
+            for r, status in ranked
+        ]
 
-        top = recs[: max(0, req.explain_top)]
-        fit_recs = recs[: req.fit_top]
+        top = [] if fast else recs[: max(0, req.explain_top)]
+        fit_recs = [] if fast else recs[: req.fit_top]
         # explanations and fit verdicts are independent LLM calls: run them all concurrently
         results = await asyncio.gather(
             *(explain(r, profile.interests) for r in top),
@@ -223,6 +236,14 @@ def create_app(
         app, provider, calendar, store, notify_store, pusher
     )
     return app
+
+
+def _refined(rec: RankedRecommendation) -> bool:
+    """Prices checked for the exact dates (SerpApi Google Flights/Hotels, live or recorded)."""
+    return any(
+        e.source.startswith(("serpapi:google_flights", "serpapi:google_hotels"))
+        for e in rec.evidence
+    )
 
 
 def _source_modes(provider: TripDataProvider, calendar: CalendarProvider) -> dict[str, str]:

@@ -291,3 +291,29 @@ Frontend: `public/sw.js` (shows pushes; a tap opens `/inbox/open?n=…`, which l
 `app/manifest.ts` (installable PWA; iOS needs Home Screen install for push), `/inbox` (list, "Run scan now",
 "why (not) pinged", watch price), `/inbox/settings` (push toggle: the browser permission prompt appears only on that
 tap; frequency, muted cities, snooze) and a bell with the unread count in the header.
+
+## Budget as a hard limit + two-phase `/recommendations`
+
+**Budget.** When `TasteProfile.budget_pln` is set, it is a hard limit (`tripai.api.budget_fit`). Scores are unchanged.
+- **within:** total ≤ budget.
+- **slightly_over:** up to +10%. These are kept and ranked normally, but flagged.
+- **Fallback:** when fewer than 3 options fit, the closest over-budget options are added (one per city, smallest overage first). They are marked `over` with the overage in PLN, always rank below every option that fits, and carry no flip hint.
+
+Each recommendation carries `budget: {status, budget_pln, total_cost_pln, overage_pln, overage_pct, label}`, or `null` when no budget is set.
+The live provider spends its exact-date SerpApi checks only on options this policy keeps.
+
+**Two phases.** `POST /recommendations?phase=fast` answers in about 1.5 s, even with a cold cache. It uses only:
+- Travelpayouts, with a per-call deadline (`TRIPAI_FAST_DEADLINE_S`, default 1.5)
+- SerpApi from the cache only
+- the seed, including the climate snapshot
+
+There is no exact-date refinement and no LLM: `why` comes from the template and `fit` is null. `phase=full`, the default, is the final answer.
+Every recommendation has `phase` and `refined`. `refined` means the flight and hotel were checked for the exact dates on Google (SerpApi).
+The frontend should render `fast` and swap in `full` when it arrives.
+
+**Weather.** Both phases take month normals from `data/climate.json`, the same Open-Meteo ERA5 data committed as a snapshot. Its
+evidence source is `seed:climate (open-meteo:archive ERA5)`. Live Open-Meteo is still used for:
+- cities missing from the snapshot
+- the exact-window weather of refined cards, capped at 6 s; past that, the month normals stay
+
+Per-source concurrency limits: Travelpayouts 8, Open-Meteo 16, SerpApi 4, Serper 4. Per-city fetches all run concurrently.

@@ -9,6 +9,7 @@ Read the files through `tripai.seed.load` rather than parsing the JSON yourself.
 | `cities.json` | `uv run python -m tripai.seed.cities` | hand-curated | 36 cities: IATA codes plus all airports, lat/lon, NUTS2 code, ISO 3166-2 `subdivisions`, `direct_from` (KRK/KTW/WAW/GDN, approximate), 8 taste tags (`food history art beach nature hiking nightlife ski`) weighted 0..1 |
 | `crowds.json` | `uv run python -m tripai.seed.crowds` | Eurostat `tour_occ_nin2m` (live API) | Jan..Dec `score` (min-max per city: 0 = quietest, 1 = busiest), `peak_ratio`, mean monthly `nights` over the last 3 complete years |
 | `holidays.json` | `uv run python -m tripai.seed.holidays` | Nager.Date, OpenHolidays, MEN | public holidays 2026–27 (PL + 20 destination countries), PL long weekends with bridge days, PL school breaks 2026/27 with **ferie per voivodeship**, destination school holidays |
+| `climate.json` | `uv run python -m tripai.seed.climate` | Open-Meteo ERA5 archive | per city and calendar month, over the last 3 complete years: mean daily max/min °C, rainy-day share (≥ 1 mm), sunshine h, precipitation. Used for the live provider's cheap pass, with no network calls |
 | `attractions.json` | `uv run python -m tripai.seed.attractions` | Wikidata SPARQL | top 8 per city: tags, popularity (Wikipedia sitelinks), Wikipedia/Wikidata URL, Commons image |
 
 Run `cities` first, because the other three scripts read `cities.json`. A failed fetch exits

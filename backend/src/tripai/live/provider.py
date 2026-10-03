@@ -14,6 +14,7 @@ A failing connector drops its evidence and lowers the `confidence` evidence; it 
 import asyncio
 import logging
 import statistics
+import time
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
@@ -37,7 +38,7 @@ from tripai.connectors.travelpayouts import FlightCalendar, Travelpayouts
 from tripai.live import sources
 from tripai.live.budget import BudgetExhausted, SerpApiBudget, global_budget, request_cap
 from tripai.models import Evidence, FreeWindow, LuxuryLevel, TasteProfile, Weights
-from tripai.scoring.engine import MONTHS, candidate_id, rank, taste_score
+from tripai.scoring.engine import MONTHS, candidate_id, taste_score
 from tripai.scoring.provider import LUXURY_HOTEL_MULT, CityInfo, FixtureProvider, TripDataProvider
 from tripai.scoring.types import Candidate, PeakQuote
 from tripai.seed import load
@@ -54,7 +55,11 @@ KIND_ORDER = {k: i for i, k in enumerate(
 TAG_MIN_WEIGHT = 0.5
 BASELINE_PREFIX = "Typical trip cost for the deal comparison:"
 NEAREST_FARE_DAYS = 3
-CONCURRENCY = 8
+# Parallel requests per source within one /recommendations call (per-city fetches all run
+# concurrently; these only bound the fan-out per API).
+CONCURRENCY = {"travelpayouts": 8, "open_meteo": 16, "serpapi": 4, "serper": 4}
+REFINE_WEATHER_TIMEOUT_S = 6.0  # exact-window weather; past it the month normals stay
+FAST_DEADLINE_S = 1.5  # phase=fast: cities whose cheap data isn't back by then are skipped
 
 # Last-resort hotel price when no live source answered: an editorial table (typical mid-range
 # double-room price per night by country), labelled as such. `fetched_at` = when it was compiled.
@@ -183,6 +188,38 @@ _CALL_SOURCE = {
 }
 
 
+SEED_CLIMATE_SOURCE = "seed:climate (open-meteo:archive ERA5)"
+
+
+def _seed_climate(c: load.City, y: int, m: int) -> WeatherSummary | None:
+    """Month normals from data/climate.json (Open-Meteo ERA5, fetched once by
+    `tripai.seed.climate`), shaped like a live `climate_normals` result."""
+    try:
+        cc = load.climate(c.id)
+    except Exception:  # noqa: BLE001 - no snapshot -> no fallback
+        return None
+    if cc is None or not (mc := cc.months[m - 1]).temp_max_c:
+        return None
+    start, end = _month_bounds(y, m)
+    return WeatherSummary(
+        source=SEED_CLIMATE_SOURCE,
+        fetched_at=load.meta("climate.json").fetched_at,
+        latitude=c.lat,
+        longitude=c.lon,
+        place=c.name,
+        start=start,
+        end=end,
+        mode="climate_normal",
+        years=cc.years,
+        days=[],
+        avg_temp_max_c=mc.temp_max_c,
+        avg_temp_min_c=mc.temp_min_c,
+        avg_precipitation_mm=mc.precipitation_mm,
+        rainy_day_share=mc.rainy_day_share,
+        avg_sunshine_h=mc.sunshine_h,
+    )
+
+
 class _Session:
     """Connectors sharing one HTTP client, a concurrency limit and per-request memoisation."""
 
@@ -193,6 +230,7 @@ class _Session:
         fixtures: bool | None,
         today: date | None,
         budget: SerpApiBudget | None = None,
+        fast: bool = False,
     ):
         # fixtures=None: per-source mode from env (TRIPAI_FIXTURE_SOURCES, missing keys, ...)
         self.modes = (
@@ -208,7 +246,10 @@ class _Session:
         self.tp = Travelpayouts(**fx("travelpayouts"))
         # SerpApi: metered live connectors + fixture twins served once a cap is hit
         self.budget = budget or global_budget()
-        self.request_cap = request_cap()
+        self.fast = fast  # cache-only SerpApi, no fixture stand-ins
+        self.deadline: float | None = None  # monotonic; set by the provider in the fast phase
+        self.late_calls = 0
+        self.request_cap = 0 if fast else request_cap()
         serp = fx("serpapi")
         self.serp = {
             "explore": SerpApiExplore(**serp),
@@ -226,7 +267,7 @@ class _Session:
         self.meteo = OpenMeteo(**fx("open_meteo"))
         self.serper = Serper(**fx("serper"))
         self.today = today
-        self._sem = asyncio.Semaphore(CONCURRENCY)
+        self._sems = {src: asyncio.Semaphore(n) for src, n in CONCURRENCY.items()}
         self.failures: list[str] = []  # real errors only
         self.uncovered: dict[str, int] = {}  # source -> fixture lookups with no recording
         self.capped = 0  # SerpApi calls skipped by the budget
@@ -261,17 +302,38 @@ class _Session:
             return e
         return e.model_copy(update={"source": e.source + sources.RECORDED_TAG})
 
+    @staticmethod
+    def _source(what: str) -> str:
+        return _CALL_SOURCE.get(what.split()[0], what.split()[0])
+
+    def _sem(self, what: str) -> asyncio.Semaphore:
+        return self._sems.get(self._source(what)) or self._sems["travelpayouts"]
+
     def _uncovered(self, what: str) -> None:
         """A fixture-mode source with no recording for this request: the data is simply not
         available (expected: fixtures cover 14-19 Jan 2027 for 10 routes), not a failure."""
-        src = _CALL_SOURCE.get(what.split()[0], what.split()[0])
+        src = self._source(what)
         self.uncovered[src] = self.uncovered.get(src, 0) + 1
 
-    async def call(self, what: str, fn: Callable[[], Awaitable[Any]]) -> Any | None:
-        """Run one connector call; any failure is logged and becomes None (never raises)."""
-        async with self._sem:
+    async def call(
+        self, what: str, fn: Callable[[], Awaitable[Any]], timeout: float | None = None
+    ) -> Any | None:
+        """Run one connector call; any failure is logged and becomes None (never raises).
+        Calls past `timeout`, or still running at the fast-phase deadline, are abandoned
+        (counted in `late_calls`)."""
+        async with self._sem(what):
             try:
+                if self.deadline is not None:
+                    left = self.deadline - time.monotonic()
+                    if left <= 0:
+                        raise TimeoutError
+                    timeout = left if timeout is None else min(timeout, left)
+                if timeout is not None:
+                    return await asyncio.wait_for(fn(), timeout)
                 return await fn()
+            except TimeoutError:
+                self.late_calls += 1
+                return None
             except FixtureNotFound:
                 self._uncovered(what)
                 return None
@@ -284,10 +346,12 @@ class _Session:
         """SerpApi call through the metered connector `kind`; once a cap is hit, the recorded
         fixture for the same request (if any) answers instead, labelled as such."""
         self.serpapi_calls += self.live("serpapi")
-        async with self._sem:
+        async with self._sem("explore"):
             try:
                 return await fn(self.serp[kind])
             except BudgetExhausted:
+                if self.fast:
+                    return None  # fast phase: cache hits only, by design
                 self.capped += 1  # deliberate spend limit, not a failure (summary line only)
             except FixtureNotFound:
                 self._uncovered(what)
@@ -303,6 +367,8 @@ class _Session:
 
 
 class LiveProvider:
+    supports_fast = True  # POST /recommendations?phase=fast passes fast=True
+
     """`TripDataProvider` backed by `tripai.seed` + `tripai.connectors`.
 
     `fixtures=True` forces connector fixtures (tests); `city_ids` restricts the seed city list;
@@ -343,6 +409,16 @@ class LiveProvider:
         self.fallback = (fallback or FixtureProvider()) if use_fallback else None
         self.budget = budget
         self.last_stats: dict[str, Any] = {}
+        self.fast_deadline = float(config.env("TRIPAI_FAST_DEADLINE_S") or FAST_DEADLINE_S)
+
+    def _refine_targets(
+        self, cands: list[Candidate], profile: TasteProfile, weights: Weights | None
+    ) -> list[str]:
+        """Exact-date checks go to what the user will see first: the top N under the same
+        hard-budget policy the API applies (never to options the budget filters out)."""
+        from tripai.api.budget_fit import rank_within_budget
+
+        return [r.id for r, _ in rank_within_budget(cands, profile, weights, limit=self.top_n)]
 
     async def budget_status(self) -> dict[str, Any]:
         return await (self.budget or global_budget()).status()
@@ -397,9 +473,12 @@ class LiveProvider:
         *,
         profile: TasteProfile | None = None,
         weights: Weights | None = None,
+        fast: bool = False,
     ) -> list[Candidate]:
+        """`fast=True` (POST /recommendations?phase=fast): cached SerpApi only, no exact-date
+        refinement, and a FAST_DEADLINE_S budget for the per-city fetches."""
         try:
-            out = await self._live(origin, list(windows), luxury, profile, weights)
+            out = await self._live(origin, list(windows), luxury, profile, weights, fast)
         except Exception:
             log.exception("live provider failed; falling back")
             out = []
@@ -416,26 +495,42 @@ class LiveProvider:
         luxury: LuxuryLevel,
         profile: TasteProfile | None,
         weights: Weights | None,
+        fast: bool = False,
     ) -> list[Candidate]:
         if not windows:
             return []
+        started = time.monotonic()
         origin = origin.upper()
         profile = profile or TasteProfile(user_id="_live")
         cities = self._shortlist(origin, profile)
         nights = [max(1, (w.end - w.start).days) for w in windows]
         trip_days = (min(nights), min(max(nights), 30))
         async with httpx.AsyncClient(timeout=30) as client:
-            s = _Session(client, self.cache, self.fixtures, self.today, self.budget)
+            s = _Session(client, self.cache, self.fixtures, self.today, self.budget, fast=fast)
+            if fast:
+                s.deadline = started + self.fast_deadline
             explore = await s.serpapi("explore", "explore", lambda c: c.explore(origin))
-            got = await asyncio.gather(
-                *(
+            tasks = [
+                asyncio.ensure_future(
                     self._city_data(s, origin, c, windows, trip_days, explore, profile)
-                    for c in cities
-                ),
-                return_exceptions=True,
+                )
+                for c in cities
+            ]
+            # safety net; in the fast phase every call already stops at s.deadline
+            timeout = (
+                max(0.0, self.fast_deadline + 0.25 - (time.monotonic() - started)) if fast else None
             )
+            _, pending = await asyncio.wait(tasks, timeout=timeout)
+            for t in pending:  # phase=fast: too slow (cold cache) -> left to phase=full
+                t.cancel()
+            await asyncio.gather(*pending, return_exceptions=True)
             data: list[_CityData] = []
-            for c, d in zip(cities, got):
+            late: list[str] = []
+            for c, t in zip(cities, tasks):
+                if t.cancelled():
+                    late.append(c.id)
+                    continue
+                d = t.exception() or t.result()
                 if isinstance(d, BaseException):  # one bad city never sinks the others
                     log.warning("live provider: city %s dropped: %r", c.id, d)
                     s.failures.append(f"city {c.id}: {type(d).__name__}")
@@ -458,8 +553,8 @@ class LiveProvider:
             refined: set[str] = set()
             # Exact-date prices usually differ from the cached estimates, so re-rank after each
             # round until the top N are all refined or the refinement budget is spent.
-            while cands and len(refined) < self.max_refine:
-                top = [r.id for r in rank(cands, profile, weights, limit=self.top_n)]
+            while cands and not fast and len(refined) < self.max_refine:
+                top = self._refine_targets(cands, profile, weights)
                 todo = [cid for cid in top if cid not in refined]
                 todo = todo[: self.max_refine - len(refined)]
                 if not todo:
@@ -491,6 +586,10 @@ class LiveProvider:
                 "sources": s.modes,
                 "failures": s.failures[:200],
                 "uncovered": dict(s.uncovered),
+                "phase": "fast" if fast else "full",
+                "late": late,
+                "late_calls": s.late_calls,
+                "seconds": round(time.monotonic() - started, 2),
                 "capped": s.capped,
             }
             # one summary line per request (no per-call noise for expected gaps)
@@ -520,7 +619,7 @@ class LiveProvider:
     ) -> _CityData:
         dep_months = sorted({(w.start.year, w.start.month) for w in windows})
         all_months = sorted({ym for w in windows for ym in _days_per_month(w.start, w.end)})
-        peak = self._peak_month(c, s.today)
+        peak = None if s.fast else self._peak_month(c, s.today)  # fast: no peak counterfactual
         if peak is not None and peak not in dep_months:
             dep_months.append(peak)
 
@@ -531,6 +630,12 @@ class LiveProvider:
             )
 
         async def climate(y: int, m: int) -> WeatherSummary | None:
+            # Month normals come from the committed ERA5 snapshot (same Open-Meteo archive, no
+            # network): the cheap pass used to cost ~170 archive calls per cold request. Live
+            # Open-Meteo stays for cities missing from the snapshot and for the exact-window
+            # weather of refined cards.
+            if (snap := _seed_climate(c, y, m)) is not None or s.fast:
+                return snap
             start, end = _month_bounds(y, m)
             return await s.call(
                 f"open-meteo {c.id} {y}-{m:02d}",
@@ -911,6 +1016,7 @@ class LiveProvider:
                 lambda: s.meteo.weather(
                     d.city.lat, d.city.lon, w.start, w.end, place=d.city.name, today=s.today
                 ),
+                timeout=REFINE_WEATHER_TIMEOUT_S,  # a throttled Open-Meteo must not stall /full
             )
         )
         jobs.append(
