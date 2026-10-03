@@ -91,3 +91,22 @@ def test_compare_is_timing_safe(private, monkeypatch):
     assert private.get("/cities", headers={HEADER: KEY}).status_code == 200
     assert seen == [(b"guess", KEY.encode()), (KEY.encode(), KEY.encode())]
     assert internal.key_matches(None, KEY) is False
+
+
+@pytest.mark.parametrize(
+    ("var", "value"), [("RAILWAY_ENVIRONMENT", "production"), ("TRIPAI_ENV", "production")]
+)
+def test_deployed_without_key_refuses_to_start(monkeypatch, var, value):
+    """Fail closed: a lost/renamed TRIPAI_INTERNAL_KEY on a deployment must not reopen the API."""
+    monkeypatch.setenv(var, value)
+    with pytest.raises(RuntimeError, match="TRIPAI_INTERNAL_KEY"):
+        create_app()
+    monkeypatch.setenv("TRIPAI_INTERNAL_KEY", KEY)
+    assert TestClient(create_app()).get("/cities").status_code == 401
+
+
+def test_non_ascii_key_compares_raw_bytes(monkeypatch):
+    key = "klucz-źdźbło"
+    monkeypatch.setenv("TRIPAI_INTERNAL_KEY", key)
+    c = TestClient(create_app())
+    assert c.get("/cities", headers=[(HEADER.encode(), key.encode())]).status_code == 200

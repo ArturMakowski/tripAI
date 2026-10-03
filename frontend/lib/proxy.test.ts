@@ -34,6 +34,7 @@ describe("/api proxy", () => {
     expect(h.get("accept-language")).toBe("pl-PL,pl;q=0.9");
     expect(h.get("x-forwarded-proto")).toBe("https");
     expect(h.get("authorization")).toBeNull();
+    expect(h.get("x-forwarded-for")).toBeNull();
     expect(calls[0].init.body).toBeUndefined();
   });
 
@@ -64,6 +65,24 @@ describe("/api proxy", () => {
       throw new TypeError("fetch failed");
     }) as unknown as typeof fetch;
     expect((await proxy(new Request("http://x/api/cities"), ENV, down)).status).toBe(502);
+  });
+
+  it("fails closed in production without the internal key", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { calls, fetchImpl } = upstream();
+    const out = await proxy(new Request("http://x/api/cities"), { ...ENV, TRIPAI_INTERNAL_KEY: undefined }, fetchImpl);
+    expect(out.status).toBe(503);
+    expect(calls).toHaveLength(0);
+  });
+
+  it("rewrites a backend Location to /api and ignores a bogus x-forwarded-proto", async () => {
+    const redirect = () =>
+      new Response(null, { status: 307, headers: { location: "http://backend.internal:8080/cities?origin=KRK" } });
+    const { calls, fetchImpl } = upstream(redirect);
+    const out = await proxy(new Request("https://app.example/api/cities/", { headers: { "x-forwarded-proto": "javascript" } }), ENV, fetchImpl);
+    expect(out.status).toBe(307);
+    expect(out.headers.get("location")).toBe("/api/cities?origin=KRK");
+    expect(new Headers(calls[0].init.headers).get("x-forwarded-proto")).toBe("https");
   });
 
   it("answers OPTIONS locally", async () => {

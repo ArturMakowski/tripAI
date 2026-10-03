@@ -13,7 +13,12 @@ from tripai.agents.fit import fit, fit_engine
 from tripai.agents.interview import InterviewResult, interview
 from tripai.agents.jev import jev_enabled, jev_model_name
 from tripai.agents.llm import llm_enabled, model_name
-from tripai.api.internal import InternalKeyMiddleware, internal_caller, internal_key, warn_if_open
+from tripai.api.internal import (
+    InternalKeyMiddleware,
+    internal_caller,
+    internal_key,
+    require_key_when_deployed,
+)
 from tripai.api.lang import LanguageMiddleware, use_lang
 from tripai.api.notify import install_notifications
 from tripai.api.schemas import (
@@ -75,7 +80,7 @@ def create_app(
 
     app = FastAPI(title="TripAI", version="0.1.0")
     key = internal_key()
-    warn_if_open(key)
+    require_key_when_deployed(key)
     app.add_middleware(LanguageMiddleware)  # Accept-Language / ?lang= -> i18n context
     if (
         key is None

@@ -3,8 +3,9 @@
  * same-origin `/api/*`; this forwards to the private backend (BACKEND_INTERNAL_URL) and adds
  * X-TripAI-Internal-Key from TRIPAI_INTERNAL_KEY. Neither env var is NEXT_PUBLIC, so neither the URL
  * nor the key is inlined into the client bundle. In dev, an unset BACKEND_INTERNAL_URL falls back to
- * NEXT_PUBLIC_API_URL or http://localhost:8000.
+ * NEXT_PUBLIC_API_URL or http://localhost:8000. In production a missing URL or key is a 503 (fail closed).
  */
+import "server-only"; // importing this from client code is a build error
 
 export const INTERNAL_KEY_HEADER = "X-TripAI-Internal-Key";
 const PREFIX = "/api";
@@ -17,7 +18,6 @@ const FORWARD_REQUEST = [
   "cookie",
   "user-agent",
   "x-tripai-session",
-  "x-forwarded-for",
 ];
 
 /** Hop-by-hop or rewritten by fetch (it decodes the body, so encoding/length no longer apply). */
@@ -58,6 +58,10 @@ export async function proxy(req: Request, env: Env = process.env, fetchImpl: typ
   }
   const base = backendUrl(env);
   if (!base) return problem(503, "backend not configured");
+  if (!env.TRIPAI_INTERNAL_KEY && env.NODE_ENV === "production") {
+    console.error("[tripai proxy] TRIPAI_INTERNAL_KEY not set: refusing to forward");
+    return problem(503, "backend not configured");
+  }
 
   const incoming = new URL(req.url);
   const path = incoming.pathname.startsWith(PREFIX) ? incoming.pathname.slice(PREFIX.length) || "/" : incoming.pathname;
@@ -69,7 +73,9 @@ export async function proxy(req: Request, env: Env = process.env, fetchImpl: typ
     if (v) headers.set(name, v);
   }
   // the backend sets the session cookie's Secure/SameSite from the original scheme
-  headers.set("x-forwarded-proto", req.headers.get("x-forwarded-proto") ?? incoming.protocol.replace(":", ""));
+  // (the platform edge sets x-forwarded-proto; anything but http/https falls back to the URL's scheme)
+  const proto = req.headers.get("x-forwarded-proto");
+  headers.set("x-forwarded-proto", proto === "https" || proto === "http" ? proto : incoming.protocol.replace(":", ""));
   if (env.TRIPAI_INTERNAL_KEY) headers.set(INTERNAL_KEY_HEADER, env.TRIPAI_INTERNAL_KEY);
 
   const timeout = AbortSignal.timeout(timeoutFor(path));
@@ -99,5 +105,8 @@ export async function proxy(req: Request, env: Env = process.env, fetchImpl: typ
   });
   for (const c of res.headers.getSetCookie()) out.append("set-cookie", c);
   out.delete(INTERNAL_KEY_HEADER);
+  // never hand the browser the private backend host (e.g. FastAPI's trailing-slash 307)
+  const location = out.get("location");
+  if (location?.startsWith(base)) out.set("location", `${PREFIX}${location.slice(base.length)}`);
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers: out });
 }
