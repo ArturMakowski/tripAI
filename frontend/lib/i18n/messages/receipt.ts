@@ -61,12 +61,19 @@ export const en = {
     lowScoreB: (score: string) => `The score is only ${score}/5`,
     lowScoreC: ", yet the fit check says ",
     lowScoreD: ". It may suit you better than the numbers suggest.",
-    whyFits: "Why it fits you",
     watchOut: "Watch out",
     swiped: (answer: string, statement: string) => `you swiped “${answer}” on: ${statement}`,
   },
   source: { sample: "TripAI sample data", scorer: "TripAI scorer" },
   handoff: { flights: "Flights on Google Flights", hotels: "Hotels on Booking.com" },
+  places: {
+    eat: "Where to eat",
+    do: "What to do",
+    more: (n: number) => `+${n} more`,
+    less: "Show less",
+    forYou: "for you",
+    openMaps: (name: string) => `Open ${name} in Google Maps`,
+  },
 } as const;
 
 export const pl: Shape<typeof en> = {
@@ -128,10 +135,17 @@ export const pl: Shape<typeof en> = {
     lowScoreB: (score) => `Wynik to tylko ${score}/5`,
     lowScoreC: ", a sprawdzenie dopasowania mówi: ",
     lowScoreD: ". Ten wyjazd może pasować lepiej, niż wskazują liczby.",
-    whyFits: "Dlaczego pasuje",
     watchOut: "Uwaga",
     swiped: (answer, statement) => `przesunięto „${answer}” przy: ${statement}`,
   },
   source: { sample: "Przykładowe dane TripAI", scorer: "Kalkulator TripAI" },
   handoff: { flights: "Loty w Google Flights", hotels: "Hotele w Booking.com" },
+  places: {
+    eat: "Gdzie zjeść",
+    do: "Co robić",
+    more: (n) => `+${n} więcej`,
+    less: "Zwiń",
+    forYou: "dla Ciebie",
+    openMaps: (name) => `Otwórz ${name} w Mapach Google`,
+  },
 };

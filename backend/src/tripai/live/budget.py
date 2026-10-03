@@ -190,3 +190,111 @@ def global_budget() -> SerpApiBudget:
     if _GLOBAL is None:
         _GLOBAL = SerpApiBudget()
     return _GLOBAL
+
+
+class WeeklyCap:
+    """At most `cap` real calls per key per ISO week, e.g. Serper Places: 2 per city per week
+    (TRIPAI_SERPER_PLACES_WEEKLY_CAP). Shared like the daily SerpApi counter: on disk and in the
+    Supabase `api_cache` row source="tripai:budget", cache_key="<name>:<key>:<YYYY-Www>"; each
+    take re-reads both and takes the max. Only real network calls should reach `take()`."""
+
+    def __init__(self, name: str, cap: int, root: Path | None = None) -> None:
+        self.name, self.cap, self.root = name, cap, root
+        self._locks: weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Lock] = (
+            weakref.WeakKeyDictionary()
+        )
+        self._used: dict[str, int] = {}
+
+    @staticmethod
+    def _week() -> str:
+        y, w, _ = datetime.now(UTC).isocalendar()
+        return f"{y}-W{w:02d}"
+
+    def _counter(self, key: str) -> str:
+        return f"{self.name}:{key}:{self._week()}"
+
+    def _path(self, counter: str) -> Path:
+        safe = counter.replace(":", "_").replace("/", "_")
+        return (self.root or config.cache_dir() / "_budget") / f"{safe}.json"
+
+    def _read_disk(self, counter: str) -> int:
+        try:
+            return int(json.loads(self._path(counter).read_text())["used"])
+        except (OSError, ValueError, KeyError, TypeError):
+            return 0
+
+    def _write_disk(self, counter: str, used: int) -> None:
+        path = self._path(counter)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps({"used": used, "counter": counter}))
+        except OSError as exc:
+            log.warning("weekly cap disk write failed: %s", exc)
+
+    async def _read_remote(self, counter: str) -> int:
+        sb = SerpApiBudget._supabase()
+        if sb is None:
+            return 0
+        try:
+            async with httpx.AsyncClient(timeout=5) as c:
+                resp = await c.get(
+                    sb[0],
+                    headers=sb[1],
+                    params={"source": f"eq.{SOURCE}", "cache_key": f"eq.{counter}",
+                            "select": "payload", "limit": "1"},
+                )  # fmt: skip
+                resp.raise_for_status()
+                rows = resp.json()
+            return int(rows[0]["payload"]["used"]) if rows else 0
+        except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError) as exc:
+            log.warning("weekly cap read from supabase failed: %s", exc)
+            return 0
+
+    async def _write_remote(self, counter: str, used: int) -> None:
+        sb = SerpApiBudget._supabase()
+        if sb is None:
+            return
+        now = datetime.now(UTC)
+        row = {
+            "source": SOURCE,
+            "cache_key": counter,
+            "payload": {"used": used, "counter": counter},
+            "fetched_at": now.isoformat(),
+            "expires_at": (now + timedelta(days=14)).isoformat(),
+        }
+        try:
+            async with httpx.AsyncClient(timeout=5) as c:
+                resp = await c.post(
+                    sb[0],
+                    headers={**sb[1], "Content-Type": "application/json",
+                             "Prefer": "resolution=merge-duplicates,return=minimal"},
+                    params={"on_conflict": "source,cache_key"},
+                    json=row,
+                )  # fmt: skip
+                resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            log.warning("weekly cap write to supabase failed: %s", exc)
+
+    async def take(self, key: str) -> int:
+        """Reserve one call for `key` this week or raise BudgetExhausted. Returns the new count."""
+        loop = asyncio.get_running_loop()
+        lock = self._locks.get(loop)
+        if lock is None:
+            lock = self._locks[loop] = asyncio.Lock()
+        async with lock:
+            counter = self._counter(key)
+            used = max(
+                self._used.get(counter, 0),
+                self._read_disk(counter),
+                await self._read_remote(counter),
+            )
+            if used >= self.cap:
+                self._used[counter] = used
+                raise BudgetExhausted(
+                    f"{self.name} weekly cap reached for {key} ({used}/{self.cap})"
+                )
+            used += 1
+            self._used[counter] = used
+            self._write_disk(counter, used)
+            await self._write_remote(counter, used)
+            return used

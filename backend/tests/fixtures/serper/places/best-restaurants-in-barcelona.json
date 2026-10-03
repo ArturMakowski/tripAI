@@ -1,0 +1,155 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "best restaurants in Barcelona, Spain"
+  }
+ },
+ "fetched_at": "2026-10-03T20:05:23.534316+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "best restaurants in Barcelona, Spain",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "El Nacional Barcelona",
+    "address": "Pg. de Gràcia, 24 Bis",
+    "latitude": 41.390583,
+    "longitude": 2.1683915,
+    "rating": 4.4,
+    "ratingCount": 41000,
+    "priceLevel": "€20–40",
+    "category": "Spanish",
+    "website": "https://www.elnacionalbcn.com/",
+    "cid": "787139403907623797"
+   },
+   {
+    "position": 2,
+    "title": "La Lolita Barcelona",
+    "address": "Rambla de Catalunya, 27, Loc",
+    "latitude": 41.388977,
+    "longitude": 2.1657512,
+    "rating": 4.6,
+    "ratingCount": 14000,
+    "priceLevel": "€20–30",
+    "category": "Halal",
+    "website": "http://www.lalolitarestaurante.com/",
+    "cid": "13124236537820212529"
+   },
+   {
+    "position": 3,
+    "title": "Viana Barcelona",
+    "address": "Carrer del Vidre, 7",
+    "latitude": 41.379814,
+    "longitude": 2.1761947,
+    "rating": 4.8,
+    "ratingCount": 5000,
+    "priceLevel": "€20–60",
+    "category": "Fusion restaurant",
+    "website": "http://www.vianabcn.com/?utm_source=google&utm_medium=organic&utm_campaign=gmb",
+    "cid": "13898587554268064603"
+   },
+   {
+    "position": 4,
+    "title": "Disfrutar",
+    "address": "Carrer de Villarroel, 163",
+    "latitude": 41.387794,
+    "longitude": 2.1531732,
+    "rating": 4.8,
+    "ratingCount": 3000,
+    "priceLevel": "€100+",
+    "category": "Fine Dining",
+    "website": "http://www.disfrutarbarcelona.com/",
+    "cid": "14810774391065622931"
+   },
+   {
+    "position": 5,
+    "title": "Restaurant La Boqueria",
+    "address": "Carrer de la Boqueria, 17",
+    "latitude": 41.38147,
+    "longitude": 2.1739929,
+    "rating": 4.7,
+    "ratingCount": 15000,
+    "priceLevel": "€20–30",
+    "category": "Mediterranean",
+    "website": "https://www.restaurantelaboqueria.com/",
+    "cid": "9608235316121477622"
+   },
+   {
+    "position": 6,
+    "title": "The Grill Barcelona",
+    "address": "Plaça Portal de la Pau, 4",
+    "latitude": 41.376846,
+    "longitude": 2.177443,
+    "rating": 4.8,
+    "ratingCount": 3000,
+    "priceLevel": "€20–40",
+    "category": "Mediterranean",
+    "website": "https://thegrillbarcelona.es/",
+    "cid": "116052914911791316"
+   },
+   {
+    "position": 7,
+    "title": "Prado de Flores Restaurant",
+    "address": "Carrer de Santa Anna, 11",
+    "latitude": 41.38515,
+    "longitude": 2.1711624,
+    "rating": 4.8,
+    "ratingCount": 16000,
+    "priceLevel": "€20–30",
+    "category": "Mediterranean",
+    "website": "https://pradodeflores.es/",
+    "cid": "7127055948886299275"
+   },
+   {
+    "position": 8,
+    "title": "ABANIC",
+    "address": "Carrer del Rosselló, 207",
+    "latitude": 41.392773,
+    "longitude": 2.156432,
+    "rating": 4.8,
+    "ratingCount": 12000,
+    "priceLevel": "€20–40",
+    "category": "Spanish",
+    "website": "https://reservation.dish.co/widget/hydra-f784ff55-a585-48a8-8343-48eaf7885b96",
+    "cid": "604710576804751107"
+   },
+   {
+    "position": 9,
+    "title": "Bodega Biarritz 1881",
+    "address": "Carrer Nou de Sant Francesc, 7",
+    "latitude": 41.37919,
+    "longitude": 2.1770568,
+    "rating": 4.7,
+    "ratingCount": 9000,
+    "priceLevel": "€20–30",
+    "category": "Tapas",
+    "website": "https://www.bodega-biarritz.es/",
+    "cid": "13354337743182678467"
+   },
+   {
+    "position": 10,
+    "title": "Can Plaça",
+    "address": "Rambla de Catalunya, 8",
+    "latitude": 41.38799,
+    "longitude": 2.1679544,
+    "rating": 4.7,
+    "ratingCount": 6000,
+    "priceLevel": "€20–30",
+    "category": "Restaurant",
+    "cid": "889259835000928522"
+   }
+  ],
+  "credits": 1
+ }
+}

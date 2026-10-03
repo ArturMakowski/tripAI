@@ -408,6 +408,25 @@ refined.
 **Cost.** No extra SerpApi calls: everything comes from the searches pricing already makes. Fixture-served details are tagged
 `[recorded fixture]` / `[synthetic fixture]` like evidence.
 
+## Where to eat / what to do (T14): `GET /destinations/{iata}/places`
+
+- `GET /destinations/FCO/places?lang=pl&interests=food:0.9,hiking:0.7&limit=3` returns `DestinationPlaces`, with the top
+  `restaurants` and `things_to_do` from Google Maps via Serper Places (`tripai.live.places`). Each place has a name, ★ rating,
+  review count, Google's own `price_level` text (restaurants only; `null` when Google gives none, and we never fill it in),
+  a category localised to PL/EN (`null` in PL when there is no translation), address, Maps link, `source` and `fetched_at`.
+- Spend: each city gets two fixed searches ("best restaurants in X" and "top attractions in X", `hl=en` for every language). They are
+  cached for 7 days in api_cache (`serper:places`), and a hard cap allows at most 2 real Serper calls per city per ISO week
+  (`WeeklyCap`, counter row `tripai:budget` / `serper_places:<city>:<week>`, override with `TRIPAI_SERPER_PLACES_WEEKLY_CAP`).
+- Interests re-rank the cached results and never trigger another search: `hiking`/`nature` → parks and viewpoints,
+  `history`/`art`/`beach`/`nightlife` → the matching places, and a strong `food` interest → `food_first`. A list can be
+  empty for one of these reasons, given in `notes`: `budget`, `not_recorded` (fixture mode) or `unavailable`.
+- Fixtures: `backend/tests/fixtures/serper/places/` has recorded restaurant searches for Rome, Lisbon, Barcelona,
+  Athens, Porto and Prague, and attraction searches for 10 cities.
+- UI: on the receipt, the "Why it fits you" list is replaced by compact **Gdzie zjeść / Co robić** rows
+  (`★4.6 · 2.1k · €20–30 · Italian`, tap → Google Maps). Each list shows 3 rows and puts the rest behind "+N more"
+  (`components/places-section.tsx`). The rows come through the same-origin `/api` proxy and are never mocked: if
+  nothing is sourced, there is no section.
+
 ## Private backend (T12)
 
 The backend is not meant to be called from the internet. The browser only talks to the frontend; the frontend's

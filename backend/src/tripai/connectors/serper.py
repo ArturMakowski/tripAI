@@ -48,6 +48,7 @@ class Place(BaseModel):
     lon: float | None = None
     rating: float | None = None
     rating_count: int | None = None
+    price_level: str | None = None  # as Google shows it ("€20–30", "$$"); absent = unknown
     website: str | None = None
     cid: str | None = None
 
@@ -113,6 +114,7 @@ def parse_places(payload: dict, fetched_at: datetime, query: str) -> PlaceResult
                 lon=p.get("longitude"),
                 rating=p.get("rating"),
                 rating_count=p.get("ratingCount"),
+                price_level=p.get("priceLevel") or None,
                 website=p.get("website"),
                 cid=str(p["cid"]) if p.get("cid") else None,
             )

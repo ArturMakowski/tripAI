@@ -57,6 +57,7 @@ export function sourceName(source: string): string {
     [/nager/, "Nager.Date"],
     [/liteapi/, "LiteAPI"],
     [/gcal/, "Google Calendar"],
+    [/serper:places/, "Google Maps"],
     [/tripai\.scoring/, "TripAI scorer"],
     [/osrm/, "OSRM · OpenStreetMap"],
   ];

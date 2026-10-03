@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { AlertTriangle, ArrowDownRight, Fingerprint, HeartHandshake, Scale } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, Fingerprint, Scale } from "lucide-react";
 import { FitBadge } from "@/components/fit-badge";
 import type { Lang } from "@/lib/dna";
 import { disagreement, dnaQuotes, fitMeta, modelLabel } from "@/lib/fit";
@@ -116,19 +116,6 @@ export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; 
           </div>
         )}
       </div>
-
-      {fit.matches.length > 0 && (
-        <>
-          <h3 className="mt-5 mb-3 flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-pine uppercase">
-            <HeartHandshake className="size-4" aria-hidden /> {c.whyFits}
-          </h3>
-          <ul className="space-y-2">
-            {fit.matches.map((p, i) => (
-              <Point key={i} p={p} rec={rec} profile={profile} lang={lang} tone="match" />
-            ))}
-          </ul>
-        </>
-      )}
 
       {fit.concerns.length > 0 && (
         <>

@@ -1,0 +1,153 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "best restaurants in Lisbon, Portugal"
+  }
+ },
+ "fetched_at": "2026-10-03T20:05:21.649281+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "best restaurants in Lisbon, Portugal",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "A Nossa Casa",
+    "address": "R. da Atalaia 31",
+    "latitude": 38.711845,
+    "longitude": -9.144944,
+    "rating": 4.8,
+    "ratingCount": 2000,
+    "priceLevel": "€30–50",
+    "category": "Restaurant",
+    "cid": "13872759130300370656"
+   },
+   {
+    "position": 2,
+    "title": "Come Prima",
+    "address": "R. do Olival 258",
+    "latitude": 38.70485,
+    "longitude": -9.166347,
+    "rating": 4.9,
+    "ratingCount": 11000,
+    "priceLevel": "€25–50",
+    "category": "Italian",
+    "website": "https://www.comeprima.pt/",
+    "cid": "3730270020541380673"
+   },
+   {
+    "position": 3,
+    "title": "Alma",
+    "address": "R. Anchieta 15",
+    "latitude": 38.71015,
+    "longitude": -9.141118,
+    "rating": 4.7,
+    "ratingCount": 1000,
+    "priceLevel": "€50+",
+    "category": "Restaurant",
+    "website": "https://www.almalisboa.pt/",
+    "cid": "12251236553371376947"
+   },
+   {
+    "position": 4,
+    "title": "Taberna do Bairro alto",
+    "address": "Tv. da Boa Hora 27",
+    "latitude": 38.713802,
+    "longitude": -9.144798,
+    "rating": 4.7,
+    "ratingCount": 8000,
+    "priceLevel": "€20–40",
+    "category": "Portuguese",
+    "website": "https://tabernadobairroalto.com/",
+    "cid": "4107014207001891314"
+   },
+   {
+    "position": 5,
+    "title": "El Clan - Restaurante Português",
+    "address": "R. Dom Duarte 4A",
+    "latitude": 38.714577,
+    "longitude": -9.137357,
+    "rating": 4.7,
+    "ratingCount": 5000,
+    "priceLevel": "€15–35",
+    "category": "Portuguese",
+    "cid": "8877361517152356960"
+   },
+   {
+    "position": 6,
+    "title": "Lisbon Tu e Eu",
+    "address": "R da Adiça 58",
+    "latitude": 38.710953,
+    "longitude": -9.130053,
+    "rating": 4.5,
+    "ratingCount": 5000,
+    "priceLevel": "€15–25",
+    "category": "Restaurant",
+    "cid": "4809647804127938555"
+   },
+   {
+    "position": 7,
+    "title": "Belcanto",
+    "address": "R. Serpa Pinto 10A",
+    "latitude": 38.7101,
+    "longitude": -9.141465,
+    "rating": 4.6,
+    "ratingCount": 1000,
+    "priceLevel": "€50+",
+    "category": "Portuguese",
+    "website": "https://www.belcanto.pt/",
+    "cid": "9265599208299512413"
+   },
+   {
+    "position": 8,
+    "title": "Santa Joana",
+    "address": "R. de Santa Marta 61B",
+    "latitude": 38.725567,
+    "longitude": -9.147121,
+    "rating": 4.8,
+    "ratingCount": 937,
+    "priceLevel": "€50+",
+    "category": "Restaurant",
+    "website": "https://www.santajoanalisboa.com/",
+    "cid": "5217060255369610699"
+   },
+   {
+    "position": 9,
+    "title": "Salta",
+    "address": "R. Rodrigo da Fonseca 82A",
+    "latitude": 38.72432,
+    "longitude": -9.154317,
+    "rating": 4.8,
+    "ratingCount": 1000,
+    "priceLevel": "€50+",
+    "category": "Restaurant",
+    "website": "http://www.salta.pt/",
+    "cid": "682103908794581938"
+   },
+   {
+    "position": 10,
+    "title": "Sala de Corte",
+    "address": "Praça Dom Luís I 7",
+    "latitude": 38.70688,
+    "longitude": -9.14705,
+    "rating": 4.5,
+    "ratingCount": 3000,
+    "priceLevel": "€50+",
+    "category": "Steak",
+    "website": "https://www.saladecorte.pt/",
+    "cid": "8188664677872892116"
+   }
+  ],
+  "credits": 1
+ }
+}

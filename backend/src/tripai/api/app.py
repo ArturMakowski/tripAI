@@ -6,7 +6,7 @@ import logging
 from datetime import date, datetime, timedelta
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Path, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from tripai import i18n
@@ -40,6 +40,7 @@ from tripai.api.session import session_user
 from tripai.api.spend import forget as forget_spend
 from tripai.api.spend import spend_history
 from tripai.api.state import MemoryStore, Store
+from tripai.live.places import DestinationPlaces, PlacesService, parse_interests
 from tripai.models import FreeWindow, TasteProfile, Weights
 from tripai.notify.push import WebPusher
 from tripai.notify.store import NotifyStore
@@ -82,6 +83,7 @@ def create_app(
     store: Store | None = None,
     notify_store: NotifyStore | None = None,
     pusher: WebPusher | None = None,
+    places: PlacesService | None = None,
 ) -> FastAPI:
     provider = provider or FixtureProvider()
     calendar = calendar or FixtureCalendar()
@@ -130,6 +132,24 @@ def create_app(
     @app.get("/cities")
     async def cities(origin: str = "KRK") -> list[CityInfo]:
         return await provider.cities(origin)
+
+    places = places or PlacesService()
+
+    @app.get("/destinations/{iata}/places")
+    async def destination_places(
+        iata: Annotated[str, Path(pattern=r"^[A-Za-z]{3}$")],
+        interests: Annotated[str | None, Query(max_length=300)] = None,
+        lang: str | None = None,  # also applied by LanguageMiddleware
+        limit: Annotated[int, Query(ge=1, le=5)] = 3,
+    ) -> DestinationPlaces:
+        """Top restaurants + things to do (Serper Places, cached 7 days, max 2 calls per city
+        per week). `interests`: "food:0.9,hiking:0.7" re-ranks toward the user's taste."""
+        try:
+            return await places.get(
+                iata.upper(), parse_interests(interests), lang=use_lang(lang), limit=limit
+            )
+        except KeyError:
+            raise HTTPException(404, f"unknown destination {iata!r}") from None
 
     @app.post("/interview")
     async def post_interview(req: InterviewRequest, uid: User) -> InterviewResult:
