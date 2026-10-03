@@ -155,6 +155,8 @@ class Recommendation(BaseModel):
     highlights: list[str] = Field(default_factory=list)  # matching attractions
     why: str = ""  # LLM-written, grounded only in evidence
     fit: FitVerdict | None = None
+    value_badge: str | None = None  # "great_value" | "worth_splurge" (docs/BUDGET.md)
+    value_reason: str | None = None  # deterministic, numbers from evidence
     flight: FlightDetails | None = None  # which flight (docs/TRIP_DETAILS.md)
     hotel: HotelDetails | None = (
         None  # which hotel, where, transfers, distance to centre  # AI fit verdict vs Travel DNA (docs/FIT_VERDICT.md)
