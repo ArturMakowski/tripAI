@@ -33,3 +33,12 @@
 - **Monetization:** free recommendations; affiliate commission (never paid ranking); Premium ~19 zł/month
   (monitoring/alerts, group trips, later cost splitting).
 - **Data sources:** seeded open data (Eurostat, OSM, Wikimedia) + live Google (SerpApi), Travelpayouts, Open-Meteo.
+
+## Round 3 (3rd tester, 3 Oct late)
+- Welcome screen before the tutorial; tutorial previews must look static (tester tapped "To ja" in the tutorial)
+- 2nd declutter pass: no percentages on cards / above the fold
+- Evidence chips folded into one "Źródła" toggle
+- Calendar quick filters mutually exclusive
+- DNA card photos must illustrate each statement
+- Modlin = "Warszawa-Modlin (WMI)", grouped with Warszawa
+- Liked: swipe quiz, budget slider, airport picking, bank holidays
