@@ -1,0 +1,156 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "best restaurants in Athens, Greece"
+  }
+ },
+ "fetched_at": "2026-10-03T20:05:25.879965+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "best restaurants in Athens, Greece",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Karamanlidika",
+    "address": "Evripidou 52",
+    "latitude": 37.98015,
+    "longitude": 23.725618,
+    "rating": 4.7,
+    "ratingCount": 14000,
+    "priceLevel": "€15–25",
+    "category": "Greek",
+    "website": "https://karamanlidika.gr/",
+    "cid": "5999494582262053925"
+   },
+   {
+    "position": 2,
+    "title": "A Little Taste of Home Restaurant",
+    "address": "Astiggos 8",
+    "latitude": 37.976765,
+    "longitude": 23.722967,
+    "rating": 4.8,
+    "ratingCount": 2000,
+    "priceLevel": "€20–40",
+    "category": "Restaurant",
+    "website": "https://alittletasteofhome.gr/",
+    "cid": "8522904539427304303"
+   },
+   {
+    "position": 3,
+    "title": "MIRONI Restaurant - Greek Kitchen",
+    "address": "Meg. Alexandrou 7",
+    "latitude": 37.98465,
+    "longitude": 23.721407,
+    "rating": 4.8,
+    "ratingCount": 6000,
+    "priceLevel": "€15–35",
+    "category": "Greek",
+    "website": "http://mironi.gr/",
+    "cid": "15195474458917689830"
+   },
+   {
+    "position": 4,
+    "title": "Ατίταμος",
+    "address": "Kapodistriou 2",
+    "latitude": 37.986115,
+    "longitude": 23.732372,
+    "rating": 4.7,
+    "ratingCount": 8000,
+    "priceLevel": "€15–25",
+    "category": "Greek",
+    "website": "https://www.atitamosathens.gr/",
+    "cid": "10088116399583747173"
+   },
+   {
+    "position": 5,
+    "title": "Bandiera",
+    "address": "Taki 19",
+    "latitude": 37.978313,
+    "longitude": 23.72385,
+    "rating": 4.8,
+    "ratingCount": 5000,
+    "priceLevel": "€15–25",
+    "category": "Restaurant",
+    "website": "https://www.instagram.com/bandiera_psirri",
+    "cid": "11536065707198570224"
+   },
+   {
+    "position": 6,
+    "title": "Soil restaurant",
+    "address": "Ferekidou 5",
+    "latitude": 37.966957,
+    "longitude": 23.743067,
+    "rating": 4.8,
+    "ratingCount": 1000,
+    "priceLevel": "€50+",
+    "category": "Fine Dining",
+    "website": "https://www.soilrestaurant.gr/",
+    "cid": "10499192488176205146"
+   },
+   {
+    "position": 7,
+    "title": "Athena 's Cook",
+    "address": "Nikis 20",
+    "latitude": 37.974483,
+    "longitude": 23.733007,
+    "rating": 4.7,
+    "ratingCount": 5000,
+    "priceLevel": "€15–40",
+    "category": "Restaurant",
+    "website": "http://athenascook.gr/",
+    "cid": "8300082928275262835"
+   },
+   {
+    "position": 8,
+    "title": "Alysso Restaurant",
+    "address": "Ναυάρχου Αποστόλη 11",
+    "latitude": 37.97776,
+    "longitude": 23.722986,
+    "rating": 4.9,
+    "ratingCount": 1000,
+    "priceLevel": "€15–35",
+    "category": "Restaurant",
+    "website": "https://alyssorestaurant.gr/",
+    "cid": "17601930577996600644"
+   },
+   {
+    "position": 9,
+    "title": "LIONDI Traditional Greek Restaurant",
+    "address": "Makrigianni 19-21",
+    "latitude": 37.968212,
+    "longitude": 23.729477,
+    "rating": 4.7,
+    "ratingCount": 7000,
+    "priceLevel": "€15–40",
+    "category": "Greek",
+    "website": "https://www.liondi.com/",
+    "cid": "6013753696473717695"
+   },
+   {
+    "position": 10,
+    "title": "The New Era Authentic Greek Cuisine",
+    "address": "Perikleous 30-32",
+    "latitude": 37.976738,
+    "longitude": 23.731245,
+    "rating": 4.8,
+    "ratingCount": 2000,
+    "priceLevel": "€15–25",
+    "category": "Greek",
+    "website": "https://www.theneweraathens.gr/",
+    "cid": "18279978152315850436"
+   }
+  ],
+  "credits": 1
+ }
+}

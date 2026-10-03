@@ -11,7 +11,7 @@ Async httpx clients. Every result is a pydantic `SourcedResult` with `source` an
 | `Travelpayouts` | `month_calendar("KRK","FCO","2027-01")` (v3 grouped_prices), `prices_for_dates(...)` | `travelpayouts:*` | `TRAVELPAYOUTS_TOKEN` |
 | `OpenMeteo` | `weather(lat, lon, start, end)` → forecast if ≤16 days ahead, else same-dates average of the last 3 years (ERA5 archive) | `open-meteo:forecast` / `open-meteo:archive` | none |
 | `GCalFreeBusy` | `query(start, end)` → busy blocks, `.free_days()`, `.free_windows(min_days)` → `FreeWindow[]` | `gcal:freebusy` | OAuth (below) |
-| `Serper` | `city_images("Rome", country="Italy")` → `.best()` hero photo; `places("Rome", country="Italy")` → `.top()` attractions with ratings | `serper:images` / `serper:places` | `SERPER_API_KEY` |
+| `Serper` | `city_images("Rome", country="Italy")` → `.best()` hero photo; `places("Rome", country="Italy", what="best restaurants")` → `.top()` places with ratings, `price_level` as Google shows it | `serper:images` / `serper:places` | `SERPER_API_KEY` |
 | `fli_dates.search_dates` | optional fallback if SerpApi quota is gone (not a dependency) | `google_flights_via_fli` | none |
 
 All prices are in PLN (`currency` field on each result). Failures raise `ConnectorError`

@@ -1,0 +1,154 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "best restaurants in Porto, Portugal"
+  }
+ },
+ "fetched_at": "2026-10-03T20:05:27.417042+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "best restaurants in Porto, Portugal",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "The Door",
+    "address": "Rua do Almada 335",
+    "latitude": 41.14979,
+    "longitude": -8.612158,
+    "rating": 4.8,
+    "ratingCount": 2000,
+    "priceLevel": "€25–50",
+    "category": "Restaurant",
+    "website": "http://www.instagram.com/thedoor.porto",
+    "cid": "9043535310651487355"
+   },
+   {
+    "position": 2,
+    "title": "Bota & Bira",
+    "address": "R. do Comércio do Porto 191",
+    "latitude": 41.142414,
+    "longitude": -8.615806,
+    "rating": 4.8,
+    "ratingCount": 2000,
+    "category": "Restaurant",
+    "website": "https://botaebira.com/",
+    "cid": "2835182219376449568"
+   },
+   {
+    "position": 3,
+    "title": "Flow Restaurant & Bar",
+    "address": "Rua da Conceição 63",
+    "latitude": 41.14988,
+    "longitude": -8.614577,
+    "rating": 4.6,
+    "ratingCount": 3000,
+    "priceLevel": "€50+",
+    "category": "Fusion restaurant",
+    "website": "http://www.flowrestaurant.pt/",
+    "cid": "8059690471843600416"
+   },
+   {
+    "position": 4,
+    "title": "Dama Pé de Cabra",
+    "address": "Passeio de São Lázaro 5",
+    "latitude": 41.145786,
+    "longitude": -8.603329,
+    "rating": 4.9,
+    "ratingCount": 1000,
+    "priceLevel": "€20–50",
+    "category": "Restaurant",
+    "website": "https://www.instagram.com/damapedecabra/",
+    "cid": "12356272897430534837"
+   },
+   {
+    "position": 5,
+    "title": "A Despensa",
+    "address": "R. do Conde de Vizela 141",
+    "latitude": 41.14725,
+    "longitude": -8.613547,
+    "rating": 4.8,
+    "ratingCount": 6000,
+    "priceLevel": "€20–50",
+    "category": "Italian",
+    "website": "http://grupodespensa.com/",
+    "cid": "18372978244464134676"
+   },
+   {
+    "position": 6,
+    "title": "Almada Terrace",
+    "address": "Rua do Almada 362",
+    "latitude": 41.1498,
+    "longitude": -8.612032,
+    "rating": 4.8,
+    "ratingCount": 1000,
+    "priceLevel": "€25–50",
+    "category": "Restaurant",
+    "cid": "17941517945934340024"
+   },
+   {
+    "position": 7,
+    "title": "Brasão Aliados",
+    "address": "R. de Ramalho Ortigão 28",
+    "latitude": 41.149155,
+    "longitude": -8.611789,
+    "rating": 4.6,
+    "ratingCount": 17000,
+    "priceLevel": "€15–35",
+    "category": "Restaurant",
+    "website": "http://www.brasao.pt/",
+    "cid": "17008510895279498101"
+   },
+   {
+    "position": 8,
+    "title": "Muu Steakhouse",
+    "address": "Rua do Almada 149A",
+    "latitude": 41.14758,
+    "longitude": -8.612203,
+    "rating": 4.9,
+    "ratingCount": 4000,
+    "priceLevel": "€50+",
+    "category": "Steak",
+    "website": "http://www.muusteakhouse.com/",
+    "cid": "9922574242635355044"
+   },
+   {
+    "position": 9,
+    "title": "À Bolina",
+    "address": "Av. Gustavo Eiffel 204",
+    "latitude": 41.141373,
+    "longitude": -8.607929,
+    "rating": 4.8,
+    "ratingCount": 2000,
+    "priceLevel": "€15–35",
+    "category": "Portuguese",
+    "website": "http://www.abolinabar.com/",
+    "cid": "9986015366666711163"
+   },
+   {
+    "position": 10,
+    "title": "Porta 4",
+    "address": "R. do Dr. Barbosa de Castro 4",
+    "latitude": 41.14352,
+    "longitude": -8.617956,
+    "rating": 4.7,
+    "ratingCount": 1000,
+    "priceLevel": "€25–45",
+    "category": "Restaurant",
+    "website": "https://linktr.ee/porta4",
+    "cid": "16190666397984569211"
+   }
+  ],
+  "credits": 1
+ }
+}

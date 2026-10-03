@@ -190,3 +190,162 @@ def global_budget() -> SerpApiBudget:
     if _GLOBAL is None:
         _GLOBAL = SerpApiBudget()
     return _GLOBAL
+
+
+class WeeklyCap:
+    """At most `cap` SUCCESSFUL real calls per key per ISO week, e.g. Serper Places: 2 per city
+    per week (TRIPAI_SERPER_PLACES_WEEKLY_CAP).
+
+    `take()` reserves a slot (in-flight reservations count, so concurrent callers in one process
+    can't overshoot); the caller then `commit()`s it on success or `release()`s it on failure, so
+    an upstream error never burns the week's budget. Attempts (successes + failures) are bounded by
+    `cap + slack` so a flapping upstream can't be retried forever. Shared like the daily SerpApi
+    counter: on disk and in the Supabase `api_cache` row source="tripai:budget",
+    cache_key="<name>:<key>:<YYYY-Www>", payload {"used", "tries"}; every take re-reads both and
+    takes the max. Separate processes may overshoot by a call (read-modify-write), which the slack
+    also covers. Only real network calls should reach `take()`."""
+
+    def __init__(self, name: str, cap: int, root: Path | None = None, slack: int = 2) -> None:
+        self.name, self.cap, self.root, self.slack = name, cap, root, slack
+        self._locks: weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Lock] = (
+            weakref.WeakKeyDictionary()
+        )
+        self._state: dict[str, dict[str, int]] = {}  # counter -> {"used", "tries"}
+        self._pending: dict[str, int] = {}  # counter -> reservations in flight (this process)
+
+    @staticmethod
+    def _week() -> str:
+        y, w, _ = datetime.now(UTC).isocalendar()
+        return f"{y}-W{w:02d}"
+
+    def _counter(self, key: str) -> str:
+        return f"{self.name}:{key}:{self._week()}"
+
+    def _path(self, counter: str) -> Path:
+        safe = counter.replace(":", "_").replace("/", "_")
+        return (self.root or config.cache_dir() / "_budget") / f"{safe}.json"
+
+    def _lock(self) -> asyncio.Lock:
+        loop = asyncio.get_running_loop()
+        lock = self._locks.get(loop)
+        if lock is None:
+            lock = self._locks[loop] = asyncio.Lock()
+        return lock
+
+    @staticmethod
+    def _parse(payload: Any) -> dict[str, int]:
+        try:
+            used = int(payload.get("used", 0))
+            return {"used": used, "tries": max(used, int(payload.get("tries", used)))}
+        except (AttributeError, ValueError, TypeError):
+            return {"used": 0, "tries": 0}
+
+    def _read_disk(self, counter: str) -> dict[str, int]:
+        try:
+            return self._parse(json.loads(self._path(counter).read_text()))
+        except (OSError, ValueError):
+            return {"used": 0, "tries": 0}
+
+    def _write_disk(self, counter: str, state: dict[str, int]) -> None:
+        path = self._path(counter)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps({**state, "counter": counter}))
+        except OSError as exc:
+            log.warning("weekly cap disk write failed: %s", exc)
+
+    async def _read_remote(self, counter: str) -> dict[str, int]:
+        sb = SerpApiBudget._supabase()
+        if sb is None:
+            return {"used": 0, "tries": 0}
+        try:
+            async with httpx.AsyncClient(timeout=5) as c:
+                resp = await c.get(
+                    sb[0],
+                    headers=sb[1],
+                    params={"source": f"eq.{SOURCE}", "cache_key": f"eq.{counter}",
+                            "select": "payload", "limit": "1"},
+                )  # fmt: skip
+                resp.raise_for_status()
+                rows = resp.json()
+            return self._parse(rows[0]["payload"]) if rows else {"used": 0, "tries": 0}
+        except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError) as exc:
+            log.warning("weekly cap read from supabase failed: %s", exc)
+            return {"used": 0, "tries": 0}
+
+    async def _write_remote(self, counter: str, state: dict[str, int]) -> None:
+        sb = SerpApiBudget._supabase()
+        if sb is None:
+            return
+        now = datetime.now(UTC)
+        row = {
+            "source": SOURCE,
+            "cache_key": counter,
+            "payload": {**state, "counter": counter},
+            "fetched_at": now.isoformat(),
+            "expires_at": (now + timedelta(days=14)).isoformat(),
+        }
+        try:
+            async with httpx.AsyncClient(timeout=5) as c:
+                resp = await c.post(
+                    sb[0],
+                    headers={**sb[1], "Content-Type": "application/json",
+                             "Prefer": "resolution=merge-duplicates,return=minimal"},
+                    params={"on_conflict": "source,cache_key"},
+                    json=row,
+                )  # fmt: skip
+                resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            log.warning("weekly cap write to supabase failed: %s", exc)
+
+    async def _load(self, counter: str) -> dict[str, int]:
+        states = [
+            self._state.get(counter, {}),
+            self._read_disk(counter),
+            await self._read_remote(counter),
+        ]
+        state = {f: max(s.get(f, 0) for s in states) for f in ("used", "tries")}
+        self._state[counter] = state
+        return state
+
+    async def _save(self, counter: str, state: dict[str, int]) -> None:
+        self._state[counter] = state
+        self._write_disk(counter, state)
+        await self._write_remote(counter, state)
+
+    async def take(self, key: str) -> str:
+        """Reserve one call for `key` this week or raise BudgetExhausted. Returns the token
+        to pass to `commit()` / `release()`."""
+        async with self._lock():
+            counter = self._counter(key)
+            state = await self._load(counter)
+            pending = self._pending.get(counter, 0)
+            if state["used"] + pending >= self.cap:
+                raise BudgetExhausted(
+                    f"{self.name} weekly cap reached for {key} "
+                    f"({state['used']}/{self.cap}, {pending} in flight)"
+                )
+            if state["tries"] >= self.cap + self.slack:
+                raise BudgetExhausted(
+                    f"{self.name} weekly attempts exhausted for {key} "
+                    f"({state['tries']} tries, {state['used']} ok)"
+                )
+            self._pending[counter] = pending + 1
+            await self._save(counter, {**state, "tries": state["tries"] + 1})
+            return counter
+
+    async def commit(self, token: str) -> int:
+        """The reserved call succeeded: it counts against the cap. Returns the success count."""
+        async with self._lock():
+            self._pending[token] = max(0, self._pending.get(token, 0) - 1)
+            state = await self._load(token)
+            await self._save(token, {**state, "used": state["used"] + 1})
+            return state["used"] + 1
+
+    async def release(self, token: str) -> None:
+        """The reserved call failed: free the slot (the attempt still counts toward the slack)."""
+        async with self._lock():
+            self._pending[token] = max(0, self._pending.get(token, 0) - 1)
+
+    async def used(self, key: str) -> dict[str, int]:
+        return dict(await self._load(self._counter(key)))

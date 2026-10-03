@@ -41,32 +41,44 @@ function scrollToRow(i: number) {
     );
 }
 
+/** DECLUTTER: the strongest claims only; the receipt below carries the rest. */
+const MAX_CLAIMS = 3;
+
 function Point({ p, rec, profile, lang, tone }: { p: FitPoint; rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang; tone: "match" | "concern" }) {
+  const { t } = useT();
   const quotes = dnaQuotes(p.dna, profile, lang);
+  const cited = p.evidence.filter((i) => rec.evidence[i]);
   return (
     <li className={cn("rounded-2xl border bg-card p-3.5 shadow-soft", tone === "concern" ? "border-clay/30" : "border-line")}>
       <p className="text-sm leading-snug font-medium text-ink">{p.text}</p>
-      {quotes.map((q) => (
-        <p key={q} className="mt-1.5 flex gap-1.5 text-xs leading-snug text-ink-soft">
-          <Fingerprint className="mt-px size-3.5 shrink-0 text-clay" aria-hidden />
-          {q}
-        </p>
-      ))}
-      {p.evidence.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {p.evidence
-            .filter((i) => rec.evidence[i])
-            .map((i) => (
-              <button
-                key={i}
-                onClick={() => jumpTo(i)}
-                className="inline-flex items-center gap-1 rounded-full bg-paper-deep px-2.5 py-1 text-xs text-ink-soft hover:bg-pine-soft hover:text-pine-deep"
-              >
-                <ArrowDownRight className="size-3" aria-hidden />
-                {rec.evidence[i].label}
-              </button>
-            ))}
-        </div>
+      {/* DECLUTTER: bold claim only; swipe quotes and cited sources are one tap away */}
+      {(quotes.length > 0 || cited.length > 0) && (
+        <details className="group mt-1">
+          <summary className="cursor-pointer list-none text-xs text-muted-foreground hover:text-pine [&::-webkit-details-marker]:hidden">
+            {quotes.length > 0 ? t.receipt.fit.becauseSwiped : t.receipt.fit.sources(cited.length)}{" "}
+            <span className="inline-block transition-transform group-open:rotate-90">›</span>
+          </summary>
+          {quotes.map((q) => (
+            <p key={q} className="mt-1.5 flex gap-1.5 text-xs leading-snug text-ink-soft">
+              <Fingerprint className="mt-px size-3.5 shrink-0 text-clay" aria-hidden />
+              {q}
+            </p>
+          ))}
+          {cited.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {cited.map((i) => (
+                <button
+                  key={i}
+                  onClick={() => jumpTo(i)}
+                  className="inline-flex items-center gap-1 rounded-full bg-paper-deep px-2.5 py-1 text-xs text-ink-soft hover:bg-pine-soft hover:text-pine-deep"
+                >
+                  <ArrowDownRight className="size-3" aria-hidden />
+                  {rec.evidence[i].label}
+                </button>
+              ))}
+            </div>
+          )}
+        </details>
       )}
     </li>
   );
@@ -123,7 +135,7 @@ export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; 
             <HeartHandshake className="size-4" aria-hidden /> {c.whyFits}
           </h3>
           <ul className="space-y-2">
-            {fit.matches.map((p, i) => (
+            {fit.matches.slice(0, MAX_CLAIMS).map((p, i) => (
               <Point key={i} p={p} rec={rec} profile={profile} lang={lang} tone="match" />
             ))}
           </ul>

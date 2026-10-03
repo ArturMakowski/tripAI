@@ -1,0 +1,155 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "best restaurants in Rome, Italy"
+  }
+ },
+ "fetched_at": "2026-10-03T20:05:18.952535+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "best restaurants in Rome, Italy",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Tonnarello",
+    "address": "V. della Paglia, 1/2/3",
+    "latitude": 41.889805,
+    "longitude": 12.4693,
+    "rating": 4.7,
+    "ratingCount": 110000,
+    "priceLevel": "€20–30",
+    "category": "Roman",
+    "website": "https://tonnarello.it/",
+    "cid": "4669838674805706072"
+   },
+   {
+    "position": 2,
+    "title": "Cantina e Cucina",
+    "address": "V. del Governo Vecchio, 87",
+    "latitude": 41.89795,
+    "longitude": 12.471638,
+    "rating": 4.7,
+    "ratingCount": 18000,
+    "priceLevel": "€20–30",
+    "category": "Italian",
+    "website": "http://www.cantinaecucina.it/",
+    "cid": "6011452511059470225"
+   },
+   {
+    "position": 3,
+    "title": "Ambrosia Rooftop Restaurant & Bar",
+    "address": "Via Nazionale, 22/Int.B",
+    "latitude": 41.90082,
+    "longitude": 12.493651,
+    "rating": 4.6,
+    "ratingCount": 2000,
+    "category": "Italian",
+    "website": "https://www.hotelartemide.it/ambrosia-rooftop-restaurant-bar?utm_source=google&utm_medium=organic&utm_campaign=gmb_ambrosia",
+    "cid": "16652163949420707478"
+   },
+   {
+    "position": 4,
+    "title": "CiPASSO",
+    "address": "Via Metastasio, 21",
+    "latitude": 41.902023,
+    "longitude": 12.475891,
+    "rating": 4.8,
+    "ratingCount": 5000,
+    "priceLevel": "€40–90",
+    "category": "Italian",
+    "website": "https://www.cipassoitalia.it/",
+    "cid": "3580024099131238394"
+   },
+   {
+    "position": 5,
+    "title": "Taverna dei migliori",
+    "address": "Viale Manzoni, 107",
+    "latitude": 41.8941,
+    "longitude": 12.510938,
+    "rating": 4.6,
+    "ratingCount": 5000,
+    "priceLevel": "€20–30",
+    "category": "Italian",
+    "website": "https://www.tavernadeimigliori.com/",
+    "cid": "17637530581758663177"
+   },
+   {
+    "position": 6,
+    "title": "Tonnarello San Pietro",
+    "address": "Via del Mascherino, 80",
+    "latitude": 41.904854,
+    "longitude": 12.458959,
+    "rating": 4.8,
+    "ratingCount": 11000,
+    "priceLevel": "€20–30",
+    "category": "Restaurant",
+    "website": "https://www.tonnarellosanpietro.it/",
+    "cid": "2635276832738678101"
+   },
+   {
+    "position": 7,
+    "title": "Pane e Salame",
+    "address": "Via Santa Maria in Via, 19",
+    "latitude": 41.900627,
+    "longitude": 12.481772,
+    "rating": 4.8,
+    "ratingCount": 8000,
+    "priceLevel": "€10–20",
+    "category": "Italian",
+    "website": "https://www.facebook.com/panesalameroma/",
+    "cid": "16023933216777999937"
+   },
+   {
+    "position": 8,
+    "title": "Achille Al Pantheon di Habana",
+    "address": "Via dei Pastini, 120",
+    "latitude": 41.899445,
+    "longitude": 12.478056,
+    "rating": 4.8,
+    "ratingCount": 19000,
+    "priceLevel": "€10–20",
+    "category": "Italian",
+    "website": "https://achillealpantheon.it/",
+    "cid": "8284184835978678304"
+   },
+   {
+    "position": 9,
+    "title": "Tonnarello Pantheon",
+    "address": "Piazza Capranica, 77",
+    "latitude": 41.89976,
+    "longitude": 12.477711,
+    "rating": 4.8,
+    "ratingCount": 2000,
+    "priceLevel": "€20–30",
+    "category": "Italian",
+    "website": "https://www.tonnarello.it/",
+    "cid": "18080152948667162127"
+   },
+   {
+    "position": 10,
+    "title": "Vattani Elegant Italian Restaurant & Cocktail Bar",
+    "address": "Via del Viminale, 2",
+    "latitude": 41.901157,
+    "longitude": 12.497515,
+    "rating": 4.8,
+    "ratingCount": 9000,
+    "priceLevel": "€20–80",
+    "category": "Italian",
+    "website": "https://vattani-elegant.shop/",
+    "cid": "1369188570388097587"
+   }
+  ],
+  "credits": 1
+ }
+}

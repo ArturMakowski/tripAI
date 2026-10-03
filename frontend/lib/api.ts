@@ -5,6 +5,7 @@
  * fixtures so the demo never dead-ends. Every call reports which one answered.
  */
 import type { Lang } from "./i18n/types";
+import { isCompletePlaces, placesPath, type DestinationPlaces } from "./places";
 import * as mock from "./mock/api";
 import { profileDna as mockDna } from "./mock/dna";
 import type {
@@ -72,6 +73,7 @@ export class HttpError extends Error {
 }
 
 let caps: Promise<{ phases: boolean }> | null = null;
+const placesMemo = new Map<string, Promise<DestinationPlaces | null>>();
 
 /**
  * UI language, mirrored here by <LangSync/> so every request carries it: an
@@ -195,6 +197,38 @@ export const api = {
       () => http("/profile/dna", post(req)),
       async () => mockDna(req),
     ),
+
+  /**
+   * Restaurants + things to do (GET /destinations/{iata}/places). No fixture fallback: places are
+   * never made up, so mock mode or an unreachable backend just means "no section" (null).
+   * Answers are memoised per URL for the page's lifetime (the backend caches them for 7 days).
+   */
+  places: (iata: string, lang: Lang, interests?: Record<string, number> | null): Promise<DestinationPlaces | null> => {
+    if (FORCE_MOCK) return Promise.resolve(null);
+    const path = placesPath(iata, lang, interests);
+    let hit = placesMemo.get(path);
+    if (!hit) {
+      // Concurrent callers share this in-flight promise (they wait, never fire a second search).
+      const pending: Promise<DestinationPlaces | null> = http<DestinationPlaces>(
+        path,
+        { headers: { "accept-language": acceptLanguage(lang) } },
+        15_000,
+      )
+        .then((d) => {
+          // only a complete answer is kept: an empty/partial one (cap hit, source down) is retried next time
+          if (!isCompletePlaces(d) && placesMemo.get(path) === pending) placesMemo.delete(path);
+          return d;
+        })
+        .catch((err) => {
+          if (placesMemo.get(path) === pending) placesMemo.delete(path);
+          console.warn("[tripai] places unavailable:", err);
+          return null;
+        });
+      hit = pending;
+      placesMemo.set(path, hit);
+    }
+    return hit;
+  },
 
   feedback: (req: FeedbackRequest) =>
     withFallback<FeedbackResponse>(

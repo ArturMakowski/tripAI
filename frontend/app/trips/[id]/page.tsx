@@ -30,6 +30,7 @@ import { flipConditions, inputsHash } from "@/lib/scoring";
 import type { RankedRecommendation, Weights } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { FitSection } from "@/components/fit-section";
+import { PlacesSection } from "@/components/places-section";
 import { SourceTag } from "@/components/source-tag";
 import { FlightBlock } from "@/components/trip-details/flight-block";
 import { StayBlock, TransferList } from "@/components/trip-details/stay-block";
@@ -236,6 +237,7 @@ export default function ReceiptPage() {
 
         {/* ---------------- Receipt ---------------- */}
         <FitSection rec={rec} profile={profile ?? DEMO_PROFILE} lang={lang} />
+        <PlacesSection iata={rec.iata} profile={profile ?? DEMO_PROFILE} />
 
         {/* One compact stars row; the exact formula, weights and points are in the collapsed Audit. */}
         <div className="mt-6 rounded-2xl border border-line bg-card px-4 py-3 shadow-soft">
