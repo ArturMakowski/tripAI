@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { api, USER_ID } from "@/lib/api";
 import { collectAnswers, DNA_DECK, STATEMENT_ANSWER, UI, YESNO_ANSWER, type DnaCard, type Gesture, type Lang } from "@/lib/dna";
+import { useLang } from "@/lib/i18n";
 import { useHydrated, useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -81,8 +82,9 @@ const slide = {
 export default function SwipeOnboarding() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { deck, setDeck, setProfile, setWeights, setMode } = useTrip();
-  const { swipes, step, budget, airports, lang, result } = deck;
+  const { deck, setDeck, setProfile, setWeights, setMode, setLang } = useTrip();
+  const { swipes, step, budget, airports, result } = deck;
+  const lang = useLang();
   const t = UI[lang];
   const advance = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -156,7 +158,7 @@ export default function SwipeOnboarding() {
   if (!hydrated) return <AppShell nav={false}>{null}</AppShell>;
 
   return (
-    <AppShell back="/" title={t.eyebrow} nav={false} action={<LangToggle lang={lang} onChange={(l) => setDeck({ lang: l })} />}>
+    <AppShell back="/" title={t.eyebrow} nav={false} action={<LangToggle lang={lang} onChange={setLang} />}>
       <AnimatePresence mode="wait">
         {step === "swipe" && (
           <motion.section key="swipe" {...slide} className="flex flex-col pt-1 pb-6">

@@ -3,6 +3,7 @@
  * when set; otherwise, or if the backend is unreachable, serves the in-browser
  * fixtures so the demo never dead-ends. Every call reports which one answered.
  */
+import type { Lang } from "./i18n/types";
 import * as mock from "./mock/api";
 import { profileDna as mockDna } from "./mock/dna";
 import type {
@@ -71,12 +72,29 @@ export class HttpError extends Error {
 
 let caps: Promise<{ phases: boolean }> | null = null;
 
+/**
+ * UI language, mirrored here by <LangSync/> so every request carries it: an
+ * Accept-Language header on all calls and a `lang` field in POST bodies, so AI text
+ * (interview, explanations, fit verdicts, notifications) comes back in that language.
+ */
+let apiLang: Lang = "en";
+export const setApiLang = (l: Lang) => {
+  apiLang = l;
+};
+export const getApiLang = () => apiLang;
+export const acceptLanguage = (l: Lang = apiLang) => (l === "pl" ? "pl-PL,pl;q=0.9,en;q=0.5" : "en-GB,en;q=0.9");
+
 async function http<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Promise<T> {
   const timeout = AbortSignal.timeout(timeoutMs);
   const token = readSession();
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "content-type": "application/json", ...(token ? { [SESSION_HEADER]: token } : {}), ...(init?.headers ?? {}) },
+    headers: {
+      "content-type": "application/json",
+      "accept-language": acceptLanguage(),
+      ...(token ? { [SESSION_HEADER]: token } : {}),
+      ...(init?.headers ?? {}),
+    },
     signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
   });
   rememberSession(res);
@@ -103,7 +121,8 @@ async function withFallback<T>(live: () => Promise<T>, fixture: () => Promise<T>
   }
 }
 
-const post = (body: unknown): RequestInit => ({ method: "POST", body: JSON.stringify(body) });
+const withLang = (body: unknown) => (body && typeof body === "object" && !Array.isArray(body) ? { lang: apiLang, ...body } : body);
+const post = (body: unknown): RequestInit => ({ method: "POST", body: JSON.stringify(withLang(body)) });
 const qs = (p: Record<string, string | undefined>) =>
   new URLSearchParams(Object.entries(p).filter((e): e is [string, string] => !!e[1])).toString();
 

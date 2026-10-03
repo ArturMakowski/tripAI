@@ -44,7 +44,10 @@ interface TripState {
   approved: string[];
   feedback: FeedbackDiff | null;
   /** Swipe onboarding progress (survives a reload mid-deck). */
-  deck: { swipes: DnaSwipe[]; step: DeckStep; budget: number | null; airports: string[]; lang: Lang; result: DnaResponse | null };
+  deck: { swipes: DnaSwipe[]; step: DeckStep; budget: number | null; airports: string[]; result: DnaResponse | null };
+  /** UI + AI language for the whole app; null = follow the browser (see lib/i18n). */
+  lang: Lang | null;
+  setLang: (l: Lang) => void;
 
   setMessages: (m: ChatMessage[]) => void;
   setProfile: (p: TasteProfile | null) => void;
@@ -75,7 +78,8 @@ const initial = {
   modes: {},
   approved: [],
   feedback: null,
-  deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, budget: 1800 as number | null, airports: ["KRK"], lang: "pl" as Lang, result: null as DnaResponse | null },
+  deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, budget: 1800 as number | null, airports: ["KRK"], result: null as DnaResponse | null },
+  lang: null as Lang | null,
 };
 
 export const useTrip = create<TripState>()(
@@ -101,7 +105,9 @@ export const useTrip = create<TripState>()(
       approve: (id) => set((s) => ({ approved: s.approved.includes(id) ? s.approved : [...s.approved, id] })),
       setFeedback: (feedback) => set({ feedback }),
       setDeck: (patch) => set((s) => ({ deck: { ...s.deck, ...patch } })),
-      reset: () => set({ ...initial }),
+      setLang: (lang) => set({ lang }),
+      // keep the language across "start over"
+      reset: () => set((s) => ({ ...initial, lang: s.lang })),
     }),
     { name: "tripai-v3", storage: createJSONStorage(() => localStorage) },
   ),

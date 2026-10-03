@@ -27,6 +27,7 @@ import { useRecommendations } from "@/lib/use-recommendations";
 import { FitSection } from "@/components/fit-section";
 import { SourceTag } from "@/components/source-tag";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
+import { useLang } from "@/lib/i18n";
 import { useTrip } from "@/lib/store";
 import { originOf } from "@/lib/handoff";
 import { cn } from "@/lib/utils";
@@ -123,7 +124,7 @@ export default function ReceiptPage() {
   const router = useRouter();
   const { ranked, weights, loading, scoredAtCurrentWeights } = useRecommendations();
   const profile = useTrip((s) => s.profile);
-  const lang = useTrip((s) => s.deck.lang);
+  const lang = useLang();
 
   const rank = ranked.findIndex((r) => r.id === id);
   const rec = ranked[rank];

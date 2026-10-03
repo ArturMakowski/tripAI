@@ -5,7 +5,7 @@
  * Needs the live backend (NEXT_PUBLIC_API_URL); in fixture mode the inbox explains that instead.
  */
 import { create } from "zustand";
-import { API_URL, FORCE_MOCK, SESSION_HEADER, api, readSession, rememberSession } from "./api";
+import { API_URL, FORCE_MOCK, SESSION_HEADER, acceptLanguage, api, getApiLang, readSession, rememberSession } from "./api";
 import { DEMO_PROFILE } from "./mock/fixtures";
 import type { AppNotification, Inbox, NotificationPrefs, ScanResult } from "./notify-types";
 import { useTrip } from "./store";
@@ -32,7 +32,12 @@ async function http<T>(path: string, init?: RequestInit, timeoutMs = 20_000): Pr
   const token = readSession();
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "content-type": "application/json", ...(token ? { [SESSION_HEADER]: token } : {}), ...(init?.headers ?? {}) },
+    headers: {
+      "content-type": "application/json",
+      "accept-language": acceptLanguage(),
+      ...(token ? { [SESSION_HEADER]: token } : {}),
+      ...(init?.headers ?? {}),
+    },
     signal: AbortSignal.timeout(timeoutMs),
   });
   rememberSession(res);
@@ -43,7 +48,11 @@ async function http<T>(path: string, init?: RequestInit, timeoutMs = 20_000): Pr
   return (await res.json()) as T;
 }
 
-const json = (method: string, body: unknown): RequestInit => ({ method, body: JSON.stringify(body) });
+// Every write carries the UI language, so notification copy is generated in it (backend side: separate task).
+const json = (method: string, body: unknown): RequestInit => ({
+  method,
+  body: JSON.stringify(body && typeof body === "object" ? { lang: getApiLang(), ...body } : body),
+});
 
 export const notifyApi = {
   inbox: () => http<Inbox>("/notifications"),
