@@ -14,6 +14,7 @@ import * as survey from "./messages/survey";
 import * as swipeOffers from "./messages/swipeOffers";
 import * as inbox from "./messages/inbox";
 import * as tutorial from "./messages/tutorial";
+import * as money from "./messages/money";
 import * as stars from "./messages/stars";
 import * as tripDetails from "./messages/tripDetails";
 
@@ -32,6 +33,7 @@ export const en = {
   swipeOffers: swipeOffers.en,
   inbox: inbox.en,
   tutorial: tutorial.en,
+  money: money.en,
   stars: stars.en,
   tripDetails: tripDetails.en,
 };

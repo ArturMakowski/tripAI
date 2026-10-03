@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { BellOff, BellRing, CalendarHeart, Crown, Eye, Fingerprint, Loader2, Radar, Settings2, TrendingDown, TriangleAlert } from "lucide-react";
+import { BellOff, BellRing, CalendarHeart, Crown, Eye, Fingerprint, Loader2, Settings2, TrendingDown, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { InfoTip } from "@/components/declutter";
 import { AppShell, PageTitle } from "@/components/shell";
 import { SourceTag } from "@/components/source-tag";
 import { Button } from "@/components/ui/button";
@@ -182,7 +183,7 @@ export default function InboxPage() {
       }
     >
       <PageTitle eyebrow={ib.eyebrow} title={ib.heading}>
-        {ib.intro}
+        {ib.intro} <InfoTip>{ib.introMore}</InfoTip>
       </PageTitle>
 
       {!NOTIFY_AVAILABLE ? (
@@ -193,20 +194,12 @@ export default function InboxPage() {
         </p>
       ) : (
         <>
-          <div data-tour="scan" className="rounded-2xl border border-line bg-card p-4">
-            <div className="flex items-center gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-pine text-paper">
-                <Radar className="size-5" aria-hidden />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-ink">{ib.runNow}</p>
-                <p className="text-xs text-muted-foreground">{ib.runNowSub}</p>
-              </div>
-              <Button onClick={runScan} disabled={scanning} className="h-10 rounded-xl px-4">
-                {scanning ? <Loader2 className="animate-spin" aria-hidden /> : <BellRing aria-hidden />}
-                {scanning ? ib.scanning : ib.scanButton}
-              </Button>
-            </div>
+          {/* one action */}
+          <div data-tour="scan">
+            <Button onClick={runScan} disabled={scanning} size="lg" className="h-12 w-full rounded-2xl text-base">
+              {scanning ? <Loader2 className="animate-spin" aria-hidden /> : <BellRing aria-hidden />}
+              {scanning ? ib.scanning : ib.runNow}
+            </Button>
             {scan && <ScanSummary res={scan} />}
           </div>
 

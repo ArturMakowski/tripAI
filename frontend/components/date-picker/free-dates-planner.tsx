@@ -24,6 +24,7 @@ import { useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { FLEX_OPTIONS, todayISO, useDates, useUsableRanges } from "@/lib/windows-store";
 import { useWindows } from "@/lib/windows";
+import { InfoTip } from "@/components/declutter";
 import { CalendarLegend, DateRangeCalendar, formatDates } from "./date-range-calendar";
 import { useT } from "@/lib/i18n";
 import type { DatePickerStrings } from "./strings";
@@ -78,6 +79,80 @@ function Chip({
   );
 }
 
+/** "This weekend · Next long weekend · Any 5 days in May": one tap adds a range. */
+function QuickChips({ today, onPick, className }: { today: string; onPick: (r: DateRange) => void; className?: string }) {
+  const t = useDatePickerStrings();
+  const ranges = useUsableRanges();
+  const { longWeekends } = useWindows();
+  const horizonEnd = monthEnd(monthsAhead(today, 12)[11]);
+  const suggestions = useMemo(
+    () => mergeSuggestions(longWeekends, localBridges(today, horizonEnd)).filter((s) => s.end >= today),
+    [longWeekends, today, horizonEnd],
+  );
+  const has = (r: Pick<DateRange, "start" | "end">) => ranges.some((x) => x.start <= r.start && x.end >= r.end);
+  const weekend = thisWeekend(today);
+  const nextLong = nextSuggestion(suggestions, today);
+  const anyDays = anyDaysNextMonth(today, 5);
+  return (
+    <div role="group" aria-label={t.quickTitle} className={cn("no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1", className)}>
+      <Chip onClick={() => onPick(weekend)} icon={<Zap className="size-4 text-sun" aria-hidden />} done={has(weekend)}>
+        {weekendIsNext(today) ? t.chipNextWeekend : t.chipThisWeekend}
+      </Chip>
+      {nextLong && (
+        <Chip
+          onClick={() => onPick({ start: nextLong.start, end: nextLong.end })}
+          icon={<Plus className="size-4 text-clay" aria-hidden />}
+          done={has(nextLong)}
+        >
+          {t.chipNextLongWeekend} · {formatDates(nextLong, t.locale)}
+        </Chip>
+      )}
+      <Chip
+        onClick={() => onPick(anyDays)}
+        icon={<Shuffle className="size-4 text-sky" aria-hidden />}
+        done={ranges.some((r) => r.anyDays && r.start === anyDays.start)}
+      >
+        {t.chipAnyDays(anyDays.anyDays ?? 5, Number(anyDays.start.slice(5, 7)) - 1)}
+      </Chip>
+    </div>
+  );
+}
+
+/**
+ * Quick date chips + the picked ranges, for onboarding's first step ("dates and party before any
+ * price question", docs/USER_TESTING.md). The full calendar stays on /windows.
+ */
+export function QuickDates() {
+  const today = useClientToday();
+  const hydrated = useDatesHydrated();
+  const { add, remove } = useDates();
+  const ranges = useUsableRanges();
+  const t = useDatePickerStrings();
+  if (!today || !hydrated) return <div aria-hidden className="h-11" />;
+  return (
+    <div>
+      <QuickChips today={today} onPick={add} />
+      {ranges.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-1.5">
+          {ranges.map((r) => (
+            <li key={r.start + r.end} className="flex items-center gap-0.5 rounded-full bg-pine py-0.5 pr-0.5 pl-3 text-sm text-paper">
+              {formatDates(r, t.locale)}
+              <button
+                type="button"
+                onClick={() => remove(r)}
+                aria-label={t.remove(formatDates(r, t.locale))}
+                className="grid size-8 place-items-center rounded-full hover:bg-black/10"
+              >
+                <X className="size-3.5" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** The Free time date picker: quick chips, the calendar, flexibility, suggestions and the picked list. */
 export function FreeDatesPlanner() {
   const today = useClientToday();
@@ -107,9 +182,6 @@ function Planner({ today }: { today: string }) {
   const monthSuggestions = suggestions.filter((s) => monthKey(s.start) === month || monthKey(s.end) === month);
 
   const has = (r: Pick<DateRange, "start" | "end">) => ranges.some((x) => x.start <= r.start && x.end >= r.end);
-  const weekend = thisWeekend(today);
-  const nextLong = nextSuggestion(suggestions, today);
-  const anyDays = anyDaysNextMonth(today, 5);
   const [announce, setAnnounce] = useState("");
 
   const pick = (r: DateRange) => {
@@ -123,30 +195,9 @@ function Planner({ today }: { today: string }) {
       <h2 id="pick-title" className="flex items-center gap-2 font-display text-xl text-ink">
         <CalendarHeart className="size-5 text-clay" aria-hidden /> {t.sectionTitle}
       </h2>
-      <p className="mt-1 text-sm leading-snug text-ink-soft">{t.sectionLead}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t.sectionHint}</p>
 
-      {/* quick chips */}
-      <div role="group" aria-label={t.quickTitle} className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
-        <Chip onClick={() => pick(weekend)} icon={<Zap className="size-4 text-sun" aria-hidden />} done={has(weekend)}>
-          {weekendIsNext(today) ? t.chipNextWeekend : t.chipThisWeekend}
-        </Chip>
-        {nextLong && (
-          <Chip
-            onClick={() => pick({ start: nextLong.start, end: nextLong.end })}
-            icon={<Plus className="size-4 text-clay" aria-hidden />}
-            done={has(nextLong)}
-          >
-            {t.chipNextLongWeekend} · {formatDates(nextLong, t.locale)}
-          </Chip>
-        )}
-        <Chip
-          onClick={() => pick(anyDays)}
-          icon={<Shuffle className="size-4 text-sky" aria-hidden />}
-          done={ranges.some((r) => r.anyDays && r.start === anyDays.start)}
-        >
-          {t.chipAnyDays(anyDays.anyDays ?? 5, Number(anyDays.start.slice(5, 7)) - 1)}
-        </Chip>
-      </div>
+      <QuickChips today={today} onPick={pick} className="mt-3" />
 
       <div className="mt-3">
         <DateRangeCalendar
@@ -204,8 +255,12 @@ function Planner({ today }: { today: string }) {
         </div>
       )}
 
-      <div className="mt-3">
-        <CalendarLegend t={t} />
+      {/* div, not p: the legend inside the tip is a block */}
+      <div className="mt-2 text-xs text-muted-foreground">
+        {t.legendTitle}{" "}
+        <InfoTip label={t.legendTitle}>
+          <CalendarLegend t={t} />
+        </InfoTip>
       </div>
 
       {/* flexibility */}
@@ -255,7 +310,7 @@ function Planner({ today }: { today: string }) {
       </div>
 
       {/* picked list */}
-      <div className="mt-4">
+      <div className={cn("mt-4", ranges.length === 0 && "hidden")}>
         <div className="flex items-baseline justify-between">
           <h3 className="text-sm font-semibold text-ink">{t.listTitle}</h3>
           {ranges.length > 1 && (
@@ -264,9 +319,7 @@ function Planner({ today }: { today: string }) {
             </button>
           )}
         </div>
-        {ranges.length === 0 ? (
-          <p className="mt-1.5 text-sm text-muted-foreground">{t.empty}</p>
-        ) : (
+        {ranges.length > 0 && (
           <>
             <ul className="mt-2 flex flex-wrap gap-2">
               <AnimatePresence initial={false}>

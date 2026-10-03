@@ -74,7 +74,7 @@ export const en = {
 
 export const pl: Shape<typeof en> = {
   list: "Lista",
-  swipe: "Swipe",
+  swipe: "Karty",
   viewLabel: "Widok ofert",
   like: "Chcę tam",
   dislike: "Nie dla mnie",

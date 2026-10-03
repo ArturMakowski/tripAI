@@ -11,7 +11,7 @@ const FETCHED_SEED = "2026-10-02T21:10:00Z";
 export const DEMO_PROFILE: TasteProfile = {
   user_id: "demo-artur",
   origin_airports: ["KRK"],
-  budget_pln: 1800,
+  budget_pln: null,
   luxury: "standard",
   interests: { food: 0.9, history: 0.8, art: 0.6, architecture: 0.6, walking: 0.5, beach: 0.2, nightlife: 0.2 },
   dislikes: ["long layovers"],

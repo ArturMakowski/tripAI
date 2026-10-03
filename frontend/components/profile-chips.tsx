@@ -3,7 +3,9 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Plane, Plus, ThermometerSun, Wallet, X, CalendarRange, BedDouble } from "lucide-react";
 import { useState } from "react";
+import { InfoTip } from "@/components/declutter";
 import { Slider } from "@/components/ui/slider";
+import { partySize } from "@/lib/money";
 import { useT } from "@/lib/i18n";
 import { nameOf } from "@/lib/i18n/messages/profile";
 import type { LuxuryLevel, TasteProfile } from "@/lib/types";
@@ -59,8 +61,10 @@ export function ProfileChips({
   compact?: boolean;
 }) {
   const [adding, setAdding] = useState(false);
+  const [addingAvoid, setAddingAvoid] = useState(false);
   const { t: all, fmt } = useT();
   const t = all.profile;
+  const tm = all.money;
   const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
   const tag = (x: string) => cap(nameOf(t.tags, x));
   const dislike = (x: string) => nameOf(t.dislikes, x);
@@ -82,7 +86,17 @@ export function ProfileChips({
   return (
     <div className="space-y-5">
       <section>
-        {!compact && <h3 className="mb-2.5 text-sm font-semibold text-ink">{t.youLove}</h3>}
+        {!compact && (
+          <div className="mb-2.5">
+            <h3 className="inline text-sm font-semibold text-ink">{t.youLove}</h3>
+            {editable && (
+              <>
+                {" "}
+                <InfoTip>{t.tapHint}</InfoTip>
+              </>
+            )}
+          </div>
+        )}
         <motion.ul layout className="flex flex-wrap gap-2">
           <AnimatePresence initial={false}>
             {interests.map(([key, w]) => (
@@ -148,13 +162,13 @@ export function ProfileChips({
             </motion.div>
           )}
         </AnimatePresence>
-        {editable && <p className="mt-2 text-xs text-muted-foreground">{t.tapHint}</p>}
       </section>
 
       <section>
         {!compact && <h3 className="mb-2.5 text-sm font-semibold text-ink">{t.youAvoid}</h3>}
         <ul className="flex flex-wrap gap-2">
-          {(editable ? ALL_DISLIKES : profile.dislikes).map((d) => {
+          {/* only what you avoid is on screen; the other options are one tap away ("+ Dodaj") */}
+          {(editable && addingAvoid ? ALL_DISLIKES : profile.dislikes).map((d) => {
             const on = profile.dislikes.includes(d);
             return (
               <li key={d}>
@@ -172,7 +186,17 @@ export function ProfileChips({
               </li>
             );
           })}
-          {!editable && profile.dislikes.length === 0 && <li className="text-sm text-muted-foreground">{t.nothingInParticular}</li>}
+          {(!editable || !addingAvoid) && profile.dislikes.length === 0 && <li className="py-1.5 text-sm text-muted-foreground">{t.nothingInParticular}</li>}
+          {editable && !addingAvoid && (
+            <li>
+              <button
+                onClick={() => setAddingAvoid(true)}
+                className="flex items-center gap-1 rounded-full border border-dashed border-ink/25 px-3.5 py-1.5 text-sm text-ink-soft hover:border-pine hover:text-pine"
+              >
+                <Plus className="size-3.5" /> {t.add}
+              </button>
+            </li>
+          )}
         </ul>
       </section>
 
@@ -190,21 +214,54 @@ export function ProfileChips({
         </div>
       ) : (
         <section className="space-y-6 rounded-3xl border border-line bg-card p-4 shadow-soft">
+          {/* Optional hard limit, off by default (docs/BUDGET.md): without it we rank on value. */}
           <div>
-            <div className="mb-3 flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 font-semibold text-ink">
-                <Wallet className="size-4 text-pine" /> {t.budgetPerPerson}
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <span id="limit-title" className="flex items-center gap-2 font-semibold text-ink">
+                <Wallet className="size-4 shrink-0 text-pine" /> {tm.limitTitle}
               </span>
-              <span className="tabular font-mono text-ink">{profile.budget_pln ? fmt.pln(profile.budget_pln) : t.flexible}</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={profile.budget_pln != null}
+                aria-labelledby="limit-title"
+                onClick={() => update({ budget_pln: profile.budget_pln != null ? null : 2500 })}
+                className={cn(
+                  "relative h-7 w-12 shrink-0 rounded-full transition-colors",
+                  profile.budget_pln != null ? "bg-pine" : "bg-line",
+                )}
+              >
+                <span
+                  className={cn(
+                    "absolute top-1 left-1 size-5 rounded-full bg-white shadow-soft transition-transform",
+                    profile.budget_pln != null && "translate-x-5",
+                  )}
+                />
+              </button>
             </div>
-            <Slider
-              min={600}
-              max={5000}
-              step={100}
-              value={[profile.budget_pln ?? 5000]}
-              onValueChange={([v]) => update({ budget_pln: v >= 5000 ? null : v })}
-              aria-label={t.budgetPerPerson}
-            />
+            {profile.budget_pln != null ? (
+              <div className="mt-3">
+                {/* per person and per trip (docs/USER_TESTING.md) */}
+                <p className="tabular mb-3 text-right font-mono text-sm text-ink">
+                  {t.perPerson(fmt.pln(profile.budget_pln))}
+                  {partySize(profile) > 1 && (
+                    <span className="block text-xs text-muted-foreground">
+                      {tm.limitPerTrip(fmt.pln(profile.budget_pln * partySize(profile)), partySize(profile))}
+                    </span>
+                  )}
+                </p>
+                <Slider
+                  min={600}
+                  max={5000}
+                  step={100}
+                  value={[profile.budget_pln]}
+                  onValueChange={([v]) => update({ budget_pln: v })}
+                  aria-label={tm.limitAria}
+                />
+              </div>
+            ) : (
+              <p className="mt-1 text-xs text-muted-foreground">{tm.limitHint}</p>
+            )}
           </div>
 
           <div>
@@ -246,6 +303,7 @@ export function ProfileChips({
               value={profile.preferred_temp_c}
               onValueChange={([a, b]) => update({ preferred_temp_c: [a, b] })}
               aria-label={t.temperatureAria}
+              thumbLabels={[`${t.temperatureAria} (min)`, `${t.temperatureAria} (max)`]}
             />
           </div>
 
@@ -263,6 +321,7 @@ export function ProfileChips({
               value={profile.trip_length_days}
               onValueChange={([a, b]) => update({ trip_length_days: [a, b] })}
               aria-label={t.tripLengthAria}
+              thumbLabels={[`${t.tripLengthAria} (min)`, `${t.tripLengthAria} (max)`]}
             />
           </div>
 

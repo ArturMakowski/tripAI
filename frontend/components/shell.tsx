@@ -111,7 +111,6 @@ export function AppShell({
           {action}
           <LangSwitch />
           <InboxBell />
-          <ModeBadge />
         </div>
       </header>
       <main className="flex-1 px-5 pb-10">
@@ -137,10 +136,14 @@ export function PhotoCreditsLink({ className }: { className?: string }) {
   );
 }
 
+/**
+ * Screen headline + optional one-line subline. `eyebrow` is kept for screen readers only: the
+ * active nav tab already names the section, so a visible kicker repeated it (DECLUTTER.md).
+ */
 export function PageTitle({ eyebrow, title, children }: { eyebrow?: string; title: ReactNode; children?: ReactNode }) {
   return (
     <div className="pt-3 pb-5">
-      {eyebrow && <p className="mb-1.5 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{eyebrow}</p>}
+      {eyebrow && <p className="sr-only">{eyebrow}</p>}
       <h1 className="font-display text-[2rem] leading-[1.08] font-medium text-ink">{title}</h1>
       {children && <p className="mt-2.5 text-[15px] leading-relaxed text-ink-soft">{children}</p>}
     </div>

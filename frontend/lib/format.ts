@@ -67,8 +67,14 @@ export function sourceName(source: string): string {
 }
 
 /** sourceName in the UI language: only the TripAI-owned names are translated; partner brands stay as they are. */
-export function sourceNameFor(source: string, names: { sample: string; scorer: string }): string {
+export function sourceNameFor(
+  source: string,
+  names: { sample: string; scorer: string; estimate?: string; otherDates?: string },
+): string {
   if (isSampleSource(source)) return names.sample;
+  // price honesty (docs/BUDGET.md): an estimate never reads like a real quote
+  if (names.estimate && /^estimate:|city.?average/.test(source)) return names.estimate;
+  if (names.otherDates && /travel_explore/.test(source)) return names.otherDates;
   if (/tripai\.scoring/.test(source)) return names.scorer;
   return sourceName(source);
 }

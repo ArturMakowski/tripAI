@@ -3,17 +3,16 @@ import { plural, type Shape } from "../types";
 const plTrips = (n: number) => `${n} ${plural("pl", n, { one: "wyjazd", few: "wyjazdy", many: "wyjazdów", other: "wyjazdu" })}`;
 
 export const en = {
-  eyebrow: "Picked for your free time",
   title: "Where & when, ranked.",
-  intro: "Every score is a weighted sum of four sourced factors. Move the slider and the ranking updates as you drag.",
 
   /** Shared factor names (also used by the receipt). */
   factors: { price: "Price", weather: "Weather", crowds: "Crowds", taste: "Taste fit" },
   factorsShort: { price: "Price", weather: "Weather", crowds: "Crowds", taste: "Taste" },
 
   slider: {
-    question: "What matters most this time?",
-    setByProfile: "Set by your profile",
+    question: "What matters most?",
+    setByProfile: "From your profile",
+    weights: "Weights",
     aria: "Priority between price, comfort and experience",
     price: "Price",
     comfort: "Comfort",
@@ -23,16 +22,14 @@ export const en = {
   budget: {
     label: "Budget",
     none: "No budget limit",
-    setInProfile: "set in profile",
-    setOne: "set one",
-    noneFitTitle: (budget: string) => `Nothing fits ${budget} for these dates.`,
-    noneFitBody: (city: string, price: string, over: string) =>
-      `These are the closest options, still ranked by score. The cheapest is ${city} at ${price} (+${over})`,
-    listedUnder: "listed under",
-    topOverTitle: (over: string, budget: string) => `Your top pick is ${over} over your ${budget} budget.`,
-    fitsHidden: (n: number) => `${n} trip${n > 1 ? "s" : ""} that fit${n > 1 ? "" : "s"} it ${n > 1 ? "are" : "is"} listed under`,
-    topOverBody: (n: number) => `It ranks first on the other factors. ${n} trip${n > 1 ? "s" : ""} fit${n > 1 ? "" : "s"} your budget.`,
-    showThoseFirst: "Show those first",
+    editAria: "Change budget in your profile",
+    noneFitTitle: (budget: string) => `Nothing fits ${budget} here.`,
+    noneFitBody: (city: string, price: string, over: string) => `Cheapest: ${city}, ${price} (+${over})`,
+    listedUnder: "in",
+    topOverTitle: (over: string) => `#1 is ${over} over budget.`,
+    fitsHidden: (n: number) => `${n} that fit${n > 1 ? "" : "s"}:`,
+    topOverBody: (n: number) => `${n} trip${n > 1 ? "s" : ""} fit${n > 1 ? "" : "s"}.`,
+    showThoseFirst: "Show first",
     withinFirst: "Showing trips within your budget first",
     backToRanking: "Back to ranking",
   },
@@ -40,11 +37,8 @@ export const en = {
   filter: { showingOnly: (range: string) => `Showing ${range} only`, showAll: "Show all" },
 
   sameDates: {
-    fixturePre: "Your top picks all share",
-    fixturePost: "because the demo data only prices a few dates. With live data they spread across all your free windows.",
-    livePre: "Your top picks all fall on",
-    livePost: ", the best of your free windows right now. The others are on",
-    freeTime: "Free time",
+    otherDates: "other dates",
+    fixtureNote: "Demo data only prices a few dates, so the top picks share them. Live data spreads them across your free windows.",
   },
 
   loader: {
@@ -61,11 +55,9 @@ export const en = {
 
   refining: {
     titleLive: "Refining live prices…",
-    titleDemo: "Refining prices (demo data)…",
-    detail: "Exact flights, hotels and weather, then ranking for your Travel DNA",
-    tag: "cached prices shown",
-    landedLive: "Live prices in. Ranking updated.",
-    landedDemo: "Exact demo prices in. Ranking updated.",
+    titleDemo: "Refining prices (demo)…",
+    landedLive: "Live prices in",
+    landedDemo: "Exact demo prices in",
   },
 
   announce: {
@@ -79,7 +71,7 @@ export const en = {
     now: "· now",
     dismiss: "Dismiss",
     title: (range: string, city: string) => `You’re free ${range} → ${city}`,
-    body: (total: string, flights: string, score: string) => `${total} all-in · flights ${flights} · ★ ${score}/5. Tap to see why.`,
+    body: (total: string, flights: string, score: string) => `${total} all-in · flights ${flights} · ★ ${score}/5`,
   },
 
   notYourStyle: "Not your style",
@@ -87,35 +79,31 @@ export const en = {
   hide: "hide",
   showAnyway: "show anyway",
   empty: "No trips fit this window yet. We’ll keep watching.",
-  neverPaid: "Rankings are never paid for. Sponsored offers, if we ever show any, will be labelled separately.",
+  neverPaid: "No paid rankings.",
 
   card: {
-    youreFree: "You’re free",
     bridge: (off: number, total: number) => `${off}d off → ${total}d`,
-    when: "When",
     nights: (n: number) => `${n} ${plural("en", n, { one: "night", other: "nights" })}`,
-    allIn: "All-in, per person",
-    cachedEstimate: "Cached estimate",
+    allIn: "all-in",
+    cachedEstimate: "estimate",
     overBudget: (amount: string) => `Over budget +${amount}`,
-    vsPeak: (pct: number) => `−${pct}% vs peak season`,
+    vsPeak: (pct: number) => `−${pct}% vs peak`,
     peakNote: (month: string | null, peak: string, now: string, version: string) =>
       `Same trip${month ? ` in ${month}` : ""} (the city's peak-crowd month): ${peak} vs ${now} now · TripAI scorer ${version}`,
-    disagree: "Score and fit disagree.",
-    whyNow: "Why this, why now",
+    disagree: "Score and fit disagree:",
   },
 } as const;
 
 export const pl: Shape<typeof en> = {
-  eyebrow: "Wybrane na Twój wolny czas",
   title: "Dokąd i kiedy: ranking.",
-  intro: "Każdy wynik to ważona suma czterech czynników ze źródłami. Przesuń suwak, a ranking zmienia się na bieżąco.",
 
   factors: { price: "Cena", weather: "Pogoda", crowds: "Tłumy", taste: "Dopasowanie do gustu" },
   factorsShort: { price: "Cena", weather: "Pogoda", crowds: "Tłumy", taste: "Gust" },
 
   slider: {
-    question: "Co jest tym razem najważniejsze?",
-    setByProfile: "Ustawione z Twojego profilu",
+    question: "Co najważniejsze?",
+    setByProfile: "Z Twojego profilu",
+    weights: "Wagi",
     aria: "Priorytet między ceną, komfortem i przeżyciami",
     price: "Cena",
     comfort: "Komfort",
@@ -125,18 +113,14 @@ export const pl: Shape<typeof en> = {
   budget: {
     label: "Budżet",
     none: "Bez limitu budżetu",
-    setInProfile: "ustawiony w profilu",
-    setOne: "ustaw go",
-    noneFitTitle: (budget: string) => `Nic nie mieści się w ${budget} w tych terminach.`,
-    noneFitBody: (city: string, price: string, over: string) =>
-      `To najbliższe opcje, nadal uszeregowane według wyniku. Najtańsza: ${city} za ${price} (+${over})`,
+    editAria: "Zmień budżet w profilu",
+    noneFitTitle: (budget: string) => `Nic do ${budget} w tych terminach.`,
+    noneFitBody: (city: string, price: string, over: string) => `Najtaniej: ${city}, ${price} (+${over})`,
     listedUnder: "w sekcji",
-    topOverTitle: (over: string, budget: string) => `Twój pierwszy wybór przekracza budżet ${budget} o ${over}.`,
-    fitsHidden: (n: number) =>
-      `${plTrips(n)} w budżecie ${plural("pl", n, { one: "jest", few: "są", many: "jest", other: "jest" })} w sekcji`,
-    topOverBody: (n: number) =>
-      `Wygrywa na pozostałych czynnikach. W budżecie ${plural("pl", n, { one: "mieści się", few: "mieszczą się", many: "mieści się", other: "mieści się" })} ${plTrips(n)}.`,
-    showThoseFirst: "Pokaż je najpierw",
+    topOverTitle: (over: string) => `Nr 1 jest ${over} ponad budżet.`,
+    fitsHidden: (n: number) => `W budżecie: ${plTrips(n)}, w sekcji`,
+    topOverBody: (n: number) => `W budżecie: ${plTrips(n)}.`,
+    showThoseFirst: "Pokaż najpierw",
     withinFirst: "Najpierw wyjazdy mieszczące się w budżecie",
     backToRanking: "Wróć do rankingu",
   },
@@ -144,11 +128,8 @@ export const pl: Shape<typeof en> = {
   filter: { showingOnly: (range: string) => `Tylko ${range}`, showAll: "Pokaż wszystko" },
 
   sameDates: {
-    fixturePre: "Wszystkie najlepsze propozycje mają termin",
-    fixturePost: "bo dane demo wyceniają tylko kilka dat. Z danymi na żywo rozłożą się na wszystkie Twoje wolne terminy.",
-    livePre: "Wszystkie najlepsze propozycje wypadają",
-    livePost: ", w najlepszym z Twoich wolnych terminów. Pozostałe znajdziesz w zakładce",
-    freeTime: "Wolny czas",
+    otherDates: "inne terminy",
+    fixtureNote: "Dane demo wyceniają tylko kilka dat, więc najlepsze propozycje mają ten sam termin. Dane na żywo rozłożą je na Twoje wolne terminy.",
   },
 
   loader: {
@@ -166,11 +147,9 @@ export const pl: Shape<typeof en> = {
 
   refining: {
     titleLive: "Doprecyzowujemy ceny na żywo…",
-    titleDemo: "Doprecyzowujemy ceny (dane demo)…",
-    detail: "Dokładne loty, hotele i pogoda, a potem ranking pod Twoje DNA podróżnika",
-    tag: "widać zapisane ceny",
-    landedLive: "Ceny na żywo gotowe. Ranking zaktualizowany.",
-    landedDemo: "Dokładne ceny demo gotowe. Ranking zaktualizowany.",
+    titleDemo: "Doprecyzowujemy ceny (demo)…",
+    landedLive: "Ceny na żywo gotowe",
+    landedDemo: "Dokładne ceny demo gotowe",
   },
 
   announce: {
@@ -185,7 +164,7 @@ export const pl: Shape<typeof en> = {
     dismiss: "Zamknij",
     title: (range: string, city: string) => `Masz wolne ${range} → ${city}`,
     body: (total: string, flights: string, score: string) =>
-      `${total} łącznie · loty ${flights} · ★ ${score}/5. Dotknij, aby zobaczyć dlaczego.`,
+      `${total} łącznie · loty ${flights} · ★ ${score}/5`,
   },
 
   notYourStyle: "Nie w Twoim stylu",
@@ -193,21 +172,18 @@ export const pl: Shape<typeof en> = {
   hide: "ukryj",
   showAnyway: "pokaż mimo to",
   empty: "Na ten termin nic jeszcze nie pasuje. Będziemy dalej szukać.",
-  neverPaid: "Za miejsce w rankingu nikt nie płaci. Oferty sponsorowane, jeśli kiedyś się pojawią, będą osobno oznaczone.",
+  neverPaid: "Bez płatnych miejsc w rankingu.",
 
   card: {
-    youreFree: "Masz wolne",
     bridge: (off: number, total: number) =>
       `${off} ${plural("pl", off, { one: "dzień", few: "dni", many: "dni", other: "dnia" })} urlopu → ${total} ${plural("pl", total, { one: "dzień", few: "dni", many: "dni", other: "dnia" })}`,
-    when: "Kiedy",
     nights: (n: number) => `${n} ${plural("pl", n, { one: "noc", few: "noce", many: "nocy", other: "nocy" })}`,
-    allIn: "Łącznie, za osobę",
-    cachedEstimate: "Zapisana szacunkowa cena",
+    allIn: "łącznie",
+    cachedEstimate: "szacunek",
     overBudget: (amount: string) => `Ponad budżet +${amount}`,
-    vsPeak: (pct: number) => `−${pct}% względem szczytu sezonu`,
+    vsPeak: (pct: number) => `−${pct}% wobec szczytu`,
     peakNote: (month: string | null, peak: string, now: string, version: string) =>
       `Ten sam wyjazd w szczycie sezonu w tym mieście${month ? ` (${month})` : ""}: ${peak} wobec ${now} teraz · algorytm TripAI ${version}`,
-    disagree: "Wynik i dopasowanie się różnią.",
-    whyNow: "Dlaczego to i dlaczego teraz",
+    disagree: "Wynik i dopasowanie się różnią:",
   },
 };

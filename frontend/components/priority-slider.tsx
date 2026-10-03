@@ -1,6 +1,7 @@
 "use client";
 
 import { Slider } from "@/components/ui/slider";
+import { Disclosure } from "@/components/declutter";
 import { ContributionBar, FACTOR_COLOR } from "@/components/factor-bars";
 import { useT } from "@/lib/i18n";
 import { FACTORS, SLIDER_PRESETS } from "@/lib/scoring";
@@ -25,7 +26,7 @@ export function PrioritySlider({
     <div data-tour="slider" className="rounded-3xl border border-line bg-card p-4 shadow-soft">
       <div className="mb-3 flex items-baseline justify-between">
         <p className="text-sm font-semibold text-ink">{ts.question}</p>
-        {value === null && <span className="text-xs font-medium text-clay">{ts.setByProfile}</span>}
+        {value === null && <span className="sr-only">{ts.setByProfile}</span>}
       </div>
       <Slider
         value={[pos]}
@@ -50,18 +51,19 @@ export function PrioritySlider({
           </button>
         ))}
       </div>
-      <div className="mt-4 border-t border-dashed border-line pt-3">
-        <ContributionBar score={{ price: 1, weather: 1, crowds: 1, taste: 1, total: 1 }} weights={weights} className="h-1.5" />
-        <div className="mt-2 grid grid-cols-4 gap-1 text-xs text-muted-foreground">
+      {/* The weight mix is one tap away; the bar alone shows it at a glance. */}
+      <ContributionBar score={{ price: 1, weather: 1, crowds: 1, taste: 1, total: 1 }} weights={weights} className="mt-3 h-1.5" />
+      <Disclosure title={ts.weights} className="-mx-4 -mb-4 mt-2 rounded-t-none border-x-0 border-b-0 bg-transparent shadow-none">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
           {FACTORS.map((f) => (
-            <span key={f} className="flex items-center gap-1">
+            <span key={f} className="flex items-center gap-1.5">
               <span className="size-2 rounded-full" style={{ background: FACTOR_COLOR[f] }} />
               {t.trips.factorsShort[f]}
               <span className="tabular ml-auto font-mono text-ink">{Math.round(weights[f] * 100)}%</span>
             </span>
           ))}
         </div>
-      </div>
+      </Disclosure>
     </div>
   );
 }

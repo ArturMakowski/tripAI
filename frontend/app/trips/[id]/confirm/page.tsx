@@ -13,11 +13,13 @@ import { dayCount } from "@/lib/format";
 import { useT, type Messages, type Fmt } from "@/lib/i18n";
 import { useTrip } from "@/lib/store";
 import type { Recommendation } from "@/lib/types";
-import { SourceTag } from "@/components/source-tag";
+import { InfoTip } from "@/components/declutter";
+import { MoneyLines, priceText, TripPrice } from "@/components/money";
 import { handoffLinks, originOf } from "@/lib/handoff";
 import { useRecommendations } from "@/lib/use-recommendations";
 
-function icsFor(rec: Recommendation, c: Messages["confirm"], fmt: Fmt) {
+function icsFor(rec: Recommendation, t: Messages, fmt: Fmt) {
+  const c = t.confirm;
   const d = (iso: string) => iso.replaceAll("-", "");
   const end = new Date(`${rec.window.end}T12:00:00Z`);
   end.setUTCDate(end.getUTCDate() + 1);
@@ -30,7 +32,7 @@ function icsFor(rec: Recommendation, c: Messages["confirm"], fmt: Fmt) {
     `DTSTART;VALUE=DATE:${d(rec.window.start)}`,
     `DTEND;VALUE=DATE:${end.toISOString().slice(0, 10).replaceAll("-", "")}`,
     `SUMMARY:${c.icsSummary(rec.city)}`,
-    `DESCRIPTION:${c.icsDescription(fmt.pln(rec.total_cost_pln))}`,
+    `DESCRIPTION:${c.icsDescription(priceText(rec, t, fmt))}`,
     "STATUS:TENTATIVE",
     "END:VEVENT",
     "END:VCALENDAR",
@@ -70,8 +72,6 @@ export default function ConfirmPage() {
   const origin = originOf(rec, profile?.origin_airports[0]);
   const links = handoffLinks(rec, profile?.origin_airports[0], t.receipt.handoff);
   const nightsText = c.nights(nights);
-  const flightEv = rec.evidence.find((e) => e.kind === "flight");
-  const hotelEv = rec.evidence.find((e) => e.kind === "hotel");
 
   return (
     <AppShell back={`/trips/${rec.id}`} title={rec.city} nav={false}>
@@ -84,28 +84,21 @@ export default function ConfirmPage() {
                 {fmt.range(rec.window)} {rec.window.start.slice(0, 4)} · {nightsText}
               </p>
             </div>
-            <p className="tabular font-display text-2xl">{fmt.pln(rec.total_cost_pln)}</p>
+            <TripPrice rec={rec} tone="light" showParty={false} className="shrink-0 text-right" />
           </div>
         </CityPhoto>
 
-        <ul className="mt-5 divide-y divide-line rounded-3xl border border-line bg-card px-4 shadow-soft">
-          <li className="flex items-center gap-3 py-3.5">
-            <Plane className="size-5 text-pine" />
-            <div className="flex-1 text-sm">
-              <p className="font-medium text-ink">{c.returnFlight(origin, rec.iata)}</p>
-              <p className="text-muted-foreground">{c.quoted(fmt.pln(rec.flight_cost_pln))}</p>
-              {flightEv && <SourceTag e={flightEv} />}
-            </div>
-          </li>
-          <li className="flex items-center gap-3 py-3.5">
-            <BedDouble className="size-5 text-pine" />
-            <div className="flex-1 text-sm">
-              <p className="font-medium text-ink">{hotelEv?.label ?? c.hotelNights(nightsText)}</p>
-              <p className="text-muted-foreground">{c.quoted(fmt.pln(rec.hotel_cost_pln))}</p>
-              {hotelEv && <SourceTag e={hotelEv} />}
-            </div>
-          </li>
-        </ul>
+        <div className="mt-5 rounded-3xl border border-line bg-card px-4 py-2 shadow-soft">
+          <MoneyLines
+            rec={rec}
+            nights={nightsText}
+            flightLabel={c.flight(origin, rec.iata)}
+            icons={{
+              flight: <Plane className="size-4 shrink-0 translate-y-0.5 text-pine" aria-hidden />,
+              hotel: <BedDouble className="size-4 shrink-0 translate-y-0.5 text-pine" aria-hidden />,
+            }}
+          />
+        </div>
 
         <AnimatePresence mode="wait">
           {!done ? (
@@ -114,7 +107,9 @@ export default function ConfirmPage() {
                 <p className="flex items-center gap-2 font-display text-lg text-ink">
                   <Hand className="size-5 text-clay" /> {c.nothingBooked}
                 </p>
-                <p className="mt-1 text-sm leading-relaxed text-ink-soft">{c.notAgent}</p>
+                <p className="mt-1 text-sm leading-relaxed text-ink-soft">
+                  {c.disclaimer} <InfoTip>{c.cachedTip}</InfoTip>
+                </p>
                 <label className="mt-4 flex items-start gap-3 text-sm text-ink">
                   <Checkbox checked={ok} onCheckedChange={(v) => setOk(v === true)} className="mt-0.5 size-5 bg-card" />
                   {c.understand}
@@ -157,7 +152,7 @@ export default function ConfirmPage() {
                 ))}
                 <li>
                   <a
-                    href={icsFor(rec, c, fmt)}
+                    href={icsFor(rec, t, fmt)}
                     download={`tripai-${rec.id}.ics`}
                     className="flex items-center justify-between rounded-2xl border border-dashed border-line px-4 py-3.5 text-sm font-medium text-ink-soft hover:border-pine/40"
                   >

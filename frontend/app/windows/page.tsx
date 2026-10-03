@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, CalendarCheck2, Radar, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarCheck2, ChevronRight, Radar, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { InfoTip } from "@/components/declutter";
 import { FreeDatesPlanner } from "@/components/date-picker/free-dates-planner";
 import { AppShell, PageTitle } from "@/components/shell";
 import { dayCount, eachDay } from "@/lib/format";
@@ -84,7 +85,7 @@ export default function WindowsPage() {
   const allBridges = longWeekends
     .filter((b) => b.leave_days.length > 0)
     .sort((a, b) => ratio(b) - ratio(a) || a.window.start.localeCompare(b.window.start));
-  const bridges = showAll ? allBridges : allBridges.slice(0, 4);
+  const bridges = showAll ? allBridges : allBridges.slice(0, 2);
   // Already free: calendar windows of 3+ days and holiday weekends that need no leave.
   const seen = new Set<string>();
   const calendar = [
@@ -107,7 +108,6 @@ export default function WindowsPage() {
         <h2 className="flex items-center gap-2 font-display text-xl">
           <Radar className="size-5 text-sun" aria-hidden /> {tw.radarTitle}
         </h2>
-        <p className="mt-1 text-sm text-paper/70">{tw.radarIntro}</p>
 
         <ul className="mt-4 space-y-3">
           {bridges.map((w, i) => (
@@ -147,9 +147,14 @@ export default function WindowsPage() {
           ))}
           {!bridges.length && <li className="h-40 animate-pulse rounded-2xl bg-paper/10" />}
         </ul>
-        {allBridges.length > 4 && (
-          <button onClick={() => setShowAll((v) => !v)} className="mt-3 w-full py-1 text-sm text-paper/70 hover:text-paper">
-            {showAll ? tw.showFewer : tw.showAllBridges(allBridges.length)}
+        {allBridges.length > 2 && (
+          <button
+            onClick={() => setShowAll((v) => !v)}
+            aria-expanded={showAll}
+            className="mt-3 flex w-full items-center justify-center gap-1 py-1 text-sm text-paper/70 hover:text-paper"
+          >
+            {showAll ? tw.showFewer : tw.moreBridges(allBridges.length - 2)}
+            <ChevronRight className={cn("size-4 transition-transform", showAll && "rotate-90")} aria-hidden />
           </button>
         )}
       </section>
@@ -158,29 +163,29 @@ export default function WindowsPage() {
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
           <CalendarCheck2 className="size-4 text-pine" aria-hidden /> {tw.alreadyFree}
         </h2>
-        <ul className="space-y-3">
+        {/* compact: one line per window */}
+        <ul className="divide-y divide-line rounded-2xl border border-line bg-card shadow-soft">
           {calendar.map(({ w, b }) => (
             <li key={w.start + w.end}>
               <Link
                 href={`/trips?window=${w.start}_${w.end}`}
-                className="block rounded-2xl border border-line bg-card p-4 shadow-soft transition-transform active:scale-[0.99]"
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-paper-deep/50"
               >
-                <div className="flex items-baseline justify-between">
-                  <p className="font-display text-lg text-ink">{fmt.range(w)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {tw.days(dayCount(w))} · {b ? holidayNames(b) : tw.googleCalendar}
-                  </p>
-                </div>
-                <div className="no-scrollbar mt-3 overflow-x-auto">
-                  <DayStrip w={w} b={b} />
-                </div>
+                <span className="font-display text-base text-ink">{fmt.range(w)}</span>
+                <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                  {tw.days(dayCount(w))} · {b ? holidayNames(b) : tw.googleCalendar}
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
               </Link>
             </li>
           ))}
         </ul>
         {weekends > 0 && <p className="mt-3 text-sm text-muted-foreground">{tw.plusWeekends(weekends)}</p>}
-        <div className="mt-3">
-          <Legend />
+        <div className="mt-3 text-xs text-muted-foreground">
+          {tw.legendTitle}{" "}
+          <InfoTip label={tw.legendTitle}>
+            <Legend />
+          </InfoTip>
         </div>
       </section>
 

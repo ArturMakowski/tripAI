@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["**/*.test.ts"],
+    include: ["**/*.test.ts", "**/*.test.tsx"],
     exclude: ["node_modules/**", ".next/**"],
     // fixture mode unless a test opts into the live /api path (NEXT_PUBLIC_MOCK=0)
     env: { NEXT_PUBLIC_MOCK: "1" },

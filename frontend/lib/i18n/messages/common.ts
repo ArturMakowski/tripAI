@@ -18,6 +18,10 @@ export const en = {
   errorGeneric: "Something went wrong. Please try again.",
   offline: "Can't reach TripAI right now.",
   scoreOf: (label: string, n: number) => `${label} ${n} of 100`,
+  moreInfo: "More info",
+  more: "More",
+  less: "Less",
+  dataSource: "Data source",
   score: "Score",
 } as const;
 
@@ -39,5 +43,9 @@ export const pl: Shape<typeof en> = {
   errorGeneric: "Coś poszło nie tak. Spróbuj ponownie.",
   offline: "Nie możemy teraz połączyć się z TripAI.",
   scoreOf: (label, n) => `${label}: ${n} na 100`,
+  moreInfo: "Więcej informacji",
+  more: "Więcej",
+  less: "Mniej",
+  dataSource: "Źródło danych",
   score: "Wynik",
 };

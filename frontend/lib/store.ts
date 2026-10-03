@@ -19,7 +19,8 @@ export interface FeedbackDiff {
   frozen?: boolean;
 }
 
-export type DeckStep = "swipe" | "budget" | "airport" | "result";
+/** Onboarding: dates + party + airports first ("trip"), then the DNA deck, then the result. */
+export type DeckStep = "trip" | "swipe" | "result";
 
 export type Dataset = "interview" | "windows" | "recs" | "feedback";
 
@@ -45,7 +46,7 @@ interface TripState {
   approved: string[];
   feedback: FeedbackDiff | null;
   /** Swipe onboarding progress (survives a reload mid-deck). */
-  deck: { swipes: DnaSwipe[]; step: DeckStep; budget: number | null; airports: string[]; result: DnaResponse | null };
+  deck: { swipes: DnaSwipe[]; step: DeckStep; airports: string[]; result: DnaResponse | null; /** "Ile osób?" chosen before the profile exists */ party?: number };
   /** UI + AI language for the whole app; null = follow the browser (see lib/i18n). */
   lang: Lang | null;
   setLang: (l: Lang) => void;
@@ -79,7 +80,7 @@ const initial = {
   modes: {},
   approved: [],
   feedback: null,
-  deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, budget: 1800 as number | null, airports: ["KRK"], result: null as DnaResponse | null },
+  deck: { swipes: [] as DnaSwipe[], step: "trip" as DeckStep, airports: ["KRK"], result: null as DnaResponse | null },
   lang: null as Lang | null,
 };
 

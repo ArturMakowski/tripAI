@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "motion/react";
-import { AlertTriangle, ArrowDownRight, Fingerprint, HeartHandshake, Scale } from "lucide-react";
-import { FitBadge } from "@/components/fit-badge";
+import { AlertTriangle, ArrowDownRight, Check, ChevronRight, Fingerprint, Scale } from "lucide-react";
+import { useId, useState } from "react";
+import { InfoTip, reveal } from "@/components/declutter";
 import type { Lang } from "@/lib/dna";
 import { disagreement, dnaQuotes, fitMeta, modelLabel } from "@/lib/fit";
 import { useT } from "@/lib/i18n";
@@ -10,20 +10,11 @@ import type { FitPoint, RankedRecommendation, TasteProfile } from "@/lib/types";
 import { overallOutOfFive } from "@/lib/stars";
 import { cn } from "@/lib/utils";
 
-/** Fired to expand the receipt's collapsed Audit section (where most evidence rows live). */
-export const OPEN_MATH_EVENT = "tripai:open-math";
-
-/** Scroll to an evidence row and flash it, so every claim is one tap from its source. */
-
+/** Scroll to an evidence row (opening any collapsed section around it) and flash it. */
 function jumpTo(i: number) {
   const target = document.getElementById(`ev-${i}`);
-  if (target && target.closest("[hidden]")) {
-    window.dispatchEvent(new Event(OPEN_MATH_EVENT));
-    // wait for React to un-hide the section, then scroll
-    requestAnimationFrame(() => requestAnimationFrame(() => scrollToRow(i)));
-    return;
-  }
-  scrollToRow(i);
+  if (!target) return;
+  reveal(target, () => scrollToRow(i));
 }
 
 function scrollToRow(i: number) {
@@ -41,119 +32,135 @@ function scrollToRow(i: number) {
     );
 }
 
-/** DECLUTTER: the strongest claims only; the receipt below carries the rest. */
-const MAX_CLAIMS = 3;
-
-function Point({ p, rec, profile, lang, tone }: { p: FitPoint; rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang; tone: "match" | "concern" }) {
+/** One fit claim: bold text only; the swipe quotes + evidence links sit behind a toggle. */
+function Claim({ p, rec, profile, lang, tone }: { p: FitPoint; rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang; tone: "match" | "concern" }) {
   const { t } = useT();
+  const c = t.receipt.fit;
+  const [open, setOpen] = useState(false);
+  const id = useId().replace(/:/g, "");
   const quotes = dnaQuotes(p.dna, profile, lang);
-  const cited = p.evidence.filter((i) => rec.evidence[i]);
+  const evidence = p.evidence.filter((i) => rec.evidence[i] && !isStockPhoto(rec.evidence[i]));
+  const hasDetail = quotes.length > 0 || evidence.length > 0;
+  const Icon = tone === "match" ? Check : AlertTriangle;
   return (
-    <li className={cn("rounded-2xl border bg-card p-3.5 shadow-soft", tone === "concern" ? "border-clay/30" : "border-line")}>
-      <p className="text-sm leading-snug font-medium text-ink">{p.text}</p>
-      {/* DECLUTTER: bold claim only; swipe quotes and cited sources are one tap away */}
-      {(quotes.length > 0 || cited.length > 0) && (
-        <details className="group mt-1">
-          <summary className="cursor-pointer list-none text-xs text-muted-foreground hover:text-pine [&::-webkit-details-marker]:hidden">
-            {quotes.length > 0 ? t.receipt.fit.becauseSwiped : t.receipt.fit.sources(cited.length)}{" "}
-            <span className="inline-block transition-transform group-open:rotate-90">›</span>
-          </summary>
-          {quotes.map((q) => (
-            <p key={q} className="mt-1.5 flex gap-1.5 text-xs leading-snug text-ink-soft">
-              <Fingerprint className="mt-px size-3.5 shrink-0 text-clay" aria-hidden />
-              {q}
-            </p>
-          ))}
-          {cited.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {cited.map((i) => (
-                <button
-                  key={i}
-                  onClick={() => jumpTo(i)}
-                  className="inline-flex items-center gap-1 rounded-full bg-paper-deep px-2.5 py-1 text-xs text-ink-soft hover:bg-pine-soft hover:text-pine-deep"
-                >
-                  <ArrowDownRight className="size-3" aria-hidden />
-                  {rec.evidence[i].label}
-                </button>
-              ))}
-            </div>
-          )}
-        </details>
+    <li className="py-2">
+      <p className="flex gap-2 text-sm leading-snug font-semibold text-ink">
+        <Icon className={cn("mt-0.5 size-4 shrink-0", tone === "match" ? "text-pine" : "text-clay")} aria-hidden />
+        <span>
+          <span className="sr-only">{tone === "match" ? c.match : c.concern}: </span>
+          {p.text}
+        </span>
+      </p>
+      {hasDetail && (
+        <>
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-controls={`claim-${id}`}
+            className="mt-0.5 ml-6 inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-ink"
+          >
+            {c.becauseSwiped}
+            <ChevronRight className={cn("size-3.5 transition-transform", open && "rotate-90")} aria-hidden />
+          </button>
+          <div id={`claim-${id}`} hidden={!open} className="mt-1 ml-6 space-y-1.5">
+            {quotes.map((q) => (
+              <p key={q} className="flex gap-1.5 text-xs leading-snug text-ink-soft">
+                <Fingerprint className="mt-px size-3.5 shrink-0 text-clay" aria-hidden />
+                {q}
+              </p>
+            ))}
+            {evidence.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {evidence.map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => jumpTo(i)}
+                    className="inline-flex max-w-full items-center gap-1 rounded-full bg-paper-deep px-2.5 py-1 text-xs text-ink-soft hover:bg-pine-soft hover:text-pine-deep"
+                  >
+                    <ArrowDownRight className="size-3 shrink-0" aria-hidden />
+                    <span className="truncate">{rec.evidence[i].label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
     </li>
   );
 }
 
-export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang }) {
+/** Stock/illustration photos travel as evidence rows from the live provider; they aren't evidence. */
+export function isStockPhoto(e: { kind: string; source: string; url?: string | null }) {
+  return (
+    e.kind === "photo" ||
+    e.kind === "image" ||
+    e.source.startsWith("serper:images") ||
+    /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(e.url ?? "")
+  );
+}
+
+/** Matches and concerns as bold one-liners (docs/DECLUTTER.md: "fit claims = bold claim only"). */
+export function FitClaims({ rec, profile, lang }: { rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang }) {
+  const { t } = useT();
+  const [all, setAll] = useState(false);
+  const fit = rec.fit;
+  if (!fit || (!fit.matches.length && !fit.concerns.length)) return null;
+  const claims = [
+    ...fit.matches.map((p, i) => ({ key: `m${i}`, p, tone: "match" as const })),
+    ...fit.concerns.map((p, i) => ({ key: `c${i}`, p, tone: "concern" as const })),
+  ];
+  // one claim on screen, the rest one tap away (review #31: keep the receipt's trust lines above the fold)
+  const shown = all ? claims : claims.slice(0, 1);
+  const rest = claims.length - shown.length;
+  return (
+    <ul className="mt-3 divide-y divide-line">
+      {shown.map((c) => (
+        <Claim key={c.key} p={c.p} rec={rec} profile={profile} lang={lang} tone={c.tone} />
+      ))}
+      {rest > 0 && (
+        <li className="pt-2">
+          <button type="button" onClick={() => setAll(true)} className="text-sm font-medium text-pine hover:underline">
+            {t.receipt.fit.moreClaims(rest)}
+          </button>
+        </li>
+      )}
+    </ul>
+  );
+}
+
+/** Score and fit pointing different ways: one line, stated openly; the why behind ⓘ. */
+export function FitDisagreement({ rec, lang }: { rec: RankedRecommendation; lang: Lang }) {
   const { t, fmt } = useT();
   const c = t.receipt.fit;
+  const split = disagreement(rec);
+  if (!split || !rec.fit) return null;
+  const score = fmt.num(overallOutOfFive(rec.score.total), 1);
+  const label = fitMeta(rec.fit.label, lang).label.toLowerCase();
+  return (
+    <div role="note" className="mt-3 flex gap-2 rounded-2xl bg-sun-soft px-3 py-2 text-sm text-ink">
+      <Scale className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <p>
+        {split === "high_score_poor_fit" ? c.disagreeHigh(score, label) : c.disagreeLow(score, label)}{" "}
+        <InfoTip>{c.disagreeTip}</InfoTip>
+      </p>
+    </div>
+  );
+}
+
+/** For the Audit sheet: which check produced the verdict, its confidence and time. */
+export function FitAudit({ rec, profile, lang }: { rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang }) {
+  const { t, fmt } = useT();
   const fit = rec.fit;
   if (!fit) return null;
-  const split = disagreement(rec);
-  const neutral = profile?.personalize === false;
+  const c = t.receipt.fit;
   return (
-    <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
-      <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-xl text-ink">{c.title}</h2>
-          <FitBadge fit={fit} />
-        </div>
-        <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{fit.summary}</p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          {modelLabel(fit, lang)} · {c.confidence(Math.round(fit.confidence * 100))}
-          {fit.created_at && ` · ${fmt.timestamp(fit.created_at)}`}
-          {neutral && ` · ${c.neutral}`}
-        </p>
-
-        {split && (
-          <div role="note" className="mt-3 flex gap-2.5 rounded-2xl bg-sun-soft p-3 text-sm text-ink">
-            <Scale className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <p>
-              {split === "high_score_poor_fit" ? (
-                <>
-                  <b>{c.highScoreB(fmt.num(overallOutOfFive(rec.score.total), 1))}</b>
-                  {c.highScoreC}
-                  <b>{fitMeta(fit.label, lang).label.toLowerCase()}</b>
-                  {c.highScoreD}
-                </>
-              ) : (
-                <>
-                  <b>{c.lowScoreB(fmt.num(overallOutOfFive(rec.score.total), 1))}</b>
-                  {c.lowScoreC}
-                  <b>{fitMeta(fit.label, lang).label.toLowerCase()}</b>
-                  {c.lowScoreD}
-                </>
-              )}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {fit.matches.length > 0 && (
-        <>
-          <h3 className="mt-5 mb-3 flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-pine uppercase">
-            <HeartHandshake className="size-4" aria-hidden /> {c.whyFits}
-          </h3>
-          <ul className="space-y-2">
-            {fit.matches.slice(0, MAX_CLAIMS).map((p, i) => (
-              <Point key={i} p={p} rec={rec} profile={profile} lang={lang} tone="match" />
-            ))}
-          </ul>
-        </>
-      )}
-
-      {fit.concerns.length > 0 && (
-        <>
-          <h3 className="mt-5 mb-3 flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-clay uppercase">
-            <AlertTriangle className="size-4" aria-hidden /> {c.watchOut}
-          </h3>
-          <ul className="space-y-2">
-            {fit.concerns.map((p, i) => (
-              <Point key={i} p={p} rec={rec} profile={profile} lang={lang} tone="concern" />
-            ))}
-          </ul>
-        </>
-      )}
-    </motion.section>
+    <p className="text-xs text-ink-soft">
+      {modelLabel(fit, lang)} · {c.confidence(Math.round(fit.confidence * 100))}
+      {fit.created_at && ` · ${fmt.timestamp(fit.created_at)}`}
+      {profile?.personalize === false && ` · ${c.neutral}`}
+    </p>
   );
 }

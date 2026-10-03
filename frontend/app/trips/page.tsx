@@ -3,15 +3,18 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { Bell, CalendarDays, Check, ChevronDown, Wallet, X } from "lucide-react";
+import { Bell, Check, ChevronDown, ChevronRight, Plane, Wallet, X } from "lucide-react";
 import { overallOutOfFive } from "@/lib/stars";
 import { cn } from "@/lib/utils";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
+import { PartyPicker, priceText } from "@/components/money";
+import { moneyOf } from "@/lib/money";
 import { PrioritySlider } from "@/components/priority-slider";
 import { RecCard } from "@/components/rec-card";
-import { RefiningStrip, TripLoader, type Stage } from "@/components/trip-loader";
+import { Chip, InfoTip } from "@/components/declutter";
+import { TripLoader, type Stage } from "@/components/trip-loader";
 import { HiddenTrips, SwipeMode, TripsViewToggle, useHiddenIds } from "@/components/trips-swipe";
 import { useSwipe } from "@/lib/use-reactions";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
@@ -27,6 +30,16 @@ import { useRecommendations } from "@/lib/use-recommendations";
 function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () => void }) {
   const { t, fmt } = useT();
   const tp = t.trips.push;
+  // A floating toast must never park over the page title: it leaves on its own after 3 s
+  // (timer starts once; parent re-renders don't restart it).
+  const close = useRef(onClose);
+  useEffect(() => {
+    close.current = onClose;
+  });
+  useEffect(() => {
+    const timer = setTimeout(() => close.current(), 3_600); // 0.6 s entrance delay + 3 s visible
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <motion.div
       initial={{ y: -40, opacity: 0, scale: 0.96 }}
@@ -52,7 +65,7 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
           {tp.title(fmt.range(rec.window), rec.city)}
         </p>
         <p className="mt-0.5 text-sm text-ink-soft">
-          {tp.body(fmt.pln(rec.total_cost_pln), fmt.pln(rec.flight_cost_pln), fmt.num(overallOutOfFive(rec.score.total), 1))}
+          {tp.body(priceText(rec, t, fmt), fmt.pln(rec.flight_cost_pln), fmt.num(overallOutOfFive(rec.score.total), 1))}
         </p>
       </Link>
     </motion.div>
@@ -105,19 +118,29 @@ function Trips() {
   const sameDates =
     !windowFilter && top3.length >= 2 && top3.every((r) => r.window.start === top3[0].window.start && r.window.end === top3[0].window.end);
   const fixtureRecs = useTrip((s) => s.modes.recs) === "fixture";
-  // Like the notifier (T5b): only push a good or great fit.
-  const top = refining ? undefined : ranked.find((r) => !r.fit || r.fit.label === "great_fit" || r.fit.label === "good_fit");
+  // Like the notifier (T5b, #29): only push a good or great fit, and only on an exact price.
+  const top = refining
+    ? undefined
+    : ranked.find((r) => moneyOf(r).status === "exact" && (!r.fit || r.fit.label === "great_fit" || r.fit.label === "good_fit"));
 
-  // Phase 2 landed: the status slot switches from "refining" to a confirmation that stays put
-  // (same height, so the cards never jump).
+  // Phase 2 landed: a floating 2 s confirmation, shown once. Refining/landed float above the
+  // bottom nav instead of taking a slot in the page, so the cards never jump.
   const wasRefining = useRef(false);
   const [landed, setLanded] = useState(false);
+  const [landedToast, setLandedToast] = useState(false);
   useEffect(() => {
     const justLanded = wasRefining.current && !refining;
     wasRefining.current = refining;
     if (!justLanded) return;
-    const t = setTimeout(() => setLanded(true), 0);
-    return () => clearTimeout(t);
+    const on = setTimeout(() => {
+      setLanded(true);
+      setLandedToast(true);
+    }, 0);
+    const off = setTimeout(() => setLandedToast(false), 2_000);
+    return () => {
+      clearTimeout(on);
+      clearTimeout(off);
+    };
   }, [refining]);
   const liveData = mode === "live";
 
@@ -146,29 +169,41 @@ function Trips() {
     <AppShell>
       <AnimatePresence>{!dismissed && top && !windowFilter && <PushBanner rec={top} onClose={() => setDismissed(true)} />}</AnimatePresence>
 
-      <PageTitle eyebrow={tt.eyebrow} title={tt.title}>
-        {tt.intro}
-      </PageTitle>
+      <PageTitle title={tt.title} />
 
-      <Link
-        href="/profile"
-        className="mb-3 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1.5 text-sm text-ink-soft shadow-soft hover:border-pine/40"
-      >
-        <Wallet className="size-4 text-pine" aria-hidden />
-        {budget != null ? (
-          <>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        {/* The limit is optional and off by default (BUDGET.md): no chip unless one is set. */}
+        {budget != null && (
+          <Link
+            href="/profile"
+            aria-label={tt.budget.editAria}
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-sm text-ink-soft shadow-soft hover:border-pine/40"
+          >
+            <Wallet className="size-4 text-pine" aria-hidden />
             {tt.budget.label} <b className="tabular font-semibold text-ink">{fmt.pln(budget)}</b>
-          </>
-        ) : (
-          <>{tt.budget.none}</>
+            <ChevronRight className="size-3.5 text-muted-foreground" aria-hidden />
+          </Link>
         )}
-        <span className="text-muted-foreground">· {budget != null ? tt.budget.setInProfile : tt.budget.setOne}</span>
-      </Link>
+        {/* Top picks sharing one window: say which, link to the others (not a paragraph). */}
+        {sameDates && (
+          <span className="inline-flex items-center">
+            <Link href="/windows" className="hover:opacity-80">
+              <Chip className="py-1.5 text-sm">
+                📅 {fmt.range(fitting[0].window)} · {tt.sameDates.otherDates} ›
+              </Chip>
+            </Link>
+            {fixtureRecs && <InfoTip>{tt.sameDates.fixtureNote}</InfoTip>}
+          </span>
+        )}
+      </div>
 
       <PickedDatesHeader />
 
       <PrioritySlider value={slider} weights={weights} onChange={setSlider} />
-      <TripsViewToggle className="mt-4" />
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <TripsViewToggle />
+        <PartyPicker compact />
+      </div>
 
       {windowFilter && (
         <div className="mt-4 flex items-center justify-between rounded-xl bg-pine-soft px-3 py-2 text-sm text-pine-deep">
@@ -177,26 +212,6 @@ function Trips() {
             {tt.filter.showAll}
           </Link>
         </div>
-      )}
-
-      {sameDates && (
-        <p role="note" className="mt-4 flex gap-2 rounded-xl bg-sky-soft px-3 py-2.5 text-sm leading-snug text-ink">
-          <CalendarDays className="mt-0.5 size-4 shrink-0 text-sky" aria-hidden />
-          {fixtureRecs ? (
-            <span>
-              {tt.sameDates.fixturePre} <b>{fmt.range(fitting[0].window)}</b> {tt.sameDates.fixturePost}
-            </span>
-          ) : (
-            <span>
-              {tt.sameDates.livePre} <b>{fmt.range(fitting[0].window)}</b>
-              {tt.sameDates.livePost}{" "}
-              <Link href="/windows" className="font-medium text-pine underline-offset-2 hover:underline">
-                {tt.sameDates.freeTime}
-              </Link>
-              .
-            </span>
-          )}
-        </p>
       )}
 
       {loading && !list.length && (
@@ -215,41 +230,40 @@ function Trips() {
         {announce}
       </p>
 
-      <div className="mt-5 space-y-3 empty:hidden">
-        {(refining || landed) && list.length > 0 && (
-          <div className="relative h-[58px]">
-            <AnimatePresence mode="wait" initial={false}>
-              {refining ? (
-                <motion.div key="refining" className="absolute inset-0" exit={{ opacity: 0 }}>
-                  <RefiningStrip
-                    title={liveData ? tt.refining.titleLive : tt.refining.titleDemo}
-                    detail={tt.refining.detail}
-                    tag={tt.refining.tag}
-                  />
-                </motion.div>
-              ) : (
-                <motion.p
-                  key="landed"
-                  aria-hidden
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 flex items-center gap-2 rounded-2xl bg-pine px-3.5 text-sm font-medium text-paper"
-                >
-                  <Check className="size-4" />
-                  {liveData ? tt.refining.landedLive : tt.refining.landedDemo}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </div>
+      <AnimatePresence>
+        {((refining && list.length > 0) || landedToast) && (
+          <motion.p
+            key={refining ? "refining" : "landed"}
+            aria-hidden
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            className={cn(
+              "fixed inset-x-0 bottom-20 z-40 mx-auto flex w-fit max-w-[calc(100%-2rem)] items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium shadow-lift",
+              refining ? "sheen border border-pine/20 bg-pine-soft text-pine-deep" : "bg-pine text-paper",
+            )}
+          >
+            {refining ? <Plane className="size-4 motion-safe:animate-pulse" /> : <Check className="size-4" />}
+            {refining
+              ? liveData
+                ? tt.refining.titleLive
+                : tt.refining.titleDemo
+              : liveData
+                ? tt.refining.landedLive
+                : tt.refining.landedDemo}
+          </motion.p>
         )}
+      </AnimatePresence>
+
+      <div className="mt-5 space-y-3 empty:hidden">
 
         {banner && view === "list" && (
-          <div role="note" className="flex gap-2.5 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm leading-snug text-ink">
+          <div role="note" className="flex gap-2.5 rounded-2xl border border-clay/30 bg-clay-soft px-3.5 py-2.5 text-sm leading-snug text-ink">
             <Wallet className="mt-0.5 size-4 shrink-0 text-clay" aria-hidden />
             {banner.kind === "none_fit" ? (
               <p>
                 <b>{tt.budget.noneFitTitle(fmt.pln(banner.budget))}</b>{" "}
-                {tt.budget.noneFitBody(banner.cheapest.city, fmt.pln(banner.cheapest.total_cost_pln), fmt.pln(banner.over))}
+                {tt.budget.noneFitBody(banner.cheapest.city, priceText(banner.cheapest, t, fmt), fmt.pln(banner.over))}
                 {!fitting.some((r) => r.id === banner.cheapest.id) && (
                   <>
                     , {tt.budget.listedUnder}{" "}
@@ -262,7 +276,7 @@ function Trips() {
               </p>
             ) : banner.kind === "fits_hidden" ? (
               <p>
-                <b>{tt.budget.topOverTitle(fmt.pln(banner.over), fmt.pln(banner.budget))}</b> {tt.budget.fitsHidden(banner.hiddenCount)}{" "}
+                <b>{tt.budget.topOverTitle(fmt.pln(banner.over))}</b> {tt.budget.fitsHidden(banner.hiddenCount)}{" "}
                 <button onClick={() => setShowPoor(true)} className="font-semibold text-pine underline-offset-2 hover:underline">
                   {tt.notYourStyle}
                 </button>
@@ -270,7 +284,7 @@ function Trips() {
               </p>
             ) : (
               <p>
-                <b>{tt.budget.topOverTitle(fmt.pln(banner.over), fmt.pln(banner.budget))}</b> {tt.budget.topOverBody(banner.withinCount)}{" "}
+                <b>{tt.budget.topOverTitle(fmt.pln(banner.over))}</b> {tt.budget.topOverBody(banner.withinCount)}{" "}
                 <button onClick={() => setWithinFirst(true)} className="font-semibold text-pine underline-offset-2 hover:underline">
                   {tt.budget.showThoseFirst}
                 </button>
@@ -351,9 +365,7 @@ function Trips() {
           <p className="mt-6 text-center text-sm text-muted-foreground">{tt.empty}</p>
         </PickedDatesEmpty>
       )}
-      <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
-        {tt.neverPaid}
-      </p>
+      <p className="mt-6 text-center text-xs text-muted-foreground">{tt.neverPaid}</p>
     </AppShell>
   );
 }

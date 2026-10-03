@@ -3,12 +3,12 @@ import { plural, type Shape } from "../types";
 export const en = {
   eyebrow: "Taste profile",
   title: "Here's what we heard.",
-  intro: "This is everything the ranking knows about you. Change anything and your trips re-rank.",
+  intro: "Tap to edit. Trips re-rank.",
+  /** ⓘ next to the title */
   aiNote:
     "The AI turned your answers into this profile. The scores themselves come from a fixed formula over sourced data, and the AI never makes up a price.",
-  continue: "Looks right: find my free time",
+  continue: "Next: free time",
   languageTitle: "Language",
-  languageHint: "Used on every screen and for AI answers.",
   youLove: "You love",
   youAvoid: "You avoid",
   add: "Add",
@@ -20,7 +20,7 @@ export const en = {
   from: "From",
   budget: "Budget",
   budgetPerPerson: "Budget per person",
-  perPerson: (amount: string) => `${amount} pp`,
+  perPerson: (amount: string) => `${amount} per person`,
   flexible: "Flexible",
   stay: "Stay",
   temperature: "Comfortable temperature",
@@ -77,12 +77,11 @@ export const en = {
 export const pl: Shape<typeof en> = {
   eyebrow: "Profil gustu",
   title: "Oto, co usłyszeliśmy.",
-  intro: "To wszystko, co ranking o Tobie wie. Zmień cokolwiek, a wyjazdy ułożą się na nowo.",
+  intro: "Dotknij, by zmienić. Ranking się przeliczy.",
   aiNote:
     "AI zamieniło Twoje odpowiedzi w ten profil. Same oceny wylicza stały wzór na danych ze źródłami, a AI nigdy nie wymyśla cen.",
-  continue: "Wszystko się zgadza: znajdź mój wolny czas",
+  continue: "Dalej: wolny czas",
   languageTitle: "Język",
-  languageHint: "Na każdym ekranie i w odpowiedziach AI.",
   youLove: "Lubisz",
   youAvoid: "Unikasz",
   add: "Dodaj",

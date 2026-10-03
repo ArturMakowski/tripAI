@@ -5,8 +5,8 @@ import { ChevronDown, EyeOff, LayoutList, Layers, Sparkles } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react";
 import { OfferDeck } from "@/components/offer-deck";
 import { CityPhoto } from "@/components/rec-card";
-import { formatPLN, formatRange } from "@/lib/format";
-import { useLang } from "@/lib/i18n";
+import { PriceInline } from "@/components/money";
+import { useLang, useT } from "@/lib/i18n";
 import { GESTURE_REACTION, swipeCopy, toastText, type OfferGesture } from "@/lib/reactions";
 import type { RankedRecommendation } from "@/lib/types";
 import { commitLearning, currentBase, hiddenIds, react, unreact, useSwipe, type SwipeEntry } from "@/lib/use-reactions";
@@ -198,6 +198,7 @@ export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]
 /** List mode: the trips you swiped "Nie dla mnie", one tap away (never hidden silently). */
 export function HiddenTrips() {
   const lang = useLang();
+  const { fmt } = useT();
   const t = swipeCopy(lang);
   const log = useSwipe((s) => s.log);
   const hidden = log.filter((e) => e.reaction === "dislike");
@@ -237,7 +238,7 @@ export function HiddenTrips() {
                 <div className="min-w-0 flex-1 text-sm">
                   <p className="font-semibold text-ink">{e.rec.city}</p>
                   <p className="tabular text-muted-foreground">
-                    {formatRange(e.rec.window)} · {formatPLN(e.rec.total_cost_pln)}
+                    {fmt.range(e.rec.window)} · <PriceInline rec={e.rec} />
                   </p>
                 </div>
                 <button
