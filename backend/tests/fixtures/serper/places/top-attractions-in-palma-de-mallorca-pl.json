@@ -1,0 +1,147 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "es",
+   "hl": "pl",
+   "q": "top attractions in Palma de Mallorca, Spain",
+   "ll": "@39.5696,2.6502,13z"
+  }
+ },
+ "fetched_at": "2026-10-03T21:17:23.513292+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Palma de Mallorca, Spain",
+   "gl": "es",
+   "hl": "pl",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "ll": "@39.5696,2.6502,13z",
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Katedra w Palma de Mallorca",
+    "address": "Plaça de la Seu, s/n",
+    "latitude": 39.567425,
+    "longitude": 2.6482995,
+    "rating": 4.7,
+    "ratingCount": 69,
+    "category": "Katedra",
+    "website": "https://www.catedraldemallorca.org/es/",
+    "cid": "6056387022241497514"
+   },
+   {
+    "position": 2,
+    "title": "Castillo de Bellver",
+    "address": "Carrer Camilo José Cela, s/n",
+    "latitude": 39.563843,
+    "longitude": 2.6194232,
+    "rating": 4.5,
+    "ratingCount": 27,
+    "category": "Zamek",
+    "website": "https://castelldebellver.palma.es/",
+    "cid": "14471946674682593185"
+   },
+   {
+    "position": 3,
+    "title": "Mercado del Olivar",
+    "address": "Plaça de l'Olivar, s/n",
+    "latitude": 39.57375,
+    "longitude": 2.6534932,
+    "rating": 4.5,
+    "ratingCount": 30,
+    "category": "Rynek",
+    "website": "http://www.mercatolivar.com/",
+    "cid": "2418128809753536469"
+   },
+   {
+    "position": 4,
+    "title": "Royal Palace of La Almudaina",
+    "address": "Carrer del Palau Reial, s/n",
+    "latitude": 39.56755,
+    "longitude": 2.6474006,
+    "rating": 4.5,
+    "ratingCount": 7,
+    "category": "Atrakcja turystyczna",
+    "website": "https://www.patrimonionacional.es/en/visita/royal-palace-la-almudaina",
+    "cid": "1805066547279603968"
+   },
+   {
+    "position": 5,
+    "title": "Sa Llotja",
+    "address": "Plaça de la Llotja, 5",
+    "latitude": 39.56837,
+    "longitude": 2.6443686,
+    "rating": 4.5,
+    "ratingCount": 5,
+    "category": "Atrakcja turystyczna",
+    "website": "https://palmavirtual.palma.es/-/la-llotja./ca/",
+    "cid": "644313608940057689"
+   },
+   {
+    "position": 6,
+    "title": "Fundació Miró Mallorca",
+    "address": "C/ de Saridakis, 29",
+    "latitude": 39.554886,
+    "longitude": 2.6096632,
+    "rating": 4.4,
+    "ratingCount": 3,
+    "category": "Muzeum sztuki",
+    "website": "http://www.miromallorca.com/",
+    "cid": "17295801235709064774"
+   },
+   {
+    "position": 7,
+    "title": "Train Sóller Station (Palma de Mallorca)",
+    "address": "Carrer d'Eusebi Estada, 1",
+    "latitude": 39.576637,
+    "longitude": 2.6537902,
+    "rating": 4.4,
+    "ratingCount": 13,
+    "category": "Zabytkowa kolej",
+    "website": "http://www.trendesoller.com/",
+    "cid": "2830190493643009869"
+   },
+   {
+    "position": 8,
+    "title": "Santa Catalina Market",
+    "address": "Plaça de la Navegació, s/n",
+    "latitude": 39.571194,
+    "longitude": 2.638275,
+    "rating": 4.4,
+    "ratingCount": 5,
+    "category": "Targ ze świeżymi produktami spożywczymi",
+    "website": "https://mercatdesantacatalina.com/",
+    "cid": "3246865158459991171"
+   },
+   {
+    "position": 9,
+    "title": "Es Baluard Museu d'Art Contemporani de Palma",
+    "address": "Plaça de la Porta de Santa Catalina, 10",
+    "latitude": 39.570236,
+    "longitude": 2.6411417,
+    "rating": 4.2,
+    "ratingCount": 4,
+    "category": "Muzeum sztuki",
+    "website": "http://www.esbaluard.org/",
+    "cid": "3326128502391394113"
+   },
+   {
+    "position": 10,
+    "title": "Plaża Cala Major",
+    "address": "Carrer Gavina, 9",
+    "latitude": 39.552128,
+    "longitude": 2.606719,
+    "rating": 4.4,
+    "ratingCount": 13,
+    "category": "Plaża publiczna",
+    "cid": "14996451682065272897"
+   }
+  ],
+  "credits": 1
+ }
+}

@@ -1,0 +1,142 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "es",
+   "hl": "en",
+   "q": "top attractions in Palma de Mallorca, Spain",
+   "ll": "@39.5696,2.6502,13z"
+  }
+ },
+ "fetched_at": "2026-10-03T21:17:54.095486+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Palma de Mallorca, Spain",
+   "gl": "es",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "ll": "@39.5696,2.6502,13z",
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Sa Llotja",
+    "address": "Plaça de la Llotja, 5",
+    "latitude": 39.56837,
+    "longitude": 2.6443686,
+    "rating": 4.5,
+    "ratingCount": 5000,
+    "category": "Tourist attraction",
+    "website": "https://palmavirtual.palma.es/-/la-llotja./ca/",
+    "cid": "644313608940057689"
+   },
+   {
+    "position": 2,
+    "title": "Castillo de Bellver",
+    "address": "Carrer Camilo José Cela, s/n",
+    "latitude": 39.563843,
+    "longitude": 2.6194232,
+    "rating": 4.5,
+    "ratingCount": 27000,
+    "category": "Tourist attraction",
+    "website": "https://castelldebellver.palma.es/",
+    "cid": "14471946674682593185"
+   },
+   {
+    "position": 3,
+    "title": "Royal Palace of La Almudaina",
+    "address": "Carrer del Palau Reial, s/n",
+    "latitude": 39.56755,
+    "longitude": 2.6474006,
+    "rating": 4.5,
+    "ratingCount": 7000,
+    "category": "Tourist attraction",
+    "website": "https://www.patrimonionacional.es/en/visita/royal-palace-la-almudaina",
+    "cid": "1805066547279603968"
+   },
+   {
+    "position": 4,
+    "title": "Catedral-Basílica de Santa María de Mallorca",
+    "address": "Plaça de la Seu, s/n",
+    "latitude": 39.567425,
+    "longitude": 2.6482995,
+    "rating": 4.7,
+    "ratingCount": 69000,
+    "category": "Tourist attraction",
+    "website": "https://www.catedraldemallorca.org/es/",
+    "cid": "6056387022241497514"
+   },
+   {
+    "position": 5,
+    "title": "Can Forteza Rey",
+    "address": "Plaça del Marquès del Palmer, 1",
+    "latitude": 39.570854,
+    "longitude": 2.651301,
+    "rating": 4.6,
+    "ratingCount": 529,
+    "category": "Tourist attraction",
+    "cid": "3560107791527762546"
+   },
+   {
+    "position": 6,
+    "title": "Arc de sa Drassana",
+    "address": "Passeig Dalt Murada, 1B",
+    "latitude": 39.567257,
+    "longitude": 2.646578,
+    "rating": 4.7,
+    "ratingCount": 162,
+    "category": "Tourist attraction",
+    "cid": "3349156263328953186"
+   },
+   {
+    "position": 7,
+    "title": "s'Hort del Rei",
+    "address": "Av. d'Antoni Maura, 18",
+    "latitude": 39.568073,
+    "longitude": 2.646487,
+    "rating": 4.5,
+    "ratingCount": 2000,
+    "category": "Tourist attraction",
+    "cid": "7890643771495784802"
+   },
+   {
+    "position": 8,
+    "title": "Museum of Mallorca",
+    "address": "C/ de la Portella, 5",
+    "latitude": 39.567223,
+    "longitude": 2.6507306,
+    "rating": 4.2,
+    "ratingCount": 594,
+    "category": "Tourist attraction",
+    "cid": "14769237766956681230"
+   },
+   {
+    "position": 9,
+    "title": "Fountain",
+    "latitude": 39.5664,
+    "longitude": 2.6476665,
+    "rating": 4.6,
+    "ratingCount": 386,
+    "category": "Tourist attraction",
+    "cid": "2891211585814856701"
+   },
+   {
+    "position": 10,
+    "title": "Palma Aquàrium",
+    "address": "Carrer de Manuela de los Herreros, 21",
+    "latitude": 39.531376,
+    "longitude": 2.7295291,
+    "rating": 4.4,
+    "ratingCount": 34000,
+    "category": "Tourist attraction",
+    "website": "https://tickets.palmaaquarium.com/es/?utm_source=gmybusiness&utm_medium=boton_site&utm_campaign=enlace_web",
+    "cid": "3160074130683677491"
+   }
+  ],
+  "credits": 1
+ }
+}
