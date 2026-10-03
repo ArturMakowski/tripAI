@@ -7,7 +7,15 @@ without credentials use fixtures automatically); SUPABASE_URL + SUPABASE_SECRET_
 from dotenv import load_dotenv
 
 from tripai.api import create_app
+from tripai.api.notify import enable_durable_scans
 from tripai.live import calendar_from_env, provider_from_env, store_from_env
+from tripai.notify.store import notify_store_from_env
 
 load_dotenv()  # before the provider/store are chosen; connectors read env lazily per request
-app = create_app(provider=provider_from_env(), calendar=calendar_from_env(), store=store_from_env())
+app = create_app(
+    provider=provider_from_env(),
+    calendar=calendar_from_env(),
+    store=store_from_env(),
+    notify_store=notify_store_from_env(),
+)
+enable_durable_scans(app, app.state.scan_deps)  # DBOS when DATABASE_URL is set
