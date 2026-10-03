@@ -288,6 +288,7 @@ def create_app(
     async def post_reaction(req: ReactionRequest, uid: User) -> ReactionResponse:
         """T6 swipe -> small deterministic nudge of interests (and maybe one weight), with reasons.
         personalize=False: recorded, nothing changes, `note` says so."""
+        use_lang(req.lang)
         rec = await store.get_recommendation(uid, req.recommendation_id)
         if rec is None:
             raise HTTPException(404, "unknown recommendation id (fetch recommendations first)")
@@ -307,7 +308,8 @@ def create_app(
     async def delete_reaction(
         recommendation_id: str, uid: User, profile: TasteProfile | None = None
     ) -> ReactionResponse:
-        """Undo a swipe: revert exactly what it changed (unless changed again since) and unhide."""
+        """Undo a swipe: revert exactly what it changed (unless changed again since) and unhide.
+        Language: `?lang=` or Accept-Language (the body, if any, is the current profile)."""
         previous = (await store.get_reactions(uid)).get(recommendation_id)
         if previous is None:
             raise HTTPException(404, "no reaction for this recommendation")

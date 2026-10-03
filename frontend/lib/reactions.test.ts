@@ -26,13 +26,13 @@ function rec(score: Partial<RankedRecommendation["score"]> = {}, tags = ["food",
 
 // Same cases as backend/tests/test_reactions.py: the fixture-mode mirror must agree with the API.
 describe("applyReaction mirrors tripai.scoring.reactions", () => {
-  it("like nudges every city tag by +0.05 (new tags from 0.5) and never touches weights", () => {
+  it("like nudges every city tag by +0.05 (one new tag, from the step) and never touches weights", () => {
     const r = applyReaction(PROFILE, W, rec(), "like");
-    expect(r.profile.interests).toEqual({ food: 0.95, history: 0.75, city: 0.55 });
+    expect(r.profile.interests).toEqual({ food: 0.95, history: 0.75, city: 0.05 });
     expect(r.weights).toEqual(W);
     expect(r.diff.map((c) => c.field)).toEqual(["interests.food", "interests.history", "interests.city"]);
     expect(r.diff[2].before).toBeNull();
-    expect(r.diff.every((c) => c.reason.includes("Rome") && c.reason.includes("Chcę tam"))).toBe(true);
+    expect(r.diff.every((c) => c.reason.includes("Rome") && c.reason.includes("I want to go"))).toBe(true);
     expect(r.learned).toEqual(["food", "history", "city"]);
     expect(r.hidden).toBe(false);
   });
@@ -86,11 +86,25 @@ describe("applyReaction mirrors tripai.scoring.reactions", () => {
   });
 });
 
+describe("Polish texts match the backend (tripai.i18n rx.*)", () => {
+  it("writes reasons, notes and undo in Polish", () => {
+    const r = applyReaction(PROFILE, W, rec({ price: 0.2 }), "dislike", "pl");
+    expect(r.diff[0].reason).toBe("„Nie dla mnie” przy Rome (14–19 sty); wynik „cena” to tylko 0,20");
+    expect(r.diff[1].reason).toBe("przeliczona po zmianie innej wagi");
+    expect(r.diff.some((c) => c.reason.includes("oferuje: jedzenie"))).toBe(true);
+    expect(r.note).toBe("Rome w tych dniach znika z Twojej listy.");
+    const u = undoReaction(r.profile, r.weights, { id: r.recommendation_id, city: "Rome" }, r.undo, "pl");
+    expect(new Set(u.diff.map((c) => c.reason))).toEqual(new Set(["cofnięte: Rome"]));
+  });
+});
+
 describe("toastText", () => {
   it("says what was learned, in Polish first", () => {
     const r = applyReaction(PROFILE, W, rec(), "like");
     expect(toastText(r, "pl", { watch: "ok" })).toBe("Zapamiętane: lubisz Rome: jedzenie, historia, miasto · obserwujemy cenę");
     expect(toastText(r, "en")).toBe("Learned: you like Rome: food, history, city");
+    const two = applyReaction(PROFILE, W, rec({}, ["food", "history", "city", "art"]), "like");
+    expect(Object.keys(two.profile.interests)).toEqual(["food", "history", "city"]); // at most one new tag
   });
 
   it("dislike lists the lowered tags, the weight that moved and that it is hidden", () => {

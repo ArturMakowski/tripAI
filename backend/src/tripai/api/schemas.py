@@ -81,6 +81,7 @@ class ReactionRequest(BaseModel):
     recommendation_id: str = Field(min_length=1, max_length=80)
     # like = "Chcę tam" (right), dislike = "Nie dla mnie" (left), love = "Super!" (up)
     reaction: Reaction
+    lang: str | None = None  # "pl" | "en" (else Accept-Language, else en): reasons, note
     user_id: str = "demo"  # ignored: the server-issued session decides (tripai.api.session)
     profile: TasteProfile | None = None  # defaults to the session user's stored profile
     weights: Weights | None = None

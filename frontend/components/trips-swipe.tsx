@@ -30,12 +30,11 @@ export function TripsViewToggle({ className }: { className?: string }) {
     { v: "swipe" as const, label: t.swipe, icon: Layers },
   ];
   return (
-    <div role="radiogroup" aria-label={t.viewLabel} className={cn("inline-flex rounded-full border border-line bg-card p-1 shadow-soft", className)}>
+    <div role="group" aria-label={t.viewLabel} className={cn("inline-flex rounded-full border border-line bg-card p-1 shadow-soft", className)}>
       {options.map(({ v, label, icon: Icon }) => (
         <button
           key={v}
-          role="radio"
-          aria-checked={view === v}
+          aria-pressed={view === v}
           onClick={() => {
             if (v === "list") commitLearning();
             setView(v);
@@ -95,7 +94,8 @@ export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]
   const [position, setPosition] = useState(0);
   const [history, setHistory] = useState<SwipeEntry[]>([]);
   const [toast, setToast] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(false); // an undo is running
+  const [saving, setSaving] = useState(0); // swipes not yet confirmed by the backend
   const inFlight = useRef<Promise<unknown>>(Promise.resolve());
 
   useEffect(() => {
@@ -111,28 +111,44 @@ export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]
   const onSwipe = useCallback(
     (rec: RankedRecommendation, g: OfferGesture) => {
       setPosition((p) => p + 1);
-      const personalized = currentBase().profile.personalize !== false;
+      setSaving((n) => n + 1);
       // swipes are applied in order (each builds on the previous one's profile)
-      inFlight.current = inFlight.current.then(async () => {
-        const entry = await react(rec, GESTURE_REACTION[g]);
-        setHistory((h) => [...h, entry]);
-        setToast(toastText(entry.res, lang, { personalized, watch: entry.watch }));
-      });
+      inFlight.current = inFlight.current
+        .then(async () => {
+          const personalized = currentBase().profile.personalize !== false;
+          const entry = await react(rec, GESTURE_REACTION[g]);
+          setHistory((h) => [...h, entry]);
+          setToast(toastText(entry.res, lang, { personalized, watch: entry.watch }));
+        })
+        .catch((err) => {
+          // not saved (or unknown): never pretend it was. The card goes back to the end of the deck.
+          console.warn("[tripai] swipe not saved:", err);
+          setCards((c) => (c ? [...c, rec] : c));
+          setToast(SWIPE_COPY[lang].swipeFailed(rec.city));
+        })
+        .finally(() => setSaving((n) => n - 1));
     },
     [lang],
   );
 
   const onUndo = useCallback(() => {
     const last = history.at(-1);
-    if (!last) return;
+    // Undo only once every swipe is confirmed: otherwise "last" may not be the card on screen.
+    if (!last || saving > 0) return;
     setBusy(true);
-    setHistory((h) => h.slice(0, -1));
-    setPosition((p) => Math.max(0, p - 1));
     inFlight.current = inFlight.current
       .then(() => unreact(last))
-      .then(() => setToast(t.undone(last.rec.city)))
+      .then(() => {
+        setHistory((h) => h.filter((e) => e !== last));
+        setPosition((p) => Math.max(0, p - 1));
+        setToast(t.undone(last.rec.city));
+      })
+      .catch((err) => {
+        console.warn("[tripai] undo failed:", err);
+        setToast(t.undoFailed(last.rec.city)); // the swipe still stands, and we say so
+      })
       .finally(() => setBusy(false));
-  }, [history, t]);
+  }, [history, saving, t]);
 
   const done = cards !== null && position >= cards.length;
   const lastGesture = history.at(-1) ? REACTION_GESTURE[history.at(-1)!.reaction] : null;
@@ -147,7 +163,7 @@ export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]
           {history.length > 0 && <p className="mt-2 text-sm text-ink-soft">{t.doneBody(history.length)}</p>}
           <div className="mt-5 flex justify-center gap-2">
             {history.length > 0 && (
-              <button onClick={onUndo} disabled={busy} className="rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-soft hover:bg-paper-deep">
+              <button onClick={onUndo} disabled={busy || saving > 0} className="rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-soft hover:bg-paper-deep">
                 {t.undo}
               </button>
             )}
@@ -171,7 +187,7 @@ export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]
             lang={lang}
             onSwipe={onSwipe}
             onUndo={onUndo}
-            canUndo={history.length > 0}
+            canUndo={history.length > 0 && saving === 0}
             undoGesture={lastGesture}
             busy={busy}
           />
@@ -191,6 +207,7 @@ export function HiddenTrips() {
   const hidden = log.filter((e) => e.reaction === "dislike");
   const [open, setOpen] = useState(false);
   const [restoring, setRestoring] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   if (!hidden.length) return null;
   return (
     <div className="mt-6">
@@ -205,6 +222,11 @@ export function HiddenTrips() {
         </span>
         <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
       </button>
+      {error && (
+        <p role="alert" className="mt-2 rounded-xl bg-clay-soft px-3 py-2 text-sm text-ink">
+          {error}
+        </p>
+      )}
       <AnimatePresence initial={false}>
         {open && (
           <motion.ul
@@ -229,6 +251,9 @@ export function HiddenTrips() {
                     try {
                       await unreact(e);
                       commitLearning(); // list mode: re-rank now, the trip comes back
+                    } catch (err) {
+                      console.warn("[tripai] restore failed:", err);
+                      setError(t.undoFailed(e.rec.city));
                     } finally {
                       setRestoring(null);
                     }

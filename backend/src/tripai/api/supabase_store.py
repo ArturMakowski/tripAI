@@ -40,7 +40,8 @@ class SupabaseStore(MemoryStore):
             ThreadPoolExecutor(1, thread_name_prefix="supabase-store") if background else None
         )
         self._misses: dict[str, float] = {}  # user_id -> monotonic time of the empty read
-        self._reactions_loaded: dict[str, float] = {}  # user_id -> monotonic time of the last load
+        self._reactions_loaded: set[str] = set()  # users whose reactions were read successfully
+        self._reactions_failed: dict[str, float] = {}  # user_id -> monotonic time of a failed read
 
     # ---------------------------------------------------------------- plumbing
 
@@ -109,14 +110,19 @@ class SupabaseStore(MemoryStore):
         resp.raise_for_status()
 
     def _select(self, table: str, params: dict[str, str]) -> list[dict]:
+        rows = self._select_or_none(table, params)
+        return [] if rows is None else rows
+
+    def _select_or_none(self, table: str, params: dict[str, str]) -> list[dict] | None:
+        """None on any error (so callers can tell 'no rows' from 'could not read')."""
         try:
             resp = self._client.get(f"{self.base}/{table}", params=params, headers=self.headers)
             resp.raise_for_status()
             rows = resp.json()
-            return rows if isinstance(rows, list) else []
+            return rows if isinstance(rows, list) else None
         except (httpx.HTTPError, ValueError) as exc:
             log.warning("supabase store read failed: %s", exc)
-            return []
+            return None
 
     def _load_profile_row(self, user_id: str) -> None:
         """Blocking: run via `asyncio.to_thread`."""
@@ -222,8 +228,13 @@ class SupabaseStore(MemoryStore):
     # ---------------------------------------------------------------- T6 reactions
 
     def _load_reactions(self, user_id: str) -> None:
-        """Blocking: run via `asyncio.to_thread`. Memory wins for anything written since."""
-        rows = self._select("reactions", {"user_id": f"eq.{user_id}", "select": "payload"})
+        """Blocking: run via `asyncio.to_thread`. Memory wins for anything written since. Only a
+        successful read counts as loaded: after a failure it is retried (at most every MISS_TTL_S),
+        so one blip can't un-hide trips or make a re-swipe skip undoing the old reaction."""
+        rows = self._select_or_none("reactions", {"user_id": f"eq.{user_id}", "select": "payload"})
+        if rows is None:
+            self._reactions_failed[user_id] = time.monotonic()
+            return
         mine = self.reactions.setdefault(user_id, {})
         for row in rows:
             try:
@@ -232,10 +243,13 @@ class SupabaseStore(MemoryStore):
                 log.warning("supabase reaction row for %s unreadable: %s", user_id, exc)
                 continue
             mine.setdefault(rec.recommendation_id, rec)
-        self._reactions_loaded[user_id] = time.monotonic()
+        self._reactions_loaded.add(user_id)
+        self._reactions_failed.pop(user_id, None)
 
     async def get_reactions(self, user_id: str) -> dict[str, ReactionRecord]:
-        if user_id not in self._reactions_loaded:
+        failed = self._reactions_failed.get(user_id)
+        backoff = failed is not None and time.monotonic() - failed < MISS_TTL_S
+        if user_id not in self._reactions_loaded and not backoff:
             await asyncio.to_thread(self._load_reactions, user_id)
         return await super().get_reactions(user_id)
 

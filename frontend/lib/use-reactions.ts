@@ -24,6 +24,7 @@ export interface SwipeEntry {
   res: ReactionResponse;
   /** answered by the in-browser mirror (fixture mode, or the backend didn't know this card) */
   local: boolean;
+  /** what to revert if the backend can't (local entries, or a 404 on undo) */
   undo: ReactionUndo | null;
   watch: WatchStatus;
   at: number;
@@ -59,9 +60,15 @@ export const useSwipe = create<SwipeState>()(
       reset: () => set({ view: "list", log: [], pending: null }),
     }),
     // the log keeps whole cards so "hidden" can show them; cap it so localStorage stays small
-    { name: "tripai-swipe-v1", storage: createJSONStorage(() => localStorage), partialize: (s) => ({ ...s, log: s.log.slice(-60) }) },
+    { name: "tripai-swipe-v1", storage: createJSONStorage(() => localStorage), partialize: (s) => ({ ...s, log: capLog(s.log) }) },
   ),
 );
+
+/** Keep every dislike (it hides a trip until restored) and the last 60 other swipes. */
+export function capLog(log: SwipeEntry[]): SwipeEntry[] {
+  const keep = new Set(log.filter((e) => e.reaction !== "dislike").slice(-60));
+  return log.filter((e) => e.reaction === "dislike" || keep.has(e));
+}
 
 /** Ids of city+dates you swiped "Nie dla mnie" (hidden from the list, shown under "Hidden"). */
 export function hiddenIds(log: SwipeEntry[]): Set<string> {
@@ -100,26 +107,41 @@ async function watch(rec: RankedRecommendation, local: boolean): Promise<WatchSt
   }
 }
 
-/** One swipe: backend first (session user, never a client user_id); the mirror only as fallback. */
+/** Undo snapshot for a backend answer, taken from its diff (the same fields the server keeps). */
+export function snapshotFromDiff(res: ReactionResponse, weightsBefore: Weights): ReactionUndo {
+  const interestsBefore: Record<string, number | null> = {};
+  for (const c of res.diff)
+    if (c.field.startsWith("interests.")) interestsBefore[c.field.slice("interests.".length)] = (c.before as number | null) ?? null;
+  return { interestsBefore, diff: res.diff, weightsBefore: normalise(weightsBefore), weightsAfter: res.weights };
+}
+
+/**
+ * One swipe: backend first (session user, never a client user_id). The in-browser mirror answers
+ * only when the server provably stored nothing: fixture mode, or 404 (it doesn't know this card).
+ * Any other failure (timeout, 5xx, network) throws: the server may have committed, so we must not
+ * pretend it was local (a later local undo would never reach the server).
+ */
 export async function react(rec: RankedRecommendation, reaction: Reaction): Promise<SwipeEntry> {
   const { profile, weights } = currentBase();
+  const lang = useTrip.getState().deck.lang;
   const local = () => {
-    const { undo, ...res } = applyReaction(profile, weights, rec, reaction);
+    const { undo, ...res } = applyReaction(profile, weights, rec, reaction, lang);
     return { res, undo };
   };
   let res: ReactionResponse;
-  let undo: ReactionUndo | null = null;
-  let isLocal = FORCE_MOCK;
-  if (FORCE_MOCK) ({ res, undo } = local());
+  let undo: ReactionUndo;
+  let isLocal = FORCE_MOCK || useTrip.getState().modes.recs === "fixture";
+  if (isLocal) ({ res, undo } = local());
   else {
     try {
       res = await http<ReactionResponse>("/reactions", {
         method: "POST",
-        body: JSON.stringify({ recommendation_id: rec.id, reaction, profile, weights }),
+        body: JSON.stringify({ recommendation_id: rec.id, reaction, profile, weights, lang }),
       });
+      undo = snapshotFromDiff(res, weights);
     } catch (err) {
-      // 404 = the backend never stored this card (e.g. a fast-phase list); unreachable = demo mode
-      console.warn("[tripai] /reactions unavailable, learning in the browser:", err);
+      if (!(err instanceof HttpError && err.status === 404)) throw err;
+      console.warn("[tripai] backend doesn't know this card, learning in the browser:", err.message);
       ({ res, undo } = local());
       isLocal = true;
     }
@@ -137,23 +159,30 @@ export async function react(rec: RankedRecommendation, reaction: Reaction): Prom
   return entry;
 }
 
-/** Undo a swipe: revert what it changed, unhide, unwatch. */
+/**
+ * Undo a swipe: revert what it changed, unhide, unwatch. Throws (and keeps the entry) when the
+ * backend couldn't undo it, so the UI never says "undone" when nothing was. A 404 means the server
+ * has no such reaction (e.g. a new session after a redeploy): the learning then only lives here,
+ * so it is reverted locally from the snapshot.
+ */
 export async function unreact(entry: SwipeEntry): Promise<ReactionResponse> {
   const { profile, weights } = currentBase();
-  let res: ReactionResponse;
-  if (entry.local || FORCE_MOCK) {
-    res = entry.undo
-      ? undoReaction(profile, weights, entry.rec, entry.undo)
+  const lang = useTrip.getState().deck.lang;
+  const local = (): ReactionResponse =>
+    entry.undo
+      ? undoReaction(profile, weights, entry.rec, entry.undo, lang)
       : { ...entry.res, reaction: null, hidden: false, diff: [], learned: [], profile, weights };
-  } else {
+  let res: ReactionResponse;
+  if (entry.local || FORCE_MOCK) res = local();
+  else {
     try {
-      res = await http<ReactionResponse>(`/reactions/${encodeURIComponent(entry.rec.id)}`, {
+      res = await http<ReactionResponse>(`/reactions/${encodeURIComponent(entry.rec.id)}?lang=${lang}`, {
         method: "DELETE",
         body: JSON.stringify(profile),
       });
     } catch (err) {
-      console.warn("[tripai] undo failed on the backend:", err);
-      res = { ...entry.res, reaction: null, hidden: false, diff: [], learned: [], profile, weights };
+      if (!(err instanceof HttpError && err.status === 404)) throw err;
+      res = local();
     }
   }
   if (entry.watch === "ok") http(`/picks/${encodeURIComponent(entry.rec.id)}`, { method: "DELETE" }).catch(() => {});

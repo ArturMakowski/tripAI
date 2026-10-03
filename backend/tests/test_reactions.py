@@ -22,12 +22,12 @@ def _rec(tags=("food", "history", "city"), **score) -> RankedRecommendation:
 
 def test_like_nudges_city_tags_with_reasons(profile):
     res = apply_reaction(profile, Weights(), _rec(), "like")
-    assert res.profile.interests == {"food": 0.95, "history": 0.75, "city": 0.55}
+    assert res.profile.interests == {"food": 0.95, "history": 0.75, "city": 0.05}
     assert res.weights == Weights()  # a like never moves weights
     fields = [c.field for c in res.diff]
     assert fields == ["interests.food", "interests.history", "interests.city"]
-    assert all("Rome" in c.reason and "Chcę tam" in c.reason for c in res.diff)
-    assert res.diff[2].before is None  # new tag starts from neutral 0.5
+    assert all("Rome" in c.reason and "I want to go" in c.reason for c in res.diff)
+    assert res.diff[2].before is None  # a new tag starts at the step, not at a neutral 0.5
     assert not res.record.hidden and res.note is None
 
 
@@ -185,3 +185,70 @@ async def test_supabase_store_persists_and_reloads_reactions(profile):
         "eq."
     )
     assert liked.recommendation_id not in await s.get_reactions("u1")
+
+
+def test_polish_reasons_and_notes(profile):
+    res = apply_reaction(profile, Weights(), _rec(price=0.2), "dislike", lang="pl")
+    assert res.diff[0].reason == "„Nie dla mnie” przy Rome (14–19 sty); wynik „cena” to tylko 0,20"
+    assert res.diff[1].reason == "przeliczona po zmianie innej wagi"
+    assert any("oferuje: jedzenie" in c.reason for c in res.diff)
+    assert res.note == "Rome w tych dniach znika z Twojej listy."
+    off = profile.model_copy(update={"personalize": False})
+    assert apply_reaction(off, Weights(), _rec(), "like", lang="pl").note.startswith(
+        "Personalizacja jest wyłączona"
+    )
+    _, _, diff, _ = undo_reaction(res.profile, res.weights, res.record, lang="pl")
+    assert {c.reason for c in diff} == {"cofnięte: Rome"}
+
+
+def test_reactions_api_lang():
+    c = TestClient(create_app())
+    top = c.post("/recommendations", json=REQ).json()[0]
+    body = {"recommendation_id": top["id"], "reaction": "like", "lang": "pl"}
+    res = c.post("/reactions", json=body)
+    assert res.headers["content-language"] == "pl"
+    assert all("„Chcę tam”" in d["reason"] for d in res.json()["diff"])
+    undo = c.delete(f"/reactions/{top['id']}", headers={"Accept-Language": "pl-PL"}).json()
+    assert undo["diff"] and all(d["reason"].startswith("cofnięte") for d in undo["diff"])
+
+
+def test_one_like_barely_moves_other_cities(profile):
+    """Review #1: a like on Naples must not dilute every other city's taste (was -40%)."""
+    from tripai.scoring.engine import taste_score
+
+    naples = _rec(tags=("food", "history", "pizza", "nature"))
+    for reaction in ("like", "love"):
+        after = apply_reaction(profile, Weights(), naples, reaction).profile
+        assert set(after.interests) == {"food", "history", "pizza"}  # one new tag per swipe
+        for tags, tol in ((("beach", "food", "art", "sun"), 0.05),  # unrelated: Málaga
+                          (("beach", "diving", "history", "sun"), 0.05),  # unrelated: Valletta
+                          (("history", "food", "beach"), 0.06)):  # related: Athens  # fmt: skip
+            before = taste_score(tags, profile.interests, [])
+            assert abs(taste_score(tags, after.interests, []) - before) <= tol, (reaction, tags)
+        assert taste_score(naples.tags, after.interests, []) == 1.0
+
+
+async def test_supabase_failed_reactions_read_is_retried_not_cached(profile, monkeypatch):
+    """Review #4: one failed read must not look like 'this user has no reactions' for good."""
+    import httpx
+
+    from tripai.api import supabase_store
+    from tripai.api.supabase_store import SupabaseStore
+
+    stored = apply_reaction(profile, Weights(), _rec(), "dislike").record
+    down = {"on": True}
+
+    def fake(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            if down["on"]:
+                return httpx.Response(503, json={"message": "down"})
+            return httpx.Response(200, json=[{"payload": stored.model_dump(mode="json")}])
+        return httpx.Response(201)
+
+    client = httpx.Client(transport=httpx.MockTransport(fake))
+    s = SupabaseStore("https://x.supabase.co", "k", client=client, background=False)
+    assert await s.get_reactions("u1") == {}  # outage: nothing known yet
+    down["on"] = False
+    assert await s.get_reactions("u1") == {}  # within the back-off window: no hammering
+    monkeypatch.setattr(supabase_store, "MISS_TTL_S", 0)
+    assert (await s.get_reactions("u1"))[stored.recommendation_id].hidden  # retried, recovered

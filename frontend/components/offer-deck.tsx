@@ -158,7 +158,9 @@ export function OfferDeck({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target instanceof Element ? e.target : null;
-      if (el?.closest("input, textarea, select, a, button, [role=radio], [role=radiogroup], [role=slider], [contenteditable]")) return;
+      // Don't steal keys from other controls; the deck's own buttons keep focus after a tap, so allow those.
+      if (!el?.closest("[data-offer-deck]") && el?.closest("input, textarea, select, a, button, [role=radio], [role=radiogroup], [role=slider], [contenteditable]"))
+        return;
       if (e.metaKey || e.ctrlKey ? e.key !== "z" : e.altKey) return;
       if (KEYS[e.key]) {
         e.preventDefault();
@@ -175,7 +177,7 @@ export function OfferDeck({
   const behind = cards.slice(position + 1, position + 3);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col" data-offer-deck>
       <div className="relative mx-auto h-[min(58dvh,520px)] min-h-[380px] w-full">
         {behind
           .map((c, i) => (

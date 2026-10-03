@@ -110,6 +110,12 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
 - **One re-rank.** Learning is buffered while the deck is open and committed when you go back to the list (or leave the page). That
   triggers one `/recommendations` call with the new profile, not one per swipe.
 - **Hidden trips.** In list mode they sit under "Ukryte · pokaż", each with "Przywróć".
+- **Failures are never hidden.**
+  - A swipe the server didn't confirm (5xx, timeout) is not learned locally. The card goes back to the end of the deck with a toast.
+  - Undo is disabled while a swipe is still saving.
+  - A failed undo keeps the swipe and says so.
+  - Only a 404 (the server never stored the card or reaction, e.g. after a session reset) is handled in the browser.
+- **Language.** Swipes send the Travel DNA language as `lang`, so the backend's reasons come back in Polish or English.
 - **Fixture mode.** `lib/reactions.ts` mirrors the backend rules, and `lib/reactions.test.ts` pins them to the backend test cases. Copy is
   one PL + EN object (`SWIPE_COPY`), ready to move into `lib/i18n`. The language follows the Travel DNA toggle.
 
