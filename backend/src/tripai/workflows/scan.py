@@ -53,6 +53,7 @@ from tripai.scoring import (
     rank,
     trip_windows,
 )
+from tripai.scoring.budget_fit import rank_within_budget
 from tripai.scoring.types import Candidate, RankedRecommendation
 from tripai.scoring.windows import TZ
 
@@ -74,6 +75,15 @@ def _env_int(name: str, default: int) -> int:
         return int(os.environ.get(name, default))
     except ValueError:
         return default
+
+
+def _fitting(
+    cands: Sequence[Candidate], p: TasteProfile, w: Weights, limit: int
+) -> list[RankedRecommendation]:
+    """Proactive picks obey the hard budget and never include over-budget fallbacks: a card may
+    show "closest options, over budget", a push saying "go here" must not. (Watched picks are
+    re-priced with plain `rank()`: the user chose that trip; the alert is about its price.)"""
+    return [r for r, _ in rank_within_budget(cands, p, w, limit=limit, fallback=False)]
 
 
 @dataclass(frozen=True)
@@ -218,7 +228,7 @@ class Scan:
         p, w = TasteProfile.model_validate(profile), Weights.model_validate(weights)
         trips = trip_windows([FreeWindow.model_validate(x) for x in windows], p.trip_length_days)
         cands = await _candidates(self.deps, p, w, trips)
-        recs = rank(cands, p, w, limit=TOP_N)
+        recs = _fitting(cands, p, w, TOP_N)
         if recs:
             await self.deps.store.save_recommendations(p.user_id, recs)
         out = _dump(recs)
@@ -233,7 +243,7 @@ class Scan:
         for b in bridges:
             bw = BridgeWindow.model_validate(b)
             trips = trip_windows([bw.window], p.trip_length_days)
-            recs = rank(await _candidates(self.deps, p, w, trips), p, w, limit=1)
+            recs = _fitting(await _candidates(self.deps, p, w, trips), p, w, 1)
             if recs:
                 await self.deps.store.save_recommendations(p.user_id, recs)
             best.append(await self._with_fit(recs[0], p) if recs else None)

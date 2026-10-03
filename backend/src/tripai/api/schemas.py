@@ -4,8 +4,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 from tripai.agents.interview import ChatMessage
-from tripai.api.budget_fit import BudgetStatus
 from tripai.models import FreeWindow, TasteProfile, Weights
+from tripai.scoring.budget_fit import BudgetStatus
 from tripai.scoring.feedback import Change
 from tripai.scoring.types import RankedRecommendation
 from tripai.scoring.windows import MAX_LEAVE_DAYS, BusyInterval

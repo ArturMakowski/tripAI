@@ -13,7 +13,6 @@ from tripai.agents.fit import fit, fit_engine
 from tripai.agents.interview import InterviewResult, interview
 from tripai.agents.jev import jev_enabled, jev_model_name
 from tripai.agents.llm import llm_enabled, model_name
-from tripai.api.budget_fit import rank_within_budget
 from tripai.api.notify import install_notifications
 from tripai.api.schemas import (
     ApiRecommendation,
@@ -45,6 +44,7 @@ from tripai.scoring import (
     long_weekends,
     trip_windows,
 )
+from tripai.scoring.budget_fit import rank_within_budget
 from tripai.scoring.windows import MAX_LEAVE_DAYS, TZ
 
 
@@ -189,9 +189,10 @@ def create_app(
         for r, verdict in zip(fit_recs, results[len(top) :]):
             r.fit = verdict
 
-        await store.save_profile(profile)
-        await store.save_weights(uid, weights)
-        await store.save_recommendations(uid, recs)
+        if not fast:  # the full call always follows; persist the final answer only
+            await store.save_profile(profile)
+            await store.save_weights(uid, weights)
+            await store.save_recommendations(uid, recs)
         return recs
 
     @app.post("/profile/dna")

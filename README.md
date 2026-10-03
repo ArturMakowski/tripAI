@@ -294,13 +294,18 @@ tap; frequency, muted cities, snooze) and a bell with the unread count in the he
 
 ## Budget as a hard limit + two-phase `/recommendations`
 
-**Budget.** When `TasteProfile.budget_pln` is set, it is a hard limit (`tripai.api.budget_fit`). Scores are unchanged.
+**Budget.** When `TasteProfile.budget_pln` is set, it is a hard limit (`tripai.scoring.budget_fit`). Scores are unchanged.
 - **within:** total ≤ budget.
 - **slightly_over:** up to +10%. These are kept and ranked normally, but flagged.
 - **Fallback:** when fewer than 3 options fit, the closest over-budget options are added (one per city, smallest overage first). They are marked `over` with the overage in PLN, always rank below every option that fits, and carry no flip hint.
 
 Each recommendation carries `budget: {status, budget_pln, total_cost_pln, overage_pln, overage_pct, label}`, or `null` when no budget is set.
-The live provider spends its exact-date SerpApi checks only on options this policy keeps.
+The live provider spends its exact-date SerpApi checks only on options this policy keeps. So an option whose cached estimate is
+over the limit is never re-priced, even if its exact-date Google price might fit. That's a deliberate trade-off for SerpApi
+spend. With `personalize=False`, the interest filter runs **once**, on every candidate, before the budget split. Fallbacks therefore come
+only from cities that match the user's interests, and every card carries the same filter receipt. The proactive scan (`workflows/scan.py`)
+uses the same policy **without** fallbacks: a push never suggests an over-budget trip. Re-pricing of watched picks is not filtered,
+because the user chose that trip and the alert is about its price.
 
 **Two phases.** `POST /recommendations?phase=fast` answers in about 1.5 s, even with a cold cache. It uses only:
 - Travelpayouts, with a per-call deadline (`TRIPAI_FAST_DEADLINE_S`, default 1.5)
@@ -309,7 +314,8 @@ The live provider spends its exact-date SerpApi checks only on options this poli
 
 There is no exact-date refinement and no LLM: `why` comes from the template and `fit` is null. `phase=full`, the default, is the final answer.
 Every recommendation has `phase` and `refined`. `refined` means the flight and hotel were checked for the exact dates on Google (SerpApi).
-The frontend should render `fast` and swap in `full` when it arrives.
+The frontend should render `fast` and swap in `full` when it arrives. The fast phase persists nothing. With `TRIPAI_LIVE_FALLBACK=1`
+and a cold cache where every city misses the deadline, the fast answer is labelled `FixtureProvider` sample data.
 
 **Weather.** Both phases take month normals from `data/climate.json`, the same Open-Meteo ERA5 data committed as a snapshot. Its
 evidence source is `seed:climate (open-meteo:archive ERA5)`. Live Open-Meteo is still used for:

@@ -9,11 +9,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from tripai.api import create_app
-from tripai.api.budget_fit import budget_status, rank_within_budget
 from tripai.connectors.open_meteo import OpenMeteo
 from tripai.live import LiveProvider
 from tripai.models import FreeWindow, TasteProfile
 from tripai.scoring import FixtureProvider, rank
+from tripai.scoring.budget_fit import budget_status, rank_within_budget
 
 WINDOWS = [
     {"start": "2026-11-07", "end": "2026-11-11"},
@@ -217,3 +217,89 @@ def test_slow_exact_window_weather_cannot_stall_full(monkeypatch):
     )
     assert time.monotonic() - t < 2 and len(cands) == 10
     assert p.last_stats["late_calls"] == 2  # both refined cards keep their month normals
+
+
+# ---------------------------------------------------------------- review fixes (#16)
+
+
+class _ScanStore:
+    def __init__(self, profile):
+        self.p = profile
+
+    async def get_profile(self, user_id):
+        return self.p
+
+    async def get_weights(self, user_id):
+        return None
+
+    async def save_recommendations(self, user_id, recs):
+        pass
+
+
+def test_proactive_scan_obeys_the_budget_and_never_pushes_fallbacks():
+    from tripai.models import Weights
+    from tripai.notify.push import WebPusher
+    from tripai.notify.store import MemoryNotifyStore
+    from tripai.scoring import FixtureCalendar
+    from tripai.workflows.scan import Scan, ScanDeps
+
+    def scan_recs(budget):
+        prof = TasteProfile(user_id="u", budget_pln=budget, interests={"food": 0.9})
+        deps = ScanDeps(FixtureProvider(), FixtureCalendar(), _ScanStore(prof),
+                        MemoryNotifyStore(), WebPusher(None), fit=None, gate=None)  # fmt: skip
+        scan = Scan(deps)
+        p, w = prof.model_dump(mode="json"), Weights().model_dump(mode="json")
+        found = asyncio.run(scan.find_windows("2026-10-03"))
+        top = asyncio.run(scan.rank_trips(p, w, found["windows"]))["recs"]
+        best = asyncio.run(scan.rank_long_weekends(p, w, found["bridges"][:3]))["best"]
+        return top, [b for b in best if b]
+
+    top, best = scan_recs(900)
+    assert top and all(r["total_cost_pln"] <= 990 for r in top + best)  # Palma-style push: gone
+    nothing_top, nothing_best = scan_recs(300)  # nothing fits: no "closest" fallbacks pushed
+    assert nothing_top == [] and nothing_best == []
+    unbounded, _ = scan_recs(None)
+    assert any(r["total_cost_pln"] > 990 for r in unbounded)  # without a budget they'd show
+
+
+def test_interest_filter_runs_once_before_the_budget_split():
+    """Review repro: budget 900, personalize=False, interests whisky. Only whisky cities
+    (Edinburgh) may appear: no non-matching over-budget fallbacks, one consistent receipt."""
+    ws = [FreeWindow.model_validate(w) for w in WINDOWS]
+    cands = asyncio.run(FixtureProvider().candidates("KRK", ws))
+    prof = TasteProfile(user_id="u", budget_pln=900, personalize=False,
+                        interests={"whisky": 0.9})  # fmt: skip
+    out = rank_within_budget(cands, prof, None)
+    assert [r.city for r, _ in out] == ["Edinburgh"]
+    receipts = {r.interest_filter.text for r, _ in out}
+    assert len(receipts) == 1 and "filtered out" in receipts.pop()
+    # interests nobody matches -> filter keeps everything -> normal budget behaviour
+    none = rank_within_budget(cands, prof.model_copy(update={"interests": {"opera": 1.0}}), None)
+    assert len(none) >= 3 and {r.interest_filter.applied for r, _ in none} == {False}
+
+
+def test_inputs_hash_matches_rank_even_with_duplicates():
+    ws = [FreeWindow.model_validate(w) for w in WINDOWS]
+    cands = asyncio.run(FixtureProvider().candidates("KRK", ws))
+    prof = TasteProfile(user_id="u", budget_pln=5000, interests={"food": 0.9})
+    dup = cands + cands[:3]
+    assert {r.inputs_hash for r, _ in rank_within_budget(dup, prof, None)} == {
+        rank(dup, prof, None)[0].inputs_hash
+    }
+
+
+def test_fast_phase_does_not_persist():
+    from tripai.api.state import MemoryStore
+
+    st = MemoryStore()
+    c = TestClient(create_app(store=st))
+    body = {"profile": {"user_id": "x", "budget_pln": 2500}, "windows": WINDOWS}
+    assert c.post("/recommendations?phase=fast", json=body).status_code == 200
+    assert st.recs == {} and st.profiles == {}
+    assert c.post("/recommendations", json=body).status_code == 200
+    assert st.recs and all(r.phase == "full" for r in st.recs.values())
+
+
+def test_status_uses_exact_precision():
+    assert budget_status(1000.4, 1000).status == "slightly_over"  # was labelled within
+    assert budget_status(1000.0, 1000).status == "within"

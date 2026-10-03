@@ -198,7 +198,7 @@ def _seed_climate(c: load.City, y: int, m: int) -> WeatherSummary | None:
         cc = load.climate(c.id)
     except Exception:  # noqa: BLE001 - no snapshot -> no fallback
         return None
-    if cc is None or not (mc := cc.months[m - 1]).temp_max_c:
+    if cc is None or (mc := cc.months[m - 1]).temp_max_c is None:
         return None
     start, end = _month_bounds(y, m)
     return WeatherSummary(
@@ -367,8 +367,6 @@ class _Session:
 
 
 class LiveProvider:
-    supports_fast = True  # POST /recommendations?phase=fast passes fast=True
-
     """`TripDataProvider` backed by `tripai.seed` + `tripai.connectors`.
 
     `fixtures=True` forces connector fixtures (tests); `city_ids` restricts the seed city list;
@@ -376,6 +374,8 @@ class LiveProvider:
     off by default (TRIPAI_LIVE_FALLBACK=1 turns it on): the API answers 503 instead, so synthetic
     numbers are never silently presented as a live result.
     """
+
+    supports_fast = True  # POST /recommendations?phase=fast passes fast=True
 
     def __init__(
         self,
@@ -416,7 +416,7 @@ class LiveProvider:
     ) -> list[str]:
         """Exact-date checks go to what the user will see first: the top N under the same
         hard-budget policy the API applies (never to options the budget filters out)."""
-        from tripai.api.budget_fit import rank_within_budget
+        from tripai.scoring.budget_fit import rank_within_budget
 
         return [r.id for r, _ in rank_within_budget(cands, profile, weights, limit=self.top_n)]
 
