@@ -3,7 +3,8 @@
 - [x] T2 connectors: live clients + Supabase/disk cache + recorded fixtures
 - [x] T3 seed: candidate cities, airports, Eurostat crowd scores, holidays, attractions → data/
 - [ ] T4 frontend: mobile-first Next.js app (interview, proactive cards, why-panel, slider, survey)
-- [ ] T4b swipe (Tinder-like) onboarding → TasteProfile, traceable "because you liked…" (after PR #4)
+- [ ] T4b swipe onboarding = Travel DNA deck (docs/TRAVEL_DNA.md), frontend
+- [ ] T1b POST /profile/dna deterministic mapping + personalize=False honoured, backend
 - [ ] T5a integration: LiveProvider (seed + connectors) behind core Provider, Supabase persistence
 - [ ] T5b DBOS proactive scan workflow + notifications (after T1+T2)
 - [ ] T6 pitch: 10-slide PDF + demo script ("auditable engine, not a chatbot" — see COMPETITORS.md)
