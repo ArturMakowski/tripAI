@@ -66,9 +66,12 @@ BASELINE_PREFIX = "Typical trip cost for the deal comparison:"
 NEAREST_FARE_DAYS = 3
 # Parallel requests per source within one /recommendations call (per-city fetches all run
 # concurrently; these only bound the fan-out per API).
-CONCURRENCY = {"travelpayouts": 8, "open_meteo": 16, "serpapi": 4, "serper": 4}
-REFINE_WEATHER_TIMEOUT_S = 6.0
-OSRM_TIMEOUT_S = 5.0  # exact-window weather; past it the month normals stay
+# OSRM has its own small pool: a call sleeping in the 1 req/s throttle must not hold a
+# Travelpayouts slot.
+CONCURRENCY = {"travelpayouts": 8, "open_meteo": 16, "serpapi": 4, "serper": 4, "osrm": 2}
+REFINE_WEATHER_TIMEOUT_S = 6.0  # exact-window weather; past it the month normals stay
+OSRM_TIMEOUT_S = 5.0  # airport -> hotel drive; past it the card simply has no transfer row
+MAX_HOTEL_KM = 75  # Google Hotels offers farther than this from the city centre are dropped
 FAST_DEADLINE_S = 1.5  # phase=fast: cities whose cheap data isn't back by then are skipped
 
 # Last-resort hotel price when no live source answered: an editorial table (typical mid-range
@@ -123,6 +126,22 @@ def _span(start: date, end: date) -> str:
 def _src(res: Any) -> str:
     """A connector result's source, tagged when it came from a hand-modelled fixture."""
     return res.source + (SYNTHETIC_TAG if getattr(res, "synthetic", False) else "")
+
+
+def _flight_evidence(flights: Any, price: float) -> list[Evidence]:
+    """Google Flights evidence whose headline number is the price actually used (the cheapest
+    listed itinerary), not `price_insights.lowest_price` (Google doesn't promise they match)."""
+    ev = flights.evidence()
+    if flights.lowest_price is not None and flights.lowest_price != price:
+        log.info(
+            "google_flights lowest_price %s != cheapest itinerary %s", flights.lowest_price, price
+        )
+    head = next((i for i, e in enumerate(ev) if isinstance(e.value, (int, float))), None)
+    if head is not None:
+        ev[head] = ev[head].model_copy(
+            update={"value": price, "label": ev[head].label.replace("lowest", "cheapest itinerary")}
+        )
+    return ev
 
 
 def _plain(name: str) -> str:
@@ -750,7 +769,7 @@ class LiveProvider:
                     f"{fare.airline or '?'} {stops} (Aviasales cached fare, not bookable{note})"
                 )
                 ev = cal._ev("flight", label, fare.price, cal.currency, fare.link)
-                det = details.flight_from_fare(fare, origin, d.city.iata, _src(cal), cal.fetched_at)
+                det = details.flight_from_fare(fare, origin, _src(cal), cal.fetched_at)
                 return fare.price, ev, q, "Aviasales cached fare", det
             med = round(statistics.median(f.price for f in cal.fares))
             label = (
@@ -1060,7 +1079,10 @@ class LiveProvider:
             s.serpapi(
                 f"google_hotels {d.city.name} {w.start}",
                 "hotels",
-                lambda h: h.search(_plain(d.city.name), w.start, w.end, iata=c.iata),
+                # with the country: "Naples hotels" alone returns Naples, Florida
+                lambda h: h.search(
+                    f"{_plain(d.city.name)}, {d.city.country_name}", w.start, w.end, iata=c.iata
+                ),
             )
         )
         jobs.append(
@@ -1096,7 +1118,7 @@ class LiveProvider:
             else:
                 flight_cost, flight_details = flights.lowest_price, None
             ev = [e for e in ev if e.kind != "flight"]
-            ev[:0] = flights.evidence()
+            ev[:0] = _flight_evidence(flights, flight_cost)
             q.set("flight", 1.0, "Google Flights, exact dates")
             if flights.typical_price_range:
                 flight_base = sum(flights.typical_price_range) / 2
@@ -1106,6 +1128,14 @@ class LiveProvider:
         hotel_cost = c.hotel_cost_pln
         hotel_details = None
         pct = LUXURY_QUANTILE[luxury]
+        if hotels is not None:  # only offers in this city (wrong-city results do happen)
+            near = [
+                o
+                for o in hotels.offers
+                if o.lat is None
+                or details.haversine_km(o.lat, o.lon, d.city.lat, d.city.lon) <= MAX_HOTEL_KM
+            ]
+            hotels = hotels.model_copy(update={"offers": near})
         picked = details.pick_offer(hotels.offers, pct) if hotels else None
         if picked is not None:
             offer, n_priced = picked
@@ -1124,11 +1154,14 @@ class LiveProvider:
             ev[1:1] = [mine, *hotels.evidence()]
             q.set("hotel", 1.0, "Google Hotels, exact dates")
             # where the priced flight lands: Google's airport name matches Google's hotel data
-            landing = cheapest.legs[-1] if cheapest is not None and cheapest.legs else None
-            if landing is not None and flight_cost == cheapest.price:
-                arrival_iata, arrival_name = landing.to_iata or c.iata, landing.to_name
-            else:
-                arrival_iata, arrival_name = c.iata, None
+            # the airport the *priced* flight lands at, never the city's main code by default:
+            # Google's itinerary (with Google's own airport name), else the Travelpayouts /
+            # Explore itinerary's landing airport, else unknown -> no airport pin, no OSRM
+            arrival_iata, arrival_name = None, None
+            if flight_details is not None and flight_details.outbound:
+                arrival_iata = flight_details.outbound[-1].to_iata
+                if flight_details.source.startswith("serpapi:google_flights") and cheapest:
+                    arrival_name = cheapest.legs[-1].to_name
             hotel_details = details.hotel_details(
                 offer, hotel_cost, d.city, arrival_iata, arrival_name, _src(hotels),
                 hotels.fetched_at,

@@ -374,8 +374,13 @@ The core rule: **what is shown is what was priced.**
 - **Hotel:** `hotel_cost_pln` is a **real property**: the offer at the luxury quantile (nearest rank), priced at its own
   total stay. That property is shown with name, address (when Google gives it), GPS, rating, reviews, stars, link and photo.
 - **Distance:** `distance_to_center_km` is a straight-line haversine to the city point in `data/cities.json`.
-- **Airport pin:** comes from `data/airports.json` (OurAirports) for the airport the priced flight lands at.
-- **Transfers:** Google's own travel times from that airport, matched by name (two airports and no match means none). If Google
+- **Airport pin:** comes from `data/airports.json` (OurAirports) for the airport the priced flight lands at. That's Google's itinerary, else
+  the Travelpayouts/Explore one. It is never the city's main code by default: an unknown landing means no pin and no OSRM.
+- **Transfers:** Google's own travel times from that airport. A place only counts if it is Google's name for the landing airport, or carries
+  a word distinctive to it (not the city name, and not shared with the city's other airports). So "Milan Linate" is never shown for a
+  Bergamo landing.
+- **Hotel search:** queried as "City, Country". Offers more than 75 km from the city centre are dropped: the recorded "Naples hotels"
+  search returned Naples, Florida. If Google
   gave none, the driving time comes from **OSRM** (`tripai.connectors.osrm`). That's cached for about 10 years per pair, limited
   to 1 request per second process-wide, has a 5 s cap, and is labelled "by car, estimate". Public transport is never invented.
 

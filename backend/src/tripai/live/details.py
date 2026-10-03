@@ -61,16 +61,19 @@ def _local(text: str | None) -> datetime | None:
 
 def flight_from_option(
     opt: FlightOption, source: str, fetched_at: datetime, url: str | None
-) -> FlightDetails:
+) -> FlightDetails | None:
     """Google Flights itinerary (exact dates). Round-trip searches list the outbound only;
-    the return leg would need a second (departure_token) search, so `inbound` stays empty."""
+    the return leg would need a second (departure_token) search, so `inbound` stays empty.
+    A leg without both airport codes means we can't show the itinerary: None, not "?"."""
+    if not opt.legs or any(not (leg.from_iata and leg.to_iata) for leg in opt.legs):
+        return None
     return FlightDetails(
         outbound=[
             FlightLeg(
                 airline=leg.airline,
                 flight_number=leg.flight_number,
-                from_iata=leg.from_iata or "?",
-                to_iata=leg.to_iata or "?",
+                from_iata=leg.from_iata,
+                to_iata=leg.to_iata,
                 depart_at=_local(leg.depart),
                 arrive_at=_local(leg.arrive),
                 duration_min=leg.duration_min,
@@ -86,29 +89,21 @@ def flight_from_option(
 
 
 def flight_from_fare(
-    fare: FareQuote, origin: str, dest: str, source: str, fetched_at: datetime
-) -> FlightDetails:
-    """Travelpayouts cached fare (fast phase / cheap pass): airline code only, times null."""
-    airline = fare.airline or "?"
+    fare: FareQuote, origin: str, source: str, fetched_at: datetime
+) -> FlightDetails | None:
+    """Travelpayouts cached fare (fast phase / cheap pass): airline code only, times null.
+    Only what Aviasales states: the airport it lands at (`destination_airport`) - never the
+    requested city code - and no return leg (Aviasales doesn't say which flight that is)."""
+    if not fare.airline or not fare.destination_airport:
+        return None
     return FlightDetails(
         outbound=[
             FlightLeg(
-                airline=airline,
+                airline=fare.airline,
                 from_iata=fare.origin_airport or origin,
-                to_iata=fare.destination_airport or dest,
+                to_iata=fare.destination_airport,
             )
         ],
-        inbound=(
-            [
-                FlightLeg(
-                    airline=airline,
-                    from_iata=fare.destination_airport or dest,
-                    to_iata=fare.origin_airport or origin,
-                )
-            ]
-            if fare.return_at
-            else []
-        ),
         stops_outbound=fare.transfers,
         stops_inbound=fare.return_transfers,
         price_pln=fare.price,
@@ -121,10 +116,10 @@ def flight_from_fare(
 def flight_from_explore(
     e: ExploreDestination, origin: str, source: str, fetched_at: datetime
 ) -> FlightDetails | None:
-    if not e.airline:
+    if not e.airline or not e.iata:
         return None
     return FlightDetails(
-        outbound=[FlightLeg(airline=e.airline, from_iata=origin, to_iata=e.iata or "?")],
+        outbound=[FlightLeg(airline=e.airline, from_iata=origin, to_iata=e.iata)],
         stops_outbound=e.stops,
         price_pln=e.flight_price,
         booking_url=e.link,
@@ -155,17 +150,54 @@ def stay_cost(offer: HotelOffer, nights: int) -> float:
     return offer.price_per_night * nights  # type: ignore[operator]
 
 
+_STOP = {
+    "airport", "international", "intl", "the", "of", "de", "di", "da", "del", "la", "le", "el",
+    "il", "aeropuerto", "aeroporto", "aéroport", "flughafen", "lotnisko", "city",
+}  # fmt: skip
+
+
+def _tokens(text: str) -> set[str]:
+    return {t for t in re.findall(r"[^\W\d_]+", text.lower()) if len(t) >= 4 and t not in _STOP}
+
+
+def distinctive_tokens(airport_iata: str, city: load.City) -> set[str]:
+    """Words of this airport's (seed) name that no other airport of the city shares - and, in
+    multi-airport cities, not the city's own name ("Milan Linate" must not match Malpensa)."""
+    ap = load.airport(airport_iata)
+    if ap is None:
+        return set()
+    others: set[str] = set()
+    for code in city.airports:
+        if code != airport_iata and (o := load.airport(code)) is not None:
+            others |= _tokens(o.name)
+    if len(city.airports) > 1:
+        others |= _tokens(city.name)
+    return _tokens(ap.name) - others
+
+
 def google_transfers(
-    offer: HotelOffer, airport_name: str | None, source: str, fetched_at: datetime
+    offer: HotelOffer,
+    airport_name: str | None,
+    airport_iata: str | None,
+    city: load.City,
+    source: str,
+    fetched_at: datetime,
 ) -> list[TransferOption]:
-    """Airport -> hotel travel times Google lists for this property (never invented)."""
+    """Airport -> hotel travel times Google lists for this property, only for the airport the
+    priced flight lands at: Google's own airport name, or a place whose name carries a word
+    distinctive to that airport. Anything else (another airport, an unknown landing) -> []."""
     places = [p for p in offer.nearby if p.transportations]
     match = None
     if airport_name:
         match = next((p for p in places if p.name.lower() == airport_name.lower()), None)
-    if match is None:
-        airports = [p for p in places if any(w in p.name.lower() for w in AIRPORT_WORDS)]
-        match = airports[0] if len(airports) == 1 else None  # ambiguous -> don't guess
+    if match is None and airport_iata:
+        key = distinctive_tokens(airport_iata, city)
+        tied = [
+            p
+            for p in places
+            if any(w in p.name.lower() for w in AIRPORT_WORDS) and key & _tokens(p.name)
+        ]
+        match = tied[0] if len(tied) == 1 else None  # ambiguous -> don't guess
     if match is None:
         return []
     return [
@@ -219,7 +251,7 @@ def hotel_details(
         ),
         airport=(GeoPoint(lat=ap.lat, lon=ap.lon, label=airport_name or ap.name) if ap else None),
         city_center=GeoPoint(lat=city.lat, lon=city.lon, label=city.name),
-        transfers=google_transfers(offer, airport_name, source, fetched_at),
+        transfers=google_transfers(offer, airport_name, airport_iata, city, source, fetched_at),
         booking_url=offer.link,
         photo_url=offer.thumbnail,
         source=source,

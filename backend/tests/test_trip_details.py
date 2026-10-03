@@ -142,15 +142,30 @@ def _offer(*places: tuple[str, list[tuple[str, str]]]) -> HotelOffer:
 
 
 def test_transfers_match_the_landing_airport_and_never_guess():
+    rome, milan = load.city("rome"), load.city("milan")
     two = _offer(("Ciampino Airport", [("Taxi", "30 min")]),
                  ("Leonardo da Vinci International Airport", [("Public transport", "1 hr")]))  # fmt: skip
-    got = details.google_transfers(two, "Leonardo da Vinci International Airport", "s", NOW)
+    # Google's own name of the landing airport (from the Google Flights itinerary)
+    got = details.google_transfers(two, "Leonardo da Vinci International Airport", "FCO", rome,
+                                   "s", NOW)  # fmt: skip
     assert [(t.mode, t.duration_min) for t in got] == [("public_transport", 60)]
-    assert details.google_transfers(two, None, "s", NOW) == []  # two airports: ambiguous
-    one = _offer(("Colosseum", [("Walking", "9 min")]), ("Ciampino Airport", [("Taxi", "30 min")]))
-    assert [t.mode for t in details.google_transfers(one, None, "s", NOW)] == ["taxi"]
-    assert details.google_transfers(_offer(("Colosseum", [("Walking", "9 min")])), None, "s",
-                                    NOW) == []  # fmt: skip
+    # no Google name: a word distinctive to the landing airport ("Ciampino" for CIA, "Leonardo"
+    # / "Fiumicino" for FCO) ties the place to it; otherwise nothing
+    assert [t.mode for t in details.google_transfers(two, None, "CIA", rome, "s", NOW)] == ["taxi"]
+    fco = details.google_transfers(two, None, "FCO", rome, "s", NOW)
+    assert [t.mode for t in fco] == ["public_transport"]
+    assert details.google_transfers(two, None, None, rome, "s", NOW) == []  # landing unknown
+    # review case: the flight lands at BGY, the hotel only lists Linate -> no transfer row
+    linate = _offer(("Milan Linate Airport", [("Taxi", "25 min")]))
+    assert details.google_transfers(linate, None, "BGY", milan, "s", NOW) == []
+    assert [t.mode for t in details.google_transfers(linate, None, "LIN", milan, "s", NOW)] == [
+        "taxi"
+    ]
+    # "Milan" is shared by every Milan airport: it can't tie a place to Malpensa
+    assert "milan" not in details.distinctive_tokens("MXP", milan)
+    # Naples, Italy vs the Naples-Florida recording: a different airport is never accepted
+    florida = _offer(("Southwest Florida International Airport", [("Taxi", "30 min")]))
+    assert details.google_transfers(florida, None, "NAP", load.city("naples"), "s", NOW) == []
 
 
 def test_pick_offer_is_a_real_property():
@@ -225,3 +240,95 @@ def test_osrm_is_throttled(monkeypatch):
 
     assert asyncio.run(three()) >= 0.39  # 3 calls spaced 0.2 s apart
     assert asyncio.run(three()) >= 0.39  # and again on a new event loop
+
+
+# ---------------------------------------------------------------- review fixes (#24)
+
+
+def _milan(monkeypatch, fare_airport: str | None, month_median: bool = False):
+    """Milan trip priced by Travelpayouts (SerpApi flights unavailable), Google Hotels offers
+    that only list Linate as a nearby airport, OSRM recorded instead of called."""
+    from tripai.connectors.osrm import Osrm, Route
+    from tripai.connectors.serpapi import HotelSearchResult, SerpApiHotels
+    from tripai.connectors.travelpayouts import FareQuote, FlightCalendar, Travelpayouts
+
+    w = JAN[0]
+
+    async def month_calendar(self, origin, dest, month, **kw):
+        dep = w.start if not month_median else date(2027, 1, 3)  # no fare on our day -> median
+        fare = FareQuote(origin="KRK", destination="MXP", destination_airport=fare_airport,
+                         origin_airport="KRK", price=240, airline="FR", transfers=0,
+                         departure_at=datetime(dep.year, dep.month, dep.day, 7, tzinfo=UTC),
+                         return_at=datetime(2027, 1, 19, 21, tzinfo=UTC))  # fmt: skip
+        return FlightCalendar(source="travelpayouts:grouped_prices", fetched_at=NOW,
+                              origin="KRK", destination="MXP", currency="PLN", query={},
+                              fares=[fare] if month == "2027-01" else [])  # fmt: skip
+
+    async def search(self, city, check_in, check_out, **kw):
+        offer = _offer(("Milan Linate Airport", [("Taxi", "25 min")]))
+        offer = offer.model_copy(update={"lat": 45.4642, "lon": 9.19, "total_price": 900})
+        return HotelSearchResult(source="serpapi:google_hotels", fetched_at=NOW, city=city,
+                                 check_in=check_in, check_out=check_out, adults=2,
+                                 currency="PLN", offers=[offer])  # fmt: skip
+
+    routes = []
+
+    async def drive(self, a_lat, a_lon, b_lat, b_lon):
+        routes.append((a_lat, a_lon))
+        return Route(source="osrm:route", fetched_at=NOW, from_lat=a_lat, from_lon=a_lon,
+                     to_lat=b_lat, to_lon=b_lon, duration_min=50, distance_km=48.0)  # fmt: skip
+
+    monkeypatch.setattr(Travelpayouts, "month_calendar", month_calendar)
+    monkeypatch.setattr(SerpApiHotels, "search", search)
+    monkeypatch.setattr(Osrm, "drive", drive)
+    p = LiveProvider(fixtures=True, today=date(2026, 10, 3), city_ids=["milan"],
+                     use_fallback=False, top_n=1, max_refine=1)  # fmt: skip
+    (c,) = asyncio.run(p.candidates("KRK", JAN, profile=PROF))
+    return c, routes
+
+
+def test_secondary_airport_from_the_priced_fare_not_the_city_code(monkeypatch):
+    """Review #1/#2: Ryanair to Bergamo priced by Aviasales -> airport pin and OSRM start at
+    BGY (not MXP), and the hotel's Linate travel times are not shown for a BGY landing."""
+    c, routes = _milan(monkeypatch, "BGY")
+    assert c.flight.source.startswith("travelpayouts") and c.flight.outbound[-1].to_iata == "BGY"
+    bgy = load.airport("BGY")
+    assert (c.hotel.airport.lat, c.hotel.airport.lon) == (bgy.lat, bgy.lon)
+    assert routes == [(bgy.lat, bgy.lon)]
+    (t,) = c.hotel.transfers
+    assert t.mode == "drive" and t.source.startswith("osrm:route")
+
+
+def test_unknown_landing_airport_means_no_pin_and_no_drive(monkeypatch):
+    c, routes = _milan(monkeypatch, None, month_median=True)
+    assert c.flight is None  # a month median has no single itinerary
+    assert c.hotel.airport is None and c.hotel.transfers == [] and routes == []
+    c2, routes2 = _milan(monkeypatch, None)  # Aviasales didn't say where it lands
+    assert c2.flight is None and c2.hotel.airport is None and routes2 == []
+
+
+def test_flight_evidence_shows_the_price_used(monkeypatch):
+    from tripai.connectors.serpapi import FlightPriceInsights
+    from tripai.live.provider import _flight_evidence
+
+    fl = FlightPriceInsights(source="serpapi:google_flights", fetched_at=NOW, origin="KRK",
+                             destination="FCO", outbound_date=JAN[0].start,
+                             return_date=JAN[0].end, currency="PLN", lowest_price=280,
+                             price_level="low")  # fmt: skip
+    ev = _flight_evidence(fl, 288)
+    assert ev[0].value == 288 and "cheapest itinerary" in ev[0].label
+    assert ev[1].value == "low"  # the price-level row is kept as is
+
+
+def test_no_placeholder_itineraries():
+    from tripai.connectors.serpapi import FlightOption, FlightSegment
+    from tripai.connectors.travelpayouts import FareQuote
+
+    opt = FlightOption(price=300, airlines=["X"], flight_numbers=[], stops=0,
+                       legs=[FlightSegment(airline="X", from_iata="KRK", to_iata=None)])  # fmt: skip
+    assert details.flight_from_option(opt, "s", NOW, None) is None
+    fare = FareQuote(origin="KRK", destination="FCO", price=100, airline=None,
+                     destination_airport="FCO", departure_at=NOW)  # fmt: skip
+    assert details.flight_from_fare(fare, "KRK", "s", NOW) is None
+    ok = details.flight_from_fare(fare.model_copy(update={"airline": "FR"}), "KRK", "s", NOW)
+    assert ok.inbound == [] and ok.outbound[0].to_iata == "FCO"  # no assumed return leg

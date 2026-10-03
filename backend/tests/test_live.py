@@ -93,14 +93,17 @@ def test_top_n_get_exact_date_serpapi_prices(prof):
     for cid in p.last_stats["refined"]:
         c = by_id[cid]
         srcs = {e.source for e in c.evidence}
-        assert {
-            "serpapi:google_flights" + RECORDED_TAG,
-            "serpapi:google_hotels" + RECORDED_TAG,
-        } <= srcs
+        assert "serpapi:google_flights" + RECORDED_TAG in srcs
+        # the recorded "Naples hotels" search is Naples, *Florida*: every offer is dropped by
+        # the distance guard, so Naples keeps its labelled estimate instead of US hotels
+        assert ("serpapi:google_hotels" + RECORDED_TAG in srcs) == (c.iata != "NAP")
         assert any(e.kind == "photo" and e.source.startswith("serper:images") for e in c.evidence)
         assert "Google Flights, exact dates (fixture)" in conf(c).label
     unrefined = [c for cid, c in by_id.items() if cid not in p.last_stats["refined"]]
-    lowest_refined = min(conf(by_id[cid]).value for cid in p.last_stats["refined"])
+    # (Naples excluded: its hotel stays an estimate, see above)
+    lowest_refined = min(
+        conf(by_id[cid]).value for cid in p.last_stats["refined"] if not cid.startswith("NAP")
+    )
     assert all(conf(c).value < lowest_refined for c in unrefined)
     top = rank(cands, prof, limit=3)
     assert all(r.id in p.last_stats["refined"] for r in top)
@@ -486,7 +489,9 @@ def _serpapi_from_fixtures(request: httpx.Request) -> httpx.Response:
         path = next(
             f
             for f in (root / "google_hotels").glob("*.json")
-            if json.loads(f.read_text())["params"]["q"] == p["q"]
+            # recorded as "Rome hotels"; requested now as "Rome, Italy hotels"
+            if json.loads(f.read_text())["params"]["q"].removesuffix(" hotels")
+            == p["q"].split(",")[0].removesuffix(" hotels")
         )
     return httpx.Response(200, json=json.loads(path.read_text())["payload"])
 
