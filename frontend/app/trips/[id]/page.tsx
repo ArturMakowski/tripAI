@@ -24,7 +24,10 @@ import { dayCount, formatPLN, formatRange } from "@/lib/format";
 import { FACTOR_LABEL, flipConditions, inputsHash } from "@/lib/scoring";
 import type { RankedRecommendation, Weights } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
+import { FitSection } from "@/components/fit-section";
 import { SourceTag } from "@/components/source-tag";
+import { DEMO_PROFILE } from "@/lib/mock/fixtures";
+import { useTrip } from "@/lib/store";
 import { originOf } from "@/lib/handoff";
 import { cn } from "@/lib/utils";
 
@@ -119,6 +122,8 @@ export default function ReceiptPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { ranked, weights, loading, scoredAtCurrentWeights } = useRecommendations();
+  const profile = useTrip((s) => s.profile);
+  const lang = useTrip((s) => s.deck.lang);
 
   const rank = ranked.findIndex((r) => r.id === id);
   const rec = ranked[rank];
@@ -186,6 +191,8 @@ export default function ReceiptPage() {
         </p>
 
         {/* ---------------- Receipt ---------------- */}
+        <FitSection rec={rec} profile={profile ?? DEMO_PROFILE} lang={lang} />
+
         <Section title="Score breakdown" icon={Scale}>
           <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
             <FactorBars score={rec.score} weights={weights} />
@@ -209,17 +216,27 @@ export default function ReceiptPage() {
               </p>
             </div>
             <div className="my-3 border-t border-dashed border-ink/25" />
-            {flight && <Line label="Return flight" value={formatPLN(rec.flight_cost_pln)} sub={<SourceTag e={flight} />} />}
-            {hotel && <Line label={`Hotel, ${nights} nights`} value={formatPLN(rec.hotel_cost_pln)} sub={<SourceTag e={hotel} />} />}
+            {flight && (
+              <div id={`ev-${rec.evidence.indexOf(flight)}`} className="-mx-2 rounded-lg px-2">
+                <Line label="Return flight" value={formatPLN(rec.flight_cost_pln)} sub={<SourceTag e={flight} />} />
+              </div>
+            )}
+            {hotel && (
+              <div id={`ev-${rec.evidence.indexOf(hotel)}`} className="-mx-2 rounded-lg px-2">
+                <Line label={`Hotel, ${nights} nights`} value={formatPLN(rec.hotel_cost_pln)} sub={<SourceTag e={hotel} />} />
+              </div>
+            )}
             <div className="my-2 border-t border-dashed border-ink/25" />
             <Line label="TOTAL" value={formatPLN(rec.total_cost_pln)} strong />
 
             {baseline && (
+              <div id={`ev-${rec.evidence.indexOf(baseline)}`} className="-mx-2 rounded-lg px-2">
               <Line
                 label={<span className="text-muted-foreground">↳ {baseline.label.toLowerCase()}</span>}
                 value={<span className="text-muted-foreground">{typeof baseline.value === "number" ? formatPLN(baseline.value) : `${baseline.value} PLN`}</span>}
                 sub={<SourceTag e={baseline} />}
               />
+              </div>
             )}
 
             {(counterfactuals.length > 0 || rival) && (
@@ -260,7 +277,7 @@ export default function ReceiptPage() {
         <Section title="Evidence" icon={ExternalLink}>
           <ul className="divide-y divide-line rounded-3xl border border-line bg-card px-4 shadow-soft">
             {facts.map((e, i) => (
-              <li key={i} className="py-3">
+              <li key={i} id={`ev-${rec.evidence.indexOf(e)}`} className="-mx-2 scroll-mt-24 rounded-xl px-2 py-3">
                 <div className={cn("flex justify-between gap-x-3 gap-y-1", typeof e.value === "string" ? "flex-col" : "items-baseline")}>
                   <span className="text-sm text-ink">{e.label}</span>
                   <span className={cn("tabular font-mono text-sm text-ink", typeof e.value === "string" ? "text-[13px] text-ink-soft" : "shrink-0")}>

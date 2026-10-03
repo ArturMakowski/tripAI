@@ -197,6 +197,8 @@ export function scoreLocally(profile: TasteProfile, weights: Weights, windowsIn?
 
 export async function recommendations(req: RecommendationsRequest): Promise<RankedRecommendation[]> {
   await sleep(500);
+  // No fit here: in fixture mode the verdict is derived from the *current* ranking (use-recommendations),
+  // so it never goes stale when the slider re-weights locally.
   return scoreLocally(req.profile, req.weights ?? DEFAULT_WEIGHTS, req.windows).slice(0, req.limit ?? 10);
 }
 

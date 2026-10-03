@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { withReceipts } from "./mock/api";
+import { CLIENT_PREVIEW_MODEL, withFit } from "./mock/fit";
 import { DEMO_PROFILE } from "./mock/fixtures";
 import { normalise, rerank } from "./scoring";
 import { profileKey, RECS_TTL_MS, useHydrated, useTrip } from "./store";
@@ -70,6 +71,12 @@ export function useRecommendations() {
 
   // Fixture data has no backend to ask, so recompute the rank-dependent receipt parts locally.
   const fixture = modes.recs === "fixture";
-  const ranked = useMemo(() => (fixture ? withReceipts(rerank(recs, weights), weights) : rerank(recs, weights)), [recs, weights, fixture]);
+  const fitProfile = profile ?? DEMO_PROFILE;
+  const ranked = useMemo(() => {
+    // Fixture verdicts are always derived from this ranking (drop any stored one so it can't go stale).
+    const r = fixture ? withReceipts(rerank(recs, weights), weights).map((x) => ({ ...x, fit: undefined })) : rerank(recs, weights);
+    // Backend verdicts win; until the fit agent ships, a rule-based preview is computed here and labelled as such.
+    return withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL);
+  }, [recs, weights, fixture, fitProfile]);
   return { ranked, loading: !recs.length, weights, scoredAtCurrentWeights: fixture || scoredAtCurrentWeights };
 }

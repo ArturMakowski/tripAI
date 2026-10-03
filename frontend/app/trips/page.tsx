@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { Bell, X } from "lucide-react";
+import { Bell, CalendarDays, ChevronDown, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Suspense, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
@@ -90,7 +91,16 @@ function Trips() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowFilter, loading, matching.length]);
   const list = matching;
-  const top = ranked[0];
+  const fitting = list.filter((r) => r.fit?.label !== "poor_fit");
+  const notMyStyle = list.filter((r) => r.fit?.label === "poor_fit");
+  const [showPoor, setShowPoor] = useState(false);
+  // Top picks that all share one window read like a bug; explain it (and only blame fixtures in fixture mode).
+  const top3 = fitting.slice(0, 3);
+  const sameDates =
+    !windowFilter && top3.length >= 2 && top3.every((r) => r.window.start === top3[0].window.start && r.window.end === top3[0].window.end);
+  const fixtureRecs = useTrip((s) => s.modes.recs) === "fixture";
+  // Like the notifier (T5b): only push a good or great fit.
+  const top = ranked.find((r) => !r.fit || r.fit.label === "great_fit" || r.fit.label === "good_fit");
 
   return (
     <AppShell>
@@ -111,15 +121,68 @@ function Trips() {
         </div>
       )}
 
+      {sameDates && (
+        <p role="note" className="mt-4 flex gap-2 rounded-xl bg-sky-soft px-3 py-2.5 text-sm leading-snug text-ink">
+          <CalendarDays className="mt-0.5 size-4 shrink-0 text-sky" aria-hidden />
+          {fixtureRecs ? (
+            <span>
+              Your top picks all share <b>{formatRange(fitting[0].window)}</b> because the demo data only prices a few dates. With live data
+              they spread across all your free windows.
+            </span>
+          ) : (
+            <span>
+              Your top picks all fall on <b>{formatRange(fitting[0].window)}</b>, the best of your free windows right now. The others are on{" "}
+              <Link href="/windows" className="font-medium text-pine underline-offset-2 hover:underline">
+                Free time
+              </Link>
+              .
+            </span>
+          )}
+        </p>
+      )}
+
       <LayoutGroup>
         <ul className="mt-5 space-y-4">
           {loading && !list.length && [0, 1].map((i) => <SkeletonCard key={i} />)}
-          {list.map((rec, i) => (
+          {fitting.map((rec, i) => (
             <motion.li key={rec.id} layout transition={{ type: "spring", stiffness: 260, damping: 30 }}>
               <RecCard rec={rec} weights={weights} featured={i === 0} bridge={bridgeFor(rec.window, longWeekends)} />
             </motion.li>
           ))}
         </ul>
+
+        {/* Never hidden silently: poor fits stay one tap away, with the reason on each card. */}
+        {notMyStyle.length > 0 && (
+          <motion.div layout className="mt-6">
+            <button
+              onClick={() => setShowPoor((v) => !v)}
+              aria-expanded={showPoor}
+              className="flex w-full items-center justify-between rounded-2xl border border-dashed border-line px-4 py-3 text-sm text-ink-soft hover:border-clay/40"
+            >
+              <span>
+                <b className="font-semibold text-ink">Not your style</b> · {notMyStyle.length} trip{notMyStyle.length > 1 ? "s" : ""}{" "}
+                ({showPoor ? "hide" : "show anyway"})
+              </span>
+              <ChevronDown className={cn("size-4 transition-transform", showPoor && "rotate-180")} />
+            </button>
+            <AnimatePresence initial={false}>
+              {showPoor && (
+                <motion.ul
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="space-y-4 overflow-hidden pt-4"
+                >
+                  {notMyStyle.map((rec) => (
+                    <li key={rec.id} className="opacity-90 saturate-[0.85]">
+                      <RecCard rec={rec} weights={weights} bridge={bridgeFor(rec.window, longWeekends)} />
+                    </li>
+                  ))}
+                </motion.ul>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
       </LayoutGroup>
       {!loading && !list.length && (
         <p className="mt-6 text-center text-sm text-muted-foreground">No trips fit this window yet. We&rsquo;ll keep watching.</p>
