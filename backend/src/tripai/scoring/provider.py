@@ -12,6 +12,7 @@ from typing import Protocol
 
 from pydantic import BaseModel, Field
 
+from tripai import i18n
 from tripai.models import Evidence, FreeWindow, LuxuryLevel, TasteProfile, Weights
 from tripai.scoring import party
 from tripai.scoring.types import Candidate, PeakQuote
@@ -180,7 +181,7 @@ class FixtureProvider:
             Evidence(kind="weather", label=f"Avg daily max in {c.info.city} {dates}", value=temp,
                      unit="°C", source=SAMPLE_SOURCE,
                      fetched_at=FIXTURE_FETCHED_AT),
-            Evidence(kind="crowds", label="Tourist crowd index (1 = peak)", value=crowd,
+            Evidence(kind="crowds", label=i18n.t("crowd.label", pct=round(crowd * 100)), value=crowd,
                      unit="0-1", source=SAMPLE_SOURCE,
                      fetched_at=FIXTURE_FETCHED_AT),
             Evidence(kind="attraction", label="Top sights", value=", ".join(c.info.highlights),

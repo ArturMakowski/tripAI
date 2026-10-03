@@ -17,6 +17,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from tripai import i18n
 from tripai.models import Evidence
 from tripai.seed._common import read_json
 
@@ -191,14 +192,17 @@ def crowd_evidence(key: str, month: int) -> Evidence:
     c, p = city(key), crowd(key)
     if not 1 <= month <= 12:
         raise ValueError(f"month must be 1..12, got {month}")
-    label = f"Crowds in {c.name}, {MONTHS[month - 1]} (0 = quietest month, 1 = busiest)"
-    if p.geo_level == "proxy":
-        label += f"; estimated from comparable regions ({p.source}), no Eurostat data for {p.geo}"
-    elif p.geo_level == "country":
-        label += f"; country-level data for {c.country_name}"
+    # "Crowds: 12% of peak season" only where we know tourist nights vs the peak month;
+    # otherwise the relative 0..1 scale is described as such (never a made-up percentage)
     if p.peak_ratio is not None:
-        peak = MONTHS[max(range(12), key=p.peak_ratio.__getitem__)]
-        label += f"; {round(p.peak_ratio[month - 1] * 100)}% of {peak} tourist nights"
+        label = i18n.t("crowd.label", pct=round(p.peak_ratio[month - 1] * 100))
+        label += i18n.t("crowd.when", city=i18n.city(c.name), month=i18n.month_long(month))
+    else:
+        label = i18n.t("crowd.relative", city=i18n.city(c.name), month=i18n.month_long(month))
+    if p.geo_level == "proxy":
+        label += i18n.t("crowd.proxy", source=p.source, geo=p.geo)
+    elif p.geo_level == "country":
+        label += i18n.t("crowd.country", country=c.country_name)
     dataset = p.source.split(":", 1)[1].split()[0]  # "eurostat:tour_occ_nim" → "tour_occ_nim"
     return Evidence(
         kind="crowds",

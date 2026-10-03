@@ -16,7 +16,7 @@ from tripai.scoring.types import (
     RankedRecommendation,
 )
 
-SCORING_VERSION = "2026.10.04-1"  # typical-spend price reference, shown totals, hash
+SCORING_VERSION = "2026.10.04-2"  # flip text; hash ignores (localised) evidence labels
 FACTORS = ("price", "weather", "crowds", "taste")
 
 # Typical total trip spend (flight + hotel room) per DNA luxury level, PLN: the price factor's
@@ -205,7 +205,13 @@ def inputs_hash(
         "profile": profile.model_dump(mode="json"),
         "weights": normalise_weights(weights).model_dump(mode="json"),
         "candidates": sorted(
-            (c.model_dump(mode="json", exclude_none=True) for c in candidates),
+            # evidence labels are presentation (and localised): the hash covers the facts
+            (
+                c.model_dump(
+                    mode="json", exclude_none=True, exclude={"evidence": {"__all__": {"label"}}}
+                )
+                for c in candidates
+            ),
             key=lambda d: (d["iata"], d["window"]["start"], d["window"]["end"]),
         ),
     }
@@ -386,25 +392,24 @@ def _flip(
                     break
                 inc += max(1, math.ceil(base_cost * 0.005))
 
-    lo_name = f"{lo_c.city} ({fmt_window(lo_c)})"
-    hi_name = f"{hi_c.city} ({fmt_window(hi_c)})"
-    parts = []
+    # Plain language, naming the concrete modelled trigger (docs: receipt). The price route is
+    # modelled on the flight (`with_extra_cost`); the weight route is the user's own priorities.
+    # Nothing here predicts future weather or crowds.
+    same_city = lo_c.city == hi_c.city
+    lo_name = i18n.city(lo_c.city) + (f" ({fmt_window(lo_c)})" if same_city else "")
+    hi_name = i18n.city(hi_c.city) + (f" ({fmt_window(hi_c)})" if same_city else "")
+    conds = []
     factor = weight_from = weight_to = None
+    if price_inc is not None:
+        conds.append(i18n.t("flip.if_price", to=i18n.city(hi_c.city, case="gen"),
+                            amount=i18n.fmt_pln(price_inc)))  # fmt: skip
     if best is not None:
         _, factor, weight_to = best
         weight_from = getattr(w, factor)
-        parts.append(
-            i18n.t(
-                "flip.weight",
-                factor=i18n.t(f"factor.{factor}"),
-                a=_w(weight_from),
-                b=_w(weight_to),
-            )
-        )
-    if price_inc is not None:
-        parts.append(i18n.t("flip.price", city=hi_c.city, amount=i18n.fmt_pln(price_inc)))
-    if parts:
-        text = i18n.t("flip.text", lo=lo_name, hi=hi_name, parts=i18n.t("flip.or").join(parts))
+        conds.append(i18n.t(f"flip.if_weight.{factor}", a=_w(weight_from), b=_w(weight_to)))
+    if conds:
+        text = i18n.t("flip.text", conds=i18n.t("flip.or").join(conds), lo=lo_name,
+                      be=i18n.t("flip.be_pl" if i18n.is_plural(lo_c.city) else "flip.be"))  # fmt: skip
     else:
         text = i18n.t("flip.none", lo=lo_name, hi=hi_name)
     return FlipHint(

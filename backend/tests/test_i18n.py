@@ -122,7 +122,8 @@ def test_rank_receipts_in_both_languages_same_scores():
     assert "drożej" in pl_cf and "wynik niższy o" in pl_cf and "more" not in pl_cf
     assert "Ten sam wyjazd w lipcu (szczyt sezonu): o" in pl_cf
     assert "zł" in pl_cf and "PLN" not in pl_cf
-    assert "would overtake" in en[0].flip.text and "wyprzedziłoby" in pl[0].flip.text
+    assert en[0].flip.text.startswith("If ") and en[0].flip.text.endswith(" wins.")
+    assert pl[0].flip.text.startswith("Jeśli ") and "lepszą opcją" in pl[0].flip.text
 
 
 def test_rank_follows_context_language():
