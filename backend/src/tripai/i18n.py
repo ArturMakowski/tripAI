@@ -590,6 +590,42 @@ MESSAGES: dict[str, dict[str, str]] = {
     },
     "iv.budget": {"en": "budget {amount}, ", "pl": "budżet {amount}, "},
     "iv.avoid": {"en": ", avoiding {items}", "pl": ", bez: {items}"},
+    # ---- T6 swipe on offers (tripai.scoring.reactions)
+    "rx.like": {"en": "I want to go", "pl": "Chcę tam"},
+    "rx.love": {"en": "Love it!", "pl": "Super!"},
+    "rx.dislike": {"en": "Not for me", "pl": "Nie dla mnie"},
+    "rx.tag": {
+        "en": "you swiped '{swipe}' on {trip}, which offers {tag}",
+        "pl": "„{swipe}” przy {trip}, a to miejsce oferuje: {tag}",
+    },
+    "rx.love_factor": {
+        "en": "you swiped '{swipe}' on {trip}; its {factor} score was {v}",
+        "pl": "„{swipe}” przy {trip}; wynik „{factor}” to {v}",
+    },
+    "rx.dislike_factor": {
+        "en": "you swiped '{swipe}' on {trip}; its {factor} score was only {v}",
+        "pl": "„{swipe}” przy {trip}; wynik „{factor}” to tylko {v}",
+    },
+    "rx.off": {
+        "en": "Personalisation is off (your choice in Travel DNA), so this reaction is saved but "
+        "does not change your profile or weights.",
+        "pl": "Personalizacja jest wyłączona (Twój wybór w DNA Podróżnika), więc reakcja jest "
+        "zapisana, ale nie zmienia Twojego profilu ani wag.",
+    },
+    "rx.hidden": {
+        "en": "{city} on these dates is hidden from your list.",
+        "pl": "{city} w tych dniach znika z Twojej listy.",
+    },
+    "rx.nothing": {
+        "en": "Nothing new to learn: your profile already says this.",
+        "pl": "Nic nowego: Twój profil już to wie.",
+    },
+    "factor.weights": {"en": "weights", "pl": "wagi"},
+    "rx.undo": {"en": "undo: {city}", "pl": "cofnięte: {city}"},
+    "rx.kept": {
+        "en": "Kept {fields}: changed again since this swipe.",
+        "pl": "Bez zmian: {fields} (zmienione ponownie po tym przesunięciu).",
+    },
 }
 
 TAGS_PL = {

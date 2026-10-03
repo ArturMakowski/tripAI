@@ -6,15 +6,16 @@ import { useCallback, useEffect, useState } from "react";
 import { ANSWER_LABEL, gesturesFor, YESNO_LABEL, type DnaCard, type Gesture, type Lang, UI } from "@/lib/dna";
 import { cn } from "@/lib/utils";
 
-const FLY: Record<Gesture, { x: number; y: number; rotate: number }> = {
+/** Swipe physics shared with the offer deck (components/offer-deck.tsx). */
+export const FLY: Record<Gesture, { x: number; y: number; rotate: number }> = {
   right: { x: 560, y: 40, rotate: 22 },
   left: { x: -560, y: 40, rotate: -22 },
   up: { x: 0, y: -900, rotate: 0 },
   down: { x: 0, y: 900, rotate: 0 },
 };
-const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
-const THRESHOLD = 95;
-const VELOCITY = 650;
+export const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
+export const THRESHOLD = 95;
+export const VELOCITY = 650;
 
 /** What each gesture means on this card, for stamps, buttons and aria labels. */
 export function gestureLabel(card: DnaCard, g: Gesture, lang: Lang): string {
@@ -29,7 +30,7 @@ const STAMP_STYLE: Record<Gesture, string> = {
   down: "left-1/2 top-6 -translate-x-1/2 border-sky text-sky bg-paper/90",
 };
 
-function Stamp({ g, label, opacity }: { g: Gesture; label: string; opacity: ReturnType<typeof useTransform<number, number>> }) {
+export function Stamp({ g, label, opacity }: { g: Gesture; label: string; opacity: ReturnType<typeof useTransform<number, number>> }) {
   return (
     <motion.span
       style={{ opacity }}

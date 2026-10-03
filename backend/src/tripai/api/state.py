@@ -7,6 +7,7 @@ scoped to the server-issued session user (`tripai.api.session`)."""
 from typing import Protocol
 
 from tripai.models import TasteProfile, Weights
+from tripai.scoring.reactions import ReactionRecord
 from tripai.scoring.types import RankedRecommendation
 
 
@@ -24,6 +25,10 @@ class Store(Protocol):
     async def save_feedback(
         self, user_id: str, trip_id: str, answers: dict, diff: list
     ) -> None: ...
+    # T6 swipe reactions, keyed by recommendation id (one live reaction per card)
+    async def get_reactions(self, user_id: str) -> dict[str, ReactionRecord]: ...
+    async def save_reaction(self, record: ReactionRecord) -> None: ...
+    async def delete_reaction(self, user_id: str, rec_id: str) -> None: ...
 
 
 class MemoryStore:
@@ -32,6 +37,7 @@ class MemoryStore:
         self.weights: dict[str, Weights] = {}
         self.recs: dict[tuple[str, str], RankedRecommendation] = {}  # (user_id, rec id)
         self.feedback: list[dict] = []
+        self.reactions: dict[str, dict[str, ReactionRecord]] = {}  # user_id -> rec id -> record
 
     async def get_profile(self, user_id: str) -> TasteProfile | None:
         return self.profiles.get(user_id)
@@ -54,3 +60,12 @@ class MemoryStore:
     async def save_feedback(self, user_id: str, trip_id: str, answers: dict, diff: list) -> None:
         self.feedback.append({"user_id": user_id, "trip_id": trip_id, "answers": answers,
                               "diff": diff})  # fmt: skip
+
+    async def get_reactions(self, user_id: str) -> dict[str, ReactionRecord]:
+        return dict(self.reactions.get(user_id, {}))
+
+    async def save_reaction(self, record: ReactionRecord) -> None:
+        self.reactions.setdefault(record.user_id, {})[record.recommendation_id] = record
+
+    async def delete_reaction(self, user_id: str, rec_id: str) -> None:
+        self.reactions.get(user_id, {}).pop(rec_id, None)
