@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { LangSync } from "@/components/lang-sync";
 import { MotionProvider } from "@/components/motion-provider";
 import "./globals.css";
 
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh">
         {/* Phone-width column: the app is designed and demoed at mobile size. */}
         <div className="relative mx-auto flex min-h-dvh w-full max-w-[440px] flex-col bg-paper sm:my-6 sm:min-h-[calc(100dvh-3rem)] sm:overflow-clip sm:rounded-[2.25rem] sm:shadow-[0_30px_80px_-30px_oklch(0.3_0.04_80/0.45)] sm:ring-1 sm:ring-line">
-          <MotionProvider>{children}</MotionProvider>
+          <MotionProvider>
+            <LangSync />
+            {children}
+          </MotionProvider>
         </div>
       </body>
     </html>

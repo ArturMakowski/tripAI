@@ -1,0 +1,43 @@
+import type { Shape } from "../types";
+
+export const en = {
+  appName: "TripAI",
+  home: "TripAI home",
+  back: "Back",
+  nav: { trips: "Trips", windows: "Free time", profile: "Profile", feedback: "Feedback", inbox: "Inbox" },
+  mode: {
+    live: "Live API",
+    fixture: "Demo fixtures",
+    liveTitle: "Answers come from the TripAI backend",
+    fixtureTitle: "Backend not configured or unreachable: TripAI sample data",
+  },
+  language: { label: "Language", pl: "Polski", en: "English", switchTo: "Change language" },
+  loading: "Loading…",
+  retry: "Try again",
+  notFound: "Not found.",
+  errorGeneric: "Something went wrong. Please try again.",
+  offline: "Can't reach TripAI right now.",
+  scoreOf: (label: string, n: number) => `${label} ${n} of 100`,
+  score: "Score",
+} as const;
+
+export const pl: Shape<typeof en> = {
+  appName: "TripAI",
+  home: "Strona główna TripAI",
+  back: "Wstecz",
+  nav: { trips: "Wyjazdy", windows: "Wolny czas", profile: "Profil", feedback: "Opinie", inbox: "Skrzynka" },
+  mode: {
+    live: "Dane na żywo",
+    fixture: "Dane demo",
+    liveTitle: "Odpowiedzi pochodzą z backendu TripAI",
+    fixtureTitle: "Backend nie jest skonfigurowany lub jest nieosiągalny: przykładowe dane TripAI",
+  },
+  language: { label: "Język", pl: "Polski", en: "English", switchTo: "Zmień język" },
+  loading: "Ładowanie…",
+  retry: "Spróbuj ponownie",
+  notFound: "Nie znaleziono.",
+  errorGeneric: "Coś poszło nie tak. Spróbuj ponownie.",
+  offline: "Nie możemy teraz połączyć się z TripAI.",
+  scoreOf: (label, n) => `${label}: ${n} na 100`,
+  score: "Wynik",
+};

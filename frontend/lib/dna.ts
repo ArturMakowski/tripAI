@@ -6,7 +6,9 @@
 
 import { cityPhotoCredit } from "@/lib/photos";
 
-export type Lang = "pl" | "en";
+export type { Lang } from "./i18n/types";
+import * as onboarding from "./i18n/messages/onboarding";
+import type { Lang } from "./i18n/types";
 export type CardId = `q${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12}` | "y1" | "y2";
 export type Gesture = "left" | "down" | "right" | "up";
 
@@ -171,14 +173,9 @@ export function gesturesFor(card: DnaCard): Gesture[] {
   return card.kind === "yesno" ? ["left", "right"] : ["left", "down", "right", "up"];
 }
 
-export const ANSWER_LABEL: Record<Lang, Record<number, string>> = {
-  pl: { 1: "Nie ja", 2: "Raczej nie", 3: "Zależy", 4: "To ja", 5: "Bardzo ja!" },
-  en: { 1: "Not me", 2: "Not really", 3: "Depends", 4: "That's me", 5: "So me!" },
-};
-export const YESNO_LABEL: Record<Lang, Record<"yes" | "no", string>> = {
-  pl: { yes: "Tak", no: "Nie" },
-  en: { yes: "Yes", no: "No" },
-};
+/** Answer labels live in the i18n dictionaries (lib/i18n/messages/onboarding.ts); re-exported for callers. */
+export const ANSWER_LABEL: Record<Lang, Record<number, string>> = { pl: onboarding.pl.answers, en: onboarding.en.answers };
+export const YESNO_LABEL: Record<Lang, Record<"yes" | "no", string>> = { pl: onboarding.pl.yesNo, en: onboarding.en.yesNo };
 
 /** One recorded swipe, for undo. */
 export type DnaSwipe = { id: CardId; value: number | boolean };
@@ -198,68 +195,3 @@ export function collectAnswers(swipes: DnaSwipe[]): DnaAnswers {
   }
   return out;
 }
-
-export const UI: Record<Lang, Record<string, string>> = {
-  pl: {
-    eyebrow: "DNA Podróżnika",
-    title: "Przesuń, żeby nas poznać.",
-    hint: "W prawo to ja · w górę bardzo ja · w dół zależy · w lewo nie ja",
-    hintYesNo: "W prawo tak · w lewo nie",
-    undo: "Cofnij",
-    of: "z",
-    budgetTitle: "Ile chcesz wydać?",
-    budgetSub: "Łącznie na osobę: lot i nocleg.",
-    flexible: "Bez limitu",
-    next: "Dalej",
-    airportTitle: "Skąd latasz?",
-    airportSub: "Możesz wybrać kilka lotnisk.",
-    showDna: "Pokaż moje DNA",
-    resultTitle: "Twoje DNA podróżnika.",
-    resultSub: "Każda wartość pokazuje, skąd się wzięła. Zmień dowolną odpowiedź, a profil przeliczy się od razu.",
-    answers: "Twoje odpowiedzi",
-    weights: "Co waży w rankingu",
-    interests: "Co lubisz",
-    style: "Twój styl",
-    because: "bo przesunąłeś",
-    on: "przy",
-    continue: "Wygląda dobrze, znajdź mój wolny czas",
-    chat: "Dopracuj w rozmowie",
-    restart: "Zacznij od nowa",
-    noTailor: "Rekomendacje nie będą się dopasowywać, a ankiety po podróży nie zmienią Twojego profilu.",
-    noTailorTitle: "Wybrano: bez dopasowania",
-    computing: "Liczę Twój profil…",
-    resultMissing: "Nie mamy jeszcze Twojego wyniku.",
-    credit: "Zdjęcie",
-  },
-  en: {
-    eyebrow: "Travel DNA",
-    title: "Swipe so we can get to know you.",
-    hint: "Right that's me · up so me · down depends · left not me",
-    hintYesNo: "Right yes · left no",
-    undo: "Undo",
-    of: "of",
-    budgetTitle: "How much do you want to spend?",
-    budgetSub: "All-in per person: flights and stay.",
-    flexible: "No limit",
-    next: "Next",
-    airportTitle: "Where do you fly from?",
-    airportSub: "Pick as many airports as you like.",
-    showDna: "Show my DNA",
-    resultTitle: "Your travel DNA.",
-    resultSub: "Every value shows where it came from. Change any answer and the profile recalculates straight away.",
-    answers: "Your answers",
-    weights: "What matters in the ranking",
-    interests: "What you like",
-    style: "Your style",
-    because: "because you swiped",
-    on: "on",
-    continue: "Looks right: find my free time",
-    chat: "Fine-tune by chat",
-    restart: "Start over",
-    noTailor: "Recommendations won't adapt, and post-trip feedback won't change your profile.",
-    noTailorTitle: "You chose: no tailoring",
-    computing: "Working out your profile…",
-    resultMissing: "We don't have your result yet.",
-    credit: "Photo",
-  },
-};

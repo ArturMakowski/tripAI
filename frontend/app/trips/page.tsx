@@ -16,7 +16,7 @@ import { useSwipe } from "@/lib/use-reactions";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
 import { PickedDatesEmpty, PickedDatesHeader } from "@/components/date-picker/free-dates-planner";
 import { AppShell, PageTitle } from "@/components/shell";
-import { formatPLN, formatRange, pct } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import { useTrip } from "@/lib/store";
 import type { RankedRecommendation } from "@/lib/types";
 import { bridgeFor, useWindows } from "@/lib/windows";
@@ -24,6 +24,8 @@ import { useRecommendations } from "@/lib/use-recommendations";
 
 /** The proactive moment: a push-style card the scan would send. */
 function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () => void }) {
+  const { t, fmt } = useT();
+  const tp = t.trips.push;
   return (
     <motion.div
       initial={{ y: -40, opacity: 0, scale: 0.96 }}
@@ -39,18 +41,17 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
           <Bell className="size-3 text-paper" />
         </span>
         <span className="font-semibold tracking-wide text-ink-soft uppercase">TripAI</span>
-        <span>· now</span>
-        <button onClick={onClose} className="ml-auto rounded-full p-1 hover:bg-paper-deep" aria-label="Dismiss">
+        <span>{tp.now}</span>
+        <button onClick={onClose} className="ml-auto rounded-full p-1 hover:bg-paper-deep" aria-label={tp.dismiss}>
           <X className="size-3.5" />
         </button>
       </div>
       <Link href={`/trips/${rec.id}`} className="mt-1.5 block">
         <p className="text-[15px] leading-snug font-semibold text-ink">
-          You&rsquo;re free {formatRange(rec.window)} → {rec.city}
+          {tp.title(fmt.range(rec.window), rec.city)}
         </p>
         <p className="mt-0.5 text-sm text-ink-soft">
-          {formatPLN(rec.total_cost_pln)} all-in · flights {formatPLN(rec.flight_cost_pln)} · score {pct(rec.score.total)}. Tap
-          to see why.
+          {tp.body(fmt.pln(rec.total_cost_pln), fmt.pln(rec.flight_cost_pln), Math.round(rec.score.total * 100))}
         </p>
       </Link>
     </motion.div>
@@ -60,6 +61,8 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
 function Trips() {
   const params = useSearchParams();
   const windowFilter = params.get("window");
+  const { t, fmt } = useT();
+  const tt = t.trips;
   const { ranked, loading, refining, phased, mode, weights } = useRecommendations();
   const slider = useTrip((s) => s.slider);
   const setSlider = useTrip((s) => s.setSlider);
@@ -122,30 +125,28 @@ function Trips() {
   // Only real signals get a ✓ (the windows actually loaded). The rest describes what the
   // pipeline is doing until the response replaces the loader.
   const stages: Stage[] = [
-    windowCount
-      ? { label: `Found ${windowCount} free windows and long weekends`, done: true }
-      : { label: "Finding your free windows" },
-    { label: `Scanning destinations from ${origin}` },
+    windowCount ? { label: tt.loader.foundWindows(windowCount), done: true } : { label: tt.loader.findingWindows },
+    { label: tt.loader.scanning(origin) },
     ...(phased === false
-      ? [{ label: "Checking flight and hotel prices" }, { label: "Weather, crowds and ranking for your Travel DNA" }]
-      : [{ label: "Checking cached flight prices" }]),
+      ? [{ label: tt.loader.flightsHotels }, { label: tt.loader.weatherRanking }]
+      : [{ label: tt.loader.cachedFlights }]),
   ];
   const announce = loading
-    ? "Finding trips for you."
+    ? tt.announce.loading
     : refining
-      ? "Showing cached prices. Refining live prices."
+      ? tt.announce.refining
       : landed
         ? liveData
-          ? "Live prices in. Ranking updated."
-          : "Demo prices updated. Ranking updated."
+          ? tt.announce.landedLive
+          : tt.announce.landedDemo
         : "";
 
   return (
     <AppShell>
       <AnimatePresence>{!dismissed && top && !windowFilter && <PushBanner rec={top} onClose={() => setDismissed(true)} />}</AnimatePresence>
 
-      <PageTitle eyebrow="Picked for your free time" title={<>Where &amp; when, ranked.</>}>
-        Every score is a weighted sum of four sourced factors. Move the slider and the ranking updates as you drag.
+      <PageTitle eyebrow={tt.eyebrow} title={tt.title}>
+        {tt.intro}
       </PageTitle>
 
       <Link
@@ -155,12 +156,12 @@ function Trips() {
         <Wallet className="size-4 text-pine" aria-hidden />
         {budget != null ? (
           <>
-            Budget <b className="tabular font-semibold text-ink">{formatPLN(budget)}</b>
+            {tt.budget.label} <b className="tabular font-semibold text-ink">{fmt.pln(budget)}</b>
           </>
         ) : (
-          <>No budget limit</>
+          <>{tt.budget.none}</>
         )}
-        <span className="text-muted-foreground">· {budget != null ? "set in profile" : "set one"}</span>
+        <span className="text-muted-foreground">· {budget != null ? tt.budget.setInProfile : tt.budget.setOne}</span>
       </Link>
 
       <PickedDatesHeader />
@@ -170,9 +171,9 @@ function Trips() {
 
       {windowFilter && (
         <div className="mt-4 flex items-center justify-between rounded-xl bg-pine-soft px-3 py-2 text-sm text-pine-deep">
-          Showing {formatRange({ start: wStart, end: wEnd })} only
+          {tt.filter.showingOnly(fmt.range({ start: wStart, end: wEnd }))}
           <Link href="/trips" className="font-medium underline-offset-2 hover:underline">
-            Show all
+            {tt.filter.showAll}
           </Link>
         </div>
       )}
@@ -182,14 +183,14 @@ function Trips() {
           <CalendarDays className="mt-0.5 size-4 shrink-0 text-sky" aria-hidden />
           {fixtureRecs ? (
             <span>
-              Your top picks all share <b>{formatRange(fitting[0].window)}</b> because the demo data only prices a few dates. With live data
-              they spread across all your free windows.
+              {tt.sameDates.fixturePre} <b>{fmt.range(fitting[0].window)}</b> {tt.sameDates.fixturePost}
             </span>
           ) : (
             <span>
-              Your top picks all fall on <b>{formatRange(fitting[0].window)}</b>, the best of your free windows right now. The others are on{" "}
+              {tt.sameDates.livePre} <b>{fmt.range(fitting[0].window)}</b>
+              {tt.sameDates.livePost}{" "}
               <Link href="/windows" className="font-medium text-pine underline-offset-2 hover:underline">
-                Free time
+                {tt.sameDates.freeTime}
               </Link>
               .
             </span>
@@ -201,9 +202,9 @@ function Trips() {
         <div className="mt-5">
           <TripLoader
             origin={origin}
-            title="Finding trips for your free time"
+            title={tt.loader.title}
             stages={stages}
-            upNext={phased === false ? undefined : "live flight prices, hotels, weather, then ranking for your Travel DNA"}
+            upNext={phased === false ? undefined : tt.loader.upNext}
           />
         </div>
       )}
@@ -220,9 +221,9 @@ function Trips() {
               {refining ? (
                 <motion.div key="refining" className="absolute inset-0" exit={{ opacity: 0 }}>
                   <RefiningStrip
-                    title={liveData ? "Refining live prices…" : "Refining prices (demo data)…"}
-                    detail="Exact flights, hotels and weather, then ranking for your Travel DNA"
-                    tag="cached prices shown"
+                    title={liveData ? tt.refining.titleLive : tt.refining.titleDemo}
+                    detail={tt.refining.detail}
+                    tag={tt.refining.tag}
                   />
                 </motion.div>
               ) : (
@@ -234,7 +235,7 @@ function Trips() {
                   className="absolute inset-0 flex items-center gap-2 rounded-2xl bg-pine px-3.5 text-sm font-medium text-paper"
                 >
                   <Check className="size-4" />
-                  {liveData ? "Live prices in. Ranking updated." : "Exact demo prices in. Ranking updated."}
+                  {liveData ? tt.refining.landedLive : tt.refining.landedDemo}
                 </motion.p>
               )}
             </AnimatePresence>
@@ -246,13 +247,13 @@ function Trips() {
             <Wallet className="mt-0.5 size-4 shrink-0 text-clay" aria-hidden />
             {banner.kind === "none_fit" ? (
               <p>
-                <b>Nothing fits {formatPLN(banner.budget)} for these dates.</b> These are the closest options, still ranked by score. The
-                cheapest is {banner.cheapest.city} at {formatPLN(banner.cheapest.total_cost_pln)} (+{formatPLN(banner.over)})
+                <b>{tt.budget.noneFitTitle(fmt.pln(banner.budget))}</b>{" "}
+                {tt.budget.noneFitBody(banner.cheapest.city, fmt.pln(banner.cheapest.total_cost_pln), fmt.pln(banner.over))}
                 {!fitting.some((r) => r.id === banner.cheapest.id) && (
                   <>
-                    , listed under{" "}
+                    , {tt.budget.listedUnder}{" "}
                     <button onClick={() => setShowPoor(true)} className="font-semibold text-pine underline-offset-2 hover:underline">
-                      Not your style
+                      {tt.notYourStyle}
                     </button>
                   </>
                 )}
@@ -260,25 +261,17 @@ function Trips() {
               </p>
             ) : banner.kind === "fits_hidden" ? (
               <p>
-                <b>
-                  Your top pick is {formatPLN(banner.over)} over your {formatPLN(banner.budget)} budget.
-                </b>{" "}
-                {banner.hiddenCount} trip{banner.hiddenCount > 1 ? "s" : ""} that fit{banner.hiddenCount > 1 ? "" : "s"} it{" "}
-                {banner.hiddenCount > 1 ? "are" : "is"} listed under{" "}
+                <b>{tt.budget.topOverTitle(fmt.pln(banner.over), fmt.pln(banner.budget))}</b> {tt.budget.fitsHidden(banner.hiddenCount)}{" "}
                 <button onClick={() => setShowPoor(true)} className="font-semibold text-pine underline-offset-2 hover:underline">
-                  Not your style
+                  {tt.notYourStyle}
                 </button>
                 .
               </p>
             ) : (
               <p>
-                <b>
-                  Your top pick is {formatPLN(banner.over)} over your {formatPLN(banner.budget)} budget.
-                </b>{" "}
-                It ranks first on the other factors. {banner.withinCount} trip{banner.withinCount > 1 ? "s" : ""} fit
-                {banner.withinCount > 1 ? "" : "s"} your budget.{" "}
+                <b>{tt.budget.topOverTitle(fmt.pln(banner.over), fmt.pln(banner.budget))}</b> {tt.budget.topOverBody(banner.withinCount)}{" "}
                 <button onClick={() => setWithinFirst(true)} className="font-semibold text-pine underline-offset-2 hover:underline">
-                  Show those first
+                  {tt.budget.showThoseFirst}
                 </button>
               </p>
             )}
@@ -286,9 +279,9 @@ function Trips() {
         )}
         {withinFirst && !banner && view === "list" && (
           <p className="flex items-center justify-between rounded-xl bg-paper-deep px-3 py-2 text-sm text-ink-soft">
-            Showing trips within your budget first
+            {tt.budget.withinFirst}
             <button onClick={() => setWithinFirst(false)} className="font-medium text-pine underline-offset-2 hover:underline">
-              Back to ranking
+              {tt.budget.backToRanking}
             </button>
           </p>
         )}
@@ -322,8 +315,8 @@ function Trips() {
               className="flex w-full items-center justify-between rounded-2xl border border-dashed border-line px-4 py-3 text-sm text-ink-soft hover:border-clay/40"
             >
               <span>
-                <b className="font-semibold text-ink">Not your style</b> · {notMyStyle.length} trip{notMyStyle.length > 1 ? "s" : ""}{" "}
-                ({showPoor ? "hide" : "show anyway"})
+                <b className="font-semibold text-ink">{tt.notYourStyle}</b> · {tt.notYourStyleCount(notMyStyle.length)} (
+                {showPoor ? tt.hide : tt.showAnyway})
               </span>
               <ChevronDown className={cn("size-4 transition-transform", showPoor && "rotate-180")} />
             </button>
@@ -356,11 +349,11 @@ function Trips() {
       {view === "list" && <HiddenTrips />}
       {!loading && !list.length && (
         <PickedDatesEmpty>
-          <p className="mt-6 text-center text-sm text-muted-foreground">No trips fit this window yet. We&rsquo;ll keep watching.</p>
+          <p className="mt-6 text-center text-sm text-muted-foreground">{tt.empty}</p>
         </PickedDatesEmpty>
       )}
       <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
-        Rankings are never paid for. Sponsored offers, if we ever show any, will be labelled separately.
+        {tt.neverPaid}
       </p>
     </AppShell>
   );

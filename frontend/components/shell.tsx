@@ -5,13 +5,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, Compass, MessageSquareHeart, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 import { InboxBell } from "@/components/inbox-bell";
+import { LangSwitch } from "@/components/lang-switch";
+import { useT } from "@/lib/i18n";
 import { FORCE_MOCK } from "@/lib/api";
 import { overallMode, useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
+  const { t } = useT();
   return (
-    <Link href="/" className={cn("flex items-center gap-2", className)} aria-label="TripAI home">
+    <Link href="/" className={cn("flex items-center gap-2", className)} aria-label={t.common.home}>
       <svg viewBox="0 0 28 28" className="size-7" aria-hidden>
         <circle cx="14" cy="14" r="13" fill="var(--pine)" />
         <path d="M7 17.5c3.5-1 6-3.6 7.2-8.5 1 3.9 3.2 6.8 6.8 8.4" fill="none" stroke="var(--paper)" strokeWidth="1.8" strokeLinecap="round" />
@@ -23,6 +26,7 @@ export function Logo({ className }: { className?: string }) {
 }
 
 export function ModeBadge() {
+  const { t } = useT();
   const modes = useTrip((s) => s.modes);
   const mode = overallMode(modes) ?? (FORCE_MOCK ? "fixture" : null);
   if (!mode) return null;
@@ -30,27 +34,29 @@ export function ModeBadge() {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-2.5 py-1 text-xs font-medium text-ink-soft"
-      title={live ? "Answers come from the TripAI backend" : "Backend not configured or unreachable: TripAI sample data"}
+      title={live ? t.common.mode.liveTitle : t.common.mode.fixtureTitle}
     >
       <span className={cn("size-1.5 rounded-full", live ? "bg-pine animate-pulse" : "bg-sun")} />
-      {live ? "Live API" : "Demo fixtures"}
+      {live ? t.common.mode.live : t.common.mode.fixture}
     </span>
   );
 }
 
-const NAV = [
-  { href: "/trips", label: "Trips", icon: Compass },
-  { href: "/windows", label: "Free time", icon: CalendarDays },
-  { href: "/profile", label: "Profile", icon: UserRound },
-  { href: "/survey", label: "Feedback", icon: MessageSquareHeart },
+const NAV: { href: string; key: "trips" | "windows" | "profile" | "feedback"; icon: typeof Compass }[] = [
+  { href: "/trips", key: "trips", icon: Compass },
+  { href: "/windows", key: "windows", icon: CalendarDays },
+  { href: "/profile", key: "profile", icon: UserRound },
+  { href: "/survey", key: "feedback", icon: MessageSquareHeart },
 ];
 
 function BottomNav() {
+  const { t } = useT();
   const path = usePathname();
   return (
     <nav className="sticky bottom-0 z-30 border-t border-line bg-paper/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
       <ul className="grid grid-cols-4">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {NAV.map(({ href, key, icon: Icon }) => {
+          const label = t.common.nav[key];
           const active = path === href || (href !== "/" && path.startsWith(`${href}/`));
           return (
             <li key={href}>
@@ -85,6 +91,7 @@ export function AppShell({
   nav?: boolean;
   action?: ReactNode;
 }) {
+  const { t } = useT();
   const router = useRouter();
   return (
     <>
@@ -95,13 +102,14 @@ export function AppShell({
             className="-ml-2 flex items-center gap-1 rounded-full py-1 pr-3 pl-1 text-sm font-medium text-ink-soft hover:bg-paper-deep"
           >
             <ChevronLeft className="size-5" aria-hidden />
-            {title ?? "Back"}
+            {title ?? t.common.back}
           </button>
         ) : (
           <Logo />
         )}
         <div className="flex items-center gap-2">
           {action}
+          <LangSwitch />
           <InboxBell />
           <ModeBadge />
         </div>
@@ -118,11 +126,12 @@ export function AppShell({
 /** Footer link to /credits: CC BY / BY-SA photos need visible attribution wherever they are shown. */
 export function PhotoCreditsLink({ className }: { className?: string }) {
   const path = usePathname();
+  const { t } = useT();
   if (path === "/credits") return null;
   return (
     <p className={cn("text-center text-xs", className)}>
       <Link href="/credits" className="text-muted-foreground underline decoration-line underline-offset-2 hover:text-ink">
-        Photo credits
+        {t.credits.link}
       </Link>
     </p>
   );

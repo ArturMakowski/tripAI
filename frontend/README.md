@@ -96,8 +96,21 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
 - **Code.**
   - `lib/date-range.ts` holds the pure logic, pinned by `lib/date-range.test.ts`.
   - `lib/windows-store.ts` is the store.
-  - `components/date-picker/` holds the UI. Every string, in PL and EN, is in `components/date-picker/strings.ts`. It shows EN, like the
-    rest of the app, until the i18n pass.
+  - `components/date-picker/` holds the UI. Its strings live in the `calendar` i18n namespace (`lib/i18n/messages/calendar.ts`),
+    so the calendar follows the app-wide PL/EN setting.
+
+## Language (PL / EN)
+- **One setting** in the store, shared by every screen, including the swipe deck. If the user hasn't chosen, Polish browsers get PL
+  and everyone else EN. A compact PL/EN switch sits in every header: the shared `AppShell`, the home page and the receipt.
+- **Copy** lives in typed per-screen dictionaries, `lib/i18n/messages/*.ts`, assembled into `lib/i18n/en.ts` and `pl.ts`.
+  - Each namespace declares `pl: Shape<typeof en>`, so a missing or extra key fails `tsc`.
+  - `lib/i18n/i18n.test.ts` also checks at runtime that the keys and arities are identical and that no value is empty.
+  - Parametrised copy is a function; Polish plurals use `plural()` (`Intl.PluralRules`).
+- **Formatting** goes through `useT().fmt` (`lib/i18n/format.ts`, Intl): `1 217 zł` / `1,217 PLN`, `24–27 gru` / `24–27 Dec`,
+  weekdays, timestamps, relative times.
+- **Backend:** every request sends `Accept-Language`, and POST/PUT bodies carry `lang` (`/interview`, `/recommendations`,
+  `/profile/dna`, `/feedback`, notifications), so AI text comes back in the chosen language. The backend side is a separate task. The
+  in-browser mocks already answer in the chosen language.
 
 ## Swipe on offers (`/trips`, T6)
 - **Toggle.** "Lista / Swipe" under the slider. Swipe mode shows the ranked cards you haven't reacted to as a deck (photo, dates, all-in

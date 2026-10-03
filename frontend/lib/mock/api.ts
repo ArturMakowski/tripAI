@@ -19,62 +19,98 @@ import type {
   TasteProfile,
   Weights,
 } from "../types";
-import { buildRecommendations, CITY_TAGS, DEMO_PROFILE, LONG_WEEKENDS, WINDOWS } from "./fixtures";
+import { getApiLang } from "../api";
+import type { Lang } from "../i18n/types";
+import { buildRecommendations, CITY_TAGS, DEMO_PROFILE, LONG_WEEKENDS, PL_LOCAL, WINDOWS } from "./fixtures";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const DEFAULT_WEIGHTS: Weights = { price: 0.4, weather: 0.2, crowds: 0.15, taste: 0.25 };
 
 // --- /interview -----------------------------------------------------------------
 
-export const INTERVIEW_OPENER =
-  "Hi, I'm TripAI. Four quick questions and I'll start watching for trips that suit you. What do you love doing when you travel?";
-
-const CHIPS = {
-  interests: ["Food & markets", "History & museums", "Art & architecture", "Beaches", "Nightlife", "Hiking"],
-  avoid: ["Crowds", "Heat", "Cold", "Long layovers", "Nothing really"],
-  budget: ["Under 1,500 PLN", "About 1,800 PLN", "About 3,000 PLN", "Not sure"],
-  origin: ["KRK, simple is fine", "KRK, comfortable", "KTW, budget", "WAW, treat myself"],
-  comfort: ["Budget", "Standard", "Comfort", "Luxury"],
-  climate: ["Mild, 15–24 °C", "Warm, 22–30 °C", "Cool is fine", "Avoid heat"],
-  length: ["A long weekend", "4–5 days", "About a week"],
+/** Interview copy per language: the mock answers in the language the backend would receive as `lang`. */
+const INTERVIEW: Record<
+  Lang,
+  { opener: string; questions: string[]; done: string; chips: Record<"interests" | "avoid" | "budget" | "origin" | "comfort" | "climate" | "length", string[]> }
+> = {
+  en: {
+    opener:
+      "Hi, I'm TripAI. Four quick questions and I'll start watching for trips that suit you. What do you love doing when you travel?",
+    questions: [
+      "Good to know. Is there anything that ruins a trip for you?",
+      "What's your all-in budget per person for a 3–6 day trip, including flights and stay?",
+      "Last one: which airport do you fly from, and how comfortable should the stay be?",
+    ],
+    done: "That's everything I need. Here's what I picked up. Tap anything that's wrong and I'll use your edits from now on.",
+    chips: {
+      interests: ["Food & markets", "History & museums", "Art & architecture", "Beaches", "Nightlife", "Hiking"],
+      avoid: ["Crowds", "Heat", "Cold", "Long layovers", "Nothing really"],
+      budget: ["Under 1,500 PLN", "About 1,800 PLN", "About 3,000 PLN", "Not sure"],
+      origin: ["KRK, simple is fine", "KRK, comfortable", "KTW, budget", "WAW, treat myself"],
+      comfort: ["Budget", "Standard", "Comfort", "Luxury"],
+      climate: ["Mild, 15–24 °C", "Warm, 22–30 °C", "Cool is fine", "Avoid heat"],
+      length: ["A long weekend", "4–5 days", "About a week"],
+    },
+  },
+  pl: {
+    opener:
+      "Cześć, tu TripAI. Cztery krótkie pytania i zacznę wypatrywać wyjazdów, które Ci pasują. Co najbardziej lubisz robić w podróży?",
+    questions: [
+      "Dobrze wiedzieć. Czy jest coś, co psuje Ci wyjazd?",
+      "Jaki masz łączny budżet na osobę na wyjazd 3–6 dni, z lotem i noclegiem?",
+      "Ostatnie: z którego lotniska latasz i jak wygodny ma być nocleg?",
+    ],
+    done: "To wszystko, czego potrzebuję. Oto, co zrozumiałem. Dotknij tego, co się nie zgadza, a od teraz będę korzystać z Twoich poprawek.",
+    chips: {
+      interests: ["Jedzenie i targi", "Historia i muzea", "Sztuka i architektura", "Plaże", "Życie nocne", "Wędrówki"],
+      avoid: ["Tłumy", "Upał", "Zimno", "Długie przesiadki", "Właściwie nic"],
+      budget: ["Poniżej 1 500 zł", "Około 1 800 zł", "Około 3 000 zł", "Nie wiem"],
+      origin: ["KRK, wystarczy prosto", "KRK, wygodnie", "KTW, budżetowo", "WAW, chcę się rozpieścić"],
+      comfort: ["Budżetowo", "Standard", "Komfortowo", "Luksusowo"],
+      climate: ["Łagodnie, 15–24 °C", "Ciepło, 22–30 °C", "Chłód mi nie przeszkadza", "Bez upałów"],
+      length: ["Długi weekend", "4–5 dni", "Około tygodnia"],
+    },
+  },
 };
 
+export const interviewOpener = (lang: Lang = getApiLang()) => INTERVIEW[lang].opener;
+
 /** Quick-reply chips per interview step (UI-only; the backend returns plain text). */
-export const SUGGESTIONS: string[][] = [CHIPS.interests, CHIPS.avoid, CHIPS.budget, CHIPS.origin];
+export const suggestionsByStep = (lang: Lang = getApiLang()): string[][] => {
+  const c = INTERVIEW[lang].chips;
+  return [c.interests, c.avoid, c.budget, c.origin];
+};
 
 /**
- * Chips for whatever the assistant just asked. The live LLM picks its own question
- * order, so match on the question text and fall back to the scripted step.
+ * Chips for whatever the assistant just asked, in the UI language. The live LLM picks
+ * its own question order, so match on the question text (EN or PL) and fall back to
+ * the scripted step.
  */
-export function suggestionsFor(question: string, step: number): string[] {
+export function suggestionsFor(question: string, step: number, lang: Lang = getApiLang()): string[] {
   const q = question.toLowerCase();
+  const c = INTERVIEW[lang].chips;
   const rules: [RegExp, string[]][] = [
-    [/budget|pln|spend|price|cost/, CHIPS.budget],
-    [/airport|fly from|depart|city do you/, CHIPS.origin],
-    [/comfort|luxury|hotel|stay|accommodation/, CHIPS.comfort],
-    [/temperature|climate|weather|warm|°c/, CHIPS.climate],
-    [/avoid|ruin|dislike|hate|anything you/, CHIPS.avoid],
-    [/how long|days|length|nights/, CHIPS.length],
-    [/love|enjoy|interest|like doing|what do you/, CHIPS.interests],
+    [/budget|pln|spend|price|cost|budżet|zł|wydać|cen/, c.budget],
+    [/airport|fly from|depart|city do you|lotnisk|wylat|latasz/, c.origin],
+    [/comfort|luxury|hotel|stay|accommodation|komfort|nocleg|hotel|luksus/, c.comfort],
+    [/temperature|climate|weather|warm|°c|temperatur|klimat|pogod|ciepł/, c.climate],
+    [/avoid|ruin|dislike|hate|anything you|unika|psuje|nie lubisz|przeszkadza/, c.avoid],
+    [/how long|days|length|nights|jak długo|dni|długość|noc/, c.length],
+    [/love|enjoy|interest|like doing|what do you|lubisz|uwielbiasz|interesuje|robić/, c.interests],
   ];
-  return rules.find(([re]) => re.test(q))?.[1] ?? SUGGESTIONS[step] ?? [];
+  return rules.find(([re]) => re.test(q))?.[1] ?? suggestionsByStep(lang)[step] ?? [];
 }
 
-const QUESTIONS = [
-  "Good to know. Is there anything that ruins a trip for you?",
-  "What's your all-in budget per person for a 3–6 day trip, including flights and stay?",
-  "Last one: which airport do you fly from, and how comfortable should the stay be?",
-];
-
+// Keywords match answers in either language (chips or free text).
 const INTEREST_KEYWORDS: [RegExp, string, number][] = [
-  [/food|market|eat|cuisine|wine/i, "food", 0.9],
-  [/histor|museum|ancient|ruin/i, "history", 0.85],
-  [/art|galler/i, "art", 0.7],
-  [/architect/i, "architecture", 0.7],
-  [/beach|sea|swim/i, "beach", 0.8],
-  [/night|bar|party|club/i, "nightlife", 0.75],
-  [/hik|nature|mountain/i, "nature", 0.8],
-  [/walk/i, "walking", 0.6],
+  [/food|market|eat|cuisine|wine|jedzen|targ|kuchni|wino/i, "food", 0.9],
+  [/histor|museum|ancient|ruin|muze|zabyt/i, "history", 0.85],
+  [/\bart\b|art &|galler|sztuk|galer/i, "art", 0.7],
+  [/architect|architekt/i, "architecture", 0.7],
+  [/beach|sea|swim|plaż|morz|pływa/i, "beach", 0.8],
+  [/night|bar|party|club|nocne|imprez|klub/i, "nightlife", 0.75],
+  [/hik|nature|mountain|wędr|natur|gór|szlak/i, "nature", 0.8],
+  [/walk|spacer/i, "walking", 0.6],
 ];
 
 function extractProfile(userTexts: string[]): TasteProfile {
@@ -86,33 +122,31 @@ function extractProfile(userTexts: string[]): TasteProfile {
   interests.architecture ??= 0.5;
 
   const dislikes: string[] = [];
-  if (/crowd/i.test(avoid)) dislikes.push("crowds");
-  if (/heat|hot/i.test(avoid)) dislikes.push("heat");
-  if (/cold/i.test(avoid)) dislikes.push("cold");
-  if (/layover|connection/i.test(avoid)) dislikes.push("long layovers");
+  if (/crowd|tłum/i.test(avoid)) dislikes.push("crowds");
+  if (/heat|hot|upał|gorąc/i.test(avoid)) dislikes.push("heat");
+  if (/cold|zimn|chłód/i.test(avoid)) dislikes.push("cold");
+  if (/layover|connection|przesiad/i.test(avoid)) dislikes.push("long layovers");
 
-  const num = budget.replace(/[\s,]/g, "").match(/\d{3,5}/);
+  const num = budget.replace(/[\s,\u00a0]/g, "").match(/\d{3,5}/);
   const budget_pln = num ? Number(num[0]) : null;
 
   const airport = origin.toUpperCase().match(/\b[A-Z]{3}\b/)?.[0] ?? "KRK";
   let luxury: LuxuryLevel = "standard";
-  if (/budget|cheap|simple|hostel/i.test(origin)) luxury = "budget";
-  if (/comfort/i.test(origin)) luxury = "comfort";
-  if (/treat|luxur|5\*|five/i.test(origin)) luxury = "luxury";
+  if (/budget|cheap|simple|hostel|budżet|tani|prosto/i.test(origin)) luxury = "budget";
+  if (/comfort|komfort|wygodn/i.test(origin)) luxury = "comfort";
+  if (/treat|luxur|5\*|five|luksus|rozpie/i.test(origin)) luxury = "luxury";
 
   return { ...DEMO_PROFILE, user_id: "demo", origin_airports: [airport], budget_pln, luxury, interests, dislikes };
 }
 
-export async function interview(messages: ChatMessage[]): Promise<InterviewResult> {
+export async function interview(messages: ChatMessage[], lang: Lang = getApiLang()): Promise<InterviewResult> {
   await sleep(650);
+  const copy = INTERVIEW[lang];
   const userTexts = messages.filter((m) => m.role === "user").map((m) => m.content);
   const step = userTexts.length;
-  if (step === 0) return { reply: INTERVIEW_OPENER, profile: null };
-  if (step <= QUESTIONS.length) return { reply: QUESTIONS[step - 1], profile: null };
-  return {
-    reply: "That's everything I need. Here's what I picked up. Tap anything that's wrong and I'll use your edits from now on.",
-    profile: extractProfile(userTexts),
-  };
+  if (step === 0) return { reply: copy.opener, profile: null };
+  if (step <= copy.questions.length) return { reply: copy.questions[step - 1], profile: null };
+  return { reply: copy.done, profile: extractProfile(userTexts) };
 }
 
 // --- /windows, /windows/long-weekends ----------------------------------------------------
@@ -253,7 +287,43 @@ export async function recommendations(req: RecommendationsRequest, phase?: RecPh
   if (phase === "fast") recs = withReceipts(rerank(fastEstimates(recs), w), w);
   // No fit here: in fixture mode the verdict is derived from the *current* ranking (use-recommendations),
   // so it never goes stale when the slider re-weights locally.
-  return markBudget(recs, req.profile.budget_pln).slice(0, req.limit ?? 10);
+  return localize(markBudget(recs, req.profile.budget_pln), getApiLang()).slice(0, req.limit ?? 10);
+}
+
+const PL_MONTH: Record<string, string> = {
+  Jan: "sty", Feb: "lut", Mar: "mar", Apr: "kwi", May: "maj", Jun: "cze",
+  Jul: "lip", Aug: "sie", Sep: "wrz", Oct: "paź", Nov: "lis", Dec: "gru",
+};
+
+/** Polish evidence labels (by kind/unit); data parts such as airport codes stay as they are. */
+const PL_EVIDENCE: Record<string, (label: string) => string> = {
+  flight: (l) => l.replace(/^Return /, "Lot w obie strony ").replace("(cached calendar fare)", "(zapisana cena z kalendarza)"),
+  price_baseline: () => "Typowa cena biletu w obie strony na tej trasie",
+  hotel: (l) => l.replace(/^Hotel (\d+) nights in (.+) \((\w+)\)/, "Hotel, noce: $1, $2 ($3)").replace("(estimate)", "(szacunek)"),
+  "weather:°C": () => "Średnia maksymalna temperatura dzienna",
+  "weather:days": () => "Spodziewane dni deszczowe w terminie",
+  crowds: () => "Wskaźnik tłoku turystycznego (1 = szczyt)",
+  attraction: () => "Najważniejsze atrakcje",
+};
+
+/** The real backend answers in the requested language; the mock does the same for its demo text. */
+function localize(recs: RankedRecommendation[], lang: Lang): RankedRecommendation[] {
+  if (lang !== "pl") return recs;
+  return recs.map((r) => {
+    const loc = PL_LOCAL[r.iata];
+    return {
+      ...r,
+      ...(loc ? { city: loc.city, country: loc.country, why: r.why ? loc.why : r.why } : {}),
+      evidence: r.evidence.map((e) => {
+        const f = PL_EVIDENCE[`${e.kind}:${e.unit}`] ?? PL_EVIDENCE[e.kind];
+        if (!f) return e;
+        const label = f(e.label)
+          .replace(r.city, loc?.city ?? r.city)
+          .replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g, (m) => PL_MONTH[m] ?? m);
+        return { ...e, label };
+      }),
+    };
+  });
 }
 
 // --- /feedback --------------------------------------------------------------------------

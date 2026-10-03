@@ -2,6 +2,7 @@
 
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { useEffect } from "react";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 /** Circular score (0..1) with an animated stroke and count-up number. */
@@ -20,6 +21,7 @@ export function ScoreRing({
   tone?: "pine" | "light";
   label?: string;
 }) {
+  const { t } = useT();
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const mv = useMotionValue(0);
@@ -37,7 +39,7 @@ export function ScoreRing({
       className={cn("relative grid shrink-0 place-items-center", className)}
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`${label ?? "Score"} ${Math.round(value * 100)} of 100`}
+      aria-label={t.common.scoreOf(label ?? t.common.score, Math.round(value * 100))}
     >
       <svg width={size} height={size} className="-rotate-90">
         <circle

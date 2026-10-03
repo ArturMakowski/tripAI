@@ -8,7 +8,8 @@ import { AppShell } from "@/components/shell";
 import { ProfileChips } from "@/components/profile-chips";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { INTERVIEW_OPENER, suggestionsFor } from "@/lib/mock/api";
+import { useT } from "@/lib/i18n";
+import { interviewOpener, suggestionsFor } from "@/lib/mock/api";
 import { useHydrated, useTrip } from "@/lib/store";
 import type { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -64,17 +65,23 @@ export default function Onboarding() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const { t: all, lang } = useT();
+  const t = all.onboarding;
 
-  // Seed the conversation with the opener (static so the first paint is instant).
+  // Seed the conversation with the opener (static so the first paint is instant). Until the first
+  // answer, a language switch swaps the opener so the whole interview runs in the chosen language.
+  const opener = interviewOpener(lang);
+  const onlyOpener = messages.length === 1 && messages[0].role === "assistant";
   useEffect(() => {
-    if (hydrated && messages.length === 0) {
-      setMessages([{ role: "assistant", content: INTERVIEW_OPENER }]);
+    if (!hydrated) return;
+    if (messages.length === 0 || (onlyOpener && messages[0].content !== opener)) {
+      setMessages([{ role: "assistant", content: opener }]);
     }
-  }, [hydrated, messages.length, setMessages]);
+  }, [hydrated, messages, onlyOpener, opener, setMessages]);
 
   const answered = messages.filter((m) => m.role === "user").length;
   const lastQuestion = messages.findLast((m) => m.role === "assistant")?.content ?? "";
-  const suggestions = busy ? [] : suggestionsFor(lastQuestion, answered);
+  const suggestions = busy ? [] : suggestionsFor(lastQuestion, answered, lang);
   const [gotProfile, setGotProfile] = useState(false);
   const result = gotProfile || answered >= TOTAL_QUESTIONS ? profile : null;
 
@@ -104,7 +111,7 @@ export default function Onboarding() {
   const composed = [...picked, draft.trim()].filter(Boolean).join(", ");
 
   return (
-    <AppShell back="/onboarding" title="Chat interview" nav={false}>
+    <AppShell back="/onboarding" title={t.chatTitle} nav={false}>
       <div className="sticky top-14 z-20 -mx-5 bg-paper/85 px-5 pb-3 backdrop-blur-md">
         <div className="flex items-center gap-2">
           {Array.from({ length: TOTAL_QUESTIONS }, (_, i) => (
@@ -117,10 +124,10 @@ export default function Onboarding() {
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           {result
-            ? "Done. Your answers only shape your taste profile."
+            ? t.progressDone
             : answered >= TOTAL_QUESTIONS
-              ? "Almost done. Just a follow-up or two."
-              : `Question ${answered + 1} of ${TOTAL_QUESTIONS}`}
+              ? t.progressAlmost
+              : t.progressQuestion(answered + 1, TOTAL_QUESTIONS)}
         </p>
       </div>
 
@@ -137,10 +144,10 @@ export default function Onboarding() {
             transition={{ delay: 0.2 }}
             className="rounded-3xl border border-line bg-card p-4 shadow-soft"
           >
-            <p className="mb-3 text-xs font-semibold tracking-[0.14em] text-clay uppercase">Your taste profile</p>
+            <p className="mb-3 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.yourTasteProfile}</p>
             <ProfileChips profile={result} compact />
             <Button className="mt-4 h-11 w-full rounded-xl" onClick={() => router.push("/profile")}>
-              Review &amp; edit <ArrowRight data-icon="inline-end" />
+              {t.reviewEdit} <ArrowRight data-icon="inline-end" />
             </Button>
           </motion.div>
         )}
@@ -186,11 +193,11 @@ export default function Onboarding() {
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder={picked.length ? "Add anything else…" : "Type, or tap the options above"}
+              placeholder={picked.length ? t.addMore : t.typeOrTap}
               className="h-12 flex-1 rounded-full border border-line bg-card px-4 text-[15px] text-ink outline-none placeholder:text-muted-foreground focus:border-pine/50 focus:ring-3 focus:ring-pine/15"
-              aria-label="Your answer"
+              aria-label={t.yourAnswer}
             />
-            <Button type="submit" size="icon" className="size-12 rounded-full" disabled={!composed || busy} aria-label="Send">
+            <Button type="submit" size="icon" className="size-12 rounded-full" disabled={!composed || busy} aria-label={t.send}>
               <ArrowUp className="size-5" />
             </Button>
           </form>

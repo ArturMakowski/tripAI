@@ -9,22 +9,24 @@ import { CityPhoto } from "@/components/rec-card";
 import { AppShell, PageTitle } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { formatPLN, formatRange, pct } from "@/lib/format";
+import { pct } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import { DEMO_PROFILE, PAST_TRIP } from "@/lib/mock/fixtures";
-import { FACTORS, FACTOR_LABEL, normalise, rerank, type Factor } from "@/lib/scoring";
+import { FACTORS, normalise, rerank, type Factor } from "@/lib/scoring";
 import { useTrip, type FeedbackDiff } from "@/lib/store";
 import type { Change } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { cn } from "@/lib/utils";
 
-const QUESTIONS: { factor: Factor; q: string; low: string; high: string }[] = [
-  { factor: "crowds", q: "How were the crowds?", low: "Unbearable", high: "Peaceful" },
-  { factor: "weather", q: "And the weather?", low: "Awful", high: "Perfect" },
-  { factor: "price", q: "Value for money?", low: "Overpriced", high: "A steal" },
-  { factor: "taste", q: "Did it suit what you love?", low: "Not me", high: "Exactly me" },
-];
+const QUESTION_ORDER: Factor[] = ["crowds", "weather", "price", "taste"];
+const TAGS = ["food", "history", "architecture", "beach", "nightlife", "art", "walking"] as const;
 
-const TAGS = ["food", "history", "architecture", "beach", "nightlife", "art", "walking"];
+/** The past trip's dates come from its id (IATA-YYYYMMDD-YYYYMMDD). */
+function pastTripWindow(id: string) {
+  const [, a, b] = id.split("-");
+  const iso = (x: string) => `${x.slice(0, 4)}-${x.slice(4, 6)}-${x.slice(6, 8)}`;
+  return a && b ? { start: iso(a), end: iso(b) } : null;
+}
 
 function Rating({
   value,
@@ -39,6 +41,7 @@ function Rating({
   high: string;
   labelledBy: string;
 }) {
+  const { t } = useT();
   return (
     <div>
       <div role="radiogroup" aria-labelledby={labelledBy} className="grid grid-cols-5 gap-1.5">
@@ -52,7 +55,7 @@ function Rating({
             )}
             role="radio"
             aria-checked={value === n}
-            aria-label={`${n} of 5${n === 1 ? `, ${low}` : n === 5 ? `, ${high}` : ""}`}
+            aria-label={t.survey.ratingAria(n, n === 1 ? low : n === 5 ? high : null)}
           >
             {value === n && (
               <motion.span layoutId={`r-${low}`} className="absolute inset-0 rounded-xl bg-ink" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
@@ -70,6 +73,7 @@ function Rating({
 }
 
 function WeightDiff({ diff }: { diff: FeedbackDiff }) {
+  const { t } = useT();
   const b = normalise(diff.before.weights);
   const a = normalise(diff.after.weights);
   return (
@@ -81,7 +85,7 @@ function WeightDiff({ diff }: { diff: FeedbackDiff }) {
           <li key={f}>
             <div className="mb-1 flex items-center justify-between text-sm">
               <span className="flex items-center gap-2 font-medium text-ink">
-                <Icon className="size-4" style={{ color: FACTOR_COLOR[f] }} /> {FACTOR_LABEL[f]}
+                <Icon className="size-4" style={{ color: FACTOR_COLOR[f] }} /> {t.trips.factors[f]}
               </span>
               <span className="tabular font-mono text-xs">
                 <span className="text-muted-foreground">{pct(b[f])}%</span> → <span className="text-ink">{pct(a[f])}%</span>{" "}
@@ -107,14 +111,17 @@ function WeightDiff({ diff }: { diff: FeedbackDiff }) {
   );
 }
 
-function fmtVal(v: Change["before"]) {
+function fmtVal(v: Change["before"], none: string, num: (n: number) => string) {
   if (v == null) return "–";
-  if (Array.isArray(v)) return v.join(", ") || "none";
-  return typeof v === "number" ? v.toFixed(2) : v;
+  if (Array.isArray(v)) return v.join(", ") || none;
+  return typeof v === "number" ? num(v) : v;
 }
 
 /** Non-weight changes from the backend diff, each with its reason. */
 function ProfileDiff({ diff }: { diff: FeedbackDiff }) {
+  const { t, fmt } = useT();
+  const tagName = (k: string) => (t.survey.tags as Record<string, string>)[k] ?? k;
+  const v = (x: Change["before"]) => fmtVal(x, t.survey.none, (n) => fmt.num(n, 2));
   const changes = diff.diff.filter((c) => !c.field.startsWith("weights."));
   if (!changes.length) return null;
   return (
@@ -128,13 +135,13 @@ function ProfileDiff({ diff }: { diff: FeedbackDiff }) {
             <span className={cn("rounded-full px-2.5 py-0.5 capitalize", isDislike ? "bg-clay-soft text-ink" : "bg-pine-soft text-pine-deep")}>
               {isDislike ? (
                 <>
-                  <span className="text-clay">+ avoid</span> {added.join(", ")}
+                  <span className="text-clay">{t.survey.avoid}</span> {added.join(", ")}
                 </>
               ) : (
                 <>
-                  {key ?? group.replaceAll("_", " ")}{" "}
+                  {key ? tagName(key) : group.replaceAll("_", " ")}{" "}
                   <span className="tabular font-mono text-xs">
-                    {fmtVal(c.before)} → {fmtVal(c.after)}
+                    {v(c.before)} → {v(c.after)}
                   </span>
                 </>
               )}
@@ -149,6 +156,7 @@ function ProfileDiff({ diff }: { diff: FeedbackDiff }) {
 
 /** Shows the top trips in their old order, then animates into the new one. */
 function Rerank({ diff }: { diff: FeedbackDiff }) {
+  const { t, fmt } = useT();
   const top = diff.after.ranking.slice(0, 5);
   const beforeIdx = (id: string) => {
     const i = diff.before.ranking.indexOf(id);
@@ -183,7 +191,7 @@ function Rerank({ diff }: { diff: FeedbackDiff }) {
               <div className="min-w-0 flex-1">
                 <p className="font-display text-lg leading-tight text-ink">{r.city}</p>
                 <p className="text-xs text-muted-foreground">
-                  {formatRange(r.window)} · {formatPLN(r.total_cost_pln)}
+                  {fmt.range(r.window)} · {fmt.pln(r.total_cost_pln)}
                 </p>
               </div>
               {settled && (
@@ -196,7 +204,7 @@ function Rerank({ diff }: { diff: FeedbackDiff }) {
                   )}
                 >
                   {move == null ? (
-                    "new"
+                    t.survey.isNew
                   ) : move > 0 ? (
                     <ArrowUp className="size-3.5" />
                   ) : move < 0 ? (
@@ -221,6 +229,10 @@ export default function SurveyPage() {
   const [ratings, setRatings] = useState<Partial<Record<Factor, number>>>({});
   const [liked, setLiked] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const { t, fmt } = useT();
+  const sv = t.survey;
+  const pastWindow = pastTripWindow(PAST_TRIP.id);
+  const pastDates = pastWindow ? `${fmt.range(pastWindow)} ${pastWindow.start.slice(0, 4)}` : PAST_TRIP.dates;
 
   async function submit() {
     setBusy(true);
@@ -269,16 +281,14 @@ export default function SurveyPage() {
     const changedTop = feedback.before.ranking[0] !== feedback.after.ranking[0];
     return (
       <AppShell>
-        <PageTitle eyebrow="Learning from your trip" title={feedback.frozen ? "Noted. Nothing changed." : "Your weights changed."}>
-          {feedback.frozen
-            ? "We saved your Barcelona feedback, but you chose no tailoring in your Travel DNA, so your profile and weights stay exactly as they were."
-            : "Here’s exactly what your Barcelona feedback changed, and how your trips re-ranked."}
+        <PageTitle eyebrow={sv.resultEyebrow} title={feedback.frozen ? sv.titleFrozen : sv.titleChanged}>
+          {feedback.frozen ? sv.introFrozen(PAST_TRIP.city) : sv.introChanged(PAST_TRIP.city)}
         </PageTitle>
         {feedback.frozen && (
           <p role="status" className="mb-6 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm text-ink">
-            Recommendations won&rsquo;t adapt and feedback won&rsquo;t change your profile.{" "}
+            {sv.frozenNote}{" "}
             <Link href="/onboarding" className="font-medium text-pine underline-offset-2 hover:underline">
-              Turn tailoring on
+              {sv.turnOn}
             </Link>
           </p>
         )}
@@ -292,14 +302,14 @@ export default function SurveyPage() {
           >
             <Bell className="mt-0.5 size-4 shrink-0 text-sun" />
             <p className="text-sm leading-snug">
-              <span className="font-semibold">{changedTop ? "New top pick" : "Still your top pick"}:</span> free {formatRange(top.window)} →{" "}
-              {top.city}, {formatPLN(top.total_cost_pln)} all-in.
+              <span className="font-semibold">{changedTop ? sv.newTop : sv.stillTop}:</span>{" "}
+              {sv.pushLine(fmt.range(top.window), top.city, fmt.pln(top.total_cost_pln))}
             </p>
           </motion.div>
         )}
 
         <section className="rounded-3xl border border-line bg-card p-4 shadow-soft">
-          <h2 className="mb-4 text-sm font-semibold text-ink">Ranking weights</h2>
+          <h2 className="mb-4 text-sm font-semibold text-ink">{sv.weightsTitle}</h2>
           <WeightDiff diff={feedback} />
           <div className="mt-4 border-t border-dashed border-line pt-3">
             <ProfileDiff diff={feedback} />
@@ -307,82 +317,86 @@ export default function SurveyPage() {
         </section>
 
         <section className="mt-6">
-          <h2 className="mb-3 text-sm font-semibold text-ink">Re-ranked with the new weights</h2>
+          <h2 className="mb-3 text-sm font-semibold text-ink">{sv.rerankedTitle}</h2>
           <Rerank diff={feedback} />
         </section>
 
         <Button asChild size="lg" className="mt-6 h-12 w-full rounded-2xl text-base">
           <Link href="/trips">
-            See updated trips <ArrowRight data-icon="inline-end" />
+            {sv.seeUpdated} <ArrowRight data-icon="inline-end" />
           </Link>
         </Button>
         <button
           onClick={() => setFeedback(null)}
           className="mx-auto mt-3 flex items-center gap-1.5 py-2 text-sm text-muted-foreground hover:text-ink"
         >
-          <RotateCcw className="size-3.5" /> Answer again
+          <RotateCcw className="size-3.5" /> {sv.answerAgain}
         </button>
       </AppShell>
     );
   }
 
-  const complete = QUESTIONS.every((q) => ratings[q.factor]);
+  const complete = QUESTION_ORDER.every((f) => ratings[f]);
 
   return (
     <AppShell>
-      <PageTitle eyebrow="After your trip" title="How was Barcelona?">
-        Four taps. Your answers adjust the ranking weights, and we&rsquo;ll show you exactly how.
+      <PageTitle eyebrow={sv.eyebrow} title={sv.title(PAST_TRIP.city)}>
+        {sv.intro}
       </PageTitle>
 
       {profile?.personalize === false && (
         <div role="status" className="mb-5 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm text-ink">
-          <b>You chose no tailoring</b> in your Travel DNA, so this feedback won&rsquo;t change your profile or weights.{" "}
+          <b>{sv.noTailorBold}</b>
+          {sv.noTailorRest}{" "}
           <Link href="/onboarding" className="font-medium text-pine underline-offset-2 hover:underline">
-            Change that
+            {sv.changeThat}
           </Link>
         </div>
       )}
 
       <div className="relative mb-6 h-36 overflow-hidden rounded-3xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={PAST_TRIP.photo_url} alt="Barcelona" className="absolute inset-0 size-full object-cover" />
+        <img src={PAST_TRIP.photo_url} alt={PAST_TRIP.city} className="absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
         <div className="absolute bottom-3 left-4 text-white">
           <p className="font-display text-2xl leading-none">{PAST_TRIP.city}</p>
-          <p className="mt-1 text-sm text-white/85">{PAST_TRIP.dates}</p>
+          <p className="mt-1 text-sm text-white/85">{pastDates}</p>
         </div>
       </div>
 
       <div className="space-y-6">
-        {QUESTIONS.map((q) => (
-          <div key={q.factor}>
-            <p id={`q-${q.factor}`} className="mb-2.5 text-[15px] font-medium text-ink">
-              {q.q}
-            </p>
-            <Rating
-              value={ratings[q.factor]}
-              onChange={(v) => setRatings((r) => ({ ...r, [q.factor]: v }))}
-              low={q.low}
-              high={q.high}
-              labelledBy={`q-${q.factor}`}
-            />
-          </div>
-        ))}
+        {QUESTION_ORDER.map((f) => {
+          const q = sv.questions[f];
+          return (
+            <div key={f}>
+              <p id={`q-${f}`} className="mb-2.5 text-[15px] font-medium text-ink">
+                {q.q}
+              </p>
+              <Rating
+                value={ratings[f]}
+                onChange={(v) => setRatings((r) => ({ ...r, [f]: v }))}
+                low={q.low}
+                high={q.high}
+                labelledBy={`q-${f}`}
+              />
+            </div>
+          );
+        })}
         <div>
-          <p className="mb-2.5 text-[15px] font-medium text-ink">What did you enjoy most?</p>
+          <p className="mb-2.5 text-[15px] font-medium text-ink">{sv.enjoyed}</p>
           <div className="flex flex-wrap gap-2">
-            {TAGS.map((t) => {
-              const on = liked.includes(t);
+            {TAGS.map((tag) => {
+              const on = liked.includes(tag);
               return (
                 <button
-                  key={t}
-                  onClick={() => setLiked((l) => (on ? l.filter((x) => x !== t) : [...l, t]))}
+                  key={tag}
+                  onClick={() => setLiked((l) => (on ? l.filter((x) => x !== tag) : [...l, tag]))}
                   className={cn(
                     "rounded-full border px-3.5 py-1.5 text-sm capitalize transition-colors",
                     on ? "border-pine bg-pine text-primary-foreground" : "border-line bg-card text-ink-soft",
                   )}
                 >
-                  {t}
+                  {sv.tags[tag]}
                 </button>
               );
             })}
@@ -391,7 +405,7 @@ export default function SurveyPage() {
       </div>
 
       <Button size="lg" className="mt-8 h-12 w-full rounded-2xl text-base" disabled={!complete || busy} onClick={submit}>
-        {busy ? "Updating your profile…" : "Update my profile"}
+        {busy ? sv.submitting : sv.submit}
       </Button>
       <button
         onClick={() => {
@@ -400,7 +414,7 @@ export default function SurveyPage() {
         }}
         className="mx-auto mt-2 block py-2 text-xs text-muted-foreground hover:text-ink"
       >
-        Fill demo answers
+        {sv.demoFill}
       </button>
     </AppShell>
   );

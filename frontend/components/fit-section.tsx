@@ -5,7 +5,7 @@ import { AlertTriangle, ArrowDownRight, Fingerprint, HeartHandshake, Scale } fro
 import { FitBadge } from "@/components/fit-badge";
 import type { Lang } from "@/lib/dna";
 import { disagreement, dnaQuotes, fitMeta, modelLabel } from "@/lib/fit";
-import { formatTimestamp } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import type { FitPoint, RankedRecommendation, TasteProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +57,8 @@ function Point({ p, rec, profile, lang, tone }: { p: FitPoint; rec: RankedRecomm
 }
 
 export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; profile: TasteProfile | null; lang: Lang }) {
+  const { t, fmt } = useT();
+  const c = t.receipt.fit;
   const fit = rec.fit;
   if (!fit) return null;
   const split = disagreement(rec);
@@ -65,14 +67,14 @@ export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; 
     <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
       <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-xl text-ink">Fit with your Travel DNA</h2>
+          <h2 className="font-display text-xl text-ink">{c.title}</h2>
           <FitBadge fit={fit} />
         </div>
         <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{fit.summary}</p>
         <p className="mt-2 text-xs text-muted-foreground">
-          {modelLabel(fit)} · confidence {Math.round(fit.confidence * 100)}%
-          {fit.created_at && ` · ${formatTimestamp(fit.created_at)}`}
-          {neutral && " · checked against neutral DNA (you chose no tailoring)"}
+          {modelLabel(fit, lang)} · {c.confidence(Math.round(fit.confidence * 100))}
+          {fit.created_at && ` · ${fmt.timestamp(fit.created_at)}`}
+          {neutral && ` · ${c.neutral}`}
         </p>
 
         {split && (
@@ -81,13 +83,17 @@ export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; 
             <p>
               {split === "high_score_poor_fit" ? (
                 <>
-                  The <b>score is {Math.round(rec.score.total * 100)}/100</b>, but the fit check says <b>{fitMeta(fit.label).label.toLowerCase()}</b>.
-                  We show both. The score weighs price, weather, crowds and taste; the fit check reads your answers.
+                  <b>{c.highScoreB(Math.round(rec.score.total * 100))}</b>
+                  {c.highScoreC}
+                  <b>{fitMeta(fit.label, lang).label.toLowerCase()}</b>
+                  {c.highScoreD}
                 </>
               ) : (
                 <>
-                  The <b>score is only {Math.round(rec.score.total * 100)}/100</b>, yet the fit check says{" "}
-                  <b>{fitMeta(fit.label).label.toLowerCase()}</b>. It may suit you better than the numbers suggest.
+                  <b>{c.lowScoreB(Math.round(rec.score.total * 100))}</b>
+                  {c.lowScoreC}
+                  <b>{fitMeta(fit.label, lang).label.toLowerCase()}</b>
+                  {c.lowScoreD}
                 </>
               )}
             </p>
@@ -98,7 +104,7 @@ export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; 
       {fit.matches.length > 0 && (
         <>
           <h3 className="mt-5 mb-3 flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-pine uppercase">
-            <HeartHandshake className="size-4" aria-hidden /> Why it fits you
+            <HeartHandshake className="size-4" aria-hidden /> {c.whyFits}
           </h3>
           <ul className="space-y-2">
             {fit.matches.map((p, i) => (
@@ -111,7 +117,7 @@ export function FitSection({ rec, profile, lang }: { rec: RankedRecommendation; 
       {fit.concerns.length > 0 && (
         <>
           <h3 className="mt-5 mb-3 flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-clay uppercase">
-            <AlertTriangle className="size-4" aria-hidden /> Watch out
+            <AlertTriangle className="size-4" aria-hidden /> {c.watchOut}
           </h3>
           <ul className="space-y-2">
             {fit.concerns.map((p, i) => (

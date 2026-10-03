@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { Check, Plane } from "lucide-react";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 /**
@@ -90,6 +91,7 @@ export function SkeletonCard({ delay = 0 }: { delay?: number }) {
 /** Nothing on screen yet: route animation, what the pipeline is doing, skeleton cards. */
 export function TripLoader({ origin, title, stages, upNext }: { origin: string; title: string; stages: Stage[]; upNext?: string }) {
   const reduce = !!useReducedMotion();
+  const { t } = useT();
   return (
     <div aria-hidden>
       <div className="rounded-3xl border border-line bg-card px-5 pt-4 pb-5 shadow-soft">
@@ -100,7 +102,11 @@ export function TripLoader({ origin, title, stages, upNext }: { origin: string; 
             <StepRow key={s.label} stage={s} />
           ))}
         </ul>
-        {upNext && <p className="mt-3 border-t border-dashed border-line pt-3 text-xs text-muted-foreground">Next: {upNext}</p>}
+        {upNext && (
+          <p className="mt-3 border-t border-dashed border-line pt-3 text-xs text-muted-foreground">
+            {t.trips.loader.next} {upNext}
+          </p>
+        )}
       </div>
       <div className="mt-5 space-y-4">
         <SkeletonCard />

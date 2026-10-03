@@ -6,12 +6,36 @@ import { ArrowUpRight, BedDouble, Info, Plane, TrendingDown } from "lucide-react
 import { useState } from "react";
 import { ContributionBar } from "@/components/factor-bars";
 import { ScoreRing } from "@/components/score-ring";
-import { dayCount, formatPLN, formatRange } from "@/lib/format";
+import { dayCount } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
 import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation, Weights } from "@/lib/types";
+import { peakMonth } from "@/lib/counterfactual";
 import { cn } from "@/lib/utils";
+
+/** English country names from the backend -> ISO 3166 codes, so Intl can name them in the UI language. */
+const COUNTRY_CODE: Record<string, string> = {
+  Italy: "IT", Portugal: "PT", Greece: "GR", Spain: "ES", France: "FR", Malta: "MT", Denmark: "DK",
+  "United Kingdom": "GB", Croatia: "HR", Germany: "DE", Austria: "AT", Netherlands: "NL", Czechia: "CZ",
+  "Czech Republic": "CZ", Hungary: "HU", Cyprus: "CY", Montenegro: "ME", Albania: "AL", Turkey: "TR",
+  Türkiye: "TR", Morocco: "MA", Egypt: "EG", Georgia: "GE", Ireland: "IE", Belgium: "BE", Switzerland: "CH",
+  Norway: "NO", Sweden: "SE", Finland: "FI", Iceland: "IS", Bulgaria: "BG", Romania: "RO", Slovenia: "SI",
+  Slovakia: "SK", Poland: "PL", "Canary Islands": "IC", Tunisia: "TN", Israel: "IL", Jordan: "JO",
+};
+
+/** "Italy" -> "Włochy" in PL; unknown names pass through unchanged. */
+export function localCountry(name: string, locale: string): string {
+  const code = COUNTRY_CODE[name];
+  if (!code) return name;
+  try {
+    return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? name;
+  } catch {
+    return name;
+  }
+}
+
 
 /** Illustrated stand-in for a city without a bundled photo: dusk sky, sun, hills and the city name. Never blank. */
 export function CityIllustration({ city, className, label = true }: { city: string; className?: string; label?: boolean }) {
@@ -60,7 +84,8 @@ export function CityPhoto({
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showPhoto = photo !== null && failedSrc !== photo;
   const info = showPhoto && credit ? cityPhotoCredit(rec.iata) : null;
-  const creditText = info && `Photo: ${info.author} · ${info.license}`;
+  const { t } = useT();
+  const creditText = info && t.credits.photoBy(info.author, info.license);
   return (
     <div className={cn("@container relative overflow-hidden", className)}>
       <CityIllustration city={rec.city} label={!thumb} />
@@ -109,14 +134,15 @@ export function RecCard({
   /** PLN over the user's budget (> 0 shows the badge) */
   overBudgetPln?: number | null;
 }) {
+  const { t, fmt, lang } = useT();
+  const tc = t.trips.card;
   const rank = rec.rank;
   const split = disagreement(rec);
   const peak = rec.counterfactuals.find((c) => c.kind === "peak_season");
-  const peakMonth = peak?.label.match(/in (\w{3})/)?.[1];
+  const peakM = peak ? peakMonth(peak.label) : null;
+  const peakMonthName = peakM ? fmt.monthName(peakM, lang === "pl" ? "long" : "short") : null;
   const [showPeak, setShowPeak] = useState(false);
-  const peakNote = peak
-    ? `Same trip${peakMonth ? ` in ${peakMonth}` : ""} (the city's peak-crowd month): ${formatPLN(peak.total_cost_pln)} vs ${formatPLN(rec.total_cost_pln)} now · TripAI scorer ${rec.scoring_version}`
-    : "";
+  const peakNote = peak ? tc.peakNote(peakMonthName, fmt.pln(peak.total_cost_pln), fmt.pln(rec.total_cost_pln), rec.scoring_version) : "";
   const nights = dayCount(rec.window) - 1;
 
   return (
@@ -138,11 +164,11 @@ export function RecCard({
             {rank}
           </motion.span>
           {rec.window.source === "gcal" && (
-            <span className="rounded-full bg-black/35 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">You&rsquo;re free</span>
+            <span className="rounded-full bg-black/35 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">{tc.youreFree}</span>
           )}
           {bridge && bridge.leave_days.length > 0 && (
             <span className="rounded-full bg-black/35 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
-              {bridge.leave_days.length}d off → {bridge.total_days}d
+              {tc.bridge(bridge.leave_days.length, bridge.total_days)}
             </span>
           )}
         </div>
@@ -151,7 +177,7 @@ export function RecCard({
         </div>
         <div className="absolute right-4 bottom-5 left-4 text-white">
           <p className="text-xs font-medium tracking-wide text-white/80 uppercase">
-            {rec.country} · {rec.iata}
+            {localCountry(rec.country, fmt.locale)} · {rec.iata}
           </p>
           <h3 className={cn("font-display leading-none font-medium", featured ? "text-[2.6rem]" : "text-[2rem]")}>{rec.city}</h3>
         </div>
@@ -160,13 +186,13 @@ export function RecCard({
       <div className="p-4">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs text-muted-foreground">When</p>
+            <p className="text-xs text-muted-foreground">{tc.when}</p>
             <p className="font-display text-lg leading-tight text-ink">
-              {formatRange(rec.window)} <span className="text-sm text-muted-foreground">· {nights} nights</span>
+              {fmt.range(rec.window)} <span className="text-sm text-muted-foreground">· {tc.nights(nights)}</span>
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">{refining ? "Cached estimate" : "All-in, per person"}</p>
+            <p className="text-xs text-muted-foreground">{refining ? tc.cachedEstimate : tc.allIn}</p>
             <motion.p
               key={rec.total_cost_pln}
               initial={{ opacity: 0.4, y: -4 }}
@@ -177,11 +203,11 @@ export function RecCard({
               )}
             >
               {refining && "~"}
-              {formatPLN(rec.total_cost_pln)}
+              {fmt.pln(rec.total_cost_pln)}
             </motion.p>
             {overBudgetPln != null && overBudgetPln > 0 && (
               <span className="mt-1 inline-block rounded-full bg-clay-soft px-2 py-0.5 text-xs font-semibold text-clay">
-                Over budget +{formatPLN(overBudgetPln)}
+                {tc.overBudget(fmt.pln(overBudgetPln))}
               </span>
             )}
           </div>
@@ -189,10 +215,10 @@ export function RecCard({
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
-            <Plane className="size-3.5" /> {formatPLN(rec.flight_cost_pln)}
+            <Plane className="size-3.5" /> {fmt.pln(rec.flight_cost_pln)}
           </span>
           <span className="flex items-center gap-1">
-            <BedDouble className="size-3.5" /> {formatPLN(rec.hotel_cost_pln)}
+            <BedDouble className="size-3.5" /> {fmt.pln(rec.hotel_cost_pln)}
           </span>
           {peak && peak.cost_delta_pln > 0 && (
             <button
@@ -205,7 +231,7 @@ export function RecCard({
               title={peakNote}
               className="ml-auto flex items-center gap-1 rounded-full bg-pine-soft px-2 py-0.5 font-medium text-pine-deep hover:bg-pine/15"
             >
-              <TrendingDown className="size-3.5" aria-hidden /> −{Math.round(peak.cost_delta_pct)}% vs peak season
+              <TrendingDown className="size-3.5" aria-hidden /> {tc.vsPeak(Math.round(peak.cost_delta_pct))}
               <Info className="size-3 opacity-70" aria-hidden />
             </button>
           )}
@@ -218,7 +244,7 @@ export function RecCard({
           <div className="mt-3.5 flex items-start gap-2.5">
             <FitBadge fit={rec.fit} className="mt-px" />
             <p className="text-[13px] leading-snug text-ink-soft">
-              {split && <span className="font-semibold text-ink">Score and fit disagree. </span>}
+              {split && <span className="font-semibold text-ink">{tc.disagree} </span>}
               {rec.fit.summary}
             </p>
           </div>
@@ -227,7 +253,7 @@ export function RecCard({
         {featured && <p className="mt-3.5 line-clamp-3 text-sm leading-relaxed text-ink-soft">{rec.why}</p>}
 
         <p className="mt-3 flex items-center gap-1 text-sm font-medium text-pine">
-          Why this, why now
+          {tc.whyNow}
           <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </p>
       </div>

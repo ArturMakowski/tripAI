@@ -3,22 +3,15 @@
 import { BellOff, BellRing, Loader2, MoonStar, Plus, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell, PageTitle } from "@/components/shell";
-import { formatTimestamp } from "@/lib/format";
+import { errorText } from "@/lib/errors";
+import { useT } from "@/lib/i18n";
 import { NOTIFY_AVAILABLE, currentSubscription, disablePush, enablePush, notifyApi, pushSupported } from "@/lib/notify";
 import type { NotificationPrefs } from "@/lib/notify-types";
 import { useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-const FREQ = [
-  { n: 1, label: "1 / week" },
-  { n: 3, label: "3 / week" },
-  { n: 7, label: "Daily" },
-];
-const SNOOZE = [
-  { days: 1, label: "1 day" },
-  { days: 7, label: "1 week" },
-  { days: 30, label: "1 month" },
-];
+const FREQ = [1, 3, 7];
+const SNOOZE = [1, 7, 30];
 
 function Toggle({ on, busy, onClick, label }: { on: boolean; busy?: boolean; onClick: () => void; label: string }) {
   return (
@@ -57,19 +50,21 @@ export default function NotificationSettingsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [city, setCity] = useState("");
+  const { t, fmt } = useT();
+  const st = t.inbox.settings;
 
   useEffect(() => {
     if (!NOTIFY_AVAILABLE) return;
-    notifyApi.prefs().then(setPrefs, (e: Error) => setError(e.message));
+    notifyApi.prefs().then(setPrefs, (e: unknown) => setError(errorText(e, t)));
     currentSubscription().then((s) => setSubscribed(!!s), () => {});
-  }, []);
+  }, [t]);
 
   const save = async (patch: Parameters<typeof notifyApi.savePrefs>[0]) => {
     setError(null);
     try {
       setPrefs(await notifyApi.savePrefs(patch));
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(e, t));
     }
   };
 
@@ -86,7 +81,7 @@ export default function NotificationSettingsPage() {
         setSubscribed(true);
       }
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(e, t));
     } finally {
       setBusy(false);
     }
@@ -101,12 +96,12 @@ export default function NotificationSettingsPage() {
   const pushOn = !!prefs?.push_opt_in && subscribed;
 
   return (
-    <AppShell back="/inbox" title="Inbox">
-      <PageTitle eyebrow="Notifications" title="You set the volume.">
-        The inbox is always here. Push to your phone only happens if you switch it on, and never more often than you allow.
+    <AppShell back="/inbox" title={t.inbox.title}>
+      <PageTitle eyebrow={st.eyebrow} title={st.heading}>
+        {st.intro}
       </PageTitle>
 
-      {!NOTIFY_AVAILABLE && <p className="rounded-xl bg-paper-deep p-4 text-sm text-ink-soft">Settings need the live backend.</p>}
+      {!NOTIFY_AVAILABLE && <p className="rounded-xl bg-paper-deep p-4 text-sm text-ink-soft">{st.needsBackend}</p>}
       {error && <p className="mb-2 rounded-xl bg-clay-soft p-3 text-sm text-clay">{error}</p>}
 
       {prefs && (
@@ -116,39 +111,37 @@ export default function NotificationSettingsPage() {
               {pushOn ? <BellRing className="size-5" aria-hidden /> : <BellOff className="size-5" aria-hidden />}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-ink">Push notifications</p>
-              <p className="text-xs text-muted-foreground">
-                {pushOn ? "On for this device." : pushSupported() ? "Off. Your browser will ask for permission when you switch this on." : "Not supported here. On iPhone, add TripAI to the Home Screen first."}
-              </p>
+              <p className="font-semibold text-ink">{st.push}</p>
+              <p className="text-xs text-muted-foreground">{pushOn ? st.pushOn : pushSupported() ? st.pushOff : st.pushUnsupported}</p>
             </div>
-            <Toggle on={pushOn} busy={busy} onClick={togglePush} label="Push notifications" />
+            <Toggle on={pushOn} busy={busy} onClick={togglePush} label={st.push} />
           </div>
 
-          <Section title="How often, at most" hint="Price drops on trips you watch go first, then long weekends, then a new #1.">
+          <Section title={st.oftenTitle} hint={st.oftenHint}>
             <div className="grid grid-cols-3 gap-2">
-              {FREQ.map((f) => (
+              {FREQ.map((n) => (
                 <button
-                  key={f.n}
-                  onClick={() => save({ max_per_week: f.n })}
+                  key={n}
+                  onClick={() => save({ max_per_week: n })}
                   className={cn(
                     "rounded-xl border px-3 py-2.5 text-sm font-medium",
-                    prefs.max_per_week === f.n ? "border-pine bg-pine-soft text-pine-deep" : "border-line bg-card text-ink-soft",
+                    prefs.max_per_week === n ? "border-pine bg-pine-soft text-pine-deep" : "border-line bg-card text-ink-soft",
                   )}
                 >
-                  {f.label}
+                  {st.perWeek(n)}
                 </button>
               ))}
             </div>
           </Section>
 
-          <Section title="Muted cities" hint="We still rank them; we just won't ping you about them.">
+          <Section title={st.mutedTitle} hint={st.mutedHint}>
             <div className="flex flex-wrap gap-2">
               {prefs.muted_cities.map((c) => (
                 <button
                   key={c}
                   onClick={() => save({ muted_cities: prefs.muted_cities.filter((x) => x !== c) })}
                   className="inline-flex items-center gap-1 rounded-full bg-ink px-3 py-1 text-sm text-paper"
-                  aria-label={`Unmute ${c}`}
+                  aria-label={st.unmute(c)}
                 >
                   {c} <X className="size-3.5" aria-hidden />
                 </button>
@@ -174,27 +167,27 @@ export default function NotificationSettingsPage() {
               <input
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="City or airport code"
+                placeholder={st.cityPlaceholder}
                 className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-card px-3 text-sm outline-none focus:border-pine"
               />
-              <button className="h-10 rounded-xl bg-paper-deep px-4 text-sm font-medium text-ink">Mute</button>
+              <button className="h-10 rounded-xl bg-paper-deep px-4 text-sm font-medium text-ink">{st.mute}</button>
             </form>
           </Section>
 
-          <Section title="Snooze" hint={snoozed ? `Quiet until ${formatTimestamp(prefs.snooze_until!)}. Scans keep running; nothing is sent.` : undefined}>
+          <Section title={st.snoozeTitle} hint={snoozed ? st.snoozedUntil(fmt.timestamp(prefs.snooze_until!)) : undefined}>
             <div className="flex flex-wrap gap-2">
-              {SNOOZE.map((s) => (
+              {SNOOZE.map((days) => (
                 <button
-                  key={s.days}
-                  onClick={() => save({ snooze_until: new Date(Date.now() + s.days * 86_400_000).toISOString() })}
+                  key={days}
+                  onClick={() => save({ snooze_until: new Date(Date.now() + days * 86_400_000).toISOString() })}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink-soft"
                 >
-                  <MoonStar className="size-4" aria-hidden /> {s.label}
+                  <MoonStar className="size-4" aria-hidden /> {st.snoozeFor(days)}
                 </button>
               ))}
               {snoozed && (
                 <button onClick={() => save({ snooze_until: "" })} className="rounded-xl px-3 py-2 text-sm font-medium text-pine">
-                  Wake up now
+                  {st.wakeUp}
                 </button>
               )}
             </div>
@@ -202,8 +195,7 @@ export default function NotificationSettingsPage() {
 
           <p className="mt-8 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-            A notification is only sent when the deterministic score (or the fit check) says the trip is good for you, and its
-            numbers are copied from cited sources. If you turned personalisation off, scans use neutral weights.
+            {st.footer}
           </p>
         </>
       )}

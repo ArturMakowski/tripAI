@@ -13,6 +13,7 @@ vi.hoisted(() => {
 });
 import { buildRecommendations, DEMO_PROFILE } from "./mock/fixtures";
 import { applyReaction } from "./reactions";
+import { setApiLang } from "./api";
 import { useTrip } from "./store";
 import { capLog, react, unreact, useSwipe, type SwipeEntry } from "./use-reactions";
 
@@ -47,7 +48,7 @@ describe("swipes against the live API", () => {
       seen.push({ url, body: String(init.body ?? "") });
       return url.endsWith("/reactions") ? json(serverLike()) : json({});
     };
-    useTrip.getState().setDeck({ lang: "pl" });
+    setApiLang("pl"); // what LangSync does when the UI is in Polish
     const entry = await react(rec, "like");
     expect(entry.local).toBe(false);
     expect(entry.watch).toBe("ok");

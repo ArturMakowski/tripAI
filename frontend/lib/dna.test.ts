@@ -79,3 +79,21 @@ describe("mock /profile/dna follows the spec formulas", () => {
     expect(reason(r, "personalize")?.text).toMatch(/won't adapt/);
   });
 });
+
+describe("mock interview follows the UI language", () => {
+  it("asks, offers chips and parses answers in Polish", async () => {
+    const { interview, interviewOpener, suggestionsFor } = await import("./mock/api");
+    expect(interviewOpener("pl")).toMatch(/Co najbardziej lubisz/);
+    // chips follow the question text in either language
+    expect(suggestionsFor("Jaki masz łączny budżet na osobę?", 0, "pl")[0]).toMatch(/zł/);
+    expect(suggestionsFor("What's your budget per person?", 0, "en")[0]).toMatch(/PLN/);
+    const msgs = ["Jedzenie i targi, Historia i muzea", "Tłumy, Upał", "Około 1800 zł", "KTW, wygodnie"].flatMap((c) => [
+      { role: "assistant" as const, content: "?" },
+      { role: "user" as const, content: c },
+    ]);
+    const res = await interview(msgs, "pl");
+    expect(res.reply).toMatch(/To wszystko/);
+    expect(res.profile).toMatchObject({ origin_airports: ["KTW"], budget_pln: 1800, luxury: "comfort", dislikes: ["crowds", "heat"] });
+    expect(res.profile?.interests).toMatchObject({ food: 0.9, history: 0.85 });
+  });
+});

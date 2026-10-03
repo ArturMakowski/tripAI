@@ -2,7 +2,8 @@
 
 import { motion } from "motion/react";
 import { CloudSun, Users, Wallet, Sparkles, type LucideIcon } from "lucide-react";
-import { FACTOR_LABEL, FACTORS, normalise, type Factor } from "@/lib/scoring";
+import { useT } from "@/lib/i18n";
+import { FACTORS, normalise, type Factor } from "@/lib/scoring";
 import type { ScoreBreakdown, Weights } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,7 @@ export function ContributionBar({ score, weights, className }: { score: ScoreBre
 
 /** Per-factor rows: score bar, weight share and points contributed. */
 export function FactorBars({ score, weights }: { score: ScoreBreakdown; weights: Weights }) {
+  const { t } = useT();
   const n = normalise(weights);
   return (
     <ul className="space-y-3.5">
@@ -54,7 +56,7 @@ export function FactorBars({ score, weights }: { score: ScoreBreakdown; weights:
             <div className="mb-1.5 flex items-baseline justify-between text-sm">
               <span className="flex items-center gap-2 font-medium text-ink">
                 <Icon className="size-4" style={{ color: FACTOR_COLOR[f] }} aria-hidden />
-                {FACTOR_LABEL[f]}
+                {t.trips.factors[f]}
                 <span className="tabular text-xs font-normal text-muted-foreground">
                   {Math.round(score[f] * 100)}/100 × {Math.round(n[f] * 100)}%
                 </span>
@@ -85,12 +87,13 @@ export function FactorBars({ score, weights }: { score: ScoreBreakdown; weights:
 }
 
 export function FactorLegend({ className }: { className?: string }) {
+  const { t } = useT();
   return (
     <div className={cn("flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground", className)}>
       {FACTORS.map((f) => (
         <span key={f} className="flex items-center gap-1">
           <span className="size-2 rounded-full" style={{ background: FACTOR_COLOR[f] }} />
-          {FACTOR_LABEL[f]}
+          {t.trips.factors[f]}
         </span>
       ))}
     </div>

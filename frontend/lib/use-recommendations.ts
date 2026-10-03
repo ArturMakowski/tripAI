@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
+import { useLang, type Lang } from "./i18n";
 import { withReceipts } from "./mock/api";
 import { CLIENT_PREVIEW_MODEL, withFit } from "./mock/fit";
 import { DEMO_PROFILE } from "./mock/fixtures";
@@ -15,6 +16,18 @@ export function sameWeights(a: Weights | undefined | null, b: Weights | undefine
   const x = normalise(a);
   const y = normalise(b);
   return (["price", "weather", "crowds", "taste"] as const).every((f) => Math.abs(x[f] - y[f]) < 0.005);
+}
+
+/**
+ * Cached recs are reusable only for the same profile and UI language, within the TTL. The language
+ * matters because the backend's "why", evidence labels, flip text and fit verdicts are written in it:
+ * switching PL/EN must refetch, not show the old language until the cache expires.
+ */
+export function isFresh(
+  meta: { at: number; profileKey: string; lang?: Lang } | null,
+  want: { profileKey: string; lang: Lang; now: number },
+): boolean {
+  return !!meta && meta.profileKey === want.profileKey && meta.lang === want.lang && want.now - meta.at < RECS_TTL_MS;
 }
 
 /**
@@ -32,9 +45,9 @@ export function useRecommendations() {
   const pickedRanges = useDates((s) => s.ranges);
   const pickedFlex = useDates((s) => s.flexDays);
 
+  const lang = useLang();
   // An empty answer is still an answer: show the empty state instead of loading forever.
-  const fresh =
-    !!recsMeta && recsMeta.profileKey === profileKey(profile) && now - recsMeta.at < RECS_TTL_MS && !datesChanged();
+  const fresh = isFresh(recsMeta, { profileKey: profileKey(profile), lang, now }) && !datesChanged();
   // Receipts (flip hint, counterfactual score deltas, hash) were computed at these weights.
   const scoredAtCurrentWeights = sameWeights(recsMeta?.weights, weights);
 
@@ -116,12 +129,13 @@ export function useRecommendations() {
   // Fixture data has no backend to ask, so recompute the rank-dependent receipt parts locally.
   const fixture = modes.recs === "fixture";
   const fitProfile = profile ?? DEMO_PROFILE;
+  const fitLang = lang; // on-device rule verdicts are written in the UI language
   const ranked = useMemo(() => {
     // Fixture verdicts are always derived from this ranking (drop any stored one so it can't go stale).
     const r = fixture ? withReceipts(rerank(recs, weights), weights).map((x) => ({ ...x, fit: undefined })) : rerank(recs, weights);
     // Backend verdicts win; until the fit agent ships, a rule-based preview is computed here and labelled as such.
-    return withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL);
-  }, [recs, weights, fixture, fitProfile]);
+    return withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL, fitLang);
+  }, [recs, weights, fixture, fitProfile, fitLang]);
   return {
     ranked,
     loading: !fresh,

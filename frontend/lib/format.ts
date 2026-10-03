@@ -64,6 +64,13 @@ export function sourceName(source: string): string {
   return map.find(([re]) => re.test(source))?.[1] ?? source;
 }
 
+/** sourceName in the UI language: only the TripAI-owned names are translated; partner brands stay as they are. */
+export function sourceNameFor(source: string, names: { sample: string; scorer: string }): string {
+  if (isSampleSource(source)) return names.sample;
+  if (/tripai\.scoring/.test(source)) return names.scorer;
+  return sourceName(source);
+}
+
 /** Every "fixture:*" source is hand-curated sample data (incl. rows saved before it was renamed
  * "fixture:sample"). Real recordings keep their real source and say "[recorded fixture]" in the label. */
 export const isSampleSource = (source: string) => source.startsWith("fixture:");

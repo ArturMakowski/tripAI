@@ -1,0 +1,176 @@
+/**
+ * Date picker (T4f) copy, ported from components/date-picker/strings.ts into the app-wide i18n.
+ * EN is the source of truth; PL must match its shape exactly.
+ */
+import type { HolidayKey } from "@/lib/date-range";
+import type { Shape } from "../types";
+
+/** Polish plural for day-count copy ("1 dzień", "2 dni", "5 dni", "dnia/dni"). */
+const plural = (n: number, one: string, few: string, many: string) => {
+  if (n === 1) return one;
+  const m10 = n % 10;
+  const m100 = n % 100;
+  return m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? few : many;
+};
+
+export const en = {
+  locale: "en-GB",
+  sectionTitle: "Pick your dates",
+  sectionLead: "Tap a start day, then an end day. Add as many as you like and we'll show where it's worth going.",
+  calendarLabel: "Date range calendar",
+  prevMonth: "Previous month",
+  nextMonth: "Next month",
+  jumpToMonth: (m: string) => `Go to ${m}`,
+  weekdays: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+  weekdaysLong: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+  pickEnd: "Now tap the last day",
+  pickEndHint: "Esc cancels",
+  cancel: "Cancel",
+  addWholeSuggestion: (range: string, days: number) => `Add the whole long weekend ${range} (${days} ${days === 1 ? "day" : "days"})`,
+  today: "today",
+  holiday: "public holiday",
+  suggestion: "long weekend suggestion",
+  takeOff: "day off to take",
+  selected: "selected",
+  past: "past",
+  legendSelected: "Your dates",
+  legendHoliday: "Holiday",
+  legendSuggestion: "Long weekend",
+  legendToday: "Today",
+  quickTitle: "Quick picks",
+  chipThisWeekend: "This weekend",
+  chipNextWeekend: "Next weekend",
+  chipNextLongWeekend: "Next long weekend",
+  chipAnyDays: (n: number, month: number) =>
+    `Any ${n} days in ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month]}`,
+  suggestionsTitle: "Long weekends this month",
+  suggestionLine: (leave: number, total: number) =>
+    leave === 0 ? `${total} days off, no leave needed` : `Take ${leave} day${leave > 1 ? "s" : ""} off → ${total} days`,
+  add: "Add",
+  added: "Added",
+  flexLabel: "I'm flexible",
+  flexHint: (n: number) => `Trips may start up to ${n} day${n > 1 ? "s" : ""} earlier or later`,
+  flexOff: "Exact dates",
+  flexDays: (n: number) => `± ${n}`,
+  listTitle: "Your dates",
+  empty: "Nothing picked yet. We'll use your calendar and the long-weekend radar.",
+  dayCount: (n: number) => `${n} day${n > 1 ? "s" : ""}`,
+  anyDays: (n: number) => `any ${n} days`,
+  remove: (range: string) => `Remove ${range}`,
+  clearAll: "Clear all",
+  priorityNote: "Your dates take priority over the calendar and the radar.",
+  showTrips: "Show trips for these dates",
+  announceAdded: (range: string) => `Added ${range}`,
+  announceRemoved: (range: string) => `Removed ${range}`,
+  announceAnchor: (day: string) => `Start: ${day}. Pick the last day.`,
+  forYourDates: "For your dates:",
+  edit: "Edit",
+  emptyTitle: (dates: string) => `No trips for ${dates} yet`,
+  emptyBody: "We couldn't price flights and stays for these exact dates. Give yourself some slack or add another range.",
+  emptyFlex: (n: number) => `Also try ± ${n} day${n > 1 ? "s" : ""}`,
+  emptyAddSuggestion: (range: string) => `Add the next long weekend · ${range}`,
+  emptyEdit: "Edit dates",
+  sampleOnly: "The demo data only prices a few January 2027 dates, so you're seeing those trips. With live data they land on your dates.",
+  flexSuffix: (n: number) => `± ${n} day${n > 1 ? "s" : ""}`,
+  holidays: {
+    newYear: "New Year's Day",
+    epiphany: "Epiphany",
+    easter: "Easter Sunday",
+    easterMonday: "Easter Monday",
+    labour: "Labour Day",
+    constitution: "Constitution Day",
+    pentecost: "Pentecost",
+    corpusChristi: "Corpus Christi",
+    assumption: "Assumption Day",
+    allSaints: "All Saints' Day",
+    independence: "Independence Day",
+    christmasEve: "Christmas Eve",
+    christmas: "Christmas Day",
+    boxingDay: "Boxing Day",
+  } satisfies Record<HolidayKey, string>,
+} as const;
+
+export const pl: Shape<typeof en> = {
+  locale: "pl-PL",
+  sectionTitle: "Wybierz swoje terminy",
+  sectionLead: "Stuknij dzień początku i dzień końca. Możesz dodać kilka terminów. Pokażemy, gdzie warto wtedy lecieć.",
+  calendarLabel: "Kalendarz wyboru terminów",
+  prevMonth: "Poprzedni miesiąc",
+  nextMonth: "Następny miesiąc",
+  jumpToMonth: (m: string) => `Przejdź do: ${m}`,
+  weekdays: ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"],
+  weekdaysLong: ["poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota", "niedziela"],
+  pickEnd: "Teraz stuknij dzień końca",
+  pickEndHint: "Esc anuluje",
+  cancel: "Anuluj",
+  addWholeSuggestion: (range: string, days: number) =>
+    `Dodaj cały długi weekend ${range} (${days} ${plural(days, "dzień", "dni", "dni")})`,
+  // day cell description pieces (screen readers)
+  today: "dziś",
+  holiday: "święto",
+  suggestion: "propozycja długiego weekendu",
+  takeOff: "dzień urlopu do wzięcia",
+  selected: "wybrany",
+  past: "miniony",
+  // legend
+  legendSelected: "Twoje terminy",
+  legendHoliday: "Święto",
+  legendSuggestion: "Długi weekend",
+  legendToday: "Dziś",
+  // chips
+  quickTitle: "Szybki wybór",
+  chipThisWeekend: "Ten weekend",
+  chipNextWeekend: "Następny weekend",
+  chipNextLongWeekend: "Najbliższy długi weekend",
+  chipAnyDays: (n: number, month: number) =>
+    `Dowolne ${n} dni w ${["styczniu", "lutym", "marcu", "kwietniu", "maju", "czerwcu", "lipcu", "sierpniu", "wrześniu", "październiku", "listopadzie", "grudniu"][month]}`,
+  // suggestions
+  suggestionsTitle: "Długie weekendy w tym miesiącu",
+  suggestionLine: (leave: number, total: number) =>
+    leave === 0 ? `${total} dni wolnego bez urlopu` : `Weź ${leave} ${plural(leave, "dzień", "dni", "dni")} urlopu → ${total} dni`,
+  add: "Dodaj",
+  added: "Dodano",
+  // flexibility
+  flexLabel: "Elastyczne daty",
+  flexHint: (n: number) => `Wyjazd może zacząć się do ${n} ${plural(n, "dnia", "dni", "dni")} wcześniej lub później`,
+  flexOff: "Dokładnie te daty",
+  flexDays: (n: number) => `± ${n}`,
+  // list
+  listTitle: "Wybrane terminy",
+  empty: "Nic jeszcze nie wybrano. Polecimy według Twojego kalendarza i radaru długich weekendów.",
+  dayCount: (n: number) => `${n} ${plural(n, "dzień", "dni", "dni")}`,
+  anyDays: (n: number) => `dowolne ${n} dni`,
+  remove: (range: string) => `Usuń termin ${range}`,
+  clearAll: "Wyczyść wszystko",
+  priorityNote: "Wybrane terminy mają pierwszeństwo przed kalendarzem i radarem.",
+  showTrips: "Pokaż podróże na te terminy",
+  announceAdded: (range: string) => `Dodano termin ${range}`,
+  announceRemoved: (range: string) => `Usunięto termin ${range}`,
+  announceAnchor: (day: string) => `Początek: ${day}. Wybierz dzień końca.`,
+  // trips header
+  forYourDates: "Na Twoje terminy:",
+  edit: "Zmień",
+  emptyTitle: (dates: string) => `Brak podróży na ${dates}`,
+  emptyBody: "Na te dokładne daty nie znaleźliśmy lotów i noclegów, które się wyceniają. Daj sobie trochę luzu albo dodaj inny termin.",
+  emptyFlex: (n: number) => `Pokaż też ± ${n} ${plural(n, "dzień", "dni", "dni")}`,
+  emptyAddSuggestion: (range: string) => `Dodaj najbliższy długi weekend · ${range}`,
+  emptyEdit: "Zmień terminy",
+  sampleOnly: "Dane demo wyceniają tylko kilka terminów ze stycznia 2027, więc widzisz te podróże. Z danymi na żywo trafią w Twoje daty.",
+  flexSuffix: (n: number) => `± ${n} ${plural(n, "dzień", "dni", "dni")}`,
+  holidays: {
+    newYear: "Nowy Rok",
+    epiphany: "Trzech Króli",
+    easter: "Wielkanoc",
+    easterMonday: "Poniedziałek Wielkanocny",
+    labour: "Święto Pracy",
+    constitution: "Święto Konstytucji 3 Maja",
+    pentecost: "Zielone Świątki",
+    corpusChristi: "Boże Ciało",
+    assumption: "Wniebowzięcie NMP",
+    allSaints: "Wszystkich Świętych",
+    independence: "Święto Niepodległości",
+    christmasEve: "Wigilia",
+    christmas: "Boże Narodzenie",
+    boxingDay: "Drugi dzień świąt",
+  } satisfies Record<HolidayKey, string>,
+};

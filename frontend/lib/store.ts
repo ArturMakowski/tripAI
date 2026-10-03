@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { DataMode } from "./api";
+import { getApiLang, type DataMode } from "./api";
 import type { DnaSwipe, Lang } from "./dna";
 import { weightsFromSlider } from "./scoring";
 import type { BridgeWindow, Change, DnaResponse, RecPhase, ChatMessage, FreeWindow, RankedRecommendation, TasteProfile, Weights } from "./types";
@@ -34,7 +34,8 @@ interface TripState {
   longWeekends: BridgeWindow[];
   recs: RankedRecommendation[];
   /** When/for which profile+weights the cached recs were scored. */
-  recsMeta: { at: number; profileKey: string; weights: Weights; phase: RecPhase } | null;
+  /** When / for which profile, weights and language the cached recs were fetched (AI text is language-specific). */
+  recsMeta: { at: number; profileKey: string; weights: Weights; phase: RecPhase; lang: Lang } | null;
   windowsAt: number | null;
   /** Slider position 0..100 (price -> comfort -> experience). null = custom weights from feedback. */
   slider: number | null;
@@ -44,7 +45,10 @@ interface TripState {
   approved: string[];
   feedback: FeedbackDiff | null;
   /** Swipe onboarding progress (survives a reload mid-deck). */
-  deck: { swipes: DnaSwipe[]; step: DeckStep; budget: number | null; airports: string[]; lang: Lang; result: DnaResponse | null };
+  deck: { swipes: DnaSwipe[]; step: DeckStep; budget: number | null; airports: string[]; result: DnaResponse | null };
+  /** UI + AI language for the whole app; null = follow the browser (see lib/i18n). */
+  lang: Lang | null;
+  setLang: (l: Lang) => void;
 
   setMessages: (m: ChatMessage[]) => void;
   setProfile: (p: TasteProfile | null) => void;
@@ -75,7 +79,8 @@ const initial = {
   modes: {},
   approved: [],
   feedback: null,
-  deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, budget: 1800 as number | null, airports: ["KRK"], lang: "pl" as Lang, result: null as DnaResponse | null },
+  deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, budget: 1800 as number | null, airports: ["KRK"], result: null as DnaResponse | null },
+  lang: null as Lang | null,
 };
 
 export const useTrip = create<TripState>()(
@@ -91,7 +96,14 @@ export const useTrip = create<TripState>()(
         set((s) => ({
           recs,
           // merged extras keep the list's phase (a fast list stays "refining")
-          recsMeta: { at: Date.now(), profileKey: profileKey(profile), weights, phase: merge ? (s.recsMeta?.phase ?? phase) : phase },
+          recsMeta: {
+            at: Date.now(),
+            profileKey: profileKey(profile),
+            weights,
+            phase: merge ? (s.recsMeta?.phase ?? phase) : phase,
+            // the language this request went out in (LangSync keeps the API client in step with the UI)
+            lang: getApiLang(),
+          },
           // merging fixture recs into a live list downgrades the whole list
           modes: { ...s.modes, recs: merge && s.modes.recs === "fixture" ? "fixture" : mode },
         })),
@@ -101,7 +113,9 @@ export const useTrip = create<TripState>()(
       approve: (id) => set((s) => ({ approved: s.approved.includes(id) ? s.approved : [...s.approved, id] })),
       setFeedback: (feedback) => set({ feedback }),
       setDeck: (patch) => set((s) => ({ deck: { ...s.deck, ...patch } })),
-      reset: () => set({ ...initial }),
+      setLang: (lang) => set({ lang }),
+      // keep the language across "start over"
+      reset: () => set((s) => ({ ...initial, lang: s.lang })),
     }),
     { name: "tripai-v3", storage: createJSONStorage(() => localStorage) },
   ),

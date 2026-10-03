@@ -2,7 +2,8 @@
 
 import { Slider } from "@/components/ui/slider";
 import { ContributionBar, FACTOR_COLOR } from "@/components/factor-bars";
-import { FACTOR_LABEL, FACTORS, SLIDER_PRESETS } from "@/lib/scoring";
+import { useT } from "@/lib/i18n";
+import { FACTORS, SLIDER_PRESETS } from "@/lib/scoring";
 import type { Weights } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -16,13 +17,15 @@ export function PrioritySlider({
   weights: Weights;
   onChange: (v: number) => void;
 }) {
+  const { t } = useT();
+  const ts = t.trips.slider;
   const pos = value ?? 50;
   const nearest = SLIDER_PRESETS.reduce((a, b) => (Math.abs(b.at - pos) < Math.abs(a.at - pos) ? b : a));
   return (
     <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
       <div className="mb-3 flex items-baseline justify-between">
-        <p className="text-sm font-semibold text-ink">What matters most this time?</p>
-        {value === null && <span className="text-xs font-medium text-clay">Set by your profile</span>}
+        <p className="text-sm font-semibold text-ink">{ts.question}</p>
+        {value === null && <span className="text-xs font-medium text-clay">{ts.setByProfile}</span>}
       </div>
       <Slider
         value={[pos]}
@@ -30,7 +33,7 @@ export function PrioritySlider({
         max={100}
         step={1}
         onValueChange={([v]) => onChange(v)}
-        aria-label="Priority between price, comfort and experience"
+        aria-label={ts.aria}
         className="py-2 [&_[data-slot=slider-range]]:bg-transparent [&_[data-slot=slider-thumb]]:size-6 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-pine [&_[data-slot=slider-thumb]]:shadow-soft [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:bg-[linear-gradient(90deg,var(--pine-soft),var(--sky-soft),var(--clay-soft))]"
       />
       <div className="mt-2 flex justify-between text-xs">
@@ -43,7 +46,7 @@ export function PrioritySlider({
               nearest.label === p.label && value !== null ? "bg-ink text-paper" : "text-muted-foreground hover:text-ink",
             )}
           >
-            {p.label}
+            {ts[p.key]}
           </button>
         ))}
       </div>
@@ -53,7 +56,7 @@ export function PrioritySlider({
           {FACTORS.map((f) => (
             <span key={f} className="flex items-center gap-1">
               <span className="size-2 rounded-full" style={{ background: FACTOR_COLOR[f] }} />
-              {FACTOR_LABEL[f].split(" ")[0]}
+              {t.trips.factorsShort[f]}
               <span className="tabular ml-auto font-mono text-ink">{Math.round(weights[f] * 100)}%</span>
             </span>
           ))}
