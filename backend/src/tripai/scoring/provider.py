@@ -45,6 +45,9 @@ class CalendarProvider(Protocol):
 
 # ---------------------------------------------------------------- fixtures
 
+# Hand-curated sample numbers (never fetched from any API). Evidence says so: source
+# "fixture:sample" is shown as "TripAI sample data"; `fetched_at` is when the set was compiled.
+SAMPLE_SOURCE = "fixture:sample"
 FIXTURE_FETCHED_AT = datetime(2026, 10, 3, 8, 0, tzinfo=UTC)
 LUXURY_HOTEL_MULT = {
     LuxuryLevel.budget: 0.55,
@@ -125,7 +128,8 @@ def _month_weights(start: date, end: date) -> dict[int, int]:
 
 
 class FixtureProvider:
-    """In-memory provider. Numbers are curated approximations, labelled `fixture:*` in evidence."""
+    """In-memory provider. Numbers are hand-curated approximations, labelled `fixture:sample`
+    ("TripAI sample data") in evidence; nothing here was fetched or recorded from an API."""
 
     def __init__(self, cities: Sequence[_FixtureCity] = FIXTURE_CITIES):
         self._cities = list(cities)
@@ -164,21 +168,21 @@ class FixtureProvider:
         dates = f"{w.start:%d.%m}-{w.end:%d.%m}"
         ev = [
             Evidence(kind="flight", label=f"Return {origin}-{c.info.iata} {dates}", value=flight,
-                     unit="PLN", source="fixture:travelpayouts", fetched_at=FIXTURE_FETCHED_AT),
+                     unit="PLN", source=SAMPLE_SOURCE, fetched_at=FIXTURE_FETCHED_AT),
             Evidence(kind="hotel", label=f"Hotel {nights} nights in {c.info.city} ({luxury})",
-                     value=hotel, unit="PLN", source="fixture:liteapi",
+                     value=hotel, unit="PLN", source=SAMPLE_SOURCE,
                      fetched_at=FIXTURE_FETCHED_AT),
             Evidence(kind="price_baseline", label="Seasonal median total for this trip",
-                     value=median, unit="PLN", source="fixture:travelpayouts-calendar",
+                     value=median, unit="PLN", source=SAMPLE_SOURCE,
                      fetched_at=FIXTURE_FETCHED_AT),
             Evidence(kind="weather", label=f"Avg daily max in {c.info.city} {dates}", value=temp,
-                     unit="°C", source="fixture:open-meteo-climate",
+                     unit="°C", source=SAMPLE_SOURCE,
                      fetched_at=FIXTURE_FETCHED_AT),
             Evidence(kind="crowds", label="Tourist crowd index (1 = peak)", value=crowd,
-                     unit="0-1", source="fixture:eurostat-tour_occ_nim",
+                     unit="0-1", source=SAMPLE_SOURCE,
                      fetched_at=FIXTURE_FETCHED_AT),
             Evidence(kind="attraction", label="Top sights", value=", ".join(c.info.highlights),
-                     source="fixture:opentripmap", fetched_at=FIXTURE_FETCHED_AT),
+                     source=SAMPLE_SOURCE, fetched_at=FIXTURE_FETCHED_AT),
         ]  # fmt: skip
         return Candidate(
             city=c.info.city,

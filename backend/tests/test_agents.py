@@ -6,6 +6,7 @@ from pydantic_ai.models.test import TestModel
 
 from tripai.agents.explain import (
     allowed_numbers,
+    display_numbers,
     explain,
     template_why,
     ungrounded_numbers,
@@ -23,7 +24,7 @@ def test_template_why_is_grounded(candidates, profile):
     for rec in rank(candidates, profile):
         why = template_why(rec, profile.interests)
         assert rec.city in why
-        assert ungrounded_numbers(why, allowed_numbers(rec)) == []
+        assert ungrounded_numbers(why, allowed_numbers(rec) | display_numbers(rec)) == []
 
 
 def test_ungrounded_numbers_detects_invention(candidates, profile):

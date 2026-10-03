@@ -30,7 +30,7 @@ export function ModeBadge() {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-2.5 py-1 text-xs font-medium text-ink-soft"
-      title={live ? "Answers come from the TripAI backend" : "Backend not configured or unreachable: recorded fixtures"}
+      title={live ? "Answers come from the TripAI backend" : "Backend not configured or unreachable: TripAI sample data"}
     >
       <span className={cn("size-1.5 rounded-full", live ? "bg-pine animate-pulse" : "bg-sun")} />
       {live ? "Live API" : "Demo fixtures"}

@@ -83,6 +83,10 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
 - Connector seam: `tripai.scoring.provider.TripDataProvider` / `CalendarProvider` (Protocols).
   `FixtureProvider` serves 10 cities from KRK; its evidence is labelled `fixture:*`. Pass a live
   provider with `create_app(provider=...)`.
+- Weather fit peaks at the middle of `preferred_temp_c` and falls to 0.75 at its edges, then by 0.08 per °C outside
+  (0.16 with a heat/cold dislike). Rainy-day share and sunshine hours scale it down when the provider has them.
+- `FixtureProvider` numbers are hand-curated: evidence `source` is `fixture:sample`, shown as "TripAI sample data"
+  with no fetch time. "(recorded)" is reserved for real recorded API responses.
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache

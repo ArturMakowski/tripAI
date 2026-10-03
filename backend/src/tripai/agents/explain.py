@@ -9,6 +9,7 @@ from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models import Model
 
 from tripai.agents.llm import llm_enabled, model_name
+from tripai.models import Evidence
 from tripai.scoring.engine import MONTHS
 from tripai.scoring.types import RankedRecommendation
 
@@ -23,7 +24,9 @@ INSTRUCTIONS = """\
 You explain one travel recommendation to the user in 2-3 short, warm sentences (max 70 words).
 Rules:
 - Use ONLY facts from the EVIDENCE JSON. Never invent or compute new numbers: every number you
-  write must appear verbatim in the evidence (prices, °C, crowd index, dates, deltas, score points).
+  write must appear verbatim in the evidence (prices, °C, crowds, dates, deltas, score points).
+- Write numbers exactly as their `display` strings are given (e.g. "1–3 Jan", "33% of peak",
+  "1014 PLN", "15 °C"). Never write ISO dates or raw 0-1 indexes.
 - Mention why this place AND why these dates (e.g. cheaper than peak season, fewer crowds).
 - Mention which of the user's interests it matches, using the tag/highlight words given.
 - No markdown, no lists, no emojis. Prices in PLN."""
@@ -75,25 +78,89 @@ def ungrounded_numbers(text: str, allowed: set[float]) -> list[str]:
     return [n for n in numbers_in(text) if not any(abs(float(n) - a) < 0.051 for a in allowed)]
 
 
+def fmt_pln(v: float) -> str:
+    return f"{round(v)} PLN"
+
+
+def fmt_temp(v: float) -> str:
+    return f"{round(v, 1):g} °C"
+
+
+def fmt_dates(start, end) -> str:
+    """'1–3 Jan', '30 Dec–2 Jan', '1 Jan'."""
+    s_m, e_m = MONTHS[start.month - 1], MONTHS[end.month - 1]
+    if start == end:
+        return f"{start.day} {s_m}"
+    if (start.year, start.month) == (end.year, end.month):
+        return f"{start.day}–{end.day} {s_m}"
+    return f"{start.day} {s_m}–{end.day} {e_m}"
+
+
+def fmt_value(e: Evidence) -> str:
+    """Display form of one evidence value (what the UI and the 'why' text should say)."""
+    v = e.value
+    if not isinstance(v, (int, float)):
+        return str(v)
+    if e.unit == "PLN":
+        return fmt_pln(v)
+    if e.unit == "°C":
+        return fmt_temp(v)
+    if e.unit == "0-1":
+        pct = round(v * 100)
+        if e.kind == "crowds":
+            return f"{pct}% of peak"
+        if "rain" in e.label.lower():
+            return f"{pct}% of days"
+        return f"{pct}%"
+    return f"{v:g}" + (f" {e.unit}" if e.unit else "")
+
+
+def display_numbers(rec: RankedRecommendation) -> set[float]:
+    """Numbers that appear only in display forms: 0-1 values shown as percentages. They are
+    accepted only right before a '%' (see `ungrounded_numbers_display`)."""
+    out: set[float] = set()
+    for e in rec.evidence:
+        if e.unit == "0-1" and isinstance(e.value, (int, float)):
+            out.add(float(round(e.value * 100)))
+    for c in rec.counterfactuals:
+        if c.crowd is not None:
+            out.add(float(round(c.crowd * 100)))
+    return out
+
+
+def ungrounded_numbers_display(text: str, allowed: set[float], percents: set[float]) -> list[str]:
+    """Like `ungrounded_numbers`, but a number from `percents` is also fine when a '%' follows it
+    ("33% of peak"), and only then: "33 PLN" from a 0.33 crowd index is still rejected."""
+    norm = _THOUSANDS.sub("", _DECIMAL_COMMA.sub(".", text))
+    bad = []
+    for m in _NUMBER.finditer(norm):
+        x = float(m.group())
+        if any(abs(x - a) < 0.051 for a in allowed):
+            continue
+        if norm[m.end() :].lstrip().startswith("%") and any(abs(x - p) < 0.051 for p in percents):
+            continue
+        bad.append(m.group())
+    return bad
+
+
 def evidence_payload(rec: RankedRecommendation, interests: dict[str, float] | None = None) -> str:
     matched = sorted(t for t in rec.tags if interests and t in interests)
+    nights = (rec.window.end - rec.window.start).days
     payload = {
         "city": rec.city,
         "country": rec.country,
-        "dates": f"{rec.window.start.isoformat()} to {rec.window.end.isoformat()}",
-        "total_cost_pln": rec.total_cost_pln,
-        "flight_cost_pln": rec.flight_cost_pln,
-        "hotel_cost_pln": rec.hotel_cost_pln,
-        "score_points": {
+        "dates": fmt_dates(rec.window.start, rec.window.end),
+        "nights": nights,
+        "total_cost": fmt_pln(rec.total_cost_pln),
+        "flight_cost": fmt_pln(rec.flight_cost_pln),
+        "hotel_cost": fmt_pln(rec.hotel_cost_pln),
+        "score_points_of_100": {
             f: round(getattr(rec.score, f) * 100)
             for f in ("price", "weather", "crowds", "taste", "total")
         },
         "matched_interests": matched,
         "highlights": rec.highlights,
-        "evidence": [
-            {"label": e.label, "value": e.value, "unit": e.unit, "source": e.source}
-            for e in rec.evidence
-        ],
+        "evidence": [{"label": e.label, "display": fmt_value(e)} for e in rec.evidence],
         "counterfactuals": [c.text for c in rec.counterfactuals],
         "what_would_flip": rec.flip.text if rec.flip else None,
     }
@@ -112,7 +179,8 @@ explain_agent = Agent(
 
 @explain_agent.output_validator
 def _grounded(ctx: RunContext[RankedRecommendation], output: str) -> str:
-    bad = ungrounded_numbers(output, allowed_numbers(ctx.deps))
+    rec = ctx.deps
+    bad = ungrounded_numbers_display(output, allowed_numbers(rec), display_numbers(rec))
     if bad:
         raise ModelRetry(
             f"These numbers are not in the evidence: {', '.join(bad)}. "
@@ -121,37 +189,30 @@ def _grounded(ctx: RunContext[RankedRecommendation], output: str) -> str:
     return output.strip()
 
 
-def _num(v: float | str) -> str:
-    return f"{v:g}" if isinstance(v, (int, float)) else v
-
-
 def template_why(rec: RankedRecommendation, interests: dict[str, float] | None = None) -> str:
     """Deterministic explanation built only from evidence (used without an LLM and as fallback)."""
-    s, e = rec.window.start, rec.window.end
-    when = f"{s.day} {MONTHS[s.month - 1]}" + (
-        f"-{e.day} {MONTHS[e.month - 1]}" if (s.month, s.day) != (e.month, e.day) else ""
-    )
     ev: dict = {}
     for x in rec.evidence:
         ev.setdefault(x.kind, x)  # first fact per kind (e.g. avg temp before rainy-day share)
     parts = [
         (
-            f"{rec.city}, {when}: about {rec.total_cost_pln:.0f} PLN in total "
-            f"(flight {rec.flight_cost_pln:.0f} PLN, hotel {rec.hotel_cost_pln:.0f} PLN)."
+            f"{rec.city}, {fmt_dates(rec.window.start, rec.window.end)}: about "
+            f"{fmt_pln(rec.total_cost_pln)} in total (flight {fmt_pln(rec.flight_cost_pln)}, "
+            f"hotel {fmt_pln(rec.hotel_cost_pln)})."
         )
     ]
     peak = next((c for c in rec.counterfactuals if c.kind == "peak_season"), None)
     if peak and peak.cost_delta_pln > 0:
         parts.append(
-            f"That is {peak.cost_delta_pln:.0f} PLN cheaper than the same trip in peak season."
+            f"That is {fmt_pln(peak.cost_delta_pln)} cheaper than the same trip in peak season."
         )
     bits = []
     if "weather" in ev:
-        bits.append(f"around {_num(ev['weather'].value)} °C")
+        bits.append(f"around {fmt_value(ev['weather'])}")
     if "crowds" in ev:
-        bits.append(f"crowd index {_num(ev['crowds'].value)} of 1")
+        bits.append(f"crowds at {fmt_value(ev['crowds'])}")
     if bits:
-        parts.append("Expect " + " and ".join(bits) + ".")
+        parts.append("Expect " + ", with ".join(bits) + ".")
     matched = [t for t in rec.tags if interests and t in interests]
     if matched:
         parts.append(f"Matches your love of {', '.join(matched)}.")

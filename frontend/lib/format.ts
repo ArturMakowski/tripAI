@@ -59,7 +59,11 @@ export function sourceName(source: string): string {
     [/gcal/, "Google Calendar"],
     [/tripai\.scoring/, "TripAI scorer"],
   ];
-  const name = map.find(([re]) => re.test(source))?.[1] ?? source;
-  // "fixture:..." = a recorded response replayed by the backend, not a fresh fetch
-  return source.startsWith("fixture:") ? `${name} (recorded)` : name;
+  // hand-curated sample numbers: never fetched, never recorded, say so plainly
+  if (isSampleSource(source)) return "TripAI sample data";
+  return map.find(([re]) => re.test(source))?.[1] ?? source;
 }
+
+/** Every "fixture:*" source is hand-curated sample data (incl. rows saved before it was renamed
+ * "fixture:sample"). Real recordings keep their real source and say "[recorded fixture]" in the label. */
+export const isSampleSource = (source: string) => source.startsWith("fixture:");

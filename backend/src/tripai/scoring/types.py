@@ -15,6 +15,10 @@ class PeakQuote(BaseModel):
     hotel_cost_pln: float
     temp_c: float
     crowd: float  # 0..1
+    # peak-month rain/sun if the provider knows them; None -> peak is scored on temperature only
+    # (never with the off-season window's rain/sun, which would skew the comparison)
+    rainy_day_share: float | None = None
+    sunshine_h: float | None = None
 
 
 class Candidate(BaseModel):
@@ -29,6 +33,8 @@ class Candidate(BaseModel):
     hotel_cost_pln: float
     temp_c: float
     crowd: float  # 0..1, 1 = peak crowds
+    rainy_day_share: float | None = None  # 0..1 share of days with >= 1 mm (Open-Meteo), if known
+    sunshine_h: float | None = None  # avg daily sunshine hours, if known
     seasonal_median_cost_pln: float  # median total cost of this trip across the year
     peak: PeakQuote | None = None
     highlights: list[str] = Field(default_factory=list)

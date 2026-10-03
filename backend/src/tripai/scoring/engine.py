@@ -39,7 +39,14 @@ def normalise_weights(weights: Weights | None) -> Weights:
     total = sum(vals.values())
     if total <= 0:
         return normalise_weights(Weights())
-    return Weights(**{f: round(v / total, 4) for f, v in vals.items()})
+    out = {f: round(v / total, 4) for f, v in vals.items()}
+    # make the 4-dp weights sum to exactly 1, so normalising again is a no-op (idempotent):
+    # otherwise re-normalising can shift a total by 1e-4 and turn a verified flip into a tie
+    drift = round(1.0 - sum(out.values()), 4)
+    if drift:
+        top = max(FACTORS, key=lambda f: out[f])
+        out[top] = round(out[top] + drift, 4)
+    return Weights(**out)
 
 
 def effective_budget(profile: TasteProfile) -> float:
@@ -54,16 +61,43 @@ def price_score(cost: float, budget: float, seasonal_median: float) -> float:
     return 0.5 * budget_fit + 0.5 * deal
 
 
-def weather_score(temp_c: float, preferred: tuple[float, float], dislikes: Sequence[str]) -> float:
-    """1 inside the preferred range, -0.1 per °C outside; heat/cold dislikes double the penalty."""
-    lo, hi = preferred
+WEATHER_EDGE = 0.75  # score at the edge of the preferred range
+WEATHER_PER_DEG = 0.08  # cost per °C outside the range (doubled by a heat/cold dislike)
+RAIN_COST = 0.4  # every rainy day costs up to 40% (all days rainy -> x0.6)
+SUN_FULL_H = 8.0  # >= 8 h of sun a day is "full"; no sun -> x0.85
+
+
+def temperature_fit(
+    temp_c: float, preferred: tuple[float, float], dislikes: Sequence[str]
+) -> float:
+    """Peaks (1.0) at the middle of the preferred range and falls smoothly to 0.75 at its edges,
+    then keeps falling 0.08 per °C outside (0.16 with a matching heat/cold dislike). So 12 °C is
+    not 'perfect' just because it sits inside a wide range, and each degree outside still costs."""
+    lo, hi = sorted(preferred)
+    mid, half = (lo + hi) / 2, max((hi - lo) / 2, 0.5)
     if lo <= temp_c <= hi:
-        return 1.0
+        return 1.0 - (1.0 - WEATHER_EDGE) * ((temp_c - mid) / half) ** 2
     dist = lo - temp_c if temp_c < lo else temp_c - hi
-    penalty = 0.1
+    per_deg = WEATHER_PER_DEG
     if (temp_c > hi and "heat" in dislikes) or (temp_c < lo and "cold" in dislikes):
-        penalty = 0.2
-    return _clamp(1.0 - penalty * dist)
+        per_deg *= 2
+    return _clamp(WEATHER_EDGE - per_deg * dist)
+
+
+def weather_score(
+    temp_c: float,
+    preferred: tuple[float, float],
+    dislikes: Sequence[str],
+    rainy_day_share: float | None = None,
+    sunshine_h: float | None = None,
+) -> float:
+    """Temperature fit, scaled down by rain and lack of sunshine when those are known."""
+    score = temperature_fit(temp_c, preferred, dislikes)
+    if rainy_day_share is not None:
+        score *= 1.0 - RAIN_COST * _clamp(rainy_day_share)
+    if sunshine_h is not None:
+        score *= 0.85 + 0.15 * _clamp(sunshine_h / SUN_FULL_H)
+    return _clamp(score)
 
 
 def crowd_score(crowd: float) -> float:
@@ -86,7 +120,9 @@ def score_candidate(c: Candidate, profile: TasteProfile, weights: Weights) -> Sc
         "price": price_score(
             c.total_cost_pln, effective_budget(profile), c.seasonal_median_cost_pln
         ),
-        "weather": weather_score(c.temp_c, profile.preferred_temp_c, profile.dislikes),
+        "weather": weather_score(
+            c.temp_c, profile.preferred_temp_c, profile.dislikes, c.rainy_day_share, c.sunshine_h
+        ),
         "crowds": crowd_score(c.crowd),
         # personalize=False: interests act only as a filter (see rank), never as a ranking signal;
         # disliked tags still cost (dislikes are not interests)
@@ -174,6 +210,8 @@ def _peak_candidate(c: Candidate) -> Candidate | None:
             "hotel_cost_pln": c.peak.hotel_cost_pln,
             "temp_c": c.peak.temp_c,
             "crowd": c.peak.crowd,
+            "rainy_day_share": c.peak.rainy_day_share,
+            "sunshine_h": c.peak.sunshine_h,
         }
     )
 

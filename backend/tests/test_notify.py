@@ -118,7 +118,7 @@ def allowed_numbers(n: dict) -> set[str]:
     out = {f"{v:.0f}" for v in vals if isinstance(v, (int, float))}
     for d in (rec["window"]["start"], rec["window"]["end"]):
         out.add(str(date.fromisoformat(d).day))
-    return out | {"100"}
+    return out | {"100", "1"}  # "100" = score scale, "1" = the rank in "New #1"
 
 
 # ---------------------------------------------------------------------------- rules
