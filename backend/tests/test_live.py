@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from tripai.api import create_app
+from tripai.api.session import HEADER as SESSION_HEADER
 from tripai.api.state import MemoryStore
 from tripai.api.supabase_store import SupabaseStore
 from tripai.connectors.base import SYNTHETIC_TAG, ConnectorError
@@ -215,14 +216,14 @@ def store(fake: FakePostgrest) -> SupabaseStore:
     return SupabaseStore("https://x.supabase.co", "sb_secret_test", client=client)
 
 
-def test_supabase_store_persists_profile_recs_feedback(prof, candidates):
+async def test_supabase_store_persists_profile_recs_feedback(prof, candidates):
     fake = FakePostgrest()
     s = store(fake)
     recs = rank(candidates, prof, limit=3)
-    s.save_profile(prof)
-    s.save_weights(prof.user_id, Weights(price=0.7))
-    s.save_recommendations(prof.user_id, recs)
-    s.save_feedback(prof.user_id, recs[0].id, {"crowds": 1}, [{"field": "weights.crowds"}])
+    await s.save_profile(prof)
+    await s.save_weights(prof.user_id, Weights(price=0.7))
+    await s.save_recommendations(prof.user_id, recs)
+    await s.save_feedback(prof.user_id, recs[0].id, {"crowds": 1}, [{"field": "weights.crowds"}])
     s.flush()
     order = [r.url.path.rsplit("/", 1)[-1] for r in fake.requests]
     assert order == ["profiles", "profiles", "recommendations", "feedback"]  # FK-safe order
@@ -232,11 +233,11 @@ def test_supabase_store_persists_profile_recs_feedback(prof, candidates):
     assert {r["inputs_hash"] for r in rows} == {recs[0].inputs_hash}
     assert fake.requests[2].url.params["on_conflict"] == "user_id,inputs_hash,id"
     assert fake.bodies("feedback")[0]["diff"] == [{"field": "weights.crowds"}]
-    assert s.get_profile(prof.user_id) == prof  # memory first, no read request
+    assert await s.get_profile(prof.user_id) == prof  # memory first, no read request
     assert all(r.method != "GET" for r in fake.requests)
 
 
-def test_supabase_store_reads_through(prof, candidates):
+async def test_supabase_store_reads_through_scoped_to_user(prof, candidates):
     fake = FakePostgrest()
     rec = rank(candidates, prof, limit=1)[0]
     fake.rows = {
@@ -249,18 +250,37 @@ def test_supabase_store_reads_through(prof, candidates):
         "recommendations": [{"payload": rec.model_dump(mode="json")}],
     }
     s = store(fake)
-    assert s.get_profile("u1") == prof
-    assert s.get_weights("u1").price == 1
-    assert s.get_recommendation(rec.id) == rec
+    assert await s.get_profile("u1") == prof
+    assert (await s.get_weights("u1")).price == 1
+    assert await s.get_recommendation("u1", rec.id) == rec
+    reads = [r for r in fake.requests if r.method == "GET"]
+    rec_read = next(r for r in reads if r.url.path.endswith("recommendations"))
+    assert rec_read.url.params["user_id"] == "eq.u1"  # never by id alone
+    assert rec_read.url.params["id"] == f"eq.{rec.id}"
 
 
-def test_supabase_errors_never_raise(prof):
+async def test_supabase_misses_are_cached_and_off_the_loop(monkeypatch):
+    import threading
+
+    fake = FakePostgrest()
+    s = store(fake)
+    main = threading.get_ident()
+    seen = []
+    orig = s._select
+    monkeypatch.setattr(s, "_select", lambda *a: seen.append(threading.get_ident()) or orig(*a))
+    assert await s.get_weights("nobody") is None
+    assert await s.get_profile("nobody") is None
+    assert len(seen) == 1 and seen[0] != main  # one read, in a worker thread
+
+
+async def test_supabase_errors_never_raise(prof):
     s = store(FakePostgrest(fail=True))
-    s.save_profile(prof)
-    s.save_feedback("u1", "x", {}, [])
+    await s.save_profile(prof)
+    await s.save_feedback("u1", "x", {}, [])
     s.flush()
-    assert s.get_profile("u1") == prof  # memory copy still serves
-    assert s.get_profile("nobody") is None and s.get_recommendation("nope") is None
+    assert await s.get_profile("u1") == prof  # memory copy still serves
+    assert await s.get_profile("nobody") is None
+    assert await s.get_recommendation("u1", "nope") is None
 
 
 def test_feedback_endpoint_persists_diff(prof):
@@ -269,6 +289,47 @@ def test_feedback_endpoint_persists_diff(prof):
     r = c.post("/feedback", json={"trip_id": "FCO-20261107-20261111", "answers": {"crowds": 1}})
     assert r.status_code == 200
     assert st.feedback[0]["trip_id"] == "FCO-20261107-20261111" and st.feedback[0]["diff"]
+
+
+# ---------------------------------------------------------------- sessions (no raw user_id)
+
+
+def test_client_user_id_is_ignored_and_users_are_isolated(prof):
+    st = MemoryStore()
+    app = create_app(store=st)
+    alice, mallory = TestClient(app), TestClient(app)
+    req = {"profile": {**prof.model_dump(mode="json"), "user_id": "victim"},
+           "windows": [{"start": "2027-01-14", "end": "2027-01-19"}], "limit": 2}  # fmt: skip
+    r = alice.post("/recommendations", json=req)
+    token = r.headers[SESSION_HEADER]
+    alice_id = token.split(".")[0]
+    assert alice_id.startswith("s_") and "victim" not in st.profiles
+    assert st.profiles[alice_id].budget_pln == 2500
+    top = r.json()[0]["id"]
+    # mallory claims alice's id in the body: gets a fresh session, sees nothing of alice
+    fb = mallory.post("/feedback", json={"user_id": alice_id, "trip_id": top, "answers": {}})
+    body = fb.json()
+    assert body["user_id"] != alice_id and body["budget_pln"] is None
+    # a forged token is rejected the same way
+    forged = mallory.post("/feedback", headers={SESSION_HEADER: f"{alice_id}.{'0' * 32}"},
+                          json={"trip_id": top, "answers": {}})  # fmt: skip
+    assert forged.json()["user_id"] != alice_id
+    # alice's own token keeps her state (header, as the cross-origin frontend sends it)
+    mine = TestClient(app).post("/feedback", headers={SESSION_HEADER: token},
+                                json={"trip_id": top, "answers": {"crowds": 1}})  # fmt: skip
+    assert mine.json()["user_id"] == alice_id and mine.json()["budget_pln"] == 2500
+    assert mine.headers[SESSION_HEADER] == token
+
+
+def test_session_tokens(monkeypatch):
+    from tripai.api import session
+
+    monkeypatch.setenv("TRIPAI_SESSION_SECRET", "a")
+    uid, tok = session.issue()
+    assert session.verify(tok) == uid
+    assert session.verify(uid) is None and session.verify("x.y.z") is None
+    monkeypatch.setenv("TRIPAI_SESSION_SECRET", "b")
+    assert session.verify(tok) is None  # rotating the secret invalidates tokens
 
 
 # ---------------------------------------------------------------- per-source modes
@@ -363,3 +424,137 @@ def test_warm_cli_offline(monkeypatch, capsys):
     assert warm.main(["--today", "2026-10-03", "--skip-calendar"]) == 0
     out = capsys.readouterr().out
     assert "long weekends:" in out and "HTTP 200" in out and '"serpapi": "fixture"' in out
+
+
+# ---------------------------------------------------------------- review fixes: budget, peak, isolation
+
+
+def test_budget_daily_cap_is_shared_and_hard(tmp_path):
+    from tripai.live.budget import BudgetExhausted, SerpApiBudget
+
+    b = SerpApiBudget(daily_cap=2, root=tmp_path)
+    assert asyncio.run(b.take()) == 1 and asyncio.run(b.take()) == 2
+    with pytest.raises(BudgetExhausted):
+        asyncio.run(b.take())
+    other = SerpApiBudget(daily_cap=2, root=tmp_path)  # another process / restart
+    with pytest.raises(BudgetExhausted):
+        asyncio.run(other.take())
+    assert other.status()["used"] == 2
+
+
+def test_budget_reads_the_supabase_counter(tmp_path, monkeypatch):
+    import respx
+
+    from tripai.live.budget import BudgetExhausted, SerpApiBudget
+
+    monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_test")
+    with respx.mock() as mock:
+        mock.get(url__startswith="https://x.supabase.co/rest/v1/api_cache").respond(
+            json=[{"payload": {"used": 5}}]
+        )
+        post = mock.post(url__startswith="https://x.supabase.co/rest/v1/api_cache").respond(201)
+        b = SerpApiBudget(daily_cap=6, root=tmp_path)
+        assert asyncio.run(b.take()) == 6  # another instance already spent 5 today
+        assert json.loads(post.calls[-1].request.content)["payload"]["used"] == 6
+        with pytest.raises(BudgetExhausted):
+            asyncio.run(b.take())
+
+
+def _serpapi_from_fixtures(request: httpx.Request) -> httpx.Response:
+    """Fake SerpApi: answers with the recorded payload for the same request."""
+    from tripai.connectors import config
+
+    p = request.url.params
+    root = config.fixtures_dir() / "serpapi"
+    if p["engine"] == "google_travel_explore":
+        path = root / "google_travel_explore" / f"{p['departure_id']}.json"
+    elif p["engine"] == "google_flights":
+        path = root / "google_flights" / f"{p['departure_id']}-{p['arrival_id']}.json"
+    else:
+        path = next(
+            f
+            for f in (root / "google_hotels").glob("*.json")
+            if json.loads(f.read_text())["params"]["q"] == p["q"]
+        )
+    return httpx.Response(200, json=json.loads(path.read_text())["payload"])
+
+
+@pytest.mark.parametrize("daily,per_request", [(3, 7), (100, 2)])
+def test_serpapi_caps_then_recorded_fixtures(prof, monkeypatch, tmp_path, daily, per_request):
+    import respx
+
+    from tripai.live.budget import SerpApiBudget
+
+    monkeypatch.setenv("SERPAPI_API_KEY", "k")
+    monkeypatch.setenv("TRIPAI_NO_CACHE", "1")
+    monkeypatch.setenv("TRIPAI_SERPAPI_REQUEST_CAP", str(per_request))
+    monkeypatch.setenv("TRIPAI_FIXTURE_SOURCES", "travelpayouts,serper,open_meteo")
+    budget = SerpApiBudget(daily_cap=daily, root=tmp_path)
+    p = LiveProvider(today=TODAY, city_ids=FIXTURE_CITIES, top_n=3, max_refine=6, budget=budget)
+    assert p.source_modes()["serpapi"] == "live"
+    with respx.mock() as mock:
+        route = mock.get(url__startswith="https://serpapi.com/").mock(
+            side_effect=_serpapi_from_fixtures
+        )
+        cands = run(p, prof)
+    cap = min(daily, per_request)
+    assert route.call_count == cap == p.last_stats["serpapi_network"]
+    assert budget.status()["used"] == cap
+    assert any("BudgetExhausted" in f for f in p.last_stats["failures"])
+    srcs = {e.source for c in cands for e in c.evidence}
+    assert "serpapi:google_travel_explore" in srcs  # the first (metered) call was live
+    assert "serpapi:google_flights" + RECORDED_TAG in srcs  # past the cap: recorded fixture
+
+
+def test_peak_numbers_all_have_evidence(prof, monkeypatch):
+    monkeypatch.setattr(LiveProvider, "_peak_month", lambda self, c, today: (2027, 1))
+    p = live(top_n=3, max_refine=3)
+    cands = run(p, prof)
+    peaks = [c for c in cands if c.peak is not None]
+    assert peaks and any(
+        f"{c.iata}-20270114-20270119" in p.last_stats["refined"] for c in peaks
+    )  # incl. refined cards (whose baseline is replaced)
+    for c in peaks:
+        vals = {e.value for e in c.evidence if e.kind == "peak"}
+        assert {c.peak.flight_cost_pln, c.peak.temp_c, c.peak.crowd} <= vals
+        assert c.peak.hotel_cost_pln == c.hotel_cost_pln  # held equal, says the label
+        weather = next(e for e in c.evidence if e.kind == "weather")
+        assert weather.value == c.temp_c  # the trip's own temperature stays first
+
+
+def test_one_bad_city_or_option_is_dropped_alone(prof, monkeypatch):
+    real_data, real_cand = LiveProvider._city_data, LiveProvider._candidate
+
+    async def city_data(self, s, origin, c, *a):
+        if c.id == "rome":
+            raise RuntimeError("bad seed row")
+        return await real_data(self, s, origin, c, *a)
+
+    def candidate(self, d, origin, w, luxury):
+        if d.city.id == "naples":
+            raise KeyError("boom")
+        return real_cand(self, d, origin, w, luxury)
+
+    monkeypatch.setattr(LiveProvider, "_city_data", city_data)
+    monkeypatch.setattr(LiveProvider, "_candidate", candidate)
+    p = live()
+    cands = run(p, prof)
+    assert len(cands) == 8 and not {"Rome", "Naples"} & {c.city for c in cands}
+    assert {"city rome: RuntimeError", "candidate naples 2027-01-14: KeyError"} <= set(
+        p.last_stats["failures"]
+    )
+
+
+def test_no_live_data_is_503_not_synthetic(prof):
+    c = TestClient(create_app(provider=live()))
+    req = {"profile": prof.model_dump(mode="json"),
+           "windows": [{"start": "2027-05-01", "end": "2027-05-04"}]}  # fmt: skip
+    r = c.post("/recommendations", json=req)
+    assert r.status_code == 503
+    assert LiveProvider().fallback is None  # opt-in only (TRIPAI_LIVE_FALLBACK=1)
+
+
+def test_health_reports_budget():
+    h = TestClient(create_app(provider=live())).get("/health").json()
+    assert set(h["serpapi_budget"]) == {"day", "used", "daily_cap", "request_cap"}

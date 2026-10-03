@@ -66,7 +66,9 @@ def main(argv: list[str] | None = None) -> int:
 
     provider, calendar = provider_from_env(), calendar_from_env()
     client = TestClient(create_app(provider=provider, calendar=calendar, store=MemoryStore()))
-    print("sources:", json.dumps(client.get("/health").json()["sources"]))
+    health = client.get("/health").json()
+    print("sources:", json.dumps(health["sources"]))
+    print("serpapi budget:", json.dumps(health.get("serpapi_budget")))
     if not hasattr(provider, "source_modes"):
         print("provider is FixtureProvider (TRIPAI_PROVIDER/TRIPAI_USE_FIXTURES): nothing to warm")
         return 0
@@ -79,7 +81,7 @@ def main(argv: list[str] | None = None) -> int:
         r = client.post("/recommendations", json=body)
         stats = getattr(provider, "last_stats", {})
         print(f"\n== {name}\n   HTTP {r.status_code} in {time.time() - t:.1f}s; "
-              f"serpapi lookups {stats.get('serpapi_calls')}, refined {len(stats.get('refined', []))}, "
+              f"serpapi searches {stats.get('serpapi_network')} (lookups {stats.get('serpapi_calls')}), refined {len(stats.get('refined', []))}, "
               f"failures {len(stats.get('failures', []))}"
               + (f", FALLBACK {stats['fallback']}" if stats.get("fallback") else ""))  # fmt: skip
         if r.status_code != 200:

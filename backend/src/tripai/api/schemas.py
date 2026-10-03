@@ -11,7 +11,7 @@ from tripai.scoring.windows import MAX_LEAVE_DAYS, BusyInterval
 
 class InterviewRequest(BaseModel):
     messages: list[ChatMessage] = Field(default_factory=list)
-    user_id: str = "demo"
+    user_id: str = "demo"  # ignored: the server-issued session decides (tripai.api.session)
 
 
 class WindowsRequest(BaseModel):
@@ -38,8 +38,8 @@ class RecommendationsRequest(BaseModel):
 class FeedbackRequest(BaseModel):
     trip_id: str
     answers: dict[str, Any]  # {"crowds": 2, "food": 5, "loved": ["food"], "disliked": ["heat"]}
-    user_id: str = "demo"
-    profile: TasteProfile | None = None  # defaults to the stored profile for user_id
+    user_id: str = "demo"  # ignored: the server-issued session decides (tripai.api.session)
+    profile: TasteProfile | None = None  # defaults to the session user's stored profile
     weights: Weights | None = None
 
 

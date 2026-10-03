@@ -1,10 +1,14 @@
 """Supabase-backed `Store` (PostgREST + server-side SUPABASE_SECRET_KEY; tables in
 supabase/migrations/0001_init.sql). Memory is the primary copy: reads hit memory first and fall
-back to Supabase, writes go to memory immediately and to Supabase on one background thread
-(order preserved, so the `profiles` row exists before rows that reference it). Any Supabase
-error is logged and ignored, so persistence can never break a request."""
+back to Supabase in a worker thread (never on the event loop; misses are remembered for
+`MISS_TTL_S`), writes go to memory immediately and to Supabase on one background thread (order
+preserved, so the `profiles` row exists before rows that reference it). Every read is scoped to
+the server-issued session user. Any Supabase error is logged and ignored, so persistence can never
+break a request."""
 
+import asyncio
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from typing import Any
@@ -16,6 +20,7 @@ from tripai.models import TasteProfile, Weights
 from tripai.scoring.types import RankedRecommendation
 
 log = logging.getLogger(__name__)
+MISS_TTL_S = 60
 
 
 class SupabaseStore(MemoryStore):
@@ -33,6 +38,7 @@ class SupabaseStore(MemoryStore):
         self._pool = (
             ThreadPoolExecutor(1, thread_name_prefix="supabase-store") if background else None
         )
+        self._misses: dict[str, float] = {}  # user_id -> monotonic time of the empty read
 
     # ---------------------------------------------------------------- plumbing
 
@@ -103,27 +109,37 @@ class SupabaseStore(MemoryStore):
             return []
 
     def _load_profile_row(self, user_id: str) -> None:
+        """Blocking: run via `asyncio.to_thread`."""
         rows = self._select(
             "profiles", {"user_id": f"eq.{user_id}", "select": "profile,weights", "limit": "1"}
         )
         if not rows:
+            self._misses[user_id] = time.monotonic()
             return
         try:
-            self.profiles[user_id] = TasteProfile.model_validate(rows[0]["profile"])
+            self.profiles.setdefault(user_id, TasteProfile.model_validate(rows[0]["profile"]))
             if rows[0].get("weights"):
-                self.weights[user_id] = Weights.model_validate(rows[0]["weights"])
+                self.weights.setdefault(user_id, Weights.model_validate(rows[0]["weights"]))
         except (ValueError, KeyError) as exc:
             log.warning("supabase profile row for %s unreadable: %s", user_id, exc)
 
+    async def _ensure_profile(self, user_id: str) -> None:
+        if user_id in self.profiles:
+            return
+        missed = self._misses.get(user_id)
+        if missed is not None and time.monotonic() - missed < MISS_TTL_S:
+            return
+        await asyncio.to_thread(self._load_profile_row, user_id)
+
     # ---------------------------------------------------------------- Store
 
-    def get_profile(self, user_id: str) -> TasteProfile | None:
-        if user_id not in self.profiles:
-            self._load_profile_row(user_id)
-        return super().get_profile(user_id)
+    async def get_profile(self, user_id: str) -> TasteProfile | None:
+        await self._ensure_profile(user_id)
+        return await super().get_profile(user_id)
 
-    def save_profile(self, profile: TasteProfile) -> None:
-        super().save_profile(profile)
+    async def save_profile(self, profile: TasteProfile) -> None:
+        await super().save_profile(profile)
+        self._misses.pop(profile.user_id, None)
         row = {
             "user_id": profile.user_id,
             "profile": profile.model_dump(mode="json"),
@@ -131,13 +147,13 @@ class SupabaseStore(MemoryStore):
         }
         self._write(self._upsert, "profiles", [row], "user_id")
 
-    def get_weights(self, user_id: str) -> Weights | None:
-        if user_id not in self.weights and user_id not in self.profiles:
-            self._load_profile_row(user_id)
-        return super().get_weights(user_id)
+    async def get_weights(self, user_id: str) -> Weights | None:
+        if user_id not in self.weights:
+            await self._ensure_profile(user_id)
+        return await super().get_weights(user_id)
 
-    def save_weights(self, user_id: str, weights: Weights) -> None:
-        super().save_weights(user_id, weights)
+    async def save_weights(self, user_id: str, weights: Weights) -> None:
+        await super().save_weights(user_id, weights)
         w = weights.model_dump(mode="json")
         profile = self.profiles.get(user_id)
         if profile is not None:
@@ -146,8 +162,8 @@ class SupabaseStore(MemoryStore):
         else:  # no profile row to attach to (profiles.profile is NOT NULL): update if it exists
             self._write(self._patch, "profiles", {"user_id": user_id}, {"weights": w})
 
-    def save_recommendations(self, user_id: str, recs: list[RankedRecommendation]) -> None:
-        super().save_recommendations(user_id, recs)
+    async def save_recommendations(self, user_id: str, recs: list[RankedRecommendation]) -> None:
+        await super().save_recommendations(user_id, recs)
         rows = [
             {
                 "id": r.id,
@@ -161,14 +177,18 @@ class SupabaseStore(MemoryStore):
         if rows:
             self._write(self._upsert, "recommendations", rows, "user_id,inputs_hash,id")
 
-    def get_recommendation(self, rec_id: str) -> RankedRecommendation | None:
-        hit = super().get_recommendation(rec_id)
+    async def get_recommendation(self, user_id: str, rec_id: str) -> RankedRecommendation | None:
+        hit = await super().get_recommendation(user_id, rec_id)
         if hit is not None:
             return hit
-        rows = self._select(
-            "recommendations",
-            {"id": f"eq.{rec_id}", "select": "payload", "order": "created_at.desc", "limit": "1"},
-        )
+        params = {
+            "user_id": f"eq.{user_id}",
+            "id": f"eq.{rec_id}",
+            "select": "payload",
+            "order": "created_at.desc",
+            "limit": "1",
+        }
+        rows = await asyncio.to_thread(self._select, "recommendations", params)
         if not rows:
             return None
         try:
@@ -176,11 +196,11 @@ class SupabaseStore(MemoryStore):
         except (ValueError, KeyError) as exc:
             log.warning("supabase recommendation %s unreadable: %s", rec_id, exc)
             return None
-        self.recs[rec.id] = rec
+        self.recs[(user_id, rec.id)] = rec
         return rec
 
-    def save_feedback(self, user_id: str, trip_id: str, answers: dict, diff: list) -> None:
-        super().save_feedback(user_id, trip_id, answers, diff)
+    async def save_feedback(self, user_id: str, trip_id: str, answers: dict, diff: list) -> None:
+        await super().save_feedback(user_id, trip_id, answers, diff)
         row = {
             "user_id": user_id,
             "trip_id": trip_id,

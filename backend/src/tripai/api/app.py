@@ -4,7 +4,7 @@ import asyncio
 from datetime import date, datetime, timedelta
 from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from tripai.agents.explain import explain, template_why
@@ -17,6 +17,8 @@ from tripai.api.schemas import (
     RecommendationsRequest,
     WindowsRequest,
 )
+from tripai.api.session import HEADER as SESSION_HEADER
+from tripai.api.session import session_user
 from tripai.api.state import MemoryStore, Store
 from tripai.models import FreeWindow, TasteProfile, Weights
 from tripai.scoring import (
@@ -55,8 +57,13 @@ def create_app(
 
     app = FastAPI(title="TripAI", version="0.1.0")
     app.add_middleware(
-        CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=[SESSION_HEADER],
     )
+    User = Annotated[str, Depends(session_user)]  # server-issued; client `user_id`s are ignored
     app.state.provider, app.state.calendar, app.state.store = provider, calendar, store
 
     @app.get("/health")
@@ -67,6 +74,9 @@ def create_app(
             "calendar": type(calendar).__name__,
             "store": type(store).__name__,
             "sources": _source_modes(provider, calendar),
+            "serpapi_budget": budget()
+            if callable(budget := getattr(provider, "budget_status", None))
+            else None,
             "llm": model_name() if llm_enabled() else None,
             "scoring_version": SCORING_VERSION,
         }
@@ -76,10 +86,11 @@ def create_app(
         return await provider.cities(origin)
 
     @app.post("/interview")
-    async def post_interview(req: InterviewRequest) -> InterviewResult:
-        result = await interview(req.messages, user_id=req.user_id)
+    async def post_interview(req: InterviewRequest, uid: User) -> InterviewResult:
+        result = await interview(req.messages, user_id=uid)
         if result.profile is not None:
-            store.save_profile(result.profile)
+            result.profile.user_id = uid
+            await store.save_profile(result.profile)
         return result
 
     @app.get("/windows")
@@ -110,9 +121,11 @@ def create_app(
         return long_weekends(start, end, max_leave=max_leave)
 
     @app.post("/recommendations")
-    async def post_recommendations(req: RecommendationsRequest) -> list[RankedRecommendation]:
-        profile = req.profile
-        weights = req.weights or store.get_weights(profile.user_id) or Weights()
+    async def post_recommendations(
+        req: RecommendationsRequest, uid: User
+    ) -> list[RankedRecommendation]:
+        profile = req.profile.model_copy(update={"user_id": uid})
+        weights = req.weights or await store.get_weights(uid) or Weights()
         if req.windows:
             windows = req.windows
         else:
@@ -126,6 +139,10 @@ def create_app(
         candidates = await provider.candidates(
             origin, trips, profile.luxury, profile=profile, weights=weights
         )
+        if trips and not candidates:
+            # A live provider with no data left must not pass off synthetic numbers as live:
+            # 503 lets the client show its own clearly-labelled fallback.
+            raise HTTPException(503, "no trip data available right now; try again shortly")
         recs = rank(candidates, profile, weights, limit=req.limit)
 
         top = recs[: max(0, req.explain_top)]
@@ -135,16 +152,17 @@ def create_app(
         for r in recs[len(top) :]:
             r.why = template_why(r, profile.interests)
 
-        store.save_profile(profile)
-        store.save_weights(profile.user_id, weights)
-        store.save_recommendations(profile.user_id, recs)
+        await store.save_profile(profile)
+        await store.save_weights(uid, weights)
+        await store.save_recommendations(uid, recs)
         return recs
 
     @app.post("/feedback")
-    async def post_feedback(req: FeedbackRequest) -> FeedbackResponse:
-        profile = req.profile or store.get_profile(req.user_id) or TasteProfile(user_id=req.user_id)
-        weights = req.weights or store.get_weights(profile.user_id) or Weights()
-        rec = store.get_recommendation(req.trip_id)
+    async def post_feedback(req: FeedbackRequest, uid: User) -> FeedbackResponse:
+        profile = req.profile or await store.get_profile(uid) or TasteProfile(user_id=uid)
+        profile = profile.model_copy(update={"user_id": uid})
+        weights = req.weights or await store.get_weights(uid) or Weights()
+        rec = await store.get_recommendation(uid, req.trip_id)
         tags: list[str] = []
         temp = None
         label = req.trip_id
@@ -156,9 +174,9 @@ def create_app(
             if info is not None:
                 tags, label = info.tags, info.city
         result = apply_feedback(profile, weights, req.answers, tags, temp, trip_label=label)
-        store.save_profile(result.profile)
-        store.save_weights(result.profile.user_id, result.weights)
-        store.save_feedback(result.profile.user_id, req.trip_id, req.answers, result.diff)
+        await store.save_profile(result.profile)
+        await store.save_weights(uid, result.weights)
+        await store.save_feedback(uid, req.trip_id, req.answers, result.diff)
         return FeedbackResponse(
             **result.profile.model_dump(),
             trip_id=req.trip_id,

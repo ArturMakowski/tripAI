@@ -111,16 +111,30 @@ SerpApi lookups and the top 5 with their confidence, and exits non-zero on a fai
    Re-rank and repeat until the top N are all refined, at most `TRIPAI_LIVE_MAX_REFINE` (default 6) in total.
    Worst case is 1 + 2×6 = 13 SerpApi calls per cold request; repeats come from the cache (disk + Supabase `api_cache`).
 
+**SerpApi spend is capped.** The daily cap is `TRIPAI_SERPAPI_DAILY_CAP`, default 30. Every process and the warm CLI share it
+through a counter row in Supabase `api_cache` (`source=tripai:budget`, no schema change) plus a disk copy. Each request is
+also capped by `TRIPAI_SERPAPI_REQUEST_CAP`, default 7. Only real searches count: cache hits are free. Past a cap, the same request is
+answered from the recorded fixture if there is one (tagged `[recorded fixture]`), otherwise the cheap estimates stay. `GET /health` →
+`serpapi_budget: {day, used, daily_cap, request_cap}`.
+
 Every number is an `Evidence` with `source` + `fetched_at`. Synthetic fixtures keep `[synthetic fixture]`.
 Extra evidence kinds: `confidence` (0..1, the mean of the per-factor data quality, and the label says what each
 factor is based on), `photo` (value = image URL; see the contract proposal in the PR), `holiday`, `price_baseline`.
-A failing connector drops its evidence and lowers `confidence`. A city with no price or no weather is
-skipped. If nothing at all comes back, the provider serves `FixtureProvider` candidates (`fixture:*`). It never returns a 500.
+A failing connector drops its evidence and lowers `confidence`. A city or option that errors, or has no price or no weather, is
+dropped on its own. If nothing at all comes back, `/recommendations` answers **503**, never synthetic numbers posing as live data.
+`TRIPAI_LIVE_FALLBACK=1` opts into labelled `FixtureProvider` candidates instead. Peak-season numbers carry
+`Evidence(kind="peak")`: the fare, the temperature and the crowd level.
 
 Peak-season counterfactuals need Travelpayouts fares for the city's peak month. Those are often missing
 months ahead, and then the card simply has no peak counterfactual.
 
+**Sessions, not `user_id`s.** The API ignores any client-sent `user_id`. Each response carries a server-issued, HMAC-signed
+token in the `X-TripAI-Session` header and an HttpOnly cookie (`tripai.api.session`). Clients send the header back. A missing or forged
+token gets a fresh session, so nobody can read or overwrite another user's profile, weights, recommendations or feedback.
+Recommendations are looked up by `(user_id, id)`. Set `TRIPAI_SESSION_SECRET` in prod: without it the secret is random per process,
+and sessions reset on restart.
+
 `tripai.api.supabase_store.SupabaseStore` (when `SUPABASE_URL` + `SUPABASE_SECRET_KEY` are set; `TRIPAI_STORE=memory`
 opts out) writes profiles + weights, recommendations (`inputs_hash`, rank, full payload) and feedback
 (`answers` + `diff`) through PostgREST. Memory stays the primary copy. Writes go out on one background thread,
-in order, and reads fall back to Supabase on a miss. Errors are logged and never fail a request.
+in order. Reads fall back to Supabase on a miss in a worker thread, never on the event loop, and empty reads are remembered for 60 s. The `Store` protocol is async. Errors are logged and never fail a request.

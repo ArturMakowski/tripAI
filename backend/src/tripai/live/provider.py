@@ -34,6 +34,7 @@ from tripai.connectors.serpapi import (
 from tripai.connectors.serper import Serper
 from tripai.connectors.travelpayouts import FlightCalendar, Travelpayouts
 from tripai.live import sources
+from tripai.live.budget import BudgetExhausted, SerpApiBudget, global_budget, request_cap
 from tripai.models import Evidence, FreeWindow, LuxuryLevel, TasteProfile, Weights
 from tripai.scoring.engine import MONTHS, candidate_id, rank, taste_score
 from tripai.scoring.provider import LUXURY_HOTEL_MULT, CityInfo, FixtureProvider, TripDataProvider
@@ -46,16 +47,18 @@ DEFAULT_MAX_CITIES = 12
 DEFAULT_TOP_N = 3  # exact-date SerpApi flights + hotels for this many cities...
 DEFAULT_MAX_REFINE = 6  # ...re-checked until the top N are refined, at most this many in total
 KIND_ORDER = {k: i for i, k in enumerate(
-    ("flight", "hotel", "price_baseline", "weather", "crowds", "holiday", "attraction", "photo",
-     "confidence")
+    ("flight", "hotel", "price_baseline", "peak", "weather", "crowds", "holiday", "attraction",
+     "photo", "confidence")
 )}  # fmt: skip
 TAG_MIN_WEIGHT = 0.5
+BASELINE_PREFIX = "Typical trip cost for the deal comparison:"
 NEAREST_FARE_DAYS = 3
 CONCURRENCY = 8
 
-# Last-resort hotel price when no live source answered: editorial, labelled as such.
+# Last-resort hotel price when no live source answered: an editorial table (typical mid-range
+# double-room price per night by country), labelled as such. `fetched_at` = when it was compiled.
 ESTIMATE_SOURCE = "estimate:tripai-editorial"
-ESTIMATE_FETCHED_AT = datetime(2026, 10, 3, 12, 0, tzinfo=UTC)
+ESTIMATE_FETCHED_AT = datetime(2026, 10, 3, 12, 0, tzinfo=UTC)  # table compiled, nothing fetched
 NIGHTLY_ESTIMATE_PLN = {
     "AL": 220, "AT": 480, "CY": 380, "CZ": 340, "DE": 450, "DK": 650, "ES": 420, "FR": 560,
     "GB": 620, "GR": 380, "HR": 400, "HU": 300, "IE": 600, "IS": 750, "IT": 460, "MT": 400,
@@ -177,6 +180,7 @@ class _Session:
         cache: Cache | None,
         fixtures: bool | None,
         today: date | None,
+        budget: SerpApiBudget | None = None,
     ):
         # fixtures=None: per-source mode from env (TRIPAI_FIXTURE_SOURCES, missing keys, ...)
         self.modes = (
@@ -190,15 +194,48 @@ class _Session:
             return {**kw, "fixtures": self.modes[source] == "fixture"}
 
         self.tp = Travelpayouts(**fx("travelpayouts"))
-        self.explore = SerpApiExplore(**fx("serpapi"))
-        self.flights = SerpApiFlights(**fx("serpapi"))
-        self.hotels = SerpApiHotels(**fx("serpapi"))
+        # SerpApi: metered live connectors + fixture twins served once a cap is hit
+        self.budget = budget or global_budget()
+        self.request_cap = request_cap()
+        serp = fx("serpapi")
+        self.serp = {
+            "explore": SerpApiExplore(**serp),
+            "flights": SerpApiFlights(**serp),
+            "hotels": SerpApiHotels(**serp),
+        }
+        if not serp["fixtures"]:
+            for conn in self.serp.values():
+                self._meter(conn)
+        self.serp_fx = {
+            "explore": SerpApiExplore(**{**kw, "fixtures": True}),
+            "flights": SerpApiFlights(**{**kw, "fixtures": True}),
+            "hotels": SerpApiHotels(**{**kw, "fixtures": True}),
+        }
         self.meteo = OpenMeteo(**fx("open_meteo"))
         self.serper = Serper(**fx("serper"))
         self.today = today
         self._sem = asyncio.Semaphore(CONCURRENCY)
         self.failures: list[str] = []
-        self.serpapi_calls = 0
+        self.serpapi_calls = 0  # lookups through live connectors (cache hits included)
+        self.serpapi_network = 0  # real SerpApi searches (metered)
+
+    def _meter(self, conn: Any) -> None:
+        """Wrap the connector's HTTP step: cache hits never get here, so only real searches
+        count against the per-request and the shared daily cap."""
+        http = conn._http
+
+        async def metered(*a: Any, **k: Any) -> Any:
+            if self.serpapi_network >= self.request_cap:
+                raise BudgetExhausted(f"per-request SerpApi cap ({self.request_cap}) reached")
+            self.serpapi_network += 1  # reserved before awaiting: concurrent calls see it
+            try:
+                await self.budget.take()
+            except BudgetExhausted:
+                self.serpapi_network -= 1
+                raise
+            return await http(*a, **k)
+
+        conn._http = metered
 
     def live(self, source: str) -> bool:
         return self.modes[source] == "live"
@@ -220,16 +257,33 @@ class _Session:
                 self.failures.append(f"{what}: {type(exc).__name__}")
                 return None
 
-    async def serpapi(self, what: str, fn: Callable[[], Awaitable[Any]]) -> Any | None:
-        self.serpapi_calls += self.live("serpapi")  # lookups (cache hits included), not fixtures
-        return await self.call(what, fn)
+    async def serpapi(self, what: str, kind: str, fn: Callable[[Any], Awaitable[Any]]) -> Any:
+        """SerpApi call through the metered connector `kind`; once a cap is hit, the recorded
+        fixture for the same request (if any) answers instead, labelled as such."""
+        self.serpapi_calls += self.live("serpapi")
+        async with self._sem:
+            try:
+                return await fn(self.serp[kind])
+            except BudgetExhausted as exc:
+                log.warning("live provider: %s skipped: %s", what, exc)
+                self.failures.append(f"{what}: BudgetExhausted")
+            except Exception as exc:  # noqa: BLE001 - graceful degradation is the contract
+                log.warning("live provider: %s failed: %s", what, exc)
+                self.failures.append(f"{what}: {type(exc).__name__}")
+                return None
+        res = await self.call(f"{what} (fixture)", lambda: fn(self.serp_fx[kind]))
+        if res is not None and not res.synthetic:
+            res.source += sources.RECORDED_TAG
+        return res
 
 
 class LiveProvider:
     """`TripDataProvider` backed by `tripai.seed` + `tripai.connectors`.
 
     `fixtures=True` forces connector fixtures (tests); `city_ids` restricts the seed city list;
-    `fallback` serves (clearly labelled) fixture candidates if the live pipeline yields nothing.
+    `fallback` serves (clearly labelled) fixture candidates if the live pipeline yields nothing;
+    off by default (TRIPAI_LIVE_FALLBACK=1 turns it on): the API answers 503 instead, so synthetic
+    numbers are never silently presented as a live result.
     """
 
     def __init__(
@@ -243,7 +297,8 @@ class LiveProvider:
         today: date | None = None,
         city_ids: Sequence[str] | None = None,
         fallback: TripDataProvider | None = None,
-        use_fallback: bool = True,
+        use_fallback: bool | None = None,
+        budget: SerpApiBudget | None = None,
     ) -> None:
         self.max_cities = max_cities or _env_int("TRIPAI_LIVE_MAX_CITIES", DEFAULT_MAX_CITIES)
         self.top_n = top_n if top_n is not None else _env_int("TRIPAI_LIVE_TOP_N", DEFAULT_TOP_N)
@@ -258,8 +313,14 @@ class LiveProvider:
         self.cache = cache
         self.today = today
         self.city_ids = list(city_ids) if city_ids else None
+        if use_fallback is None:
+            use_fallback = config.flag("TRIPAI_LIVE_FALLBACK")
         self.fallback = (fallback or FixtureProvider()) if use_fallback else None
+        self.budget = budget
         self.last_stats: dict[str, Any] = {}
+
+    def budget_status(self) -> dict[str, Any]:
+        return (self.budget or global_budget()).status()
 
     def source_modes(self) -> dict[str, str]:
         """Per-source 'live' | 'fixture' (reported by GET /health)."""
@@ -339,19 +400,32 @@ class LiveProvider:
         nights = [max(1, (w.end - w.start).days) for w in windows]
         trip_days = (min(nights), min(max(nights), 30))
         async with httpx.AsyncClient(timeout=30) as client:
-            s = _Session(client, self.cache, self.fixtures, self.today)
-            explore = await s.serpapi("explore", lambda: s.explore.explore(origin))
-            data = await asyncio.gather(
+            s = _Session(client, self.cache, self.fixtures, self.today, self.budget)
+            explore = await s.serpapi("explore", "explore", lambda c: c.explore(origin))
+            got = await asyncio.gather(
                 *(
                     self._city_data(s, origin, c, windows, trip_days, explore, profile)
                     for c in cities
-                )
+                ),
+                return_exceptions=True,
             )
+            data: list[_CityData] = []
+            for c, d in zip(cities, got):
+                if isinstance(d, BaseException):  # one bad city never sinks the others
+                    log.warning("live provider: city %s dropped: %r", c.id, d)
+                    s.failures.append(f"city {c.id}: {type(d).__name__}")
+                else:
+                    data.append(d)
             cands: list[Candidate] = []
             quality: dict[str, _Quality] = {}
             for d in data:
                 for w in windows:
-                    built = self._candidate(d, origin, w, luxury)
+                    try:
+                        built = self._candidate(d, origin, w, luxury)
+                    except Exception as exc:  # noqa: BLE001 - drop this option only
+                        log.warning("live provider: %s %s dropped: %r", d.city.id, w.start, exc)
+                        s.failures.append(f"candidate {d.city.id} {w.start}: {type(exc).__name__}")
+                        continue
                     if built is not None:
                         cands.append(built[0])
                         quality[candidate_id(built[0])] = built[1]
@@ -388,6 +462,7 @@ class LiveProvider:
                 "candidates": len(cands),
                 "refined": sorted(refined),
                 "serpapi_calls": s.serpapi_calls,
+                "serpapi_network": s.serpapi_network,
                 "sources": s.modes,
                 "failures": s.failures[:200],
             }
@@ -521,7 +596,8 @@ class LiveProvider:
             kind="hotel",
             label=(
                 f"Hotel {nights} nights in {d.city.name}: rough estimate {nightly} PLN/night "
-                f"x{mult} for {luxury.value} (no live hotel data)"
+                f"x{mult} for {luxury.value} (no live hotel data; editorial per-country table of "
+                "typical mid-range double rooms, compiled 3 Oct 2026, not a fetched price)"
             ),
             value=total,
             unit="PLN",
@@ -623,7 +699,10 @@ class LiveProvider:
             log.debug("holiday context for %s skipped: %s", d.city.id, exc)
         if d.highlights:
             am = load.meta("attractions.json")
-            top = load.attractions(d.city.id, limit=1)
+            try:
+                top = load.attractions(d.city.id, limit=1)
+            except Exception:  # noqa: BLE001 - the link is optional
+                top = []
             out.append(
                 Evidence(
                     kind="attraction",
@@ -671,7 +750,7 @@ class LiveProvider:
         months = ", ".join(f"{MONTHS[m - 1]} {y}" for y, m in sorted(d.calendars))
         ev = cal._ev(
             "price_baseline",
-            f"Typical trip cost for the deal comparison: median cached return fare "
+            f"{BASELINE_PREFIX} median cached return fare "
             f"{origin}-{d.city.iata} across {months} ({len(fares)} fares) + same hotel cost",
             round(med + hotel),
             "PLN",
@@ -686,21 +765,35 @@ class LiveProvider:
         if clim is None or clim.avg_temp_max_c is None:
             return None, []
         fare = round(statistics.median(f.price for f in cal.fares))
-        ev = cal._ev(
-            "price_baseline",
-            f"Peak-crowd month {MONTHS[ym[1] - 1]} {ym[0]}: median cached return fare "
-            f"{cal.origin}-{cal.destination} (hotel cost held equal)",
-            fare,
-            cal.currency,
-        )
+        month = f"{MONTHS[ym[1] - 1]} {ym[0]}"
+        yrs = f"{min(clim.years)}–{max(clim.years)} avg" if clim.years else "historical avg"
+        crowd = load.crowd_evidence(d.city.id, ym[1])
+        # Own kind ("peak"): every PeakQuote number is sourced, and these facts never stand in
+        # for the trip's own weather/crowds/baseline evidence.
+        ev = [
+            cal._ev(
+                "peak",
+                f"Peak-crowd month {month}: median cached return fare "
+                f"{cal.origin}-{cal.destination} (hotel cost held equal to this trip)",
+                fare,
+                cal.currency,
+            ),
+            clim._ev(
+                "peak",
+                f"Peak-crowd month {month}: avg daily max in {d.city.name} ({yrs})",
+                clim.avg_temp_max_c,
+                "°C",
+            ),
+            crowd.model_copy(update={"kind": "peak", "label": "Peak-crowd month: " + crowd.label}),
+        ]
         quote = PeakQuote(
             month=ym[1],
             flight_cost_pln=fare,
             hotel_cost_pln=hotel,
             temp_c=clim.avg_temp_max_c,
-            crowd=load.crowd_score(d.city.id, ym[1]),
+            crowd=crowd.value,
         )
-        return quote, [ev]
+        return quote, ev
 
     def _candidate(
         self, d: _CityData, origin: str, w: FreeWindow, luxury: LuxuryLevel
@@ -763,13 +856,15 @@ class LiveProvider:
         jobs.append(
             s.serpapi(
                 f"google_flights {origin}-{c.iata} {w.start}",
-                lambda: s.flights.price_insights(origin, c.iata, w.start, w.end),
+                "flights",
+                lambda fl: fl.price_insights(origin, c.iata, w.start, w.end),
             )
         )
         jobs.append(
             s.serpapi(
                 f"google_hotels {d.city.name} {w.start}",
-                lambda: s.hotels.search(_plain(d.city.name), w.start, w.end, iata=c.iata),
+                "hotels",
+                lambda h: h.search(_plain(d.city.name), w.start, w.end, iata=c.iata),
             )
         )
         jobs.append(
@@ -799,13 +894,6 @@ class LiveProvider:
             q.set("flight", 1.0, "Google Flights, exact dates")
             if flights.typical_price_range:
                 flight_base = sum(flights.typical_price_range) / 2
-        elif flights is None and s.live("serpapi"):
-            fli = await self._fli(s, origin, c)
-            if fli is not None:
-                flight_cost = fli[0]
-                ev = [e for e in ev if e.kind != "flight"]
-                ev.insert(0, fli[1])
-                q.set("flight", 0.9, "Google Flights via fli")
         upd["flight_cost_pln"] = flight_cost
 
         hotel_cost = c.hotel_cost_pln
@@ -838,11 +926,11 @@ class LiveProvider:
 
         # Seasonal baseline: Google's typical range mid (exact dates) beats the calendar median.
         if flight_base is not None:
-            ev = [e for e in ev if not (e.kind == "price_baseline" and "median" in e.label)]
+            ev = [e for e in ev if e.kind != "price_baseline"]  # replaced by Google's range
             ev.append(
                 flights._ev(
                     "price_baseline",
-                    f"Typical trip cost for the deal comparison: mid of Google's typical "
+                    f"{BASELINE_PREFIX} mid of Google's typical "
                     f"{origin}-{c.iata} fare range + same hotel cost",
                     round(flight_base + hotel_cost),
                     "PLN",
@@ -869,16 +957,3 @@ class LiveProvider:
             )
         upd["evidence"] = ev
         return c.model_copy(update=upd)
-
-    async def _fli(self, s: _Session, origin: str, c: Candidate) -> tuple[float, Evidence] | None:
-        """Last-resort exact-date price via fli (optional install). Only PLN prices are used."""
-        from tripai.connectors.fli_dates import search_dates
-
-        res = await s.call(
-            f"fli {origin}-{c.iata}",
-            lambda: search_dates(origin, c.iata, c.window.start, c.window.start, c.nights),
-        )
-        best = res.cheapest() if res is not None else None
-        if best is None or res.currency != "PLN":
-            return None
-        return best.price, res.evidence()[0]
