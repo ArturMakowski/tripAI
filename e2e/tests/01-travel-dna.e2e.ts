@@ -27,9 +27,9 @@ test('Travel DNA: the deck first, then dates and party, ending on a result that 
   await expect(screen.getByText(/^2 people$/)).toBeVisible();
   await screen.getByRole('button', /^Show my DNA/).tap();
 
-  // The result renders the backend's reasons, each citing the swiped cards; since the declutter they
-  // sit one tap away behind "Why these weights" (ⓘ).
-  const why = screen.getByRole('button', 'Why these weights');
+  // The result renders the backend's reasons, each citing the swiped cards, one tap away behind the
+  // screen's single ⓘ ("Why this result", a bottom sheet; "Why these weights" before T17).
+  const why = screen.getByRole('button', /^Why (this result|these weights)$/);
   await expect(why).toBeVisible({ timeout: 30_000 });
   await why.tap();
   await expect(screen.getByText(/because you swiped/i).first()).toBeVisible();

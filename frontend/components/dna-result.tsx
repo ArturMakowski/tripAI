@@ -3,9 +3,10 @@
 import { motion } from "motion/react";
 import { useState } from "react";
 import { Ban, Compass, Footprints, Hotel, Plane } from "lucide-react";
-import { Disclosure, InfoTip } from "@/components/declutter";
+import { Disclosure } from "@/components/declutter";
+import { WhySheet } from "@/components/why-sheet";
 import { DNA_CARD, DNA_DECK, type CardId, type DnaAnswers, type DnaCard, type Lang } from "@/lib/dna";
-import { likedCards, persona, priorities } from "@/lib/dna-persona";
+import { citedByAnswer, likedCards, persona, priorities } from "@/lib/dna-persona";
 import { messagesFor } from "@/lib/i18n";
 import { nameOf } from "@/lib/i18n/messages/profile";
 import type { DnaResponse } from "@/lib/types";
@@ -44,8 +45,8 @@ function Reasons({ rows }: { rows: { label: string; text: string }[] }) {
   return (
     <>
       {shown.map((r) => (
-        <span key={r.label} className="mt-1 block first:mt-0">
-          <span className="font-medium text-ink-soft">{r.label}:</span> {r.text}
+        <span key={r.label} className="mt-2 block first:mt-0">
+          <span className="font-medium text-ink">{r.label}:</span> {r.text}
         </span>
       ))}
     </>
@@ -136,16 +137,16 @@ export function DnaResult({
   // --- who you are: persona + the swipes behind it + the photos you liked
   const who = persona(collected);
   const title = t.persona.title(t.persona.nouns[who.noun], who.mod ? t.persona.mods[who.mod] : null);
-  const cited = who.cited.map((id) => {
-    const card = DNA_CARD[id];
-    return t.becausePart(t.answers[(collected.answers[id] ?? 3) as 1], card.short[lang]);
-  });
+  // "“So me!” on local food and price": the cited swipes grouped by answer
+  const cited = citedByAnswer(collected, who.cited).map(([v, ids]) =>
+    t.becausePart(t.answers[v as 1], t.persona.cards(ids.map((id) => DNA_CARD[id].short[lang]))),
+  );
   const photos = likedCards(collected, who.cited);
 
   // --- what drives the ranking, as a sentence + ranked bars (no numbers)
   const order = priorities(weights);
   const max = Math.max(...order.map((f) => weights[f])) || 1;
-  const factor = (f: (typeof order)[number]) => all.trips.factorsShort[f].toLowerCase();
+  const factor = (f: (typeof order)[number]) => t.priorities.phrase[f];
 
   // --- likes: the strongest few, the rest folded
   const interests = Object.entries(profile.interests).sort((a, b) => b[1] - a[1]);
@@ -208,7 +209,10 @@ export function DnaResult({
 
       <section className="mt-5 rounded-3xl border border-line bg-card p-4 shadow-soft">
         <p className="text-xs text-muted-foreground">
-          {t.priorities.title} <InfoTip label={t.whyWeights}><Reasons rows={reasons} /></InfoTip>
+          {t.priorities.title}{" "}
+          <WhySheet label={t.whyResult} title={t.whyResult} close={t.close}>
+            <Reasons rows={reasons} />
+          </WhySheet>
         </p>
         <p className="mt-1 font-display text-xl leading-snug text-ink">{t.priorities.most(factor(order[0]), factor(order[1]))}</p>
         <ol className="mt-3 space-y-1.5" aria-hidden>

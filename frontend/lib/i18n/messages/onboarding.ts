@@ -32,7 +32,9 @@ export const en = {
   // --- result ---
   resultTitle: "Your travel DNA.",
   editAnswers: "Edit answers",
-  whyWeights: "Why these weights",
+  /** the one ⓘ on the result: every "because you swiped …" reason, in a bottom sheet */
+  whyResult: "Why this result",
+  close: "Close",
   /** persona: "The unhurried foodie" (EN: adjective + noun) */
   persona: {
     title: (noun: string, mod: string | null) => `The ${mod ? `${mod} ` : ""}${noun}`,
@@ -44,7 +46,7 @@ export const en = {
       wanderer: "wanderer",
       bargain: "bargain hunter",
       experiences: "experience collector",
-      traveller: "all-round traveller",
+      traveller: "traveller",
     },
     mods: {
       curious: "curious",
@@ -54,14 +56,17 @@ export const en = {
       savvy: "savvy",
       crowdShy: "crowd-shy",
     },
-    /** "Because you swiped “So me!” on local food and culture and “That's me” on rest and relaxation." */
+    /** "Because you swiped “So me!” on local food and price." (parts grouped by answer) */
     why: (parts: string[]) => `Because you swiped ${list("en", parts)}.`,
+    cards: (xs: string[]) => list("en", xs),
     noWhy: "A bit of everything: nothing pulled far ahead.",
     photos: "Photos you swiped right on",
   },
   priorities: {
     title: "How we'll rank your trips",
     most: (a: string, b: string) => `${a.charAt(0).toUpperCase() + a.slice(1)} matters most, then ${b}.`,
+    /** each factor as the subject of "… matters most" (crowds: "avoiding crowds", not "crowds matters") */
+    phrase: { price: "price", weather: "the weather", crowds: "avoiding crowds", taste: "taste" },
   },
   likes: {
     title: "What you love",
@@ -128,7 +133,8 @@ export const pl: Shape<typeof en> = {
   resultMissing: "Nie mamy jeszcze Twojego wyniku.",
   resultTitle: "Twoje DNA podróżnika.",
   editAnswers: "Zmień odpowiedzi",
-  whyWeights: "Skąd te wagi",
+  whyResult: "Skąd ten wynik",
+  close: "Zamknij",
   // PL: noun + phrase ("Smakosz bez pośpiechu"): no adjective that would guess the user's gender
   persona: {
     title: (noun, mod) => (mod ? `${noun} ${mod}` : noun),
@@ -140,7 +146,7 @@ export const pl: Shape<typeof en> = {
       wanderer: "Wędrowiec",
       bargain: "Łowca okazji",
       experiences: "Kolekcjoner przeżyć",
-      traveller: "Podróżnik na każdą okazję",
+      traveller: "Podróżnik",
     },
     mods: {
       curious: "z ciekawością świata",
@@ -151,12 +157,14 @@ export const pl: Shape<typeof en> = {
       crowdShy: "z dala od tłumów",
     },
     why: (parts) => `Bo zaznaczono ${list("pl", parts)}.`,
+    cards: (xs) => list("pl", xs),
     noWhy: "Wszystkiego po trochu: nic nie wysunęło się na prowadzenie.",
     photos: "Zdjęcia przesunięte w prawo",
   },
   priorities: {
     title: "Jak ułożymy Twoje wyjazdy",
     most: (a, b) => `Najbardziej liczy się ${a}, potem ${b}.`,
+    phrase: { price: "cena", weather: "pogoda", crowds: "unikanie tłumów", taste: "gust" },
   },
   likes: {
     title: "Co kochasz",
