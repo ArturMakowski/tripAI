@@ -10,7 +10,6 @@ import {
   Copy,
   ExternalLink,
   Fingerprint,
-  Scale,
   Shuffle,
   Check,
   ChevronDown,
@@ -18,7 +17,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { FactorBars } from "@/components/factor-bars";
 import { CityPhoto } from "@/components/rec-card";
-import { FactorStars, OverallStars } from "@/components/stars";
+import { CompactStars, OverallStars } from "@/components/stars";
 import { OPEN_MATH_EVENT } from "@/components/fit-section";
 import { LangSwitch } from "@/components/lang-switch";
 import { AppShell, ModeBadge } from "@/components/shell";
@@ -228,28 +227,19 @@ export default function ReceiptPage() {
         {/* ---------------- Receipt ---------------- */}
         <FitSection rec={rec} profile={profile ?? DEMO_PROFILE} lang={lang} />
 
-        <Section title={r.breakdownTitle} icon={Scale}>
-          {/* Glanceable: stars derived from the exact scores (lib/stars.ts); the math is one tap away. */}
-          <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
-            <div className="flex items-center justify-between gap-3 border-b border-dashed border-line pb-3">
-              <span className="text-sm font-semibold text-ink">{t.stars.overall}</span>
-              <OverallStars total={rec.score.total} size={20} />
-            </div>
-            <FactorStars score={rec.score} className="mt-3" />
-            <button
-              onClick={() => setShowMath((v) => !v)}
-              aria-expanded={showMath}
-              aria-controls="how-we-scored"
-              className="mt-4 flex w-full items-center justify-between gap-3 rounded-2xl bg-paper-deep px-3.5 py-2.5 text-left text-sm font-medium text-pine hover:bg-pine-soft"
-            >
-              <span>
-                {showMath ? t.stars.hide : t.stars.howScored}
-                {!showMath && <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{t.stars.howScoredHint}</span>}
-              </span>
-              <ChevronDown className={cn("size-4 shrink-0 transition-transform", showMath && "rotate-180")} aria-hidden />
-            </button>
-          </div>
-        </Section>
+        {/* One compact stars row; the exact formula, weights and points are in the collapsed Audit. */}
+        <div className="mt-6 rounded-2xl border border-line bg-card px-4 py-3 shadow-soft">
+          <CompactStars score={rec.score} />
+          <button
+            onClick={() => setShowMath((v) => !v)}
+            aria-expanded={showMath}
+            aria-controls="how-we-scored"
+            className="mt-3 flex w-full items-center justify-between border-t border-dashed border-line pt-2.5 text-left text-sm font-medium text-pine"
+          >
+            {showMath ? t.stars.hideAudit : t.stars.audit}
+            <ChevronDown className={cn("size-4 shrink-0 transition-transform", showMath && "rotate-180")} aria-hidden />
+          </button>
+        </div>
 
         <div id="how-we-scored" hidden={!showMath}>
           <div className="mt-4">

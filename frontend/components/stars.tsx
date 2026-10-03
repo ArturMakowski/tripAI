@@ -84,3 +84,30 @@ export function FactorStars({ score, columns = 1, className }: { score: ScoreBre
     </ul>
   );
 }
+
+/**
+ * One glanceable line for the receipt: overall stars, then each factor's icon with its stars.
+ * No numbers and no explanation on screen; the exact math is in the collapsed Audit.
+ */
+export function CompactStars({ score, className }: { score: ScoreBreakdown; className?: string }) {
+  const { t } = useT();
+  const stars = overallStars(score.total);
+  return (
+    <div className={cn("flex flex-wrap items-center gap-x-4 gap-y-2", className)}>
+      <span role="img" aria-label={t.stars.overallAria(stars, overallOutOfFive(score.total))}>
+        <StarRow value={stars} size={20} />
+      </span>
+      {FACTORS.map((f) => {
+        const n = factorStars(score[f]);
+        return (
+          <span key={f} role="img" aria-label={t.stars.factorAria(t.trips.factors[f], n)} className="inline-flex items-center gap-1">
+            <span aria-hidden className="text-sm leading-none">
+              {FACTOR_EMOJI[f]}
+            </span>
+            <StarRow value={n} size={11} />
+          </span>
+        );
+      })}
+    </div>
+  );
+}
