@@ -299,8 +299,7 @@ The photos are landscape Wikimedia Commons images (CC0, public domain, CC BY or 
 - **Lookup.** `lib/photos.ts` maps every city code and airport code (for example LHR/LGW/STN/LTN → London, PMI → Palma) to a photo
   and its credit (author, license, source URL).
 - **Credits.** No inline photo captions anywhere: cards, the receipt hero, the swipe deck, the landing collage and survey
-  thumbnails show only the photo. CC BY / BY-SA attribution lives on `/credits`, reached from one small footer link
-  ("Zdjęcia" / "Photo credits") on every screen built on `AppShell`, the landing page and the receipt. That page lists every city photo and Travel DNA card photo with its author, license link and source. The same list is in
+  thumbnails show only the photo. CC BY / BY-SA attribution lives on the `/credits` page (no credits link in the views, per the user). That page lists every city photo and Travel DNA card photo with its author, license link and source. The same list is in
   `public/cities/CREDITS.md`.
 - **Landing collage.** The photos are landscape but the frames are 3:4, so each image sets an `object-position` that keeps
   its landmark in frame.
