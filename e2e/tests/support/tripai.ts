@@ -122,3 +122,21 @@ export function pln(text: string): number | null {
   if (!m) return null;
   return Number(m[1].replace(/[^\d]/g, ''));
 }
+
+/**
+ * On the first-run welcome, tap "Use demo profile" (it saves the demo profile and opens /profile), so / becomes the
+ * returning home (T16). Retried: a tap before hydration does nothing.
+ */
+export async function useDemoProfile(browser: Browser, screen: { getByRole(role: string, name: RegExp): { tap(): Promise<unknown> } }) {
+  await browser.goto('/');
+  for (let i = 0; i < 6; i++) {
+    await screen.getByRole('button', /^(Profil demo|Use demo profile)$/).tap();
+    try {
+      await browser.waitForURL(/\/profile/, { timeout: 5_000 });
+      return;
+    } catch {
+      /* not hydrated yet: tap again */
+    }
+  }
+  await browser.waitForURL(/\/profile/, { timeout: 5_000 });
+}

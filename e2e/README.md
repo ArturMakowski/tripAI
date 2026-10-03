@@ -48,8 +48,8 @@ errors land here in production) and unhandled rejections. The framework has no c
 | `06-swipe-offers` | Swipe mode → like → undo | like; undo | "Learned: … {city}" toast; "Undone" toast; the same card is back on top |
 | `07-survey` | Post-trip survey → profile update | answer + submit | "Ranking weights" with `x% → y%` lines |
 | `08-inbox` `@live` | Run the proactive scan | none (taps "Run scan now") | scan finishes; "N new notifications" or "Nothing new worth a ping" |
-| `09-console` | Every route + a receipt | none | no console/page/hydration errors; no "Application error" |
-| `10-price-invariant` | Top 3 trips, EN and PL | none | waits for the final ranking (list not `aria-busy`); exact or honest-estimate prices alike: card total = receipt total = confirm total = flight + hotel, and an estimate ("~… · szacunek") is labelled one on all three screens; read from the `data-testid="trip-total"` / `data-line` hooks (and checked against the visible text); nights shown = nights from the dates; screenshots on mismatch |
+| `09-console` | Every route + a receipt, then `/` again as a returning user (demo profile + stored ranking) | none | no console/page/hydration errors; no "Application error"; the home "#1" card renders |
+| `10-price-invariant` | Top 3 trips, EN and PL | none | waits for the final ranking (list not `aria-busy`); exact or honest-estimate prices alike: card total = receipt total = confirm total = flight + hotel, and an estimate ("~… · szacunek") is labelled one on all three screens; read from the `data-testid="trip-total"` / `data-line` hooks (and checked against the visible text); nights shown = nights from the dates; the returning home's "#1" card is `/trips` #1 with the same total and estimate label; screenshots on mismatch |
 
 Run output (report, screenshots, traces) goes to `.e2e/` and is not committed. `report/2026-10-03/` keeps the first runs' summaries and the
 screenshots attached to the T9 PR.

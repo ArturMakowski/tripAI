@@ -7,9 +7,12 @@ import { ArrowRight, BadgeCheck, Hand, Receipt } from "lucide-react";
 import { LangSwitch } from "@/components/lang-switch";
 import { Logo } from "@/components/shell";
 import { Chip } from "@/components/declutter";
+import { HomeToday, MyTripsLink } from "@/components/home-today";
+import { InboxBell } from "@/components/inbox-bell";
 import { Button } from "@/components/ui/button";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { useT } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import { useHydrated, useTrip } from "@/lib/store";
 
 // The photos are landscape (about 1.5:1) in 3:4 frames, so each keeps half its width: `focus` (object-position)
@@ -38,17 +41,26 @@ export default function Welcome() {
   const setProfile = useTrip((s) => s.setProfile);
   const reset = useTrip((s) => s.reset);
   const t = useT().t.home;
+  // the returning view makes room for the "today" summary: smaller collage, no promise chips, sticky CTA
+  const returning = hydrated && !!profile;
 
   return (
     <div className="flex min-h-dvh flex-col px-6 pt-5 pb-8 sm:min-h-0 sm:flex-1">
       <div className="flex items-center justify-between">
         <Logo />
         <div className="flex items-center gap-2">
+          {/* returning: planned trips + unread notifications as header icons, not more words on the page */}
+          {returning && (
+            <>
+              <MyTripsLink />
+              <InboxBell />
+            </>
+          )}
           <LangSwitch />
         </div>
       </div>
 
-      <div className="relative mt-5 h-40">
+      <div className={cn("relative", returning ? "mx-auto mt-2 h-28 w-[72%]" : "mt-5 h-40 w-full")}>
         {PHOTOS.map((p, i) => (
           <motion.div
             key={p.src}
@@ -64,23 +76,41 @@ export default function Welcome() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.6 }}>
-        <h1 className="mt-9 font-display text-[2.4rem] leading-[1.04] font-medium text-ink">
+        <h1 className={cn(returning ? "mt-6" : "mt-9", "font-display text-[2.4rem] leading-[1.04] font-medium text-ink")}>
           {t.title}
         </h1>
+        <p className="mt-2.5 text-[17px] leading-snug text-ink-soft">
+          {t.lead.before}
+          <em className="font-display text-ink not-italic">{t.lead.where}</em>
+          {t.lead.and}
+          <em className="font-display text-ink not-italic">{t.lead.when}</em>
+          {t.lead.after}
+        </p>
       </motion.div>
 
-      <ul className="mt-5 flex flex-wrap gap-2">
-        {PROMISES.map(({ icon: Icon, key }) => (
-          <li key={key}>
-            <Chip icon={<Icon className="size-3.5 text-pine" aria-hidden />} className="px-2.5 py-1 text-[13px]">
-              {t.promises[key]}
-            </Chip>
-          </li>
-        ))}
-      </ul>
+      {/* the trust promises are for newcomers; a returning user sees their #1 and next time off instead (≤ 25 words) */}
+      {!returning && (
+        <ul className="mt-5 flex flex-wrap gap-2">
+          {PROMISES.map(({ icon: Icon, key }) => (
+            <li key={key}>
+              <Chip icon={<Icon className="size-3.5 text-pine" aria-hidden />} className="px-2.5 py-1 text-[13px]">
+                {t.promises[key]}
+              </Chip>
+            </li>
+          ))}
+        </ul>
+      )}
 
-      <div className="mt-auto space-y-3 pt-6">
-        {hydrated && profile ? (
+      {/* returning user: their #1 trip and the next time off (the first-run welcome stays as it is) */}
+      {returning && <HomeToday />}
+
+      <div
+        className={cn(
+          "mt-auto space-y-3",
+          returning ? "sticky bottom-0 -mx-6 -mb-8 bg-gradient-to-t from-background from-80% to-background/0 px-6 pt-5 pb-4" : "pt-6",
+        )}
+      >
+        {returning ? (
           <>
             <Button size="lg" className="h-13 w-full rounded-2xl text-base" onClick={() => router.push("/trips")}>
               {t.seeTrips} <ArrowRight data-icon="inline-end" />

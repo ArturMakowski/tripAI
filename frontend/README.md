@@ -15,7 +15,7 @@ npm run test:bundle  # build with canary secrets, assert none reach .next/static
 ## Screens and demo flow
 | Route | What it shows |
 |---|---|
-| `/` | Welcome screen and the trust promises |
+| `/` | Welcome screen and the trust promises; for a returning user, the "today" summary (#1 trip, next time off) |
 | `/onboarding` | Interview chat with quick-reply chips → taste profile summary (`POST /interview`) |
 | `/profile` | Editable profile chips: tap to change an interest's strength, toggle dislikes, set budget, stay, temperature, trip length and airports |
 | `/windows` | Free windows (`GET /windows`) plus the **Długi weekend radar** ("Take 1 day off → 4 days"), with day strips |
@@ -343,3 +343,22 @@ no contract changes.
   past trip, with no price checks. Targets are kept in the store (`tripTargets`), and the header badge switches to "Demo data" (dataset `trips`).
 - **Code.** Logic is in `lib/trips.ts`, pinned by `lib/trips.test.ts`; copy is in the i18n namespace `myTrips`; the inbox shows the new
   `target_price` kind.
+
+## Returning-user home (`/`, T16)
+Once a profile exists, `/` stops being an empty welcome and shows what the product promises, where **and** when, from data already on
+the device. Nothing on this screen starts a search or calls SerpApi:
+- **Twój nr 1 / Your #1.** This is exactly the #1 on `/trips`. Both screens read one selector, `lib/trip-list.ts`: `rankedView` reranks the
+  stored recs by the *current* weights (slider/survey, no refetch needed), with fit verdicts. `listedTrips` / `topTrip` then drop trips
+  swiped "Nie dla mnie", `poor_fit` ("not my style") and trips that already started. The card shows the thumbnail, "Twój nr 1 · dates", the
+  city and the price via `PriceInline`, so an estimate stays "~X zł · szacunek", muted, exactly as on the card. Tapping it opens
+  `/trips/[id]`. Without a stored ranking the card is not shown.
+- **Next time off.** One card for whichever comes first: the user's picked dates (`usableRanges`, the same ranges `/trips` searches)
+  or the next długi weekend (the stored backend radar, else local PL holidays + bridge days). Examples: "11–15 lis · Weź 2 dni urlopu →
+  5 dni" and "20–25 paź · Twoje terminy · 6 dni". The holiday name is in the aria-label and the tooltip. Tapping it opens `/windows`.
+- **Header icons.** The "Moje podróże" icon carries the number of planned trips. The inbox bell is the same one as on every other screen.
+- **Declutter.** The returning view has no promise chips, a smaller collage and a sticky CTA. Each card uses two text styles, and the view
+  stays within 25 words above the fold, headline and lead included (`components/home-today.test.tsx` checks this in PL and EN). The
+  first-run welcome only gets the restored headline ("Powiedz, kiedy masz wolne." + "Podpowiemy, **dokąd** i **kiedy** jechać — z dowodami.").
+- **Tests.** `lib/trip-list.test.ts` covers the hidden, weight-change, poor_fit and started cases. `lib/home-today.test.ts` and
+  `components/home-today.test.tsx` cover the rest. In e2e, 09 revisits `/` as a returning user, and 10 checks that the home card is
+  `/trips` #1 with the same total and estimate label.

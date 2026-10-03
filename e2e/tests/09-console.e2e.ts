@@ -1,6 +1,6 @@
 import { test } from '@e2e-dev/web';
 import { expect } from 'e2e';
-import { guard, type PageError, realErrors } from './support/tripai.ts';
+import { guard, useDemoProfile, type PageError, realErrors } from './support/tripai.ts';
 
 const ROUTES = ['/', '/onboarding', '/onboarding/chat', '/windows', '/trips', '/profile', '/survey', '/inbox', '/inbox/settings', '/credits'];
 
@@ -30,6 +30,15 @@ test('No console errors and no hydration errors on any route', { timeout: 300_00
   await expect(first).toBeVisible({ timeout: 60_000 });
   const href = await first.getAttribute('href');
   if (href) await visit(href);
+
+  // The returning home (T16): with a profile and a stored ranking, / shows the #1 trip and the next time off,
+  // rendered on the client only (it reads localStorage and today's date), so hydration errors would land here.
+  await useDemoProfile(browser, screen);
+  await browser.goto('/trips');
+  await expect(listToggle).toBeVisible({ timeout: 60_000 });
+  await expect(browser.locator('main ul[aria-busy="true"]')).toHaveCount(0, { timeout: 90_000 });
+  await visit('/');
+  await expect(browser.locator('[data-testid="home-top-pick"]')).toBeVisible({ timeout: 30_000 });
 
   // The SerpApi guard did its job: /trips asked for the full pipeline and got phase=fast instead.
   expect(g.downgraded()).toBeGreaterThan(0);
