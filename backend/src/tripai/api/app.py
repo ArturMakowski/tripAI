@@ -69,15 +69,14 @@ def create_app(
 
     @app.get("/health")
     async def health() -> dict:
+        budget = getattr(provider, "budget_status", None)
         return {
             "ok": True,
             "provider": type(provider).__name__,
             "calendar": type(calendar).__name__,
             "store": type(store).__name__,
             "sources": _source_modes(provider, calendar),
-            "serpapi_budget": budget()
-            if callable(budget := getattr(provider, "budget_status", None))
-            else None,
+            "serpapi_budget": await budget() if callable(budget) else None,
             "llm": model_name() if llm_enabled() else None,
             "scoring_version": SCORING_VERSION,
         }

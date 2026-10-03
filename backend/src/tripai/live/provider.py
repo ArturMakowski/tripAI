@@ -22,6 +22,7 @@ from typing import Any
 import httpx
 
 from tripai.connectors import config
+from tripai.connectors.base import FixtureNotFound
 from tripai.connectors.cache import Cache, DiskCache, LayeredCache, NullCache, SupabaseCache
 from tripai.connectors.open_meteo import OpenMeteo, WeatherSummary
 from tripai.connectors.serpapi import (
@@ -171,6 +172,17 @@ def _session_cache(client: httpx.AsyncClient) -> Cache:
     return LayeredCache(DiskCache())
 
 
+# First word of a `_Session.call` label -> source name (for the coverage summary).
+_CALL_SOURCE = {
+    "explore": "serpapi",
+    "google_flights": "serpapi",
+    "google_hotels": "serpapi",
+    "open-meteo": "open_meteo",
+    "serper": "serper",
+    "travelpayouts": "travelpayouts",
+}
+
+
 class _Session:
     """Connectors sharing one HTTP client, a concurrency limit and per-request memoisation."""
 
@@ -215,7 +227,9 @@ class _Session:
         self.serper = Serper(**fx("serper"))
         self.today = today
         self._sem = asyncio.Semaphore(CONCURRENCY)
-        self.failures: list[str] = []
+        self.failures: list[str] = []  # real errors only
+        self.uncovered: dict[str, int] = {}  # source -> fixture lookups with no recording
+        self.capped = 0  # SerpApi calls skipped by the budget
         self.serpapi_calls = 0  # lookups through live connectors (cache hits included)
         self.serpapi_network = 0  # real SerpApi searches (metered)
 
@@ -247,11 +261,20 @@ class _Session:
             return e
         return e.model_copy(update={"source": e.source + sources.RECORDED_TAG})
 
+    def _uncovered(self, what: str) -> None:
+        """A fixture-mode source with no recording for this request: the data is simply not
+        available (expected: fixtures cover 14-19 Jan 2027 for 10 routes), not a failure."""
+        src = _CALL_SOURCE.get(what.split()[0], what.split()[0])
+        self.uncovered[src] = self.uncovered.get(src, 0) + 1
+
     async def call(self, what: str, fn: Callable[[], Awaitable[Any]]) -> Any | None:
         """Run one connector call; any failure is logged and becomes None (never raises)."""
         async with self._sem:
             try:
                 return await fn()
+            except FixtureNotFound:
+                self._uncovered(what)
+                return None
             except Exception as exc:  # noqa: BLE001 - graceful degradation is the contract
                 log.warning("live provider: %s failed: %s", what, exc)
                 self.failures.append(f"{what}: {type(exc).__name__}")
@@ -264,9 +287,11 @@ class _Session:
         async with self._sem:
             try:
                 return await fn(self.serp[kind])
-            except BudgetExhausted as exc:
-                log.warning("live provider: %s skipped: %s", what, exc)
-                self.failures.append(f"{what}: BudgetExhausted")
+            except BudgetExhausted:
+                self.capped += 1  # deliberate spend limit, not a failure (summary line only)
+            except FixtureNotFound:
+                self._uncovered(what)
+                return None
             except Exception as exc:  # noqa: BLE001 - graceful degradation is the contract
                 log.warning("live provider: %s failed: %s", what, exc)
                 self.failures.append(f"{what}: {type(exc).__name__}")
@@ -319,8 +344,8 @@ class LiveProvider:
         self.budget = budget
         self.last_stats: dict[str, Any] = {}
 
-    def budget_status(self) -> dict[str, Any]:
-        return (self.budget or global_budget()).status()
+    async def budget_status(self) -> dict[str, Any]:
+        return await (self.budget or global_budget()).status()
 
     def source_modes(self) -> dict[str, str]:
         """Per-source 'live' | 'fixture' (reported by GET /health)."""
@@ -465,7 +490,20 @@ class LiveProvider:
                 "serpapi_network": s.serpapi_network,
                 "sources": s.modes,
                 "failures": s.failures[:200],
+                "uncovered": dict(s.uncovered),
+                "capped": s.capped,
             }
+            # one summary line per request (no per-call noise for expected gaps)
+            log.info(
+                "live provider: %d candidates from %d cities; SerpApi searches: %d, capped: %d; "
+                "fixtures without coverage: %s; failures: %d",
+                len(cands),
+                len(cities),
+                s.serpapi_network,
+                s.capped,
+                ", ".join(f"{k} x{v}" for k, v in sorted(s.uncovered.items())) or "none",
+                len(s.failures),
+            )
             return cands
 
     # ------------------------------------------------------------------ cheap pass

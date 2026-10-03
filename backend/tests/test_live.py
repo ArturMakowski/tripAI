@@ -63,7 +63,8 @@ def test_live_candidates_from_seed_and_connectors(prof):
     cands = run(p, prof)
     cities = {c.city for c in cands}
     assert len(cands) == 10 and "Paris" not in cities  # no Paris fixtures -> dropped, no error
-    assert any("open-meteo paris" in f for f in p.last_stats["failures"])
+    assert p.last_stats["uncovered"]["open_meteo"] >= 1  # no Paris recording: not available
+    assert p.last_stats["failures"] == []  # ...and not a failure
     for c in cands:
         assert c.crowd == pytest.approx(c.crowd) and 0 <= c.crowd <= 1
         assert c.highlights and c.tags
@@ -439,7 +440,7 @@ def test_budget_daily_cap_is_shared_and_hard(tmp_path):
     other = SerpApiBudget(daily_cap=2, root=tmp_path)  # another process / restart
     with pytest.raises(BudgetExhausted):
         asyncio.run(other.take())
-    assert other.status()["used"] == 2
+    assert asyncio.run(other.status())["used"] == 2
 
 
 def test_budget_reads_the_supabase_counter(tmp_path, monkeypatch):
@@ -500,8 +501,8 @@ def test_serpapi_caps_then_recorded_fixtures(prof, monkeypatch, tmp_path, daily,
         cands = run(p, prof)
     cap = min(daily, per_request)
     assert route.call_count == cap == p.last_stats["serpapi_network"]
-    assert budget.status()["used"] == cap
-    assert any("BudgetExhausted" in f for f in p.last_stats["failures"])
+    assert asyncio.run(budget.status())["used"] == cap
+    assert p.last_stats["capped"] > 0 and p.last_stats["failures"] == []
     srcs = {e.source for c in cands for e in c.evidence}
     assert "serpapi:google_travel_explore" in srcs  # the first (metered) call was live
     assert "serpapi:google_flights" + RECORDED_TAG in srcs  # past the cap: recorded fixture
@@ -558,3 +559,90 @@ def test_no_live_data_is_503_not_synthetic(prof):
 def test_health_reports_budget():
     h = TestClient(create_app(provider=live())).get("/health").json()
     assert set(h["serpapi_budget"]) == {"day", "used", "daily_cap", "request_cap"}
+
+
+# ---------------------------------------------------------------- follow-up: loops, coverage
+
+
+def test_budget_lock_survives_several_event_loops(tmp_path):
+    """Regression: the process-wide budget used one asyncio.Lock, bound to the first loop
+    ("... is bound to a different event loop" on the warm CLI's second asyncio.run)."""
+    from tripai.live.budget import SerpApiBudget
+
+    b = SerpApiBudget(daily_cap=100, root=tmp_path)
+
+    async def slow_remote(day):  # like the real Supabase read: suspends while holding the lock
+        await asyncio.sleep(0.001)
+        return 0
+
+    b._read_remote = slow_remote
+
+    async def burst():
+        return await asyncio.gather(*(b.take() for _ in range(5)))  # contended: lock waits
+
+    first = asyncio.run(burst())
+    second = asyncio.run(burst())
+    assert sorted(first) == [1, 2, 3, 4, 5] and sorted(second) == [6, 7, 8, 9, 10]
+
+
+def test_uncovered_fixtures_are_silent_with_one_summary(prof, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO, logger="tripai.live.provider")
+    p = live()
+    run(p, prof, JAN + [FreeWindow(start=date(2027, 5, 1), end=date(2027, 5, 4))])
+    assert p.last_stats["failures"] == []
+    assert p.last_stats["uncovered"]["travelpayouts"] >= 10  # May: no recordings
+    recs = [r for r in caplog.records if r.name == "tripai.live.provider"]
+    assert not [r for r in recs if r.levelno >= logging.WARNING]
+    summary = [r.getMessage() for r in recs if "fixtures without coverage" in r.getMessage()]
+    assert len(summary) == 1 and "travelpayouts x" in summary[0]
+
+
+def test_confidence_ignores_unavailable_fixture_data(prof, monkeypatch):
+    """Confidence rates the evidence a card actually carries: a fixture source that has no
+    recording for the request gives the same cards and scores as one that returned nothing."""
+    from tripai.connectors.base import FixtureNotFound
+    from tripai.connectors.travelpayouts import FlightCalendar, Travelpayouts
+
+    def confidences(cands):
+        return {c.iata: conf(c).value for c in cands}
+
+    async def uncovered(self, origin, dest, month, **kw):
+        raise FixtureNotFound(f"no recording for {dest} {month}")
+
+    async def empty(self, origin, dest, month, **kw):
+        return FlightCalendar(source="travelpayouts:grouped_prices", fetched_at=TODAY.isoformat()
+                              + "T00:00:00+00:00", origin=origin, destination=dest,
+                              currency="PLN", query={}, fares=[])  # fmt: skip
+
+    monkeypatch.setattr(Travelpayouts, "month_calendar", uncovered)
+    p = live(top_n=0)
+    a = run(p, prof)
+    assert p.last_stats["failures"] == [] and p.last_stats["uncovered"]["travelpayouts"]
+    monkeypatch.setattr(Travelpayouts, "month_calendar", empty)
+    b = run(live(top_n=0), prof)
+    assert confidences(a) == confidences(b) and len(a) == len(b) >= 8
+    assert all("flight: Google Travel Explore" in conf(c).label for c in a)
+
+
+def test_health_budget_reports_the_shared_supabase_counter(tmp_path, monkeypatch):
+    """/health must show what enforcement sees: max(process, disk, Supabase), not just disk."""
+    import respx
+
+    from tripai.live import budget as budget_mod
+
+    monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_test")
+    b = budget_mod.SerpApiBudget(root=tmp_path)  # fresh process: nothing local, nothing on disk
+    app = create_app(provider=live(budget=b))
+    with respx.mock() as mock:
+        row = mock.get(url__startswith="https://x.supabase.co/rest/v1/api_cache")
+        row.respond(json=[{"payload": {"used": 11}}])
+        c = TestClient(app)
+        assert c.get("/health").json()["serpapi_budget"]["used"] == 11
+        row.respond(json=[{"payload": {"used": 12}}])
+        assert c.get("/health").json()["serpapi_budget"]["used"] == 11  # cached ~30 s
+        assert row.call_count == 1
+        monkeypatch.setattr(budget_mod, "STATUS_TTL_S", 0)
+        assert c.get("/health").json()["serpapi_budget"]["used"] == 12

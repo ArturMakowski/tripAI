@@ -95,7 +95,11 @@ when `TRIPAI_USE_FIXTURES=1`, else `live`. `create_app()` without arguments (tes
 the rest stay live. A source whose credentials are missing also uses fixtures (gcal needs `GOOGLE_CLIENT_ID/SECRET` + the
 OAuth token file), so a missing key never crashes anything. `TRIPAI_USE_FIXTURES=1` puts every source on fixtures.
 Fixture-served evidence is tagged `[recorded fixture]` (or `[synthetic fixture]` as before) and counts half in `confidence`.
-Recorded fixtures only cover 14–19 Jan 2027, so for other dates a fixture source just contributes nothing.
+Recorded fixtures only cover 14–19 Jan 2027, so for other dates a fixture source just contributes nothing. That counts as
+*not available*, not as a failure: it is left out of `failures`, nothing is logged per call, and it has no effect on `confidence`
+(which rates only the evidence a card carries). Each request logs one INFO summary
+(`fixtures without coverage: travelpayouts x28, ...; SerpApi capped: n; failures: k`), and the counts are in
+`LiveProvider.last_stats["uncovered"]` and `["capped"]`.
 `GET /health` → `"sources": {"travelpayouts": "live", "serpapi": "fixture", ...}`. With gcal live, `/windows` and
 the default `/recommendations` use real Google Calendar free/busy. On any error they fall back to the demo calendar, never an empty one.
 

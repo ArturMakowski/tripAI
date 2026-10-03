@@ -14,6 +14,8 @@ the cheap estimates. Concurrent processes may overshoot by a call or two (read-m
 import asyncio
 import json
 import logging
+import time
+import weakref
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -28,6 +30,7 @@ log = logging.getLogger(__name__)
 DEFAULT_DAILY_CAP = 30
 DEFAULT_REQUEST_CAP = 7
 SOURCE = "tripai:budget"
+STATUS_TTL_S = 30
 
 
 class BudgetExhausted(ConnectorError):
@@ -49,8 +52,13 @@ class SerpApiBudget:
     def __init__(self, daily_cap: int | None = None, root: Path | None = None) -> None:
         self._daily_cap = daily_cap
         self.root = root
-        self._lock = asyncio.Lock()
+        # One lock per event loop: an asyncio.Lock binds to the loop it first waits on, and
+        # this object outlives loops (warm CLI runs several asyncio.run, tests, reloads).
+        self._locks: weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Lock] = (
+            weakref.WeakKeyDictionary()
+        )
         self._day = ""
+        self._remote_seen: tuple[str, float, int] | None = None  # (day, monotonic, used)
         self._used = 0
 
     @property
@@ -140,11 +148,16 @@ class SerpApiBudget:
 
     async def take(self) -> int:
         """Reserve one SerpApi call for today or raise BudgetExhausted. Returns the new count."""
-        async with self._lock:
+        loop = asyncio.get_running_loop()
+        lock = self._locks.get(loop)
+        if lock is None:
+            lock = self._locks[loop] = asyncio.Lock()
+        async with lock:
             day = self._today()
             if day != self._day:
                 self._day, self._used = day, 0
             remote = await self._read_remote(day)
+            self._remote_seen = (day, time.monotonic(), remote)
             self._used = max(self._used, remote, self._read_disk(day))
             if self._used >= self.daily_cap:
                 raise BudgetExhausted(
@@ -155,9 +168,15 @@ class SerpApiBudget:
             await self._write_remote(day, self._used)
             return self._used
 
-    def status(self) -> dict[str, Any]:
+    async def status(self) -> dict[str, Any]:
+        """Today's spend as enforcement sees it: max(this process, disk, Supabase). The Supabase
+        read is cached for STATUS_TTL_S so /health stays cheap; `take()` always reads fresh."""
         day = self._today()
-        used = max(self._used if self._day == day else 0, self._read_disk(day))
+        now = time.monotonic()
+        cached = self._remote_seen
+        if cached is None or cached[0] != day or now - cached[1] > STATUS_TTL_S:
+            cached = self._remote_seen = (day, now, await self._read_remote(day))
+        used = max(self._used if self._day == day else 0, self._read_disk(day), cached[2])
         return {"day": day, "used": used, "daily_cap": self.daily_cap,
                 "request_cap": request_cap()}  # fmt: skip
 
