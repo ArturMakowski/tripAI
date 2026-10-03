@@ -59,7 +59,7 @@ export default function SwipeOnboarding() {
   const hydrated = useHydrated();
   const { deck, setDeck, profile, setProfile, setWeights, setMode } = useTrip();
   const { swipes, airports, result } = deck;
-  // Saved state from the old order (deck → budget → airports) lands on the first step.
+  // Saved state from older orders (deck → budget → airports) lands on the dates/party/airports step.
   const step: DeckStep = ["budget", "airport"].includes(deck.step as string) ? "trip" : deck.step;
   const ranges = useUsableRanges();
   const { t: all, lang } = useT();
@@ -78,11 +78,8 @@ export default function SwipeOnboarding() {
     const next = [...swipes, { id: card.id, value }];
     setDeck({ swipes: next });
     // Let the last card fly out first; undo within that moment cancels the jump.
-    if (next.length >= DNA_DECK.length)
-      advance.current = setTimeout(() => {
-        setDeck({ step: "result" });
-        void compute(collectAnswers(next));
-      }, 380);
+    // Deck done -> "Kiedy i z kim?" (dates, party, airports); the result is computed from there.
+    if (next.length >= DNA_DECK.length) advance.current = setTimeout(() => setDeck({ step: "trip" }), 380);
   }
 
   function undo() {
@@ -144,7 +141,7 @@ export default function SwipeOnboarding() {
   }
 
   function restart() {
-    setDeck({ swipes: [], step: "trip", result: null });
+    setDeck({ swipes: [], step: "swipe", result: null });
   }
 
   if (!hydrated) return <AppShell nav={false}>{null}</AppShell>;
@@ -160,11 +157,6 @@ export default function SwipeOnboarding() {
               {DNA_DECK[position]?.kind === "yesno" ? t.hintYesNo : t.hint}
             </p>
             <DnaDeck cards={DNA_DECK} position={position} lang={lang} onAnswer={answer} onUndo={undo} undoGesture={undoGesture} />
-            {position === 0 && (
-              <button onClick={() => setDeck({ step: "trip" })} className="mt-5 text-center text-sm text-muted-foreground hover:text-ink">
-                ← {t.back}
-              </button>
-            )}
             <Link
               href="/onboarding/chat"
               className="mt-6 flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-ink"
@@ -176,7 +168,7 @@ export default function SwipeOnboarding() {
 
         {step === "trip" && (
           <motion.section key="trip" {...slide} className="flex min-h-[70dvh] flex-col pt-4 pb-8">
-            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.step(1, 2)}</p>
+            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.step(2, 2)}</p>
             <h1 className="mt-1 font-display text-[2rem] leading-tight text-ink">{t.tripTitle}</h1>
             <p className="mt-1 text-[15px] text-ink-soft">{t.tripSub}</p>
 
@@ -213,19 +205,23 @@ export default function SwipeOnboarding() {
               })}
             </div>
 
-            <div className="mt-auto pt-8">
+            <div className="mt-auto flex gap-3 pt-8">
+              {/* Back = undo the last swipe, like the deck's own undo */}
+              <Button variant="outline" size="lg" className="h-12 rounded-2xl" onClick={() => setDeck({ step: "swipe", swipes: swipes.slice(0, -1) })}>
+                {t.back}
+              </Button>
               <Button
                 size="lg"
-                className="h-12 w-full rounded-2xl text-base"
+                className="h-12 flex-1 rounded-2xl text-base"
                 disabled={!airports.length || busy}
                 onClick={async () => {
-                  // Coming back from the result (edit): the deck is already done, recompute instead.
-                  if (swipes.length >= DNA_DECK.length) {
-                    if (await compute()) setDeck({ step: "result" });
-                  } else setDeck({ step: "swipe" });
+                  // Not finished swiping yet (e.g. old saved state): back to the deck first.
+                  if (swipes.length < DNA_DECK.length) return setDeck({ step: "swipe" });
+                  // Only move on once there is a result, so a reload never lands on an empty result screen.
+                  if (await compute()) setDeck({ step: "result" });
                 }}
               >
-                {busy ? t.computing : t.next} {!busy && <ArrowRight data-icon="inline-end" />}
+                {busy ? t.computing : t.showDna} {!busy && <ArrowRight data-icon="inline-end" />}
               </Button>
             </div>
           </motion.section>

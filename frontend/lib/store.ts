@@ -19,7 +19,7 @@ export interface FeedbackDiff {
   frozen?: boolean;
 }
 
-/** Onboarding: dates + party + airports first ("trip"), then the DNA deck, then the result. */
+/** Onboarding: the Travel DNA deck first ("swipe"), then dates + party + airports ("trip"), then the result. */
 export type DeckStep = "trip" | "swipe" | "result";
 
 export type Dataset = "interview" | "windows" | "recs" | "feedback";
@@ -80,7 +80,7 @@ const initial = {
   modes: {},
   approved: [],
   feedback: null,
-  deck: { swipes: [] as DnaSwipe[], step: "trip" as DeckStep, airports: ["KRK"], result: null as DnaResponse | null },
+  deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, airports: ["KRK"], result: null as DnaResponse | null },
   lang: null as Lang | null,
 };
 
