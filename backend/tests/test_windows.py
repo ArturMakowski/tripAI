@@ -87,3 +87,22 @@ def test_trip_windows():
     weekend = FreeWindow(start=date(2026, 7, 4), end=date(2026, 7, 5))
     assert trip_windows([weekend], (3, 7)) == [weekend]  # only option -> kept
     assert trip_windows([weekend, long], (3, 7)) == out
+
+
+def test_radar_keeps_bridge_that_started_before_range():
+    # from Mon 9 Nov: the 7-11 Nov bridge still needs leave on 9-10 Nov, so it is still actionable
+    radar = long_weekends(date(2026, 11, 9), date(2026, 11, 30))
+    assert (date(2026, 11, 7), date(2026, 11, 11)) in {
+        (b.window.start, b.window.end) for b in radar
+    }
+    # ...but from 11 Nov the leave days are in the past
+    radar = long_weekends(date(2026, 11, 11), date(2026, 11, 30))
+    assert (date(2026, 11, 7), date(2026, 11, 11)) not in {
+        (b.window.start, b.window.end) for b in radar
+    }
+
+
+def test_one_day_trips_allowed_when_profile_allows():
+    day = FreeWindow(start=date(2026, 7, 4), end=date(2026, 7, 4))
+    assert trip_windows([day], (1, 3)) == [day]
+    assert trip_windows([day], (3, 7)) == []

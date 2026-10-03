@@ -66,7 +66,9 @@ class FlipHint(BaseModel):
     factor: str | None = None  # weight that would need to change
     weight_from: float | None = None
     weight_to: float | None = None
-    price_increase_pln: float | None = None  # alternatively: this trip getting this much pricier
+    # alternatively: the higher-ranked trip of the pair (this one at rank 1, otherwise the rival
+    # above) getting this much pricier
+    price_increase_pln: float | None = None
     text: str
 
 

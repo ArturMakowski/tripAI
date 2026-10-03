@@ -5,11 +5,14 @@ import pytest
 from tripai.models import FreeWindow, ScoreBreakdown, TasteProfile, Weights
 from tripai.scoring import normalise_weights, rank, score_candidate
 from tripai.scoring.engine import (
+    candidate_id,
     crowd_score,
     inputs_hash,
     price_score,
     taste_score,
     weather_score,
+    with_extra_cost,
+    with_weight,
 )
 from tripai.scoring.types import Candidate
 
@@ -72,21 +75,64 @@ def test_summer_window_loses_for_crowd_and_heat_haters(candidates):
     assert recs[0].window.start.month != 7
 
 
-def test_flip_hint_actually_flips(candidates, profile):
-    recs = rank(candidates, profile)
-    top, second = recs[0], recs[1]
-    flip = top.flip
-    assert flip and flip.rival_id == second.id
-    if flip.factor:
-        w = normalise_weights(Weights()).model_dump()
-        bump = flip.weight_to * 1.02
-        w = {k: v * (1 - bump) / (1 - w[flip.factor]) for k, v in w.items()}
-        w[flip.factor] = bump
-        flipped = rank(candidates, profile, Weights(**w))
-        assert flipped.index(next(r for r in flipped if r.id == second.id)) < next(
-            i for i, r in enumerate(flipped) if r.iata == top.iata
-        )
-    assert recs[1].flip.rival_id == top.id  # #2 says what would lift it over #1
+FLIP_SCENARIOS = [
+    (
+        TasteProfile(user_id="a", budget_pln=2500, interests={"food": 0.9, "history": 0.7}),
+        Weights(),
+    ),
+    (
+        TasteProfile(
+            user_id="reviewer",
+            interests={"food": 0.9, "beach": 0.6, "history": 0.4},
+            dislikes=["crowds"],
+        ),
+        Weights(),
+    ),
+    (TasteProfile(user_id="b", interests={"beach": 1}, dislikes=["heat"]), Weights(price=0.1)),
+    (TasteProfile(user_id="c", luxury="luxury"), Weights(taste=0.7, crowds=0.05)),
+]
+FLIP_WINDOWS = [
+    FreeWindow(start=date(2026, 11, 7), end=date(2026, 11, 11)),
+    FreeWindow(start=date(2026, 7, 10), end=date(2026, 7, 14)),
+    FreeWindow(start=date(2027, 5, 27), end=date(2027, 5, 30)),
+    FreeWindow(start=date(2027, 1, 14), end=date(2027, 1, 19)),
+]
+
+
+@pytest.mark.parametrize(("profile", "weights"), FLIP_SCENARIOS)
+def test_every_flip_hint_actually_flips(profile, weights):
+    """Apply each hint exactly as displayed (weight slider / price) and the pair must swap."""
+    import asyncio
+
+    from tripai.scoring import FixtureProvider
+
+    cands = asyncio.run(FixtureProvider().candidates("KRK", FLIP_WINDOWS, profile.luxury))
+    by_id = {candidate_id(c): c for c in cands}
+    recs = rank(cands, profile, weights)
+    checked = 0
+    for i, r in enumerate(recs):
+        if r.flip is None:
+            continue
+        this, rival = by_id[r.id], by_id[r.flip.rival_id]
+        lo, hi = (this, rival) if i > 0 else (rival, this)  # lo should overtake hi
+        assert r.flip.factor or r.flip.price_increase_pln, r.flip.text
+        if r.flip.factor:
+            assert r.flip.weight_to != r.flip.weight_from  # no no-op hints
+            assert f"{r.flip.weight_to:.2f}" in r.flip.text
+            w2 = with_weight(weights, r.flip.factor, r.flip.weight_to)
+            assert score_candidate(lo, profile, w2).total > score_candidate(hi, profile, w2).total
+            order = [x.iata for x in rank([lo, hi], profile, w2)]
+            assert order == [lo.iata, hi.iata], r.flip.text
+            checked += 1
+        if r.flip.price_increase_pln:
+            hi2 = with_extra_cost(hi, r.flip.price_increase_pln)
+            assert (
+                score_candidate(lo, profile, weights).total
+                > score_candidate(hi2, profile, weights).total
+            )
+            assert [x.iata for x in rank([lo, hi2], profile, weights)] == [lo.iata, hi.iata]
+            checked += 1
+    assert checked >= len(recs) - 1
 
 
 def test_price_flip_amount(profile):
@@ -105,3 +151,24 @@ def test_price_flip_amount(profile):
         a.model_copy(update={"flight_cost_pln": 1000 + inc + 1}), profile, Weights()
     )
     assert s_a.total < score_candidate(b, profile, Weights()).total
+
+
+def test_no_peak_counterfactual_inside_peak_month(profile):
+    import asyncio
+
+    from tripai.scoring import FixtureProvider
+
+    jul = [FreeWindow(start=date(2026, 7, 10), end=date(2026, 7, 14))]
+    cands = asyncio.run(FixtureProvider().candidates("KRK", jul))
+    for r in rank(cands, profile):
+        peak = [c for c in r.counterfactuals if c.kind == "peak_season"]
+        assert not peak or (r.window.start.month, r.window.end.month) != (7, 7), r.city
+
+
+def test_same_dates_different_source_deduped(candidates, profile):
+    dup = [c.model_copy(update={"window": c.window.model_copy(update={"source": "gcal"})})
+           for c in candidates]  # fmt: skip
+    recs = rank(candidates + dup, profile)
+    for r in recs:
+        nxt = [c for c in r.counterfactuals if c.kind == "next_window"]
+        assert all((c.window.start, c.window.end) != (r.window.start, r.window.end) for c in nxt)

@@ -2,7 +2,9 @@
 
 import hashlib
 import json
+import math
 from collections.abc import Sequence
+from datetime import timedelta
 
 from tripai.models import LuxuryLevel, ScoreBreakdown, TasteProfile, Weights
 from tripai.scoring.types import Candidate, Counterfactual, FlipHint, RankedRecommendation
@@ -112,6 +114,16 @@ def fmt_window(c: Candidate) -> str:
     return f"{s.day} {MONTHS[s.month - 1]}-{e.day} {MONTHS[e.month - 1]}"
 
 
+def _months(w) -> set[int]:
+    """Calendar months a window touches (the peak counterfactual is meaningless inside them)."""
+    out, d = set(), w.start
+    while d <= w.end:
+        out.add(d.month)
+        d = d.replace(day=1) + timedelta(days=32)
+        d = d.replace(day=1)
+    return out
+
+
 def _peak_candidate(c: Candidate) -> Candidate | None:
     if c.peak is None:
         return None
@@ -153,6 +165,28 @@ def _counterfactual(
     )
 
 
+def with_weight(weights: Weights, factor: str, value: float) -> Weights:
+    """Set one normalised weight to `value`, rescaling the others proportionally (slider semantics)."""
+    w = normalise_weights(weights)
+    old = getattr(w, factor)
+    rest = 1 - old
+    scaled = {
+        f: (value if f == factor else (getattr(w, f) * (1 - value) / rest if rest > 0 else 0.0))
+        for f in FACTORS
+    }
+    return Weights(**scaled)
+
+
+def with_extra_cost(c: Candidate, extra_pln: float) -> Candidate:
+    return c.model_copy(update={"flight_cost_pln": c.flight_cost_pln + extra_pln})
+
+
+def _overtakes(lo_c: Candidate, hi_c: Candidate, profile: TasteProfile, weights: Weights) -> bool:
+    """Strictly higher total (as displayed, 4 dp), so the swap never relies on a tie-break."""
+    lo = score_candidate(lo_c, profile, weights).total
+    return lo > score_candidate(hi_c, profile, weights).total
+
+
 def _flip(
     this: Candidate,
     this_sb: ScoreBreakdown,
@@ -166,22 +200,27 @@ def _flip(
 
     rival_above=False: `this` is ranked above `rival` (what would make the rival overtake).
     rival_above=True: `rival` is above `this` (what would lift `this` over it).
+    Every suggestion is verified by re-scoring with the exact displayed value, so applying it
+    really flips the pair (rounded away from the current value, past the crossing point).
     """
     hi, lo = (rival_sb, this_sb) if rival_above else (this_sb, rival_sb)
     hi_c, lo_c = (rival, this) if rival_above else (this, rival)
     w = normalise_weights(weights)
     gap = sum(getattr(w, f) * (getattr(hi, f) - getattr(lo, f)) for f in FACTORS)
-    best: tuple[float, str, float] | None = None
+
+    best: tuple[float, str, float] | None = None  # (change, factor, new weight)
     for f in FACTORS:
         d = getattr(hi, f) - getattr(lo, f)
         if d >= 0:
             continue  # raising this weight only widens the gap
         # Raise raw weight f by x (others fixed): gap + x*d = 0 -> x = gap / -d.
-        x = gap / -d + 1e-6
-        new_raw = getattr(w, f) + x
-        new_norm = new_raw / (1 + x)
-        if best is None or x < best[0]:
-            best = (x, f, new_norm)
+        x = gap / -d
+        crossing = (getattr(w, f) + x) / (1 + x)
+        t = math.ceil(crossing * 100 + 1e-9) / 100
+        while t <= 1.0 and not _overtakes(lo_c, hi_c, profile, with_weight(w, f, t)):
+            t = round(t + 0.01, 2)
+        if t <= 1.0 and t > getattr(w, f) and (best is None or t - getattr(w, f) < best[0]):
+            best = (t - getattr(w, f), f, t)
 
     # Price route: how much pricier would the higher-ranked trip have to be to drop below the other.
     price_inc = None
@@ -189,7 +228,7 @@ def _flip(
         budget = effective_budget(profile)
         target = hi.price - (gap / w.price)
         base_cost = hi_c.total_cost_pln
-        if price_score(base_cost * 10, budget, hi_c.seasonal_median_cost_pln) <= target:
+        if price_score(base_cost * 10, budget, hi_c.seasonal_median_cost_pln) < target:
             lo_cost, hi_cost = base_cost, base_cost * 10
             for _ in range(60):
                 mid = (lo_cost + hi_cost) / 2
@@ -197,22 +236,27 @@ def _flip(
                     lo_cost = mid
                 else:
                     hi_cost = mid
-            price_inc = float(round(hi_cost - base_cost))
+            inc = math.ceil(hi_cost - base_cost) + 1
+            for _ in range(100):
+                if _overtakes(lo_c, with_extra_cost(hi_c, inc), profile, w):
+                    price_inc = float(inc)
+                    break
+                inc += max(1, math.ceil(base_cost * 0.005))
 
     lo_name = f"{lo_c.city} ({fmt_window(lo_c)})"
     hi_name = f"{hi_c.city} ({fmt_window(hi_c)})"
     parts = []
     factor = weight_from = weight_to = None
     if best is not None:
-        _, factor, new_norm = best
-        weight_from, weight_to = getattr(w, factor), round(new_norm, 2)
+        _, factor, weight_to = best
+        weight_from = getattr(w, factor)
         parts.append(f"{factor} weight {weight_from:.2f} -> {weight_to:.2f}")
     if price_inc is not None:
         parts.append(f"{hi_c.city} costing {price_inc:.0f} PLN more")
     if parts:
         text = f"{lo_name} would overtake {hi_name} with: " + " or ".join(parts)
     else:
-        text = f"No single weight change makes {lo_name} overtake {hi_name}"
+        text = f"No single weight or price change makes {lo_name} overtake {hi_name}"
     return FlipHint(
         rival_id=candidate_id(rival),
         rival_city=rival.city,
@@ -234,6 +278,7 @@ def rank(
 ) -> list[RankedRecommendation]:
     """Score every candidate, keep the best window per city, attach the receipt."""
     weights = normalise_weights(weights)
+    candidates = list({candidate_id(c): c for c in reversed(candidates)}.values())  # first wins
     digest = inputs_hash(candidates, profile, weights)
     scored = [(c, score_candidate(c, profile, weights)) for c in candidates]
     scored.sort(key=lambda cs: (-cs[1].total, cs[0].total_cost_pln, cs[0].iata, cs[0].window.start))
@@ -251,12 +296,17 @@ def rank(
     for i, (c, sb) in enumerate(picked):
         cfs: list[Counterfactual] = []
         peak = _peak_candidate(c)
-        if peak is not None:
+        if peak is not None and c.peak.month not in _months(c.window):
             peak_sb = score_candidate(peak, profile, weights)
             label = f"same trip in {MONTHS[c.peak.month - 1]} (peak season)"
             cfs.append(_counterfactual("peak_season", label, c, sb.total, peak, peak_sb.total))
         alt = next(
-            ((o, osb) for o, osb in scored if o.iata == c.iata and o.window != c.window), None
+            (
+                (o, osb)
+                for o, osb in scored
+                if o.iata == c.iata and candidate_id(o) != candidate_id(c)
+            ),
+            None,
         )
         if alt is not None:
             label = f"next-best window {fmt_window(alt[0])}"

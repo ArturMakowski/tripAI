@@ -18,7 +18,7 @@ from tripai.api.schemas import (
     WindowsRequest,
 )
 from tripai.api.state import MemoryStore, Store
-from tripai.models import FreeWindow, Weights
+from tripai.models import FreeWindow, TasteProfile, Weights
 from tripai.scoring import (
     SCORING_VERSION,
     BridgeWindow,
@@ -34,7 +34,7 @@ from tripai.scoring import (
     rank,
     trip_windows,
 )
-from tripai.scoring.windows import TZ
+from tripai.scoring.windows import MAX_LEAVE_DAYS, TZ
 
 
 def _merge_windows(windows: list[FreeWindow]) -> list[FreeWindow]:
@@ -84,12 +84,12 @@ def create_app(
     async def get_windows(
         start: Annotated[date, Query(alias="from")],
         end: Annotated[date, Query(alias="to")],
-        min_days: int = 2,
+        min_days: Annotated[int, Query(ge=1, le=60)] = 2,
     ) -> list[FreeWindow]:
         """Free windows from the connected calendar (fixture: 9-17 office job, PL holidays off)."""
         _check_range(start, end)
         busy = await calendar.busy(start, end)
-        return free_windows(busy, start, end, min_days=min_days, source="calendar")
+        return free_windows(busy, start, end, min_days=min_days, source="gcal")
 
     @app.post("/windows")
     async def post_windows(req: WindowsRequest) -> list[FreeWindow]:
@@ -101,7 +101,7 @@ def create_app(
     async def get_long_weekends(
         start: Annotated[date, Query(alias="from")],
         end: Annotated[date, Query(alias="to")],
-        max_leave: int = 2,
+        max_leave: Annotated[int, Query(ge=0, le=MAX_LEAVE_DAYS)] = 2,
     ) -> list[BridgeWindow]:
         """Długi weekend radar: PL holidays + bridge days ('take 1 day off -> 4 days')."""
         _check_range(start, end)
@@ -118,7 +118,7 @@ def create_app(
             end = today + timedelta(days=req.horizon_days)
             busy = await calendar.busy(today, end)
             radar = [b.window for b in long_weekends(today, end, max_leave=req.max_leave_days)]
-            windows = _merge_windows(free_windows(busy, today, end, source="calendar") + radar)
+            windows = _merge_windows(free_windows(busy, today, end, source="gcal") + radar)
         trips = trip_windows(windows, profile.trip_length_days)
         origin = profile.origin_airports[0] if profile.origin_airports else "KRK"
         candidates = await provider.candidates(origin, trips, profile.luxury)
@@ -138,9 +138,7 @@ def create_app(
 
     @app.post("/feedback")
     async def post_feedback(req: FeedbackRequest) -> FeedbackResponse:
-        profile = req.profile or store.get_profile(req.user_id)
-        if profile is None:
-            raise HTTPException(404, f"no profile for user {req.user_id!r}; pass `profile`")
+        profile = req.profile or store.get_profile(req.user_id) or TasteProfile(user_id=req.user_id)
         weights = req.weights or store.get_weights(profile.user_id) or Weights()
         rec = store.get_recommendation(req.trip_id)
         tags: list[str] = []
@@ -156,7 +154,13 @@ def create_app(
         result = apply_feedback(profile, weights, req.answers, tags, temp, trip_label=label)
         store.save_profile(result.profile)
         store.save_weights(result.profile.user_id, result.weights)
-        return FeedbackResponse(trip_id=req.trip_id, **result.model_dump())
+        return FeedbackResponse(
+            **result.profile.model_dump(),
+            trip_id=req.trip_id,
+            weights=result.weights,
+            diff=result.diff,
+            profile=result.profile,
+        )
 
     return app
 

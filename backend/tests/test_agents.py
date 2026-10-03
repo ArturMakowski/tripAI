@@ -125,3 +125,11 @@ def test_model_selection(monkeypatch):
     assert not llm_enabled()  # key of the selected provider is missing
     monkeypatch.setenv("TRIPAI_LLM", "0")
     assert not llm_enabled()
+
+
+def test_decimal_comma_is_one_number(candidates, profile):
+    rec = _top(candidates, profile)
+    temp = next(e.value for e in rec.evidence if e.kind == "weather")
+    txt = f"{temp:.1f}".replace(".", ",")
+    assert ungrounded_numbers(f"około {txt} °C", allowed_numbers(rec)) == []
+    assert ungrounded_numbers("około 18,7 °C", {18.0, 7.0}) == ["18.7"]

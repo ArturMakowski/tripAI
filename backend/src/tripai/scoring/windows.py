@@ -195,7 +195,7 @@ def trip_windows(
     short: list[FreeWindow] = []
     for w in windows:
         days = (w.end - w.start).days + 1
-        if days < 2:
+        if days < min(2, lo):
             continue
         if days < lo:
             short.append(w)
@@ -215,6 +215,9 @@ def trip_windows(
 
 def _fmt(d: date) -> str:
     return f"{DAY_NAMES[d.weekday()]} {d.day} {MONTHS[d.month - 1]}"
+
+
+MAX_LEAVE_DAYS = 4  # span search below covers up to this many leave days
 
 
 def long_weekends(
@@ -251,10 +254,16 @@ def long_weekends(
             longest = max((e - s).days for s, e in spans)
             for s, e in sorted(sp for sp in spans if (sp[1] - sp[0]).days == longest):
                 total = (e - s).days + 1
-                if total < k + 3 or (s, e) in results or s < start or e > end:
+                if total < k + 3 or (s, e) in results:
                     continue
                 span = [s + timedelta(days=i) for i in range(total)]
                 leave = [d for d in span if not off(d)]
+                # a stretch may start before `start` (or end after `end`) as long as every
+                # leave day you'd have to book is still inside the range
+                if (s < start or e > end) and not all(start <= d <= end for d in leave):
+                    continue
+                if not leave and (e < start or s > end):
+                    continue
                 in_span = [hol_by_date[d] for d in span if d in hol_by_date]
                 names = ", ".join(dict.fromkeys(x.name for x in in_span))
                 if leave:
@@ -267,7 +276,7 @@ def long_weekends(
                 else:
                     label = f"{total} days off with no leave: {_fmt(s)} - {_fmt(e)} ({names})"
                 results[(s, e)] = BridgeWindow(
-                    window=FreeWindow(start=s, end=e, source="radar"),
+                    window=FreeWindow(start=s, end=e, source="manual"),
                     total_days=total,
                     leave_days=leave,
                     holidays=in_span,

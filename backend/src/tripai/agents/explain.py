@@ -15,6 +15,7 @@ from tripai.scoring.types import RankedRecommendation
 log = logging.getLogger(__name__)
 
 _THOUSANDS = re.compile(r"(?<=\d)[   ,](?=\d{3}(?!\d))")
+_DECIMAL_COMMA = re.compile(r"(?<=\d),(?=\d{1,2}(?!\d))")  # "18,5 °C" -> 18.5
 _NUMBER = re.compile(r"\d+(?:\.\d+)?")
 _ALWAYS_OK = {0.0, 1.0, 100.0}
 
@@ -29,7 +30,7 @@ Rules:
 
 
 def _numbers(text: str) -> list[str]:
-    return _NUMBER.findall(_THOUSANDS.sub("", text))
+    return _NUMBER.findall(_THOUSANDS.sub("", _DECIMAL_COMMA.sub(".", text)))
 
 
 def allowed_numbers(rec: RankedRecommendation) -> set[float]:

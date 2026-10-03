@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from tripai.api import create_app
@@ -19,7 +20,7 @@ def test_health_and_cities():
 def test_windows_endpoints():
     c = client()
     ws = c.get("/windows", params={"from": "2026-11-01", "to": "2026-11-15"}).json()
-    assert {"start": "2026-11-07", "end": "2026-11-08", "source": "calendar"} in ws
+    assert {"start": "2026-11-07", "end": "2026-11-08", "source": "gcal"} in ws
     radar = c.get("/windows/long-weekends", params={"from": "2026-11-01", "to": "2026-11-30"})
     assert radar.json()[0]["label"].startswith("Take 2 days off")
     body = {"from": "2026-11-01", "to": "2026-11-03",
@@ -63,6 +64,38 @@ def test_recommendations_explicit_windows():
     assert prices == sorted(prices, reverse=True)
 
 
-def test_feedback_unknown_user():
-    r = client().post("/feedback", json={"trip_id": "FCO-x", "user_id": "nobody", "answers": {}})
-    assert r.status_code == 404
+def test_feedback_spec_shape_without_stored_profile():
+    """ARCHITECTURE.md: POST /feedback {trip_id, answers} -> updated TasteProfile (top-level)."""
+    r = client().post("/feedback", json={"trip_id": "FCO-20261107-20261111",
+                                         "answers": {"crowds": 1, "food": 5}})  # fmt: skip
+    assert r.status_code == 200
+    body = r.json()
+    assert body["user_id"] == "demo" and "crowds" in body["dislikes"]
+    assert body["interests"] == body["profile"]["interests"]
+    assert body["interests"]["food"] == 0.75  # Rome has a food tag: 0.5 -> halfway to 1.0
+    assert body["diff"] and body["weights"]["crowds"] > 0.15
+
+
+def test_window_sources_follow_contract():
+    c = client()
+    req = {"profile": PROFILE, "today": "2026-10-03", "limit": 10}
+    assert {r["window"]["source"] for r in c.post("/recommendations", json=req).json()} <= {
+        "gcal",
+        "manual",
+    }
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [{"horizon_days": 200000}, {"limit": -1}, {"limit": 0}, {"max_leave_days": 9},
+     {"explain_top": -1}, {"windows": [{"start": "2027-01-01", "end": "2027-01-03"}] * 61}],
+)  # fmt: skip
+def test_recommendations_inputs_bounded(extra):
+    r = client().post("/recommendations", json={"profile": PROFILE, **extra})
+    assert r.status_code == 422
+
+
+def test_long_weekends_max_leave_bounded():
+    r = client().get("/windows/long-weekends", params={"from": "2026-11-01", "to": "2026-11-30",
+                                                      "max_leave": 50})  # fmt: skip
+    assert r.status_code == 422
