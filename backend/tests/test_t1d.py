@@ -147,3 +147,33 @@ def test_template_reads_naturally():
         why = template_why(rec, DEMO.interests)
         assert "–" in why and "% of peak" in why
         assert ".0 PLN" not in why and "crowd index" not in why and "2027-" not in why
+
+
+def test_peak_counterfactual_ignores_window_rain_and_sun():
+    """The peak trip must not be scored with the off-season window's rain/sunshine."""
+    cands = asyncio.run(FixtureProvider().candidates("KRK", JAN))
+    dry = [c.model_copy(update={"rainy_day_share": 0.0, "sunshine_h": 10.0}) for c in cands]
+    wet = [c.model_copy(update={"rainy_day_share": 0.9, "sunshine_h": 1.0}) for c in cands]
+
+    def peak_scores(cs):
+        return {r.city: next(c.score_total for c in r.counterfactuals if c.kind == "peak_season")
+                for r in rank(cs, DEMO, Weights(), limit=50)}  # fmt: skip
+
+    assert peak_scores(dry) == peak_scores(wet)
+    # ...but peak-month rain/sun on the PeakQuote itself is used
+    rainy_peak = [c.model_copy(update={"peak": c.peak.model_copy(update={"rainy_day_share": 1.0})})
+                  for c in cands]  # fmt: skip
+    assert all(peak_scores(rainy_peak)[k] < v for k, v in peak_scores(cands).items() if v > 0)
+
+
+def test_percent_only_numbers_need_a_percent_sign():
+    from tripai.agents.explain import allowed_numbers, display_numbers, ungrounded_numbers_display
+
+    rec = _recs()[0]
+    crowd = round(next(e.value for e in rec.evidence if e.kind == "crowds") * 100)
+    allowed, pct = allowed_numbers(rec), display_numbers(rec)
+    assert crowd in pct and crowd not in allowed
+    assert ungrounded_numbers_display(f"crowds at {crowd}% of peak", allowed, pct) == []
+    assert ungrounded_numbers_display(f"crowds at {crowd} % of peak", allowed, pct) == []
+    assert ungrounded_numbers_display(f"only {crowd} PLN cheaper", allowed, pct) == [str(crowd)]
+    assert ungrounded_numbers_display("a 77% discount", allowed, pct) == ["77"]

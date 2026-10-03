@@ -15,6 +15,10 @@ class PeakQuote(BaseModel):
     hotel_cost_pln: float
     temp_c: float
     crowd: float  # 0..1
+    # peak-month rain/sun if the provider knows them; None -> peak is scored on temperature only
+    # (never with the off-season window's rain/sun, which would skew the comparison)
+    rainy_day_share: float | None = None
+    sunshine_h: float | None = None
 
 
 class Candidate(BaseModel):

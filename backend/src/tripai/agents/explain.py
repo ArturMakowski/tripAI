@@ -116,7 +116,8 @@ def fmt_value(e: Evidence) -> str:
 
 
 def display_numbers(rec: RankedRecommendation) -> set[float]:
-    """Numbers that appear only in display forms (0-1 values shown as percentages)."""
+    """Numbers that appear only in display forms: 0-1 values shown as percentages. They are
+    accepted only right before a '%' (see `ungrounded_numbers_display`)."""
     out: set[float] = set()
     for e in rec.evidence:
         if e.unit == "0-1" and isinstance(e.value, (int, float)):
@@ -125,6 +126,21 @@ def display_numbers(rec: RankedRecommendation) -> set[float]:
         if c.crowd is not None:
             out.add(float(round(c.crowd * 100)))
     return out
+
+
+def ungrounded_numbers_display(text: str, allowed: set[float], percents: set[float]) -> list[str]:
+    """Like `ungrounded_numbers`, but a number from `percents` is also fine when a '%' follows it
+    ("33% of peak"), and only then: "33 PLN" from a 0.33 crowd index is still rejected."""
+    norm = _THOUSANDS.sub("", _DECIMAL_COMMA.sub(".", text))
+    bad = []
+    for m in _NUMBER.finditer(norm):
+        x = float(m.group())
+        if any(abs(x - a) < 0.051 for a in allowed):
+            continue
+        if norm[m.end() :].lstrip().startswith("%") and any(abs(x - p) < 0.051 for p in percents):
+            continue
+        bad.append(m.group())
+    return bad
 
 
 def evidence_payload(rec: RankedRecommendation, interests: dict[str, float] | None = None) -> str:
@@ -163,7 +179,8 @@ explain_agent = Agent(
 
 @explain_agent.output_validator
 def _grounded(ctx: RunContext[RankedRecommendation], output: str) -> str:
-    bad = ungrounded_numbers(output, allowed_numbers(ctx.deps) | display_numbers(ctx.deps))
+    rec = ctx.deps
+    bad = ungrounded_numbers_display(output, allowed_numbers(rec), display_numbers(rec))
     if bad:
         raise ModelRetry(
             f"These numbers are not in the evidence: {', '.join(bad)}. "

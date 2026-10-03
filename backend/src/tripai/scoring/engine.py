@@ -210,6 +210,8 @@ def _peak_candidate(c: Candidate) -> Candidate | None:
             "hotel_cost_pln": c.peak.hotel_cost_pln,
             "temp_c": c.peak.temp_c,
             "crowd": c.peak.crowd,
+            "rainy_day_share": c.peak.rainy_day_share,
+            "sunshine_h": c.peak.sunshine_h,
         }
     )
 

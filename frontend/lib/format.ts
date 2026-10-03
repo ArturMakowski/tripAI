@@ -61,9 +61,9 @@ export function sourceName(source: string): string {
   ];
   // hand-curated sample numbers: never fetched, never recorded, say so plainly
   if (isSampleSource(source)) return "TripAI sample data";
-  const name = map.find(([re]) => re.test(source))?.[1] ?? source;
-  // "fixture:..." = a real recorded response replayed by the backend, not a fresh fetch
-  return source.startsWith("fixture:") ? `${name} (recorded)` : name;
+  return map.find(([re]) => re.test(source))?.[1] ?? source;
 }
 
-export const isSampleSource = (source: string) => source === "fixture:sample";
+/** Every "fixture:*" source is hand-curated sample data (incl. rows saved before it was renamed
+ * "fixture:sample"). Real recordings keep their real source and say "[recorded fixture]" in the label. */
+export const isSampleSource = (source: string) => source.startsWith("fixture:");
