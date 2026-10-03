@@ -731,6 +731,10 @@ class LiveProvider:
             refined: set[str] = set()
             # Exact-date prices usually differ from the cached estimates, so re-rank after each
             # round until the top N are all refined or the refinement budget is spent.
+            # Refinement always runs: with the SerpApi budget spent, only the *metered network*
+            # call is refused (instantly: the budget remembers "exhausted today"), so cached
+            # exact-date prices, recorded fixtures, Travelpayouts fares, window weather and photos
+            # still apply (demo plan: warm the cache, then cap 0).
             while cands and not fast and len(refined) < self.max_refine:
                 top = self._refine_targets(cands, profile, weights, typical_spend_pln)
                 todo = [cid for cid in top if cid not in refined]

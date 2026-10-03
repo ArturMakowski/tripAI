@@ -60,6 +60,9 @@ class SerpApiBudget:
         self._day = ""
         self._remote_seen: tuple[str, float, int] | None = None  # (day, monotonic, used)
         self._used = 0
+        # (day, cap) once today's cap was reached: the counter never goes down within a UTC day,
+        # so later refusals answer at once instead of re-reading Supabase under the lock
+        self._exhausted: tuple[str, int] | None = None
 
     @property
     def daily_cap(self) -> int:
@@ -148,18 +151,23 @@ class SerpApiBudget:
 
     async def take(self) -> int:
         """Reserve one SerpApi call for today or raise BudgetExhausted. Returns the new count."""
+        if self._exhausted == (self._today(), self.daily_cap):
+            raise BudgetExhausted(f"SerpApi daily cap reached ({self._used}/{self.daily_cap})")
         loop = asyncio.get_running_loop()
         lock = self._locks.get(loop)
         if lock is None:
             lock = self._locks[loop] = asyncio.Lock()
         async with lock:
             day = self._today()
+            if self._exhausted == (day, self.daily_cap):  # set while we waited for the lock
+                raise BudgetExhausted(f"SerpApi daily cap reached ({self._used}/{self.daily_cap})")
             if day != self._day:
                 self._day, self._used = day, 0
             remote = await self._read_remote(day)
             self._remote_seen = (day, time.monotonic(), remote)
             self._used = max(self._used, remote, self._read_disk(day))
             if self._used >= self.daily_cap:
+                self._exhausted = (day, self.daily_cap)
                 raise BudgetExhausted(
                     f"SerpApi daily cap reached ({self._used}/{self.daily_cap} for {day})"
                 )
@@ -167,6 +175,16 @@ class SerpApiBudget:
             self._write_disk(day, self._used)
             await self._write_remote(day, self._used)
             return self._used
+
+    async def exhausted(self) -> bool:
+        """True when today's cap is used up (cached status; a refusal makes it immediate)."""
+        if self._exhausted == (self._today(), self.daily_cap):
+            return True
+        s = await self.status()
+        if s["used"] >= s["daily_cap"]:
+            self._exhausted = (s["day"], s["daily_cap"])
+            return True
+        return False
 
     async def status(self) -> dict[str, Any]:
         """Today's spend as enforcement sees it: max(this process, disk, Supabase). The Supabase

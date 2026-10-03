@@ -12,6 +12,7 @@ an LLM key is set, else rules):
 Fallback chain: jev -> llm -> rules. Grounding is enforced by output validators (ModelRetry).
 """
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -28,6 +29,7 @@ from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models import Model
 
 from tripai import i18n
+from tripai.agents import llm_cache
 from tripai.agents.explain import _ALWAYS_OK, allowed_numbers, numbers_in, ungrounded_numbers
 from tripai.agents.jev import (
     FIT_CHECKS,
@@ -41,6 +43,7 @@ from tripai.agents.jev import (
     jev_model_name,
 )
 from tripai.agents.llm import llm_enabled, model_name
+from tripai.agents.llm_cache import llm_timeout_s
 from tripai.models import FitPoint, FitVerdict, TasteProfile
 from tripai.scoring.types import RankedRecommendation
 
@@ -554,18 +557,61 @@ class EscalationFailed(Exception):
     """Jev was unsure and the LLM couldn't take over: the caller falls back to rules."""
 
 
-async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool):
-    """Jev decides when sure; else the LLM decides.
+class _Deadline:
+    """One time budget for a whole verdict (llm_cache.llm_timeout_s): every model call waits
+    at most for what is left of it."""
+
+    def __init__(self, seconds: float) -> None:
+        self._loop = asyncio.get_running_loop()
+        self._end = self._loop.time() + seconds
+
+    def left(self) -> float:
+        return max(0.0, self._end - self._loop.time())
+
+    async def wait(self, aw):
+        return await asyncio.wait_for(aw, timeout=self.left())
+
+
+def speculate_after_s() -> float:
+    """Start the LLM's own decision only if Jev hasn't answered by then (TRIPAI_SPECULATE_AFTER_S,
+    default 1 s): a quick, sure Jev costs no LLM call at all, a slow Jev overlaps with it."""
+    try:
+        return max(0.0, float(os.getenv("TRIPAI_SPECULATE_AFTER_S") or 1.0))
+    except ValueError:
+        return 1.0
+
+
+async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool, spec, deadline):
+    """Jev decides when sure; else the LLM decides. `spec["task"]` is the LLM's own decision,
+    started speculatively when Jev is slow (so an escalation costs ~max(Jev, LLM), not the sum),
+    cancelled when Jev turns out sure, and started now when a quick Jev is unsure.
 
     -> (verdict, cost, Jev decision, escalated, degraded)."""
-    d = await decide(fit_decision_agent, "FIT INPUT:\n" + fit_payload(rec, profile), model=jev)
+    jev_task = asyncio.ensure_future(
+        decide(fit_decision_agent, "FIT INPUT:\n" + fit_payload(rec, profile), model=jev)
+    )
+    try:
+        wait = min(speculate_after_s(), deadline.left())
+        d = await asyncio.wait_for(asyncio.shield(jev_task), timeout=wait)
+    except TimeoutError:
+        if use_llm and spec["task"] is None:
+            spec["task"] = asyncio.ensure_future(_run_llm(rec, profile, model))
+        d = await deadline.wait(jev_task)
+    except BaseException:
+        jev_task.cancel()
+        raise
     p = d.conf("label")
     if p >= escalate_below():
+        if spec["task"] is not None:
+            spec["task"].cancel()  # Jev is sure: the speculative LLM decision isn't needed
         jf = jev_fit(d, rec, profile)
         draft, phraser, cost = jf.draft, "template", d.cost_usd
         if phrase:
-            draft, phraser, phrase_cost = await _phrase(jf, rec, profile, model)
-            cost = _add(cost, phrase_cost)
+            try:
+                draft, phraser, phrase_cost = await deadline.wait(_phrase(jf, rec, profile, model))
+                cost = _add(cost, phrase_cost)
+            except TimeoutError:
+                log.warning("fit phrasing timed out for %s; template wording", rec.id)
         name = d.model if phraser == "template" else f"{d.model}+{phraser}"
         run_degraded = phrase and phraser == "template"  # GPT wording failed: don't cache
         return _finish(draft, name, rec, profile), cost, d, False, run_degraded
@@ -573,10 +619,12 @@ async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool):
     # System 2: the LLM makes the decision itself, under the same grounding validator
     if not use_llm:
         raise EscalationFailed(f"jev unsure (p={p:.2f}) and no LLM configured")
+    if spec["task"] is None:  # a quick, unsure Jev: no speculation happened, ask the LLM now
+        spec["task"] = asyncio.ensure_future(_run_llm(rec, profile, model))
     try:
-        draft, llm_cost = await _run_llm(rec, profile, model)
+        draft, llm_cost = await deadline.wait(spec["task"])
     except Exception as exc:
-        raise EscalationFailed(f"jev unsure (p={p:.2f}) and the LLM failed: {exc}") from exc
+        raise EscalationFailed(f"jev unsure (p={p:.2f}) and the LLM failed: {exc!r}") from exc
     if draft.confidence < LOW_CONFIDENCE:  # GPT is the final engine and unsure itself
         draft = draft.model_copy(
             update={
@@ -597,9 +645,12 @@ async def fit_run(
     jev: Model | None = None,
     phrase: bool | None = None,
     lang: str | None = None,
+    deadline_s: float | None = None,
 ) -> FitRun:
     with i18n.using(i18n.pick(lang)):
-        return await _fit_run(rec, profile, model, engine=engine, jev=jev, phrase=phrase)
+        return await _fit_run(
+            rec, profile, model, engine=engine, jev=jev, phrase=phrase, deadline_s=deadline_s
+        )
 
 
 async def _fit_run(
@@ -610,6 +661,7 @@ async def _fit_run(
     engine: Engine | None,
     jev: Model | None,
     phrase: bool | None,
+    deadline_s: float | None = None,
 ) -> FitRun:
     """One uncached verdict through the fallback chain jev -> llm -> rules.
 
@@ -626,30 +678,38 @@ async def _fit_run(
     def done(verdict: FitVerdict, used: Engine) -> FitRun:
         return FitRun(verdict, used, (time.perf_counter() - t0) * 1000, cost)
 
-    if use_jev:
-        try:
-            phrase = use_llm if phrase is None else phrase
-            verdict, cost, d, escalated, degraded = await _run_cascade(
-                rec, profile, model, jev, use_llm, phrase
-            )
-            run = done(verdict, "jev")
-            run.jev, run.escalated, run.degraded = d, escalated, degraded
-            return run
-        except EscalationFailed as exc:
-            log.warning("fit for %s: %s; using rules", rec.id, exc)
-            return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
-        except Exception as exc:  # noqa: BLE001 - Jev itself failed: next engine in the chain
-            log.warning("jev fit failed for %s, falling back: %s", rec.id, exc)
-    if use_llm:
-        try:
-            draft, cost = await _run_llm(rec, profile, model)
-            return done(_finish(draft, _llm_name(model), rec, profile), "llm")
-        except Exception as exc:  # noqa: BLE001 - fall back to rules, never break ranking
-            log.warning("fit agent failed for %s, using rules: %s", rec.id, exc)
-    return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
+    deadline = _Deadline(llm_timeout_s() if deadline_s is None else deadline_s)
+    # the LLM's own decision, started by the cascade when Jev is slow (see speculate_after_s)
+    spec: dict = {"task": None}
+    try:
+        if use_jev:
+            try:
+                phrase = use_llm if phrase is None else phrase
+                verdict, cost, d, escalated, degraded = await _run_cascade(
+                    rec, profile, model, jev, use_llm, phrase, spec, deadline
+                )
+                run = done(verdict, "jev")
+                run.jev, run.escalated, run.degraded = d, escalated, degraded
+                return run
+            except EscalationFailed as exc:
+                log.warning("fit for %s: %s; using rules", rec.id, exc)
+                return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
+            except Exception as exc:  # noqa: BLE001 - Jev failed or timed out: next engine
+                log.warning("jev fit failed for %s, falling back: %r", rec.id, exc)
+        if use_llm:
+            try:
+                task = spec["task"] if spec["task"] is not None else _run_llm(rec, profile, model)
+                draft, cost = await deadline.wait(task)
+                return done(_finish(draft, _llm_name(model), rec, profile), "llm")
+            except Exception as exc:  # noqa: BLE001 - fall back to rules, never break ranking
+                log.warning("fit agent failed for %s, using rules: %r", rec.id, exc)
+        return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
+    finally:
+        if spec["task"] is not None and not spec["task"].done():
+            spec["task"].cancel()
 
 
-_CACHE: "OrderedDict[tuple[str, str, str, str, str], FitVerdict]" = OrderedDict()
+_CACHE: "OrderedDict[str, FitVerdict]" = OrderedDict()  # in-process layer over llm_cache
 CACHE_SIZE = 1024
 
 
@@ -686,8 +746,8 @@ async def fit(
     jev: Model | None = None,
     lang: str | None = None,
 ) -> FitVerdict:
-    """Grounded fit verdict in `lang` (default: the request's); cached by
-    (engine+model, inputs_hash, profile hash, recommendation id, language)."""
+    """Grounded fit verdict in `lang` (default: the request's). Cached in process and in
+    `api_cache` (llm_cache) by a digest of the engines' inputs; fallbacks are never cached."""
     lg = i18n.pick(lang)
     if engine is None:
         engine = "jev" if jev is not None else "llm" if model is not None else fit_engine()
@@ -695,18 +755,51 @@ async def fit(
         engine = "llm"
     if engine == "llm" and model is None and not llm_enabled():
         engine = "rules"
-    key = (_engine_key(engine, model, jev), rec.inputs_hash, profile_hash(profile), rec.id, lg)
-    if key in _CACHE:
+    # key = everything the engines see (fit payload, language, engine/model names), so a repeat
+    # load or a language switch-back reuses the verdict, and any changed input is a miss
+    with i18n.using(lg):
+        key = llm_cache.digest("fit", _engine_key(engine, model, jev), lg, rec.id,
+                               fit_payload(rec, profile), profile_hash(profile),
+                               INSTRUCTIONS, PHRASE_INSTRUCTIONS)  # fmt: skip
+    hit = _CACHE.get(key)
+    if hit is None and engine != "rules":
+        stored = await llm_cache.get(llm_cache.FIT, key)
+        if stored is not None:
+            try:
+                hit = FitVerdict.model_validate(stored)
+            except ValueError:
+                hit = None
+            if hit is not None:
+                _remember(key, hit)
+    if hit is not None:
         _CACHE.move_to_end(key)
-        return _CACHE[key].model_copy(deep=True)  # callers may mutate their copy
+        # same inputs, this request's receipt hash; callers may mutate their copy
+        return hit.model_copy(deep=True, update={"inputs_hash": rec.inputs_hash})
 
-    run = await fit_run(rec, profile, model, engine=engine, jev=jev, lang=lg)
-    if run.engine != engine or run.degraded:
-        return run.verdict  # don't cache a fallback under the primary key: retry next request
-    _CACHE[key] = run.verdict.model_copy(deep=True)
+    async def compute() -> FitVerdict:
+        run = await fit_run(rec, profile, model, engine=engine, jev=jev, lang=lg,
+                            deadline_s=llm_cache.background_limit_s())  # fmt: skip
+        if run.engine != engine or run.degraded:
+            return run.verdict  # a fallback isn't cached under the primary key: retry next time
+        _remember(key, run.verdict)
+        if engine != "rules":
+            await llm_cache.put(llm_cache.FIT, key, run.verdict.model_dump(mode="json"))
+        return run.verdict
+
+    def late() -> FitVerdict:
+        # past llm_timeout_s: the rules verdict now; the engines finish in the background and
+        # cache their verdict for the next load
+        with i18n.using(lg):
+            return _finish(rules_verdict(rec, profile), "rules", rec, profile)
+
+    return await llm_cache.within(key, compute, late)
+
+
+def _remember(key: str, verdict: FitVerdict) -> None:
+    _CACHE[key] = verdict.model_copy(deep=True)
+    _CACHE.move_to_end(key)
     while len(_CACHE) > CACHE_SIZE:
         _CACHE.popitem(last=False)
-    return run.verdict
 
 
 def clear_cache() -> None:

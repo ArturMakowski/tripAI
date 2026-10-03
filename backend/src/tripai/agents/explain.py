@@ -9,6 +9,7 @@ from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models import Model
 
 from tripai import i18n
+from tripai.agents import llm_cache
 from tripai.agents.llm import llm_enabled, model_name
 from tripai.models import Evidence
 from tripai.scoring.types import RankedRecommendation
@@ -250,21 +251,35 @@ async def explain(
     model: Model | str | None = None,
     lang: str | None = None,
 ) -> str:
-    """LLM explanation grounded in evidence; deterministic template if no model or it fails.
-    Written in `lang` (default: the request's language)."""
+    """LLM explanation grounded in evidence; deterministic template if no model, on failure, or
+    after `llm_timeout_s()`. Written in `lang` (default: the request's language). Answers are
+    cached by the exact prompt (llm_cache), and re-checked against this card before reuse."""
     lg = i18n.pick(lang)
     if model is None and not llm_enabled():
         return template_why(rec, interests, lg)
-    try:
-        result = await explain_agent.run(
-            "EVIDENCE:\n"
-            + evidence_payload(rec, interests, lg)
-            + "\n\n"
-            + i18n.llm_language_rule(lg),
-            model=model or model_name(),
-            deps=rec,
-        )
+    prompt = (
+        "EVIDENCE:\n" + evidence_payload(rec, interests, lg) + "\n\n" + i18n.llm_language_rule(lg)
+    )
+    name = model_name() if model is None else getattr(model, "model_name", str(model))
+    key = llm_cache.digest("why", name, INSTRUCTIONS, prompt)
+    cached = await llm_cache.get(llm_cache.WHY, key)
+    if isinstance(cached, str) and not ungrounded_numbers_display(
+        cached, allowed_numbers(rec), display_numbers(rec)
+    ):
+        return cached
+
+    async def from_llm() -> str:
+        result = await explain_agent.run(prompt, model=model or model_name(), deps=rec)
+        await llm_cache.put(llm_cache.WHY, key, result.output)
         return result.output
+
+    def late() -> str:
+        log.info("explain for %s past %.1fs: template now, LLM fills the cache", rec.id,
+                 llm_cache.llm_timeout_s())  # fmt: skip
+        return template_why(rec, interests, lg)
+
+    try:
+        return await llm_cache.within(key, from_llm, late)
     except Exception as exc:  # noqa: BLE001 - never break ranking on LLM trouble
         log.warning("explain agent failed for %s: %s", rec.id, exc)
         return template_why(rec, interests, lg)
