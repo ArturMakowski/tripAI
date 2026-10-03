@@ -20,9 +20,9 @@ import { CityPhoto } from "@/components/rec-card";
 import { ScoreRing } from "@/components/score-ring";
 import { ModeBadge } from "@/components/shell";
 import { Button } from "@/components/ui/button";
-import { dayCount, formatPLN, formatRange, formatSignedPLN, formatTimestamp, sourceName } from "@/lib/format";
+import { dayCount, formatPLN, formatRange, formatTimestamp, sourceName } from "@/lib/format";
 import { FACTOR_LABEL, flipConditions, inputsHash } from "@/lib/scoring";
-import type { Evidence, Recommendation, Weights } from "@/lib/types";
+import type { Evidence, RankedRecommendation, Weights } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,34 @@ function Line({ label, value, sub, strong }: { label: React.ReactNode; value: Re
   );
 }
 
-function HashLine({ rec, weights }: { rec: Recommendation; weights: Weights }) {
+function Compare({ label, pts, pln, there }: { label: string; pts: number; pln: number; there: string }) {
+  return (
+    <div className="py-2">
+      <p className="text-ink">{label}</p>
+      <p className="mt-0.5 text-[12.5px]">
+        <Delta pts={pts} pln={pln} />
+      </p>
+      <p className="font-sans text-[10.5px] text-muted-foreground">There: {there}</p>
+    </div>
+  );
+}
+
+function Delta({ pts, pln }: { pts: number; pln: number }) {
+  return (
+    <span className="whitespace-nowrap">
+      <span className={pts >= 0 ? "text-pine" : "text-clay"}>
+        {pts >= 0 ? "+" : "−"}
+        {Math.abs(pts).toFixed(1)} pts
+      </span>
+      <span className="text-muted-foreground">
+        {" · "}
+        {pln >= 0 ? `${formatPLN(pln)} cheaper` : `${formatPLN(-pln)} pricier`}
+      </span>
+    </span>
+  );
+}
+
+function HashLine({ rec, weights }: { rec: RankedRecommendation; weights: Weights }) {
   const [hash, setHash] = useState<string | null>(rec.inputs_hash ?? null);
   const [copied, setCopied] = useState(false);
   useEffect(() => {
@@ -84,7 +111,7 @@ function HashLine({ rec, weights }: { rec: Recommendation; weights: Weights }) {
     <div className="flex items-center justify-between gap-3 rounded-2xl bg-ink px-4 py-3 text-paper">
       <div className="min-w-0">
         <p className="text-[11px] text-paper/60">
-          sha256(evidence + weights){rec.inputs_hash ? "" : " · computed on this device"}
+          sha256 of inputs · {rec.inputs_hash ? `scorer ${rec.scoring_version}` : "computed on this device"}
         </p>
         <p className="truncate font-mono text-sm">{hash ? `${hash.slice(0, 12)}…${hash.slice(-8)}` : "…"}</p>
       </div>
@@ -111,7 +138,7 @@ export default function ReceiptPage() {
 
   const rank = ranked.findIndex((r) => r.id === id);
   const rec = ranked[rank];
-  const rival = rank === 0 ? ranked[1] : ranked[0];
+  const rival = rank === 0 ? ranked[1] : ranked[rank - 1];
 
   const flips = useMemo(() => {
     if (!rec || !rival) return [];
@@ -128,11 +155,15 @@ export default function ReceiptPage() {
   }
 
   const nights = dayCount(rec.window) - 1;
-  const flight = rec.evidence.filter((e) => e.kind === "flight");
+  const flight = rec.evidence.find((e) => e.kind === "flight");
+  const baseline = rec.evidence.find((e) => e.kind === "price_baseline");
   const hotel = rec.evidence.find((e) => e.kind === "hotel");
-  const facts = rec.evidence.filter((e) => !["flight", "hotel"].includes(e.kind));
-  const summer = rec.deltas?.find((d) => d.vs === "summer");
-  const nextWin = rec.deltas?.find((d) => d.vs === "next_best");
+  const facts = rec.evidence.filter((e) => !["flight", "hotel", "price_baseline"].includes(e.kind));
+  // Rank-independent counterfactuals come from the scorer; the runner-up follows the live ranking.
+  const counterfactuals = rec.counterfactuals.filter((c) => c.kind !== "runner_up");
+  const priceFlip = rec.flip?.price_increase_pln != null ? rec.flip : null;
+  const flipHi = rank === 0 ? rec.city : rival?.city;
+  const flipLo = rank === 0 ? rival?.city : rec.city;
 
   return (
     <>
@@ -188,58 +219,46 @@ export default function ReceiptPage() {
             <div className="text-center">
               <p className="font-display text-lg font-semibold tracking-tight text-ink not-italic">TripAI</p>
               <p className="text-[11px] text-muted-foreground">
-                KRK ⇄ {rec.iata} · {formatRange(rec.window)} 2027 · 1 adult
+                {rec.evidence.find((e) => e.kind === "flight")?.label.match(/\b([A-Z]{3})-/)?.[1] ?? "KRK"} ⇄ {rec.iata} · {formatRange(rec.window)} {rec.window.start.slice(0, 4)} · 1 adult
               </p>
             </div>
             <div className="my-3 border-t border-dashed border-ink/25" />
-            {flight[0] && (
-              <Line label="Return flight" value={formatPLN(rec.flight_cost_pln)} sub={<SourceTag e={flight[0]} />} />
-            )}
-            {flight[1] && (
-              <Line
-                label={<span className="text-muted-foreground">↳ typical</span>}
-                value={<span className="text-muted-foreground">{flight[1].value} PLN</span>}
-                sub={<SourceTag e={flight[1]} />}
-              />
-            )}
+            {flight && <Line label="Return flight" value={formatPLN(rec.flight_cost_pln)} sub={<SourceTag e={flight} />} />}
             {hotel && <Line label={`Hotel, ${nights} nights`} value={formatPLN(rec.hotel_cost_pln)} sub={<SourceTag e={hotel} />} />}
             <div className="my-2 border-t border-dashed border-ink/25" />
             <Line label="TOTAL" value={formatPLN(rec.total_cost_pln)} strong />
 
-            {(summer || nextWin || rival) && (
+            {baseline && (
+              <Line
+                label={<span className="text-muted-foreground">↳ {baseline.label.toLowerCase()}</span>}
+                value={<span className="text-muted-foreground">{typeof baseline.value === "number" ? formatPLN(baseline.value) : `${baseline.value} PLN`}</span>}
+                sub={<SourceTag e={baseline} />}
+              />
+            )}
+
+            {(counterfactuals.length > 0 || rival) && (
               <>
                 <div className="my-3 border-t border-dashed border-ink/25" />
-                <p className="mb-1 text-[11px] tracking-[0.12em] text-muted-foreground uppercase">Compared with</p>
-                {summer && (
-                  <Line
-                    label="Same trip in July"
-                    value={<span className={summer.cost_pln < 0 ? "text-pine" : "text-clay"}>{formatSignedPLN(summer.cost_pln)}</span>}
-                    sub={<SourceTag e={{ source: summer.source, fetched_at: summer.fetched_at, url: null }} />}
-                  />
-                )}
-                {nextWin && (
-                  <Line
-                    label={`Next-best window (${nextWin.label.replace("vs. ", "")})`}
-                    value={
-                      <span>
-                        {nextWin.score != null && <span className="text-clay">{nextWin.score} pts</span>}
-                        <span className="text-muted-foreground"> · {formatSignedPLN(nextWin.cost_pln)}</span>
-                      </span>
+                <p className="mb-1 text-[11px] tracking-[0.12em] text-muted-foreground uppercase">This trip vs.</p>
+                {counterfactuals.map((c) => (
+                  <Compare
+                    key={c.kind}
+                    label={c.label.charAt(0).toUpperCase() + c.label.slice(1)}
+                    pts={c.score_delta * 100}
+                    pln={c.cost_delta_pln}
+                    there={
+                      `${formatPLN(c.total_cost_pln)}` +
+                      (c.temp_c != null ? ` · ${Math.round(c.temp_c)} °C` : "") +
+                      (c.crowd != null ? ` · crowds ${Math.round(c.crowd * 100)}% of peak` : "")
                     }
-                    sub={<span className="font-sans text-[10.5px] text-muted-foreground">A lower score for that window, even where it&rsquo;s cheaper</span>}
                   />
-                )}
+                ))}
                 {rival && (
-                  <Line
-                    label={`${rank === 0 ? "Runner-up" : "Top pick"}: ${rival.city}`}
-                    value={
-                      <span>
-                        <span className={rival.score.total < rec.score.total ? "text-clay" : "text-pine"}>
-                          {((rival.score.total - rec.score.total) * 100).toFixed(1)} pts
-                        </span>
-                        <span className="text-muted-foreground"> · {formatSignedPLN(rival.total_cost_pln - rec.total_cost_pln)}</span>
-                      </span>
-                    }
+                  <Compare
+                    label={`${rank === 0 ? "Runner-up" : `#${rival.rank}`}: ${rival.city}, ${formatRange(rival.window)}`}
+                    pts={(rec.score.total - rival.score.total) * 100}
+                    pln={rival.total_cost_pln - rec.total_cost_pln}
+                    there={formatPLN(rival.total_cost_pln)}
                   />
                 )}
               </>
@@ -253,9 +272,9 @@ export default function ReceiptPage() {
           <ul className="divide-y divide-line rounded-3xl border border-line bg-card px-4 shadow-soft">
             {facts.map((e, i) => (
               <li key={i} className="py-3">
-                <div className="flex items-baseline justify-between gap-3">
+                <div className={cn("flex justify-between gap-x-3 gap-y-1", typeof e.value === "string" ? "flex-col" : "items-baseline")}>
                   <span className="text-sm text-ink">{e.label}</span>
-                  <span className="tabular shrink-0 font-mono text-sm text-ink">
+                  <span className={cn("tabular font-mono text-sm text-ink", typeof e.value === "string" ? "text-[13px] text-ink-soft" : "shrink-0")}>
                     {typeof e.value === "number" && e.unit === "0-1" ? `${Math.round(e.value * 100)}%` : e.value}
                     {e.unit && e.unit !== "0-1" ? ` ${e.unit}` : ""}
                   </span>
@@ -268,21 +287,30 @@ export default function ReceiptPage() {
 
         <Section title="What would flip it" icon={Shuffle}>
           <ul className="space-y-2">
+            {priceFlip && flipHi && flipLo && (
+              <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">
+                If {flipHi} cost <b className="tabular">{formatPLN(priceFlip.price_increase_pln!)} more</b>, {flipLo} would rank above it.
+                <span className="mt-1 block text-[11px] text-muted-foreground">From the TripAI scorer · {rec.scoring_version}</span>
+              </li>
+            )}
             {flips.slice(0, 2).map((f) => (
               <li key={f.factor} className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">
                 If <b>{FACTOR_LABEL[f.factor].toLowerCase()}</b> counted{" "}
                 <b className="tabular">
                   {Math.abs(f.deltaPts)} pts {f.deltaPts > 0 ? "more" : "less"}
                 </b>{" "}
-                in your weights, {rank === 0 ? f.challenger : rec.city} would take #1.
-                <span className="mt-1 block text-[11px] text-muted-foreground">Calculated exactly from the weighted sum</span>
+                in your weights, {flipLo} would rank above {flipHi}.
+                <span className="mt-1 block text-[11px] text-muted-foreground">Calculated exactly from the weighted sum at your current slider</span>
               </li>
             ))}
-            {rec.flip_conditions?.map((c) => (
-              <li key={c} className="rounded-2xl border border-dashed border-line p-3.5 text-sm text-ink-soft">
-                {c}
+            {!priceFlip && !flips.length && rec.flip && (
+              <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">{rec.flip.text}</li>
+            )}
+            {!rec.flip && !flips.length && (
+              <li className="rounded-2xl border border-dashed border-line p-3.5 text-sm text-ink-soft">
+                No single change in one weight would swap this with its neighbour.
               </li>
-            ))}
+            )}
           </ul>
         </Section>
 

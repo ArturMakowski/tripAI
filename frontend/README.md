@@ -27,18 +27,27 @@ Demo script: interview → windows → trips → drag the slider to **Price** (A
 → "Fill demo answers" → crowd weight goes up → Rome goes back to #1.
 
 ## Data: live vs fixture
-`lib/api.ts` implements API v0 from `docs/ARCHITECTURE.md`. If `NEXT_PUBLIC_API_URL` is unset, `NEXT_PUBLIC_MOCK=1`, or the backend
-can't be reached, every call is served by `lib/mock/api.ts`. That is a deterministic in-browser copy of the backend with realistic fixtures (`lib/mock/fixtures.ts`: KRK → Rome, Lisbon,
-Athens, Venice and Porto, Jan 2027). The header badge shows **Live data** or **Demo fixtures**. City photos are bundled in `public/cities/`
-(Unsplash) so the demo works offline.
+`lib/api.ts` implements API v0 exactly as `backend/src/tripai/api/app.py` serves it: `POST /interview`, `GET /windows`,
+`GET /windows/long-weekends`, `POST /recommendations` (→ `RankedRecommendation[]`), and `POST /feedback` (→ the profile plus `weights`
+and `diff`). If `NEXT_PUBLIC_API_URL` is unset, `NEXT_PUBLIC_MOCK=1`, or the backend can't be reached, every call is served by
+`lib/mock/api.ts`. That is a deterministic in-browser copy of the backend that returns the same shapes (`lib/mock/fixtures.ts`:
+KRK → Rome, Lisbon, Athens, Venice and Porto, Jan 2027). The header badge shows **Live API** or **Demo fixtures**. Evidence whose
+`source` starts with `fixture:` is a recorded response and is labelled "(recorded)" in the receipt.
 
 The ranking updates instantly on the client. `lib/scoring.ts` recombines the backend's per-factor scores with the slider weights
-(normalised weighted sum). In live mode the backend is queried again once the slider settles, so it stays the source of truth.
-The UI never invents numbers. The "what would flip it" weight thresholds are exact algebra on the weighted sum. The inputs hash is
-SHA-256 over the canonical evidence and weights. The backend may send its own `inputs_hash` instead.
+(normalised weighted sum, the same formula as `tripai.scoring`). In live mode the backend is queried again once the slider settles.
+The receipt shows the scorer's counterfactuals (peak season, next-best window), its price-based flip hint and `inputs_hash`. The
+runner-up comparison and the weight-based "what would flip it" are computed for the current slider position with exact algebra on the
+weighted sum.
+
+City photos are bundled in `public/cities/`, so the demo works offline. Rome, Lisbon, Athens, Venice, Porto and Barcelona come from
+Unsplash. Naples, Valletta, Málaga, Paris, Copenhagen and Edinburgh are lead images from Wikimedia Commons (CC BY-SA).
+
+## Deploy (Railway)
+Create a service with root directory `frontend/`. Set `NEXT_PUBLIC_API_URL` to the backend URL. It is inlined at **build** time, so
+redeploy after changing it. `railway.json` runs `npm run build` and then `npm start` (`next start -H 0.0.0.0`, which reads `PORT`).
 
 ## Contract
-`lib/types.ts` mirrors `backend/src/tripai/models.py` one to one. Fields the UI would like but that `models.py` doesn't have yet are marked
-**PROPOSED** and are all optional. The UI falls back when they are missing:
-`FreeWindow.bridge`, `Recommendation.photo_url | deltas | flip_conditions | inputs_hash | handoff`, `InterviewResponse.suggestions`,
-and `/feedback` returning `{profile, weights}`. A bare `TasteProfile` is also accepted.
+`lib/types.ts` mirrors `models.py` plus the API-level types from `scoring/types.py` (`RankedRecommendation`, `Counterfactual`,
+`FlipHint`), `scoring/windows.py` (`BridgeWindow`, `Holiday`), `scoring/feedback.py` (`Change`) and `api/schemas.py`. The UI needs
+no contract changes.

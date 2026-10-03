@@ -8,7 +8,7 @@ import { AppShell } from "@/components/shell";
 import { ProfileChips } from "@/components/profile-chips";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { INTERVIEW_OPENER } from "@/lib/mock/api";
+import { INTERVIEW_OPENER, suggestionsFor } from "@/lib/mock/api";
 import { useHydrated, useTrip } from "@/lib/store";
 import type { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -60,8 +60,7 @@ export default function Onboarding() {
   const router = useRouter();
   const hydrated = useHydrated();
   const { messages, setMessages, profile, setProfile, setMode } = useTrip();
-  const [fetchedSuggestions, setSuggestions] = useState<string[] | null>(null);
-  const [picked, setPicked] = useState<string[]>([]);
+    const [picked, setPicked] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -69,12 +68,13 @@ export default function Onboarding() {
   // Seed the conversation with the opener (static so the first paint is instant).
   useEffect(() => {
     if (hydrated && messages.length === 0) {
-      setMessages([{ role: "assistant", content: INTERVIEW_OPENER.reply }]);
+      setMessages([{ role: "assistant", content: INTERVIEW_OPENER }]);
     }
   }, [hydrated, messages.length, setMessages]);
 
   const answered = messages.filter((m) => m.role === "user").length;
-  const suggestions = fetchedSuggestions ?? (answered === 0 ? (INTERVIEW_OPENER.suggestions ?? []) : []);
+  const lastQuestion = messages.findLast((m) => m.role === "assistant")?.content ?? "";
+  const suggestions = busy ? [] : suggestionsFor(lastQuestion, answered);
   const [gotProfile, setGotProfile] = useState(false);
   const result = gotProfile || answered >= TOTAL_QUESTIONS ? profile : null;
 
@@ -90,13 +90,11 @@ export default function Onboarding() {
     setMessages(next);
     setDraft("");
     setPicked([]);
-    setSuggestions([]);
     setBusy(true);
     const { data, mode } = await api.interview(next);
     setMode(mode);
     setBusy(false);
     setMessages([...next, { role: "assistant", content: data.reply }]);
-    setSuggestions(data.suggestions ?? []);
     if (data.profile) {
       setProfile(data.profile);
       setGotProfile(true);

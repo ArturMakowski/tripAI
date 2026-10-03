@@ -59,5 +59,7 @@ export function sourceName(source: string): string {
     [/gcal/, "Google Calendar"],
     [/tripai\.scoring/, "TripAI scorer"],
   ];
-  return map.find(([re]) => re.test(source))?.[1] ?? source;
+  const name = map.find(([re]) => re.test(source))?.[1] ?? source;
+  // "fixture:..." = a recorded response replayed by the backend, not a fresh fetch
+  return source.startsWith("fixture:") ? `${name} (recorded)` : name;
 }

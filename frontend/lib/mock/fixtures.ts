@@ -2,7 +2,7 @@
  * Realistic demo fixtures: KRK -> Rome / Lisbon / Athens / Venice / Porto, Jan 2027.
  * Prices are hand-recorded ballparks for the demo, shaped exactly like backend output.
  */
-import type { Evidence, FreeWindow, Recommendation, TasteProfile } from "../types";
+import type { BridgeWindow, Counterfactual, Evidence, FreeWindow, RankedRecommendation, TasteProfile } from "../types";
 
 const FETCHED = "2026-10-03T09:42:00Z";
 const FETCHED_SEED = "2026-10-02T21:10:00Z";
@@ -18,33 +18,49 @@ export const DEMO_PROFILE: TasteProfile = {
   trip_length_days: [3, 6],
 };
 
+const NAGER = "builtin:pl-holidays";
+const hol = (date: string, name: string) => ({ date, name, source: NAGER });
+
+/** GET /windows: free days from the (fixture) calendar. */
 export const WINDOWS: FreeWindow[] = [
+  { start: "2027-01-01", end: "2027-01-03", source: "gcal" },
+  { start: "2027-01-14", end: "2027-01-19", source: "gcal" },
+  { start: "2027-01-23", end: "2027-01-24", source: "gcal" },
+];
+
+/** GET /windows/long-weekends: długi weekend radar. */
+export const LONG_WEEKENDS: BridgeWindow[] = [
   {
-    start: "2027-01-01",
-    end: "2027-01-03",
-    source: "manual",
-    bridge: { holiday: "Nowy Rok", days_off: 0, total_days: 3, take_off: [] },
+    window: { start: "2027-01-01", end: "2027-01-03", source: "manual" },
+    total_days: 3,
+    leave_days: [],
+    holidays: [hol("2027-01-01", "Nowy Rok")],
+    label: "3 days off with no leave: Fri 1 Jan - Sun 3 Jan (Nowy Rok)",
   },
   {
-    start: "2027-01-06",
-    end: "2027-01-10",
-    source: "manual",
-    bridge: { holiday: "Trzech Króli", days_off: 2, total_days: 5, take_off: ["2027-01-07", "2027-01-08"] },
-  },
-  { start: "2027-01-14", end: "2027-01-19", source: "gcal", bridge: null },
-  {
-    start: "2027-03-26",
-    end: "2027-03-29",
-    source: "manual",
-    bridge: { holiday: "Poniedziałek Wielkanocny", days_off: 1, total_days: 4, take_off: ["2027-03-26"] },
+    window: { start: "2027-01-06", end: "2027-01-10", source: "manual" },
+    total_days: 5,
+    leave_days: ["2027-01-07", "2027-01-08"],
+    holidays: [hol("2027-01-06", "Trzech Króli")],
+    label: "Take 2 days off (Thu 7 Jan, Fri 8 Jan) -> 5 days: Wed 6 Jan - Sun 10 Jan (Trzech Króli)",
   },
   {
-    start: "2027-05-27",
-    end: "2027-05-30",
-    source: "manual",
-    bridge: { holiday: "Boże Ciało", days_off: 1, total_days: 4, take_off: ["2027-05-28"] },
+    window: { start: "2027-03-26", end: "2027-03-29", source: "manual" },
+    total_days: 4,
+    leave_days: ["2027-03-26"],
+    holidays: [hol("2027-03-28", "Wielkanoc"), hol("2027-03-29", "Poniedziałek Wielkanocny")],
+    label: "Take 1 day off (Fri 26 Mar) -> 4 days: Fri 26 Mar - Mon 29 Mar (Wielkanoc)",
+  },
+  {
+    window: { start: "2027-05-27", end: "2027-05-30", source: "manual" },
+    total_days: 4,
+    leave_days: ["2027-05-28"],
+    holidays: [hol("2027-05-27", "Boże Ciało")],
+    label: "Take 1 day off (Fri 28 May) -> 4 days: Thu 27 May - Sun 30 May (Boże Ciało)",
   },
 ];
+
+const ALL_WINDOWS: FreeWindow[] = [...WINDOWS, ...LONG_WEEKENDS.map((b) => b.window)];
 
 /** City tag vectors used by the mock to compute taste fit from the profile. */
 export const CITY_TAGS: Record<string, Record<string, number>> = {
@@ -56,7 +72,6 @@ export const CITY_TAGS: Record<string, Record<string, number>> = {
 };
 
 interface Seed {
-  id: string;
   city: string;
   country: string;
   iata: string;
@@ -72,16 +87,14 @@ interface Seed {
   highlights: string[];
   why: string;
   summerTotal: number;
-  nextBest: { label: string; cost: number; score: number };
-  flips: string[];
+  nextBest: { start: string; end: string; cost: number; score: number };
   airline: string;
 }
 
-const w = (start: string) => WINDOWS.find((x) => x.start === start)!;
+const w = (start: string) => ALL_WINDOWS.find((x) => x.start === start)!;
 
 const SEEDS: Seed[] = [
   {
-    id: "rome-2027-01-14",
     city: "Rome",
     country: "Italy",
     iata: "FCO",
@@ -97,16 +110,10 @@ const SEEDS: Seed[] = [
     highlights: ["Trastevere food walk", "Vatican Museums (no queue in Jan)", "Galleria Borghese", "Testaccio market"],
     why: "Your calendar is free 14–19 Jan. Return flights from Kraków are 262 PLN, below the typical 310–480 PLN for this route, and five nights near Trastevere cost 1,180 PLN, 44% less than the same stay in July. Mid-January occupancy is 41% of the August peak, and the climate normal is 13.8 °C with about 2 rainy days. It matches your top interests: food, history and art.",
     summerTotal: 2590,
-    nextBest: { label: "Rome 6–10 Jan", cost: 1390, score: -4 },
-    flips: [
-      "Flight price rises above 520 PLN (then Athens wins)",
-      "You drop history below 0.4 in your profile",
-      "Forecast closer to the date shows more than 4 rainy days",
-    ],
+    nextBest: { start: "2027-01-06", end: "2027-01-10", cost: 1390, score: -4 },
     airline: "Ryanair",
   },
   {
-    id: "lisbon-2027-01-14",
     city: "Lisbon",
     country: "Portugal",
     iata: "LIS",
@@ -122,15 +129,10 @@ const SEEDS: Seed[] = [
     highlights: ["Alfama miradouros", "Time Out Market", "Belém pastries", "LX Factory"],
     why: "Your calendar is free 14–19 Jan. Lisbon is the warmest option at 15.1 °C, and five nights cost 960 PLN. Flights are 548 PLN, near the low end of the typical 520–790 PLN range. Occupancy is 48% of the summer peak.",
     summerTotal: 2780,
-    nextBest: { label: "Lisbon 6–10 Jan", cost: 1460, score: -3 },
-    flips: [
-      "Weather weight above 35% (then Lisbon beats Rome)",
-      "A sale fare under 350 PLN appears on KRK–LIS",
-    ],
+    nextBest: { start: "2027-01-06", end: "2027-01-10", cost: 1460, score: -3 },
     airline: "Wizz Air",
   },
   {
-    id: "athens-2027-01-06",
     city: "Athens",
     country: "Greece",
     iata: "ATH",
@@ -146,12 +148,10 @@ const SEEDS: Seed[] = [
     highlights: ["Acropolis at opening time", "Plaka tavernas", "National Archaeological Museum", "Lycabettus sunset"],
     why: "Take 7–8 Jan off and Trzech Króli gives you 5 days. Athens is the cheapest trip here at 1,104 PLN in total, and January occupancy is 46% of the summer peak, so the Acropolis is far quieter than in July. It fits your interest in history well and your interest in food a little less.",
     summerTotal: 2410,
-    nextBest: { label: "Athens 14–19 Jan", cost: 1290, score: -2 },
-    flips: ["Price weight above 50% (then Athens is #1)", "Rome flights rise above 520 PLN"],
+    nextBest: { start: "2027-01-14", end: "2027-01-19", cost: 1290, score: -2 },
     airline: "Ryanair",
   },
   {
-    id: "venice-2027-01-14",
     city: "Venice",
     country: "Italy",
     iata: "VCE",
@@ -167,12 +167,10 @@ const SEEDS: Seed[] = [
     highlights: ["Empty San Marco at dawn", "Cicchetti bars in Cannaregio", "Gallerie dell'Accademia"],
     why: "Venice is at its emptiest in January, with occupancy at 29% of the peak. That is 7 °C and damp, though, which is below your preferred 12–24 °C. Hotels are the most expensive here at 1,420 PLN for five nights.",
     summerTotal: 3350,
-    nextBest: { label: "Venice 6–10 Jan", cost: 1610, score: -6 },
-    flips: ["Crowds weight above 40%", "You widen the temperature range down to 5 °C"],
+    nextBest: { start: "2027-01-06", end: "2027-01-10", cost: 1610, score: -6 },
     airline: "Ryanair (TSF)",
   },
   {
-    id: "porto-2027-01-14",
     city: "Porto",
     country: "Portugal",
     iata: "OPO",
@@ -188,94 +186,131 @@ const SEEDS: Seed[] = [
     highlights: ["Ribeira riverside", "Port lodges in Gaia", "Livraria Lello", "Francesinha crawl"],
     why: "Porto has the cheapest hotels here at 690 PLN for five nights, and the food matches your profile. The flight costs 612 PLN and around 6 rainy days are typical in mid-January.",
     summerTotal: 2510,
-    nextBest: { label: "Porto 6–10 Jan", cost: 1240, score: -1 },
-    flips: ["Rain forecast drops below 3 days", "Food interest above 0.95"],
+    nextBest: { start: "2027-01-06", end: "2027-01-10", cost: 1240, score: -1 },
     airline: "Ryanair",
   },
 ];
 
-function fmtRange(win: FreeWindow) {
-  const s = new Date(win.start);
-  const e = new Date(win.end);
-  const m = e.toLocaleString("en-GB", { month: "short" });
-  return `${s.getDate()}–${e.getDate()} ${m}`;
+const FIX = (s: string) => `fixture:${s}`;
+
+export const recId = (iata: string, win: Pick<FreeWindow, "start" | "end">) =>
+  `${iata}-${win.start.replaceAll("-", "")}-${win.end.replaceAll("-", "")}`;
+
+function shortRange(win: Pick<FreeWindow, "start" | "end">) {
+  const s = new Date(`${win.start}T12:00:00Z`);
+  const e = new Date(`${win.end}T12:00:00Z`);
+  return `${s.getUTCDate()}-${e.getUTCDate()} ${e.toLocaleString("en-GB", { month: "short", timeZone: "UTC" })}`;
 }
 
 function evidenceFor(s: Seed): Evidence[] {
-  const range = fmtRange(s.window);
-  const from = "KRK";
+  const range = shortRange(s.window);
   return [
     {
       kind: "flight",
-      label: `Return ${from}–${s.iata} ${range} · ${s.airline}`,
+      label: `Return KRK-${s.iata} ${range} · ${s.airline}`,
       value: s.flight,
       unit: "PLN",
-      source: "travelpayouts:prices_for_dates",
+      source: FIX("travelpayouts"),
       fetched_at: FETCHED,
-      url: `https://www.google.com/travel/flights?q=Flights%20from%20${from}%20to%20${s.iata}%20on%20${s.window.start}%20through%20${s.window.end}`,
+      url: null,
     },
     {
-      kind: "flight",
-      label: `Typical price for this route`,
+      kind: "price_baseline",
+      label: "Typical return fare on this route",
       value: `${s.flightTypical[0]}–${s.flightTypical[1]}`,
       unit: "PLN",
-      source: "serpapi:google_flights.price_insights",
+      source: FIX("serpapi:google_flights.price_insights"),
       fetched_at: FETCHED,
       url: null,
     },
     {
       kind: "hotel",
-      label: `${s.nights} nights, 3★ central, 1 adult`,
+      label: `Hotel ${s.nights} nights in ${s.city} (standard)`,
       value: s.hotel,
       unit: "PLN",
-      source: "serpapi:google_hotels",
+      source: FIX("liteapi"),
       fetched_at: FETCHED,
-      url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(s.city)}&checkin=${s.window.start}&checkout=${s.window.end}&group_adults=1`,
+      url: null,
     },
     {
       kind: "weather",
-      label: `Avg. daily max, ${range} (climate normal)`,
+      label: `Avg daily max in ${s.city} ${range}`,
       value: s.tempMax,
       unit: "°C",
-      source: "open-meteo:climate",
+      source: FIX("open-meteo-climate"),
       fetched_at: FETCHED,
       url: "https://open-meteo.com",
     },
     {
       kind: "weather",
-      label: `Rainy days expected in window`,
+      label: "Rainy days expected in window",
       value: s.rainDays,
       unit: "days",
-      source: "open-meteo:climate",
+      source: FIX("open-meteo-climate"),
       fetched_at: FETCHED,
       url: "https://open-meteo.com",
     },
     {
       kind: "crowds",
-      label: `Tourist nights in January vs. August peak`,
+      label: "Tourist crowd index (1 = peak)",
       value: s.crowdIndex,
       unit: "0-1",
-      source: "eurostat:tour_occ_nim",
+      source: FIX("eurostat-tour_occ_nim"),
       fetched_at: FETCHED_SEED,
       url: "https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nim/default/table",
     },
-    ...s.highlights.slice(0, 2).map<Evidence>((h) => ({
+    {
       kind: "attraction",
-      label: h,
-      value: "matches food/history",
+      label: "Top sights",
+      value: s.highlights.slice(0, 3).join(", "),
       unit: null,
-      source: "opentripmap",
+      source: FIX("opentripmap"),
       fetched_at: FETCHED_SEED,
       url: "https://opentripmap.com",
-    })),
+    },
   ];
 }
 
-export function buildRecommendations(): Recommendation[] {
+/**
+ * Unranked candidates in RankedRecommendation shape. `rank`, taste score,
+ * totals, the runner-up counterfactual, `flip` and `inputs_hash` are filled
+ * in by the mock scorer (lib/mock/api.ts), like the real `tripai.scoring.rank`.
+ */
+export function buildRecommendations(): RankedRecommendation[] {
   return SEEDS.map((s) => {
     const total = s.flight + s.hotel;
+    const counterfactuals: Counterfactual[] = [
+      {
+        kind: "peak_season",
+        label: "same trip in Jul (peak season)",
+        city: s.city,
+        window: null,
+        total_cost_pln: s.summerTotal,
+        cost_delta_pln: s.summerTotal - total,
+        cost_delta_pct: Math.round((100 * (s.summerTotal - total)) / s.summerTotal),
+        score_total: 0.55,
+        score_delta: 0.27,
+        crowd: 0.9,
+        temp_c: 30,
+        text: `${s.summerTotal - total} PLN cheaper than the same trip in Jul (peak season)`,
+      },
+      {
+        kind: "next_window",
+        label: `next-best window ${shortRange(s.nextBest)}`,
+        city: s.city,
+        window: { start: s.nextBest.start, end: s.nextBest.end, source: "manual" },
+        total_cost_pln: s.nextBest.cost,
+        cost_delta_pln: s.nextBest.cost - total,
+        cost_delta_pct: Math.round((100 * (s.nextBest.cost - total)) / s.nextBest.cost),
+        score_total: 0.75,
+        score_delta: -s.nextBest.score / 100,
+        crowd: null,
+        temp_c: null,
+        text: `next-best window ${shortRange(s.nextBest)}: ${s.nextBest.cost} PLN; score ${s.nextBest.score} pts`,
+      },
+    ];
     return {
-      id: s.id,
+      id: recId(s.iata, s.window),
       city: s.city,
       country: s.country,
       iata: s.iata,
@@ -287,38 +322,23 @@ export function buildRecommendations(): Recommendation[] {
       evidence: evidenceFor(s),
       highlights: s.highlights,
       why: s.why,
-      photo_url: `/cities/${s.city.toLowerCase()}.jpg`,
-      deltas: [
-        {
-          vs: "summer",
-          label: "vs. same trip in July",
-          cost_pln: total - s.summerTotal,
-          score: null,
-          source: "travelpayouts:grouped_prices + serpapi:google_hotels",
-          fetched_at: FETCHED,
-        },
-        {
-          vs: "next_best",
-          label: `vs. ${s.nextBest.label}`,
-          cost_pln: s.nextBest.cost - total,
-          score: s.nextBest.score,
-          source: "tripai.scoring",
-          fetched_at: FETCHED,
-        },
-      ],
-      flip_conditions: s.flips,
-      inputs_hash: null, // computed client-side
-      handoff: [
-        { label: "Flights on Google Flights", url: evidenceFor(s)[0].url! },
-        { label: "Hotels on Booking.com", url: evidenceFor(s)[2].url! },
-      ],
+      rank: 0,
+      counterfactuals,
+      flip: null,
+      inputs_hash: "",
+      scoring_version: "fixture",
+      tags: Object.entries(CITY_TAGS[s.iata] ?? {})
+        .filter(([, v]) => v >= 0.7)
+        .map(([k]) => k),
+      temp_c: s.tempMax,
+      crowd: s.crowdIndex,
     };
   });
 }
 
-/** Past trip used by the post-trip survey demo. */
+/** Past trip used by the post-trip survey demo (backend resolves tags from the IATA prefix). */
 export const PAST_TRIP = {
-  id: "barcelona-2026-08",
+  id: "BCN-20260812-20260817",
   city: "Barcelona",
   country: "Spain",
   dates: "12–17 Aug 2026",

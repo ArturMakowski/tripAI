@@ -31,7 +31,7 @@ export function ModeBadge() {
       title={live ? "Answers come from the TripAI backend" : "Backend not configured or unreachable: recorded fixtures"}
     >
       <span className={cn("size-1.5 rounded-full", live ? "bg-pine animate-pulse" : "bg-sun")} />
-      {live ? "Live data" : "Demo fixtures"}
+      {live ? "Live API" : "Demo fixtures"}
     </span>
   );
 }

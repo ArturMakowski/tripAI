@@ -5,19 +5,23 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { DataMode } from "./api";
 import { weightsFromSlider } from "./scoring";
-import type { ChatMessage, FreeWindow, Recommendation, TasteProfile, Weights } from "./types";
+import type { BridgeWindow, Change, ChatMessage, FreeWindow, RankedRecommendation, TasteProfile, Weights } from "./types";
 
 export interface FeedbackDiff {
   tripId: string;
   before: { weights: Weights; profile: TasteProfile; ranking: string[] };
   after: { weights: Weights; profile: TasteProfile; ranking: string[] };
+  diff: Change[];
+  /** Display info for every trip in either ranking (ids can differ between calls). */
+  items: Record<string, { city: string; iata: string; window: FreeWindow; total_cost_pln: number }>;
 }
 
 interface TripState {
   messages: ChatMessage[];
   profile: TasteProfile | null;
   windows: FreeWindow[];
-  recs: Recommendation[];
+  longWeekends: BridgeWindow[];
+  recs: RankedRecommendation[];
   /** Slider position 0..100 (price -> comfort -> experience). null = custom weights from feedback. */
   slider: number | null;
   weights: Weights;
@@ -27,8 +31,8 @@ interface TripState {
 
   setMessages: (m: ChatMessage[]) => void;
   setProfile: (p: TasteProfile | null) => void;
-  setWindows: (w: FreeWindow[]) => void;
-  setRecs: (r: Recommendation[]) => void;
+  setWindows: (w: FreeWindow[], lw: BridgeWindow[]) => void;
+  setRecs: (r: RankedRecommendation[]) => void;
   setSlider: (pos: number) => void;
   setWeights: (w: Weights) => void;
   setMode: (m: DataMode) => void;
@@ -41,6 +45,7 @@ const initial = {
   messages: [],
   profile: null,
   windows: [],
+  longWeekends: [],
   recs: [],
   slider: 50,
   weights: weightsFromSlider(50),
@@ -55,7 +60,7 @@ export const useTrip = create<TripState>()(
       ...initial,
       setMessages: (messages) => set({ messages }),
       setProfile: (profile) => set({ profile }),
-      setWindows: (windows) => set({ windows }),
+      setWindows: (windows, longWeekends) => set({ windows, longWeekends }),
       setRecs: (recs) => set({ recs }),
       setSlider: (slider) => set({ slider, weights: weightsFromSlider(slider) }),
       setWeights: (weights) => set({ weights, slider: null }),
@@ -64,7 +69,7 @@ export const useTrip = create<TripState>()(
       setFeedback: (feedback) => set({ feedback }),
       reset: () => set({ ...initial }),
     }),
-    { name: "tripai-v1", storage: createJSONStorage(() => localStorage) },
+    { name: "tripai-v2", storage: createJSONStorage(() => localStorage) },
   ),
 );
 

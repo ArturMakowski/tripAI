@@ -32,11 +32,12 @@ export function weightedTotal(s: Omit<ScoreBreakdown, "total">, w: Weights): num
   return FACTORS.reduce((t, f) => t + n[f] * s[f], 0);
 }
 
-/** Re-score and sort, highest total first. Pure; returns new objects. */
-export function rerank(recs: Recommendation[], w: Weights): Recommendation[] {
+/** Re-score and sort, highest total first (same tie-break as the backend); sets `rank`. Pure. */
+export function rerank<T extends Recommendation & { rank?: number }>(recs: T[], w: Weights): T[] {
   return recs
     .map((r) => ({ ...r, score: { ...r.score, total: weightedTotal(r.score, w) } }))
-    .sort((a, b) => b.score.total - a.score.total || a.total_cost_pln - b.total_cost_pln);
+    .sort((a, b) => b.score.total - a.score.total || a.total_cost_pln - b.total_cost_pln)
+    .map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
 // --- Slider: price <-> comfort <-> experience -------------------------------

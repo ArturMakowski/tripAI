@@ -12,7 +12,8 @@ import { formatPLN, formatRange, pct } from "@/lib/format";
 import { DEMO_PROFILE, PAST_TRIP } from "@/lib/mock/fixtures";
 import { FACTORS, FACTOR_LABEL, normalise, rerank, type Factor } from "@/lib/scoring";
 import { useTrip, type FeedbackDiff } from "@/lib/store";
-import type { Recommendation } from "@/lib/types";
+import { cityPhoto } from "@/lib/photos";
+import type { Change } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { cn } from "@/lib/utils";
 
@@ -92,44 +93,69 @@ function WeightDiff({ diff }: { diff: FeedbackDiff }) {
   );
 }
 
+function fmtVal(v: Change["before"]) {
+  if (v == null) return "–";
+  if (Array.isArray(v)) return v.join(", ") || "none";
+  return typeof v === "number" ? v.toFixed(2) : v;
+}
+
+/** Non-weight changes from the backend diff, each with its reason. */
 function ProfileDiff({ diff }: { diff: FeedbackDiff }) {
-  const bi = diff.before.profile.interests;
-  const ai = diff.after.profile.interests;
-  const changed = Object.keys({ ...bi, ...ai }).filter((k) => (bi[k] ?? 0) !== (ai[k] ?? 0));
-  const newDislikes = diff.after.profile.dislikes.filter((d) => !diff.before.profile.dislikes.includes(d));
-  if (!changed.length && !newDislikes.length) return null;
+  const changes = diff.diff.filter((c) => !c.field.startsWith("weights."));
+  if (!changes.length) return null;
   return (
-    <div className="flex flex-wrap gap-2">
-      {changed.map((k) => (
-        <span key={k} className="rounded-full bg-pine-soft px-3 py-1 text-sm text-pine-deep capitalize">
-          {k} <span className="tabular font-mono text-xs">{(bi[k] ?? 0).toFixed(2)} → {(ai[k] ?? 0).toFixed(2)}</span>
-        </span>
-      ))}
-      {newDislikes.map((d) => (
-        <span key={d} className="rounded-full bg-clay-soft px-3 py-1 text-sm text-ink">
-          <span className="text-clay">+ avoid</span> {d}
-        </span>
-      ))}
-    </div>
+    <ul className="space-y-2">
+      {changes.map((c, i) => {
+        const [group, key] = c.field.split(".");
+        const isDislike = group === "dislikes";
+        const added = isDislike && Array.isArray(c.after) && Array.isArray(c.before) ? c.after.filter((x) => !(c.before as string[]).includes(x)) : [];
+        return (
+          <li key={i} className="flex items-baseline justify-between gap-3 text-sm">
+            <span className={cn("rounded-full px-2.5 py-0.5 capitalize", isDislike ? "bg-clay-soft text-ink" : "bg-pine-soft text-pine-deep")}>
+              {isDislike ? (
+                <>
+                  <span className="text-clay">+ avoid</span> {added.join(", ")}
+                </>
+              ) : (
+                <>
+                  {key ?? group.replaceAll("_", " ")}{" "}
+                  <span className="tabular font-mono text-xs">
+                    {fmtVal(c.before)} → {fmtVal(c.after)}
+                  </span>
+                </>
+              )}
+            </span>
+            <span className="text-right text-xs text-muted-foreground">{c.reason}</span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
-/** Shows the old order, then animates into the new one. */
-function Rerank({ diff, recs }: { diff: FeedbackDiff; recs: Recommendation[] }) {
-  const [order, setOrder] = useState(diff.before.ranking);
+/** Shows the top trips in their old order, then animates into the new one. */
+function Rerank({ diff }: { diff: FeedbackDiff }) {
+  const top = diff.after.ranking.slice(0, 5);
+  const beforeIdx = (id: string) => {
+    const i = diff.before.ranking.indexOf(id);
+    return i < 0 ? Number.POSITIVE_INFINITY : i;
+  };
+  const initial = [...top].sort((x, y) => beforeIdx(x) - beforeIdx(y));
+  const [settled, setSettled] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setOrder(diff.after.ranking), 1300);
+    const t = setTimeout(() => setSettled(true), 1300);
     return () => clearTimeout(t);
   }, [diff]);
-  const byId = Object.fromEntries(recs.map((r) => [r.id, r]));
-  const settled = order === diff.after.ranking;
+  const order = settled ? top : initial;
   return (
     <LayoutGroup>
       <ol className="space-y-2">
         {order.map((id, i) => {
-          const r = byId[id];
+          const r = diff.items[id];
           if (!r) return null;
-          const move = diff.before.ranking.indexOf(id) - diff.after.ranking.indexOf(id);
+          const was = beforeIdx(id);
+          const move = Number.isFinite(was) ? was - diff.after.ranking.indexOf(id) : null;
+          const photo = cityPhoto(r.iata);
           return (
             <motion.li
               key={id}
@@ -140,8 +166,12 @@ function Rerank({ diff, recs }: { diff: FeedbackDiff; recs: Recommendation[] }) 
                 settled && i === 0 ? "border-pine" : "border-line",
               )}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={r.photo_url ?? ""} alt="" className="size-11 rounded-xl object-cover" />
+              {photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photo} alt="" className="size-11 rounded-xl object-cover" />
+              ) : (
+                <span className="size-11 rounded-xl bg-pine-soft" />
+              )}
               <div className="min-w-0 flex-1">
                 <p className="font-display text-lg leading-tight text-ink">{r.city}</p>
                 <p className="text-xs text-muted-foreground">
@@ -154,11 +184,19 @@ function Rerank({ diff, recs }: { diff: FeedbackDiff; recs: Recommendation[] }) 
                   animate={{ opacity: 1, scale: 1 }}
                   className={cn(
                     "flex items-center gap-0.5 text-xs font-semibold",
-                    move > 0 ? "text-pine" : move < 0 ? "text-clay" : "text-muted-foreground",
+                    move == null || move > 0 ? "text-pine" : move < 0 ? "text-clay" : "text-muted-foreground",
                   )}
                 >
-                  {move > 0 ? <ArrowUp className="size-3.5" /> : move < 0 ? <ArrowDown className="size-3.5" /> : <Minus className="size-3.5" />}
-                  {move !== 0 && Math.abs(move)}
+                  {move == null ? (
+                    "new"
+                  ) : move > 0 ? (
+                    <ArrowUp className="size-3.5" />
+                  ) : move < 0 ? (
+                    <ArrowDown className="size-3.5" />
+                  ) : (
+                    <Minus className="size-3.5" />
+                  )}
+                  {move != null && move !== 0 && Math.abs(move)}
                 </motion.span>
               )}
             </motion.li>
@@ -171,7 +209,7 @@ function Rerank({ diff, recs }: { diff: FeedbackDiff; recs: Recommendation[] }) 
 
 export default function SurveyPage() {
   const { ranked } = useRecommendations();
-  const { profile, weights, recs, setProfile, setWeights, setRecs, setMode, feedback, setFeedback } = useTrip();
+  const { profile, weights, setProfile, setWeights, setRecs, setMode, feedback, setFeedback } = useTrip();
   const [ratings, setRatings] = useState<Partial<Record<Factor, number>>>({});
   const [liked, setLiked] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -179,27 +217,35 @@ export default function SurveyPage() {
   async function submit() {
     setBusy(true);
     const before = { weights, profile: profile ?? DEMO_PROFILE, ranking: ranked.map((r) => r.id) };
-    const fb = await api.feedback(
-      { trip_id: PAST_TRIP.id, answers: { ratings: ratings as Record<string, number>, liked_tags: liked } },
-      { profile: before.profile, weights },
-    );
+    const fb = await api.feedback({
+      trip_id: PAST_TRIP.id,
+      answers: { ...(ratings as Record<string, number>), loved: liked },
+      profile: before.profile,
+      weights,
+    });
     const nextWeights = fb.data.weights ?? weights;
-    const fresh = await api.recommendations({ profile: fb.data.profile, weights: nextWeights });
+    const nextProfile = fb.data.profile ?? fb.data;
+    const fresh = await api.recommendations({ profile: nextProfile, weights: nextWeights });
+    const items: FeedbackDiff["items"] = {};
+    for (const r of [...ranked, ...fresh.data])
+      items[r.id] = { city: r.city, iata: r.iata, window: r.window, total_cost_pln: r.total_cost_pln };
     setMode(fresh.mode);
-    setProfile(fb.data.profile);
+    setProfile(nextProfile);
     setWeights(nextWeights);
     setRecs(fresh.data);
     setFeedback({
       tripId: PAST_TRIP.id,
       before,
-      after: { weights: nextWeights, profile: fb.data.profile, ranking: rerank(fresh.data, nextWeights).map((r) => r.id) },
+      after: { weights: nextWeights, profile: nextProfile, ranking: rerank(fresh.data, nextWeights).map((r) => r.id) },
+      diff: fb.data.diff ?? [],
+      items,
     });
     setBusy(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   if (feedback) {
-    const top = recs.find((r) => r.id === feedback.after.ranking[0]);
+    const top = feedback.items[feedback.after.ranking[0]];
     const changedTop = feedback.before.ranking[0] !== feedback.after.ranking[0];
     return (
       <AppShell>
@@ -232,7 +278,7 @@ export default function SurveyPage() {
 
         <section className="mt-6">
           <h2 className="mb-3 text-sm font-semibold text-ink">Re-ranked with the new weights</h2>
-          <Rerank diff={feedback} recs={recs} />
+          <Rerank diff={feedback} />
         </section>
 
         <Button asChild size="lg" className="mt-6 h-12 w-full rounded-2xl text-base">

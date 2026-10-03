@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { dayCount, formatPLN, formatRange } from "@/lib/format";
 import { useTrip } from "@/lib/store";
 import type { Recommendation } from "@/lib/types";
+import { handoffLinks } from "@/lib/handoff";
 import { useRecommendations } from "@/lib/use-recommendations";
 
 function icsFor(rec: Recommendation) {
@@ -47,7 +48,7 @@ export default function ConfirmPage() {
 
   const done = approved.includes(rec.id);
   const nights = dayCount(rec.window) - 1;
-  const links = rec.handoff ?? rec.evidence.filter((e) => e.url && (e.kind === "flight" || e.kind === "hotel")).map((e) => ({ label: e.label, url: e.url! }));
+  const links = handoffLinks(rec);
 
   return (
     <AppShell back={`/trips/${rec.id}`} title={rec.city} nav={false}>
@@ -57,7 +58,7 @@ export default function ConfirmPage() {
             <div>
               <p className="font-display text-3xl leading-none">{rec.city}</p>
               <p className="mt-1 text-sm text-white/85">
-                {formatRange(rec.window)} 2027 · {nights} nights
+                {formatRange(rec.window)} {rec.window.start.slice(0, 4)} · {nights} nights
               </p>
             </div>
             <p className="tabular font-display text-2xl">{formatPLN(rec.total_cost_pln)}</p>

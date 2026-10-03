@@ -46,6 +46,15 @@ describe("scoring", () => {
 });
 
 describe("mock backend", () => {
+  it("emits RankedRecommendation shape with receipts", () => {
+    const recs = scoreLocally(DEMO_PROFILE, weightsFromSlider(50));
+    expect(recs.map((r) => r.rank)).toEqual(recs.map((_, i) => i + 1));
+    expect(recs[0].id).toMatch(/^[A-Z]{3}-\d{8}-\d{8}$/);
+    expect(recs[0].counterfactuals.map((c) => c.kind)).toEqual(["peak_season", "next_window", "runner_up"]);
+    expect(recs[0].flip?.rival_id).toBe(recs[1].id);
+    expect(recs[2].flip?.rival_id).toBe(recs[1].id);
+  });
+
   it("every evidence item carries source + fetched_at", () => {
     for (const r of scoreLocally(DEMO_PROFILE, weightsFromSlider(50)))
       for (const e of r.evidence) {
@@ -57,12 +66,14 @@ describe("mock backend", () => {
   it("survey with bad crowds raises crowd weight and moves Rome to #1 from the price end", () => {
     const w = weightsFromSlider(0);
     const fb = applyFeedback(DEMO_PROFILE, w, {
-      trip_id: "barcelona",
-      answers: { ratings: { crowds: 1, weather: 2, price: 4, taste: 5 }, liked_tags: ["food"] },
+      trip_id: "BCN-20260812-20260817",
+      answers: { crowds: 1, weather: 2, price: 4, taste: 5, loved: ["food"] },
     });
-    expect(fb.weights!.crowds).toBeGreaterThan(normalise(w).crowds);
+    expect(fb.weights.crowds).toBeGreaterThan(normalise(w).crowds);
     expect(fb.profile.interests.food).toBeGreaterThan(DEMO_PROFILE.interests.food);
-    expect(scoreLocally(fb.profile, fb.weights!)[0].city).toBe("Rome");
+    expect(fb.diff.some((c) => c.field === "weights.crowds")).toBe(true);
+    expect(fb.dislikes).toContain("crowds"); // top-level profile fields, like the backend
+    expect(scoreLocally(fb.profile, fb.weights)[0].city).toBe("Rome");
   });
 
   it("interview returns a profile after four answers", async () => {

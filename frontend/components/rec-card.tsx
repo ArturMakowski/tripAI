@@ -6,17 +6,19 @@ import { ArrowUpRight, TrendingDown, Plane, BedDouble } from "lucide-react";
 import { ContributionBar } from "@/components/factor-bars";
 import { ScoreRing } from "@/components/score-ring";
 import { dayCount, formatPLN, formatRange } from "@/lib/format";
-import type { Recommendation, Weights } from "@/lib/types";
+import { cityPhoto } from "@/lib/photos";
+import type { BridgeWindow, Recommendation, RankedRecommendation, Weights } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const FALLBACK_BG = "linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 60%, var(--clay) 140%)";
 
 export function CityPhoto({ rec, className, children }: { rec: Recommendation; className?: string; children?: React.ReactNode }) {
+  const photo = cityPhoto(rec.iata);
   return (
     <div className={cn("relative overflow-hidden", className)} style={{ background: FALLBACK_BG }}>
-      {rec.photo_url && (
+      {photo && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={rec.photo_url} alt={`${rec.city}, ${rec.country}`} className="absolute inset-0 size-full object-cover" />
+        <img src={photo} alt={`${rec.city}, ${rec.country}`} className="absolute inset-0 size-full object-cover" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/0" />
       {children}
@@ -24,9 +26,20 @@ export function CityPhoto({ rec, className, children }: { rec: Recommendation; c
   );
 }
 
-export function RecCard({ rec, rank, weights, featured }: { rec: Recommendation; rank: number; weights: Weights; featured?: boolean }) {
-  const summer = rec.deltas?.find((d) => d.vs === "summer");
-  const summerPct = summer ? Math.round((summer.cost_pln / (rec.total_cost_pln - summer.cost_pln)) * 100) : null;
+export function RecCard({
+  rec,
+  weights,
+  featured,
+  bridge,
+}: {
+  rec: RankedRecommendation;
+  weights: Weights;
+  featured?: boolean;
+  bridge?: BridgeWindow;
+}) {
+  const rank = rec.rank;
+  const peak = rec.counterfactuals.find((c) => c.kind === "peak_season");
+  const peakMonth = peak?.label.match(/in (\w{3})/)?.[1] ?? "peak";
   const nights = dayCount(rec.window) - 1;
 
   return (
@@ -50,9 +63,9 @@ export function RecCard({ rec, rank, weights, featured }: { rec: Recommendation;
           {rec.window.source === "gcal" && (
             <span className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">You&rsquo;re free</span>
           )}
-          {rec.window.bridge && rec.window.bridge.days_off > 0 && (
+          {bridge && bridge.leave_days.length > 0 && (
             <span className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
-              {rec.window.bridge.days_off}d off → {rec.window.bridge.total_days}d
+              {bridge.leave_days.length}d off → {bridge.total_days}d
             </span>
           )}
         </div>
@@ -88,9 +101,9 @@ export function RecCard({ rec, rank, weights, featured }: { rec: Recommendation;
           <span className="flex items-center gap-1">
             <BedDouble className="size-3.5" /> {formatPLN(rec.hotel_cost_pln)}
           </span>
-          {summerPct !== null && summerPct < 0 && (
+          {peak && peak.cost_delta_pln > 0 && (
             <span className="ml-auto flex items-center gap-1 rounded-full bg-pine-soft px-2 py-0.5 font-medium text-pine-deep">
-              <TrendingDown className="size-3.5" /> {summerPct}% vs July
+              <TrendingDown className="size-3.5" /> −{Math.round(peak.cost_delta_pct)}% vs {peakMonth}
             </span>
           )}
         </div>
