@@ -2,6 +2,7 @@
  * Realistic demo fixtures: KRK -> Rome / Lisbon / Athens / Venice / Porto, Jan 2027.
  * Prices are hand-recorded ballparks for the demo, shaped exactly like backend output.
  */
+import { sampleFlight, sampleHotel } from "./trip-details";
 import type { BridgeWindow, Counterfactual, Evidence, FreeWindow, RankedRecommendation, TasteProfile } from "../types";
 
 const FETCHED = "2026-10-03T09:42:00Z";
@@ -191,7 +192,7 @@ const SEEDS: Seed[] = [
     why: "Porto has the cheapest hotels here at 690 PLN for five nights, and the food matches your profile. The flight costs 612 PLN and around 6 rainy days are typical in mid-January.",
     summerTotal: 2510,
     nextBest: { start: "2027-01-06", end: "2027-01-10", cost: 1240, score: -1 },
-    airline: "Ryanair",
+    airline: "TAP Air Portugal",
   },
 ];
 
@@ -326,6 +327,8 @@ export function buildRecommendations(): RankedRecommendation[] {
       evidence: evidenceFor(s),
       highlights: s.highlights,
       why: s.why,
+      flight: sampleFlight(s.iata, s.window, s.flight),
+      hotel: sampleHotel(s.iata, s.city, s.hotel),
       rank: 0,
       counterfactuals,
       flip: null,

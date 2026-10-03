@@ -22,6 +22,7 @@ import type {
 import { getApiLang } from "../api";
 import type { Lang } from "../i18n/types";
 import { buildRecommendations, CITY_TAGS, DEMO_PROFILE, LONG_WEEKENDS, PL_LOCAL, WINDOWS } from "./fixtures";
+import { sampleFastFlight } from "./trip-details";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const DEFAULT_WEIGHTS: Weights = { price: 0.4, weather: 0.2, crowds: 0.15, taste: 0.25 };
@@ -270,6 +271,9 @@ export function fastEstimates(recs: RankedRecommendation[]): RankedRecommendatio
             : e,
       ),
       why: "",
+      // fast phase: the cached fare only knows the airline; the exact itinerary and hotel come with the full phase
+      flight: sampleFastFlight(r.iata),
+      hotel: null,
     };
   });
 }

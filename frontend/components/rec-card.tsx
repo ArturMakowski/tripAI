@@ -9,6 +9,7 @@ import { dayCount } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
+import { flightLine, hotelLineParts, trustedDetails } from "@/lib/trip-details";
 import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/types";
 import { peakMonth } from "@/lib/counterfactual";
@@ -141,6 +142,12 @@ export function RecCard({
   const [showPeak, setShowPeak] = useState(false);
   const peakNote = peak ? tc.peakNote(peakMonthName, fmt.pln(peak.total_cost_pln), fmt.pln(rec.total_cost_pln), rec.scoring_version) : "";
   const nights = dayCount(rec.window) - 1;
+  const td = t.tripDetails;
+  const details = trustedDetails(rec);
+  const flightText = flightLine(details.flight, td);
+  const hotelParts = hotelLineParts(details.hotel, td);
+  // with flight/hotel details each gets its own line; without, the two prices sit side by side as before
+  const detailRow = flightText || hotelParts ? "w-full" : "";
 
   return (
     <Link
@@ -216,11 +223,18 @@ export function RecCard({
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Plane className="size-3.5" /> {fmt.pln(rec.flight_cost_pln)}
+          <span className={cn("flex min-w-0 items-center gap-1", detailRow)}>
+            <Plane className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">{fmt.pln(rec.flight_cost_pln)}</span>
+            {flightText && <span className="truncate text-ink-soft">· {flightText}</span>}
           </span>
-          <span className="flex items-center gap-1">
-            <BedDouble className="size-3.5" /> {fmt.pln(rec.hotel_cost_pln)}
+          <span className={cn("flex min-w-0 items-center gap-1", detailRow)}>
+            <BedDouble className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">{fmt.pln(rec.hotel_cost_pln)}</span>
+            {hotelParts && (
+              <>
+                <span className="truncate text-ink-soft">· {hotelParts[0]}</span>
+                {hotelParts[1] && <span className="tabular shrink-0 text-ink-soft">{hotelParts[1].startsWith("★") ? "" : "· "}{hotelParts[1]}</span>}
+              </>
+            )}
           </span>
           {peak && peak.cost_delta_pln > 0 && (
             <button

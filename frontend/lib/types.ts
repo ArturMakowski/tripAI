@@ -26,6 +26,10 @@ export interface TasteProfile {
   daily_discovery?: boolean | null;
   /** false: neutral weights, post-trip feedback never changes the profile. */
   personalize?: boolean;
+  /** Party (docs/BUDGET.md "Party pricing"): flights x travellers, hotel per room. rooms null = ceil(people / 2). */
+  adults?: number;
+  children?: number;
+  rooms?: number | null;
 }
 
 export interface FreeWindow {
@@ -57,6 +61,64 @@ export interface ScoreBreakdown {
   crowds: number;
   taste: number;
   total: number;
+}
+
+/** One flight segment (docs/TRIP_DETAILS.md). */
+export interface FlightLeg {
+  airline: string; // e.g. "Ryanair"
+  flight_number: string | null; // e.g. "FR 1234"
+  from_iata: string;
+  to_iata: string;
+  depart_at: string | null; // ISO, local time at the departure airport
+  arrive_at: string | null;
+  duration_min: number | null;
+}
+
+/** The concrete itinerary behind flight_cost_pln. */
+export interface FlightDetails {
+  outbound: FlightLeg[];
+  inbound: FlightLeg[];
+  stops_outbound: number | null;
+  stops_inbound: number | null;
+  price_pln: number | null;
+  booking_url: string | null;
+  source: string; // "serpapi:google_flights" | "travelpayouts" (airline code only)
+  fetched_at: string;
+}
+
+export interface TransferOption {
+  mode: "public_transport" | "taxi" | "drive" | "walk" | "train" | "bus" | (string & {});
+  duration_min: number | null;
+  distance_km: number | null;
+  price_pln: number | null;
+  note: string | null; // e.g. "Metro line A, 1 change"
+  source: string; // "serpapi:google_hotels" | "osrm" | "estimate:haversine"
+  fetched_at: string;
+}
+
+export interface GeoPoint {
+  lat: number;
+  lon: number;
+  label: string | null;
+}
+
+/** The concrete stay behind hotel_cost_pln. */
+export interface HotelDetails {
+  name: string;
+  address: string | null;
+  location: GeoPoint | null;
+  rating: number | null; // e.g. 4.4
+  reviews: number | null;
+  stars: number | null; // hotel class
+  price_pln_total: number | null;
+  distance_to_center_km: number | null; // straight line to the city's centre point
+  airport: GeoPoint | null;
+  city_center: GeoPoint | null;
+  transfers: TransferOption[]; // airport -> hotel
+  booking_url: string | null;
+  photo_url: string | null;
+  source: string; // "serpapi:google_hotels"
+  fetched_at: string;
 }
 
 export interface FitPoint {
@@ -91,6 +153,16 @@ export interface Recommendation {
   highlights: string[];
   why: string;
   fit?: FitVerdict | null;
+  /** Party pricing (docs/BUDGET.md): total_cost_pln stays per person; these cover the whole group. */
+  travelers?: number;
+  party_total_pln?: number | null;
+  per_person_pln?: number | null;
+  /** "exact" (these dates) | "partial" (one leg exact) | "estimate" (other dates / city average). Absent = exact. */
+  price_status?: "exact" | "partial" | "estimate" | (string & {});
+  value_badge?: "great_value" | "worth_splurge" | (string & {}) | null;
+  value_reason?: string | null;
+  flight?: FlightDetails | null; // which flight (docs/TRIP_DETAILS.md)
+  hotel?: HotelDetails | null; // which hotel, where, transfers, distance to centre
 }
 
 // --- scoring/types.py -------------------------------------------------------------

@@ -15,6 +15,7 @@ import * as swipeOffers from "./messages/swipeOffers";
 import * as inbox from "./messages/inbox";
 import * as tutorial from "./messages/tutorial";
 import * as stars from "./messages/stars";
+import * as tripDetails from "./messages/tripDetails";
 
 export const en = {
   common: common.en,
@@ -32,6 +33,7 @@ export const en = {
   inbox: inbox.en,
   tutorial: tutorial.en,
   stars: stars.en,
+  tripDetails: tripDetails.en,
 };
 
 export type Messages = Shape<typeof en>;

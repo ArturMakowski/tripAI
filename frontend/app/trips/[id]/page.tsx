@@ -5,11 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
   ArrowRight,
+  BedDouble,
   Bot,
   ChevronLeft,
   Copy,
   ExternalLink,
   Fingerprint,
+  MapPinned,
+  Plane,
   Shuffle,
   Check,
   ChevronDown,
@@ -28,6 +31,10 @@ import type { RankedRecommendation, Weights } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
 import { FitSection } from "@/components/fit-section";
 import { SourceTag } from "@/components/source-tag";
+import { FlightBlock } from "@/components/trip-details/flight-block";
+import { StayBlock, TransferList } from "@/components/trip-details/stay-block";
+import { TripMap } from "@/components/trip-details/trip-map";
+import { trustedDetails } from "@/lib/trip-details";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { useT } from "@/lib/i18n";
 import { useTrip } from "@/lib/store";
@@ -142,6 +149,7 @@ export default function ReceiptPage() {
   const profile = useTrip((s) => s.profile);
   const { t, fmt, lang } = useT();
   const r = t.receipt;
+  const td = t.tripDetails;
 
   const rank = ranked.findIndex((r) => r.id === id);
   const rec = ranked[rank];
@@ -165,6 +173,7 @@ export default function ReceiptPage() {
   }
 
   const nights = dayCount(rec.window) - 1;
+  const details = trustedDetails(rec);
   const flight = rec.evidence.find((e) => e.kind === "flight");
   const baseline = rec.evidence.find((e) => e.kind === "price_baseline");
   const hotel = rec.evidence.find((e) => e.kind === "hotel");
@@ -387,6 +396,24 @@ export default function ReceiptPage() {
           </div>
         </Section>
 
+        {details.flight && (
+          <Section title={td.flightTitle} icon={Plane}>
+            <FlightBlock flight={details.flight} />
+          </Section>
+        )}
+
+        {details.hotel && (
+          <>
+            <Section title={td.stayTitle} icon={BedDouble}>
+              <StayBlock hotel={details.hotel} />
+            </Section>
+            <Section title={td.mapTitle} icon={MapPinned}>
+              <TripMap hotel={details.hotel} city={rec.city} />
+              <h3 className="mt-4 mb-2 text-sm font-semibold text-ink">{td.transfersTitle}</h3>
+              <TransferList transfers={details.hotel.transfers} />
+            </Section>
+          </>
+        )}
 
 
       </main>

@@ -14,6 +14,7 @@ import * as swipeOffers from "./messages/swipeOffers";
 import * as inbox from "./messages/inbox";
 import * as tutorial from "./messages/tutorial";
 import * as stars from "./messages/stars";
+import * as tripDetails from "./messages/tripDetails";
 import type { Messages } from "./en";
 
 export const pl: Messages = {
@@ -32,4 +33,5 @@ export const pl: Messages = {
   inbox: inbox.pl,
   tutorial: tutorial.pl,
   stars: stars.pl,
+  tripDetails: tripDetails.pl,
 };
