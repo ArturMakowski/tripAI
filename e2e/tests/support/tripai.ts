@@ -7,6 +7,8 @@
  * - It also injects a tiny error recorder into every HTML document of the app, because the e2e
  *   framework has no console/pageerror hook yet: console.error, uncaught errors (React hydration
  *   errors in production land here via reportError) and unhandled rejections.
+ * - It marks the first-run tutorial as already seen (intro + every coach-mark tour), so its overlay
+ *   never sits on top of the flow under test. Pass `{ tutorial: true }` to test the tutorial itself.
  */
 import type { Browser, WebRoute } from '@e2e-dev/web';
 
@@ -30,6 +32,14 @@ const RECORDER = `<script>(function(){
     push('error', (e.error && e.error.stack) || e.message);
   }, true);
   addEventListener('unhandledrejection', function(e){ push('unhandledrejection', (e.reason && e.reason.stack) || e.reason); });
+})();</script>`;
+
+/** Runs before the app: the tutorial counts as seen unless the page already stored its own flags. */
+const SEEN_TUTORIAL = `<script>(function(){
+  try {
+    if (!localStorage.getItem('tripai-tutorial-v1'))
+      localStorage.setItem('tripai-tutorial-v1', JSON.stringify({ intro: true, tours: { trips: true, receipt: true, windows: true, inbox: true } }));
+  } catch (e) {}
 })();</script>`;
 
 const HOP_BY_HOP = new Set(['content-encoding', 'content-length', 'transfer-encoding', 'connection', 'keep-alive']);
@@ -57,7 +67,12 @@ export interface Guard {
   errors(): Promise<PageError[] | null>;
 }
 
-export async function guard(browser: Browser, baseUrl: string | undefined, opts: { live?: boolean } = {}): Promise<Guard> {
+export async function guard(
+  browser: Browser,
+  baseUrl: string | undefined,
+  opts: { live?: boolean; tutorial?: boolean } = {},
+): Promise<Guard> {
+  const inject = RECORDER + (opts.tutorial ? '' : SEEN_TUTORIAL);
   let downgraded = 0;
 
   if (!opts.live) {
@@ -80,7 +95,7 @@ export async function guard(browser: Browser, baseUrl: string | undefined, opts:
       if (!isDocument) return route.continue();
       const res = await fetch(route.request.url, { headers: forwardHeaders(route) });
       let body = await res.text();
-      if ((res.headers.get('content-type') ?? '').includes('text/html')) body = body.replace(/<head[^>]*>/i, (m) => m + RECORDER);
+      if ((res.headers.get('content-type') ?? '').includes('text/html')) body = body.replace(/<head[^>]*>/i, (m) => m + inject);
       await route.fulfill({ status: res.status, headers: plainHeaders(res.headers), body });
     });
   }

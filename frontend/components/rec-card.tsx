@@ -14,7 +14,7 @@ import { cityPhoto, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/types";
 import { peakMonth } from "@/lib/counterfactual";
 import { moneyOf } from "@/lib/money";
-import { TripPrice, ValueBadge } from "@/components/money";
+import { priceText, TripPrice, ValueBadge } from "@/components/money";
 import { localCountry } from "@/lib/country";
 import { cn } from "@/lib/utils";
 
@@ -113,11 +113,15 @@ export function RecCard({
   // with flight/hotel details each gets its own line; without, the two prices sit side by side as before
   const detailRow = flightText || hotelParts ? "w-full" : "";
 
+  // Stretched link: the whole card opens the receipt, while the value badge and the peak chip stay
+  // real buttons beside the link instead of nested inside it (no interactive content in an <a>).
   return (
-    <Link
-      href={`/trips/${rec.id}`}
-      className="group block overflow-hidden rounded-[1.75rem] border border-line bg-card shadow-soft transition-shadow hover:shadow-lift"
-    >
+    <article className="group relative overflow-hidden rounded-[1.75rem] border border-line bg-card shadow-soft transition-shadow hover:shadow-lift">
+      <Link
+        href={`/trips/${rec.id}`}
+        aria-label={`${rec.city}, ${fmt.range(rec.window)}, ${priceText(rec, t, fmt)}`}
+        className="absolute inset-0 z-[1] rounded-[1.75rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
+      />
       <CityPhoto rec={rec} className={featured ? "h-60" : "h-40"}>
         <div className="absolute top-3 left-3 flex items-center gap-2">
           <motion.span
@@ -171,7 +175,7 @@ export function RecCard({
             >
               <TripPrice rec={rec} />
             </motion.div>
-            <ValueBadge rec={rec} inLink className="mt-1 items-end" />
+            <ValueBadge rec={rec} className="relative z-[2] mt-1 items-end" />
             {overBudgetPln != null && overBudgetPln > 0 && (
               <span className="mt-1 inline-block rounded-full bg-clay-soft px-2 py-0.5 text-xs font-semibold text-clay">
                 {tc.overBudget(fmt.pln(overBudgetPln))}
@@ -181,7 +185,7 @@ export function RecCard({
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
-          <span className={cn("flex min-w-0 items-center gap-1", detailRow)}>
+          <span data-line="flight" data-amount={Math.round(rec.flight_cost_pln)} className={cn("flex min-w-0 items-center gap-1", detailRow)}>
             <Plane className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">
               {fmt.pln(rec.flight_cost_pln)}
               {money.travelers > 1 && t.money.perPersonShort}
@@ -189,7 +193,7 @@ export function RecCard({
             {money.estimated.flight && <span className="shrink-0 italic">{t.money.est}</span>}
             {flightText && <span className="truncate text-ink-soft">· {flightText}</span>}
           </span>
-          <span className={cn("flex min-w-0 items-center gap-1", detailRow)}>
+          <span data-line="hotel" data-amount={Math.round(rec.hotel_cost_pln)} className={cn("flex min-w-0 items-center gap-1", detailRow)}>
             <BedDouble className="size-3.5 shrink-0" aria-hidden /> <span className="tabular shrink-0">
               {fmt.pln(rec.hotel_cost_pln)}
               {money.travelers > 1 && t.money.perRoomShort}
@@ -205,13 +209,10 @@ export function RecCard({
           {peak && peak.cost_delta_pln > 0 && (
             <button
               type="button"
-              onClick={(e) => {
-                e.preventDefault(); // inside the card link
-                setShowPeak((v) => !v);
-              }}
+              onClick={() => setShowPeak((v) => !v)}
               aria-expanded={showPeak}
               title={peakNote}
-              className="ml-auto flex items-center gap-1 rounded-full bg-pine-soft px-2 py-0.5 font-medium text-pine-deep hover:bg-pine/15"
+              className="relative z-[2] ml-auto flex items-center gap-1 rounded-full bg-pine-soft px-2 py-0.5 font-medium text-pine-deep hover:bg-pine/15"
             >
               <TrendingDown className="size-3.5" aria-hidden /> {tc.vsPeak(Math.round(peak.cost_delta_pct))}
               <Info className="size-3 opacity-70" aria-hidden />
@@ -240,6 +241,6 @@ export function RecCard({
           />
         </div>
       </div>
-    </Link>
+    </article>
   );
 }

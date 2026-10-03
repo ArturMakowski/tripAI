@@ -5,10 +5,11 @@ import { guard, pln } from './support/tripai.ts';
 test('Trips: cards show photo, price and fit badge; with a 1,000 PLN budget no over-budget card sits above an in-budget one', async ({ app, agent, screen, browser }) => {
   await guard(browser, app.baseUrl);
 
-  // Demo profile, budget lowered to 1,000 PLN with the keyboard (slider 600..5000, step 100).
+  // Demo profile: switch on the optional "Never show trips over…" limit (off by default since PR #31),
+  // then set it to 1,000 PLN with the keyboard (slider 600..5000, step 100). The thumb carries the name.
   await app.open('/profile');
-  // The thumb has no accessible name (aria-label sits on the slider root), so take the first slider: Budget.
-  const budget = screen.getByRole('slider').first();
+  await screen.getByRole('switch', /never show trips over|nie pokazuj wyjazdów/i).tap();
+  const budget = screen.getByRole('slider', /maximum price per person|maksymalna cena na osobę/i);
   await budget.press('Home');
   for (let i = 0; i < 4; i++) await budget.press('ArrowRight');
   await expect(screen.getByText(/1[,\s ]?000\s*(PLN|zł)/).first()).toBeVisible();
@@ -16,7 +17,7 @@ test('Trips: cards show photo, price and fit badge; with a 1,000 PLN budget no o
   await screen.getByRole('link', /^(Trips|Podróże|Wyjazdy)$/).tap();
   await expect(screen.getByRole('link', /budget|budżet/i).first()).toContainText(/1[,\s ]?000/);
 
-  const cards = browser.locator('main li:has(a[href^="/trips/"])');
+  const cards = browser.locator('main li:has(article a[href^="/trips/"])');
   await expect(cards.first()).toBeVisible({ timeout: 60_000 });
   const texts = await cards.allTextContents();
   expect(texts.length).toBeGreaterThan(0);
@@ -28,7 +29,7 @@ test('Trips: cards show photo, price and fit badge; with a 1,000 PLN budget no o
   // Every card photo actually loads. Photos below the fold are lazy, so bring each into view and decode it.
   const broken = await browser.evaluate(async () => {
     const bad: string[] = [];
-    for (const img of [...document.querySelectorAll('main li a[href^="/trips/"] img')] as HTMLImageElement[]) {
+    for (const img of [...document.querySelectorAll('main li article img')] as HTMLImageElement[]) {
       img.scrollIntoView({ block: 'center' });
       img.loading = 'eager';
       const ok = await Promise.race([
