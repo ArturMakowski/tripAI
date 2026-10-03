@@ -40,3 +40,7 @@ Travelpayouts Hotellook (closed Oct 2025), Airbnb (no public API), Viator (needs
 - LiteAPI: https://docs.liteapi.travel/docs/getting-a-sandbox-key
 - Eurostat: https://ec.europa.eu/eurostat/cache/metadata/en/tour_occ_esms.htm
 - Open-Meteo: https://open-meteo.com · Nager.Date: https://date.nager.at
+
+## Serper (serper.dev) — added 2026-10-03
+Google Search/Images/Places/News wrapper (`SERPER_API_KEY`). **No flights or hotels endpoints**, so it doesn't replace SerpApi.
+Use for: city hero photos on cards (`/images`), attractions/restaurants with ratings (`/places`), local events/news (`/news`).
