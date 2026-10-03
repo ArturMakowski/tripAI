@@ -4,14 +4,13 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowUpRight, BedDouble, Info, Plane, TrendingDown } from "lucide-react";
 import { useState } from "react";
-import { ContributionBar } from "@/components/factor-bars";
-import { ScoreRing } from "@/components/score-ring";
+import { FactorStars, OverallStars } from "@/components/stars";
 import { dayCount } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
 import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
-import type { BridgeWindow, Recommendation, RankedRecommendation, Weights } from "@/lib/types";
+import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/types";
 import { peakMonth } from "@/lib/counterfactual";
 import { cn } from "@/lib/utils";
 
@@ -119,14 +118,12 @@ export function CityPhoto({
 
 export function RecCard({
   rec,
-  weights,
   featured,
   bridge,
   refining,
   overBudgetPln,
 }: {
   rec: RankedRecommendation;
-  weights: Weights;
   featured?: boolean;
   bridge?: BridgeWindow;
   /** fast-phase card: price is a cached estimate, exact live price on the way */
@@ -173,7 +170,12 @@ export function RecCard({
           )}
         </div>
         <div className="absolute top-3 right-3">
-          <ScoreRing value={rec.score.total} size={featured ? 58 : 48} stroke={4} tone="light" />
+          <OverallStars
+            total={rec.score.total}
+            size={featured ? 15 : 13}
+            tone="light"
+            className="rounded-full bg-black/40 px-2.5 py-1.5 backdrop-blur-md"
+          />
         </div>
         <div className="absolute right-4 bottom-5 left-4 text-white">
           <p className="text-xs font-medium tracking-wide text-white/80 uppercase">
@@ -238,7 +240,7 @@ export function RecCard({
         </div>
         {peak && showPeak && <p className="mt-1.5 text-right text-xs text-muted-foreground">{peakNote}</p>}
 
-        <ContributionBar score={rec.score} weights={weights} className="mt-3.5" />
+        <FactorStars score={rec.score} columns={2} className="mt-3.5" />
 
         {rec.fit && (
           <div className="mt-3.5 flex items-start gap-2.5">

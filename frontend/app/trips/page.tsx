@@ -296,7 +296,6 @@ function Trips() {
             <motion.li key={rec.id} layout transition={{ type: "spring", stiffness: 200, damping: 28 }}>
               <RecCard
                 rec={rec}
-                weights={weights}
                 featured={i === 0}
                 bridge={bridgeFor(rec.window, longWeekends)}
                 refining={refining}
@@ -332,7 +331,6 @@ function Trips() {
                     <li key={rec.id} className="opacity-90 saturate-[0.85]">
                       <RecCard
                         rec={rec}
-                        weights={weights}
                         bridge={bridgeFor(rec.window, longWeekends)}
                         refining={refining}
                         overBudgetPln={overBudget(rec, budget)}

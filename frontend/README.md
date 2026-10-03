@@ -64,6 +64,19 @@ Profile creation is a swipe deck built from the team questionnaire in `docs/TRAV
   - An over-budget #1 is never shown without a banner. Either "Nothing fits {budget} for these dates — closest options" (naming the
     cheapest trip), or "Your top pick is X over your budget · N trips fit · Show those first" (a stable within-budget-first sort).
 
+## Star ratings
+Cards and the receipt show the score as stars, so it reads at a glance. Overall is half stars, with the exact value in small text
+(`★★★★½ 4.4`). Each factor gets a row with an icon, a label and 1–5 stars: 💰 price, ☀️ weather, 👥 crowds, ❤️ taste fit.
+
+- **Mapping** (deterministic, `lib/stars.ts`, pinned by `lib/stars.test.ts`):
+  - overall stars = `round(total × 10) / 2`, i.e. half steps on 0–5
+  - the small number = `total × 5`, one decimal
+  - each factor = `clamp(round(score × 5), 1, 5)`
+- **Auditability is one tap away.** "How we scored it" / "Jak to policzyliśmy" on the receipt expands the exact factor score × weight
+  bars and the total, "what would flip it", every evidence row with its source and timestamp, and the inputs hash. Evidence links
+  in the fit section open it automatically.
+- **Accessibility:** each rating has an `aria-label` such as "Pogoda: 4 z 5 gwiazdek" or "Weather: 4 out of 5 stars".
+
 ## Pick your dates (`/windows`, T4f)
 A mobile-first month calendar at the top of Free time. The user taps a start day, then an end day, to pick a date range.
 - **Calendar.** Shows one month at a time, for the next 12 months. Swipe or use the arrows to change month, or tap a month in the strip;
