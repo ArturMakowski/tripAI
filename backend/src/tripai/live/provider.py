@@ -148,19 +148,19 @@ def _flight_evidence(flights: Any, price: float) -> list[Evidence]:
 
 
 def _party_evidence(
-    flight_pp: float, room_total: float, profile: TasteProfile | None
+    flight_pp: float, room_price: float, profile: TasteProfile | None
 ) -> list[Evidence]:
     """How the per-person price is built for a group (docs/BUDGET.md "Party pricing")."""
     n, r = party.travelers(profile), party.rooms(profile)
     if n == 1 and r == 1:
         return []
-    group = flight_pp * n + room_total * r
+    group = flight_pp * n + room_price * r
     label = i18n.t(
         "party.label",
         n=n,
         r=r,
         flight=i18n.fmt_pln(flight_pp),
-        room=i18n.fmt_pln(room_total),
+        room=i18n.fmt_pln(room_price),
         group=i18n.fmt_pln(group),
         pp=i18n.fmt_pln(group / n),
     )
@@ -1114,7 +1114,8 @@ class LiveProvider:
         q = _Quality()
         f_cost, f_ev, f_q, f_basis, f_details, f_exact = flight
         h_room, h_ev, h_q, h_basis = self._hotel(d, w, luxury)  # per room, never exact here
-        h_cost = party.hotel_share(h_room, profile)  # this person's share of the rooms
+        h_cost = party.hotel_total(h_room, profile)  # the stay for all rooms (docs/BUDGET.md)
+        n = party.travelers(profile)
         temp, w_ev, w_q, w_basis = weather
         crowd, c_ev, c_q, c_basis = self._crowds(d, w)
         q.set("flight", f_q, f_basis)
@@ -1122,7 +1123,7 @@ class LiveProvider:
         q.set("weather", w_q, w_basis)
         q.set("crowds", c_q, c_basis)
         q.exact = {"flight": f_exact, "hotel": False}
-        median, base_ev = self._baseline(d, origin, f_cost, h_cost)
+        median, base_ev = self._baseline(d, origin, f_cost, h_cost / n)  # per person
         peak, peak_ev = self._peak(d, w, h_cost)
         evidence = [
             f_ev,
@@ -1141,6 +1142,7 @@ class LiveProvider:
             window=w,
             flight_cost_pln=f_cost,
             hotel_cost_pln=h_cost,
+            travelers=n,
             temp_c=temp,
             crowd=crowd,
             seasonal_median_cost_pln=median,
@@ -1249,7 +1251,7 @@ class LiveProvider:
         if picked is not None:
             offer, n_priced = picked
             hotel_room = details.stay_cost(offer, nights)  # this property is what is shown
-            hotel_cost = party.hotel_share(hotel_room, s.profile)  # per-person share of rooms
+            hotel_cost = party.hotel_total(hotel_room, s.profile)  # all rooms for the stay
             q.exact["hotel"] = True
             ev = [e for e in ev if e.kind != "hotel"]
             mine = hotels._ev(
@@ -1299,20 +1301,20 @@ class LiveProvider:
                     "price_baseline",
                     f"{BASELINE_PREFIX} mid of Google's typical "
                     f"{origin}-{c.iata} fare range + same hotel cost",
-                    round(flight_base + hotel_cost),
+                    round(flight_base + hotel_cost / c.travelers),  # per person
                     "PLN",
                 )
             )
-            upd["seasonal_median_cost_pln"] = flight_base + hotel_cost
+            upd["seasonal_median_cost_pln"] = flight_base + hotel_cost / c.travelers
         else:
-            base_flight = c.seasonal_median_cost_pln - c.hotel_cost_pln
-            upd["seasonal_median_cost_pln"] = base_flight + hotel_cost
+            base_flight = c.seasonal_median_cost_pln - c.hotel_cost_pln / c.travelers
+            upd["seasonal_median_cost_pln"] = base_flight + hotel_cost / c.travelers
         if c.peak is not None:
             upd["peak"] = c.peak.model_copy(update={"hotel_cost_pln": hotel_cost})
         upd["price_status"] = q.price_status()
-        room_total = hotel_cost * party.travelers(s.profile) / party.rooms(s.profile)
+        room_price = hotel_cost / party.rooms(s.profile)
         ev = [e for e in ev if e.kind != "party"] + _party_evidence(
-            flight_cost, room_total, s.profile
+            flight_cost, room_price, s.profile
         )
 
         best = images.best() if images is not None else None
@@ -1385,7 +1387,7 @@ class LiveProvider:
             q.set("flight", 0.85, "Aviasales fare, exact dates")
             q.exact["flight"] = True
             price, f_ev, f_det = hit
-            room = c.hotel_cost_pln * party.travelers(profile) / party.rooms(profile)
+            room = c.hotel_cost_pln / party.rooms(profile)
             ev = [f_ev, *(e for e in c.evidence if e.kind not in ("flight", "party"))]
             swap[candidate_id(c)] = c.model_copy(
                 update={

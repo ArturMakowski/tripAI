@@ -494,11 +494,11 @@ route handler `frontend/app/api/[...path]/route.ts` (`frontend/lib/proxy.ts`) fo
 - **Regression test** (`tests/test_price_honesty.py`): the tester's Nice 11–15 Nov card, 358 PLN from a 22–29 Nov fare + a 1,292 PLN
   city average, now becomes the exact 588 PLN fare + ibis budget at 829 PLN, or a labelled `partial`/`estimate`.
 
-**Party pricing.** `TasteProfile.adults`, `children` and `rooms` (default: ceil(people / 2)).
-- **Per-person card:** flights are per person, hotels per room. `flight_cost_pln + hotel_cost_pln = total_cost_pln` is **per person**: the
-  flight plus this person's share of the rooms.
-- **Group fields:** `travelers`, `party_total_pln` (= per person × travellers) and `per_person_pln`.
-- **Hotel details:** `hotel.price_pln_total` is the group's price for the property (rooms × room price). Hotel evidence rows say
-  "price for 1 room". The card's `hotel_cost_pln` is the per-person share, and the `party` row ties the three together.
-- **Evidence:** a `party` row shows the sum, e.g. "2 os., pokoje: 1: loty 2 × … + hotel 1 × … = … razem".
-- **Both providers:** the `FixtureProvider` sample data applies the same per-person hotel share.
+**Party pricing** (docs/BUDGET.md is the reference).
+- **Lines:** `flight_cost_pln` is per traveller, and `hotel_cost_pln` is the **total for the room(s)** for the whole stay (rooms default to
+  ceil(people / 2)).
+- **Totals:** `party_total_pln = flight × travellers + hotel`, and `per_person_pln = party_total_pln / travellers = total_cost_pln`.
+- **Where it's computed:** `rank()` fills these from the candidate (`Candidate.travelers`), so the API, budget, value badges and
+  notifications all read one money model.
+- **Tests:** `tests/test_party_money.py` checks it as properties for 1–12 travellers (children, odd sizes, explicit rooms), on both
+  providers, plus the Palma regression.

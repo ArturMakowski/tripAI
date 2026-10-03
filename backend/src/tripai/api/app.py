@@ -239,16 +239,13 @@ def create_app(
             candidates, profile, weights, limit=req.limit, typical_spend_pln=typical.pln
         )
         chip_key = "value.typical_chip" if typical.source == "history" else "value.typical_chip_dna"
-        chip = i18n.t(chip_key, amount=i18n.fmt_pln(typical.pln))
+        chip_basis = "value.basis.trip" if party.travelers(profile) == 1 else "value.basis.pp"
+        chip = i18n.t(chip_key, amount=i18n.fmt_pln(typical.pln), basis=i18n.t(chip_basis))
         recs = [
             ApiRecommendation(
-                **r.model_dump()
-                | {
-                    # docs/BUDGET.md "Party pricing": total_cost_pln stays per person
-                    "travelers": party.travelers(profile),
-                    "per_person_pln": r.total_cost_pln,
-                    "party_total_pln": round(party.party_total(r.total_cost_pln, profile)),
-                },
+                # travelers / party_total_pln / per_person_pln come from rank() (one money
+                # model for every consumer: docs/BUDGET.md "Party pricing")
+                **r.model_dump(),
                 budget=status,
                 over_budget_pln=None if status is None else status.overage_pln,
                 phase=phase,

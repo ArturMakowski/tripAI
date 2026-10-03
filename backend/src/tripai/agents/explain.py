@@ -43,6 +43,9 @@ def allowed_numbers(rec: RankedRecommendation) -> set[float]:
         rec.total_cost_pln,
         rec.flight_cost_pln,
         rec.hotel_cost_pln,
+        rec.travelers,
+        rec.party_total_pln or 0,
+        rec.per_person_pln or 0,
         rec.rank,
         rec.window.start.day,
         rec.window.end.day,
@@ -157,6 +160,14 @@ def evidence_payload(
         "total_cost": fmt_pln(rec.total_cost_pln, lg),
         "flight_cost": fmt_pln(rec.flight_cost_pln, lg),
         "hotel_cost": fmt_pln(rec.hotel_cost_pln, lg),
+        # docs/BUDGET.md party pricing: total = per person, flight = per traveller,
+        # hotel = the room(s) for the whole stay, group_total = flights x travellers + hotel
+        "travellers": rec.travelers,
+        "group_total": fmt_pln(rec.party_total_pln or rec.total_cost_pln, lg),
+        "money_basis": "total_cost is per person; flight_cost per traveller; hotel_cost is the "
+        "whole stay for all rooms; group_total = flight_cost x travellers + hotel_cost"
+        if rec.travelers > 1
+        else "total_cost = flight_cost + hotel_cost",
         "score_points_of_100": {
             f: round(getattr(rec.score, f) * 100)
             for f in ("price", "weather", "crowds", "taste", "total")
@@ -204,11 +215,13 @@ def template_why(
         ev.setdefault(x.kind, x)  # first fact per kind (e.g. avg temp before rainy-day share)
     parts = [
         i18n.t(
-            "why.cost",
+            "why.cost" if rec.travelers == 1 else "why.cost.party",
             lg,
             city=rec.city,
             dates=fmt_dates(rec.window.start, rec.window.end, lg),
             total=fmt_pln(rec.total_cost_pln, lg),
+            group=fmt_pln(rec.party_total_pln or rec.total_cost_pln * rec.travelers, lg),
+            n=rec.travelers,
             flight=fmt_pln(rec.flight_cost_pln, lg),
             hotel=fmt_pln(rec.hotel_cost_pln, lg),
         )

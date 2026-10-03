@@ -27,8 +27,23 @@
 # Party pricing (user request, 3 Oct)
 - `TasteProfile.adults/children/rooms` (rooms default ceil(people/2)). Onboarding + trips header: "Ile osób? 1 · 2 · 3 · 4+".
 - Flights priced for all travellers (SerpApi `adults=`/Travelpayouts per-pax × n); hotel per room × rooms for the
-  exact dates. `Recommendation.party_total_pln` (whole group) and `per_person_pln`; `total_cost_pln` stays the
-  per-person figure for backward compatibility. The UI shows "2 osoby · 2 480 zł razem · 1 240 zł/os.".
+  exact dates. The UI shows "2 osoby · 2 480 zł razem · 1 240 zł/os.".
+- **Money model (the only one; backend `tripai.scoring.party`, fixed 4 Oct after a double-counted hotel):**
+
+  | field | meaning |
+  |---|---|
+  | `flight_cost_pln` | **per traveller** (one return ticket) |
+  | `hotel_cost_pln` | **TOTAL for the room(s) for the whole stay** (price per room × rooms), not per person |
+  | `rooms` | `TasteProfile.rooms`, default `ceil(travellers / 2)` |
+  | `travelers` | `adults + children` |
+  | `party_total_pln` | `flight_cost_pln × travelers + hotel_cost_pln` |
+  | `per_person_pln` | `party_total_pln / travelers` |
+  | `total_cost_pln` | `== per_person_pln` (backward compatibility; for one traveller = flight + hotel) |
+
+  Example: Palma, 2 adults, 1 room: flight 428, hotel 964 → group 428 × 2 + 964 = 1 820, per person 910.
+  Budgets, the price factor, value badges and typical spend all compare the per-person figure. Texts for one traveller
+  say "(lot + pokój)"; for a group "na osobę" plus the group total and "loty n × X + hotel Y". `HotelDetails.price_pln_total`
+  == `hotel_cost_pln`; hotel evidence rows are "price for 1 room".
 
 # Price honesty (bug found from tester screenshots, 3 Oct)
 - A price from OTHER dates (Google Travel Explore cheapest-month, a city-average hotel) must NEVER be shown or

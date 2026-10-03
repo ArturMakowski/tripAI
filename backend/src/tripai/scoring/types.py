@@ -29,13 +29,14 @@ class Candidate(BaseModel):
     iata: str
     tags: list[str] = Field(default_factory=list)
     window: FreeWindow
-    flight_cost_pln: float
-    hotel_cost_pln: float
+    flight_cost_pln: float  # per traveller
+    hotel_cost_pln: float  # TOTAL for the room(s) for the stay (tripai.scoring.party)
+    travelers: int = 1  # adults + children; the scorer compares per-person totals
     temp_c: float
     crowd: float  # 0..1, 1 = peak crowds
     rainy_day_share: float | None = None  # 0..1 share of days with >= 1 mm (Open-Meteo), if known
     sunshine_h: float | None = None  # avg daily sunshine hours, if known
-    seasonal_median_cost_pln: float  # median total cost of this trip across the year
+    seasonal_median_cost_pln: float  # median per-person total of this trip across the year
     peak: PeakQuote | None = None
     highlights: list[str] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
@@ -47,8 +48,14 @@ class Candidate(BaseModel):
     price_status: Literal["exact", "partial", "estimate"] = "exact"
 
     @property
+    def party_total_pln(self) -> float:
+        """Flights for every traveller + the rooms."""
+        return self.flight_cost_pln * self.travelers + self.hotel_cost_pln
+
+    @property
     def total_cost_pln(self) -> float:
-        return self.flight_cost_pln + self.hotel_cost_pln
+        """Per person (what budgets and the price factor compare): party total / travellers."""
+        return self.party_total_pln / max(1, self.travelers)
 
     @property
     def nights(self) -> int:

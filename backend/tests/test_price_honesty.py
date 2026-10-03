@@ -114,8 +114,8 @@ def test_nice_with_exact_hotel_prices_is_exact(nice, monkeypatch):
     assert c.flight.price_pln == 588 and c.flight.outbound[0].airline == "LO"
     assert c.flight.outbound[0].to_iata == "NCE"
     duo = card(TasteProfile(user_id="u", adults=2), top_n=1)  # one double room for two
-    assert duo.hotel_cost_pln == 829 / 2 and duo.hotel.price_pln_total == 829
-    assert duo.hotel.price_pln_total == duo.hotel_cost_pln * 2  # group price = share x people
+    assert duo.hotel_cost_pln == duo.hotel.price_pln_total == 829  # the room, not per person
+    assert duo.party_total_pln == 588 * 2 + 829 and duo.total_cost_pln == (588 * 2 + 829) / 2
 
 
 def test_without_an_exact_fare_the_price_is_an_estimate(nice, monkeypatch):
@@ -148,8 +148,9 @@ def test_party_pricing_flights_per_traveller_hotel_per_room(nice):
     duo = card(TasteProfile(user_id="u", adults=2))  # 2 people share 1 room
     trio = card(TasteProfile(user_id="u", adults=2, children=1))  # 3 people, 2 rooms
     assert solo.flight_cost_pln == duo.flight_cost_pln == trio.flight_cost_pln == 588
-    assert duo.hotel_cost_pln == pytest.approx(1292 / 2)
-    assert trio.hotel_cost_pln == pytest.approx(1292 * 2 / 3)
+    assert duo.hotel_cost_pln == 1292  # one room for the stay
+    assert trio.hotel_cost_pln == 1292 * 2  # two rooms
+    assert trio.total_cost_pln == pytest.approx((588 * 3 + 1292 * 2) / 3)  # per person
     party = next(e for e in trio.evidence if e.kind == "party")
     assert party.value == (588 * 3 + 1292 * 2)
     assert not any(e.kind == "party" for e in solo.evidence)
@@ -170,8 +171,10 @@ def test_fixture_provider_party_share():
     solo = asyncio.run(FixtureProvider().candidates("KRK", w, profile=TasteProfile(user_id="u")))
     duo = asyncio.run(FixtureProvider().candidates("KRK", w,
                                                    profile=TasteProfile(user_id="u", adults=2)))  # fmt: skip
-    assert all(d.hotel_cost_pln == pytest.approx(s.hotel_cost_pln / 2) for s, d in zip(solo, duo))
+    assert all(d.hotel_cost_pln == s.hotel_cost_pln for s, d in zip(solo, duo))  # same room
     assert all(d.flight_cost_pln == s.flight_cost_pln for s, d in zip(solo, duo))
+    assert all(d.total_cost_pln == pytest.approx(d.flight_cost_pln + d.hotel_cost_pln / 2)
+               for d in duo)  # fmt: skip
 
 
 # ---------------------------------------------------------------- review fixes (#29)
@@ -248,7 +251,7 @@ def test_hotel_evidence_says_per_room(nice):
     duo = card(TasteProfile(user_id="u", adults=2))
     hotel = next(e for e in duo.evidence if e.kind == "hotel")
     assert "price for 1 room" in hotel.label and hotel.value == 1292  # one room
-    assert duo.hotel_cost_pln == 646  # the per-person share
+    assert duo.hotel_cost_pln == 1292  # hotel_cost_pln is the rooms' total too
 
 
 def test_value_badges_and_price_honesty_compose():

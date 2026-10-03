@@ -280,6 +280,12 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "{city}, {dates}: about {total} in total (flight {flight}, hotel {hotel}).",
         "pl": "{city}, {dates}: ok. {total} łącznie (lot {flight}, hotel {hotel}).",
     },
+    "why.cost.party": {
+        "en": "{city}, {dates}: about {total} per person, {group} for {n} travellers "
+        "(flights {n} × {flight}, hotel {hotel} for the stay).",
+        "pl": "{city}, {dates}: ok. {total} na osobę, {group} razem dla {n} osób "
+        "(loty {n} × {flight}, hotel {hotel} za pobyt).",
+    },
     "why.peak": {
         "en": "The same trip in peak season: {amount} more.",
         "pl": "Ten sam wyjazd w szczycie sezonu: o {amount} drożej.",
@@ -449,9 +455,11 @@ MESSAGES: dict[str, dict[str, str]] = {
     },
     # ---- value badges (docs/BUDGET.md)
     "value.splurge": {
-        "en": "Worth the splurge: {city}: {amount} more than {alt} (flight + room) for {parts}",
-        "pl": "Warto dopłacić: {city}: o {amount} drożej niż {alt} (lot + pokój), ale {parts}",
+        "en": "Worth the splurge: {city}: {amount} more than {alt} ({basis}) for {parts}",
+        "pl": "Warto dopłacić: {city}: o {amount} drożej niż {alt} ({basis}), ale {parts}",
     },
+    "value.basis.trip": {"en": "flight + room", "pl": "lot + pokój"},
+    "value.basis.pp": {"en": "per person", "pl": "na osobę"},
     "value.warmer": {"en": "{deg} °C warmer", "pl": "cieplej o {deg} °C"},
     "value.cooler": {"en": "{deg} °C cooler", "pl": "chłodniej o {deg} °C"},
     "value.fewer_crowds": {"en": "{pct}% fewer crowds", "pl": "tłumy mniejsze o {pct}%"},
@@ -460,24 +468,24 @@ MESSAGES: dict[str, dict[str, str]] = {
         "pl": "lepiej pasuje do Twoich zainteresowań ({a} vs {b} pkt)",
     },
     "value.great_under": {
-        "en": "Great value: {city}: {total} (flight + room), {under} under your usual ~{typical} "
+        "en": "Great value: {city}: {total} ({basis}), {under} under your usual ~{typical} "
         "(price score {price}/100)",
-        "pl": "Świetna cena: {city}: {total} (lot + pokój), o {under} mniej niż zwykle wydajesz "
+        "pl": "Świetna cena: {city}: {total} ({basis}), o {under} mniej niż zwykle wydajesz "
         "(~{typical}; ocena ceny {price}/100)",
     },
     "value.great": {
-        "en": "Great value: {city}: {total} (flight + room), price score {price}/100 with an "
+        "en": "Great value: {city}: {total} ({basis}), price score {price}/100 with an "
         "overall score of {fit}/100",
-        "pl": "Świetna cena: {city}: {total} (lot + pokój), ocena ceny {price}/100 przy ogólnym "
+        "pl": "Świetna cena: {city}: {total} ({basis}), ocena ceny {price}/100 przy ogólnym "
         "wyniku {fit}/100",
     },
     "value.typical_chip": {
-        "en": "You usually spend ~{amount} (flight + room)",
-        "pl": "Zwykle wydajesz ok. {amount} (lot + pokój)",
+        "en": "You usually spend ~{amount} ({basis})",
+        "pl": "Zwykle wydajesz ok. {amount} ({basis})",
     },
     "value.typical_chip_dna": {
-        "en": "Typical for your travel style: ~{amount} (flight + room)",
-        "pl": "Typowo dla Twojego stylu podróży: ok. {amount} (lot + pokój)",
+        "en": "Typical for your travel style: ~{amount} ({basis})",
+        "pl": "Typowo dla Twojego stylu podróży: ok. {amount} ({basis})",
     },
     "value.better_weather": {
         "en": "better weather ({a} vs {b} pts)",
@@ -488,6 +496,12 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "{total} total (flight {flight} + hotel {hotel}), score {pts}/100",
         "pl": "{total} łącznie (lot {flight} + hotel {hotel}), wynik {pts}/100",
     },
+    "n.cost.party": {
+        "en": "{total} per person, {group} for {n} (flights {n} × {flight} + hotel {hotel}), "
+        "score {pts}/100",
+        "pl": "{total}/os., {group} razem dla {n} os. (loty {n} × {flight} + hotel {hotel}), "
+        "wynik {pts}/100",
+    },
     "n.new_top.title": {"en": "New #1: {city}, {dates}", "pl": "Nowe #1: {city}, {dates}"},
     "n.new_top.prev": {"en": " Previous #1: {city}.", "pl": " Poprzednie #1: {city}."},
     "n.drop.title": {
@@ -497,6 +511,12 @@ MESSAGES: dict[str, dict[str, str]] = {
     "n.drop.body": {
         "en": "Now {now}, was {was} when you saved it (flight {flight} + hotel {hotel}).",
         "pl": "Teraz {now}, przy zapisaniu było {was} (lot {flight} + hotel {hotel}).",
+    },
+    "n.drop.body.party": {
+        "en": "Now {now} per person, was {was} when you saved it ({n} travellers: flights {n} × "
+        "{flight} + hotel {hotel}).",
+        "pl": "Teraz {now}/os., przy zapisaniu było {was} ({n} os.: loty {n} × {flight} + "
+        "hotel {hotel}).",
     },
     "n.lw.title": {"en": "Długi weekend: {city}, {dates}", "pl": "Długi weekend: {city}, {dates}"},
     "lux.budget": {"en": "budget", "pl": "budżetowy"},
