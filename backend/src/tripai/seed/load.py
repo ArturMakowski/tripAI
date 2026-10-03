@@ -17,6 +17,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from tripai import i18n
 from tripai.models import Evidence
 from tripai.seed._common import read_json
 
@@ -187,24 +188,40 @@ def crowd_score(key: str, month: int) -> float:
 EUROSTAT_VIEW = "https://ec.europa.eu/eurostat/databrowser/view/{}/default/table"
 
 
+def crowd_level(key: str, month: int) -> float:
+    """The crowd number we score AND show: the share of the peak month's tourist nights where
+    Eurostat has it, else the relative 0..1 score (see `crowd_evidence`)."""
+    p = crowd(key)
+    if p.peak_ratio is not None and max(p.peak_ratio) > 0:
+        return round(p.peak_ratio[month - 1], 3)
+    return crowd_score(key, month)
+
+
 def crowd_evidence(key: str, month: int) -> Evidence:
     c, p = city(key), crowd(key)
     if not 1 <= month <= 12:
         raise ValueError(f"month must be 1..12, got {month}")
-    label = f"Crowds in {c.name}, {MONTHS[month - 1]} (0 = quietest month, 1 = busiest)"
+    # One number per row (label == value == display). Where Eurostat gives tourist nights vs the
+    # peak month, the value IS that share ("Crowds: 88% of peak season"). Otherwise the value is
+    # the relative 0..1 scale (0 = quietest month), unit "0-1 rel", never shown as "% of peak".
+    has_ratio = p.peak_ratio is not None and max(p.peak_ratio) > 0
+    where = {"city": i18n.city(c.name), "month": i18n.month_long(month)}
+    if has_ratio:
+        value, unit = crowd_level(key, month), "0-1"
+        label = i18n.t("crowd.label", pct=round(value * 100)) + i18n.t("crowd.when", **where)
+    else:
+        value, unit = p.score[month - 1], "0-1 rel"
+        label = i18n.t("crowd.relative", **where)
     if p.geo_level == "proxy":
-        label += f"; estimated from comparable regions ({p.source}), no Eurostat data for {p.geo}"
+        label += i18n.t("crowd.proxy")
     elif p.geo_level == "country":
-        label += f"; country-level data for {c.country_name}"
-    if p.peak_ratio is not None:
-        peak = MONTHS[max(range(12), key=p.peak_ratio.__getitem__)]
-        label += f"; {round(p.peak_ratio[month - 1] * 100)}% of {peak} tourist nights"
+        label += i18n.t("crowd.country", country=i18n.country(c.country_name))
     dataset = p.source.split(":", 1)[1].split()[0]  # "eurostat:tour_occ_nim" → "tour_occ_nim"
     return Evidence(
         kind="crowds",
         label=label,
-        value=p.score[month - 1],
-        unit="0-1",
+        value=value,
+        unit=unit,
         source=p.source,
         fetched_at=meta("crowds.json").fetched_at,
         url=EUROSTAT_VIEW.format(dataset),

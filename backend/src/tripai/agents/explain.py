@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 _THOUSANDS = re.compile(r"(?<=\d)[   ,](?=\d{3}(?!\d))")
 _DECIMAL_COMMA = re.compile(r"(?<=\d),(?=\d{1,2}(?!\d))")  # "18,5 °C" -> 18.5
 _NUMBER = re.compile(r"\d+(?:\.\d+)?")
+_PCT_IN_LABEL = re.compile(r"\d+(?:[.,]\d+)?\s*%")
 _ALWAYS_OK = {0.0, 1.0, 100.0}
 
 INSTRUCTIONS = """\
@@ -26,7 +27,7 @@ Rules:
 - Use ONLY facts from the EVIDENCE JSON. Never invent or compute new numbers: every number you
   write must appear verbatim in the evidence (prices, °C, crowds, dates, deltas, score points).
 - Write numbers exactly as their `display` strings are given (dates, prices with their currency
-  word, °C, "% of peak"). Never write ISO dates or raw 0-1 indexes.
+  word, °C, "% of peak season"). Never write ISO dates or raw 0-1 indexes.
 - Mention why this place AND why these dates (e.g. cheaper than peak season, fewer crowds).
 - Mention which of the user's interests it matches, using the tag/highlight words given.
 - No markdown, no lists, no emojis. Prices as in the display strings."""
@@ -61,7 +62,9 @@ def allowed_numbers(rec: RankedRecommendation) -> set[float]:
             vals.append(float(e.value))
         else:
             texts.append(e.value)
-        texts.append(e.label)
+        # a "N%" in a label (e.g. "Crowds: 28% of peak season") is a percentage of a 0-1 value:
+        # it stays on the percent-only path (`display_numbers`), never a free-floating number
+        texts.append(_PCT_IN_LABEL.sub("", e.label))
     for c in rec.counterfactuals:
         vals += [c.total_cost_pln, c.cost_delta_pln, c.cost_delta_pct, c.score_total * 100]
         vals += [x for x in (c.crowd, c.temp_c) if x is not None]
@@ -100,9 +103,11 @@ def fmt_value(e: Evidence, lang: str | None = None) -> str:
         return fmt_pln(v, lang)
     if e.unit == "°C":
         return fmt_temp(v, lang)
+    if e.unit == "0-1 rel":  # a relative 0..1 scale, not a share of anything
+        return i18n.t("disp.crowd_rel", lang, pct=round(v * 100))
     if e.unit == "0-1":
         pct = round(v * 100)
-        if e.kind == "crowds":
+        if e.kind in ("crowds", "peak"):
             return i18n.t("disp.crowd", lang, pct=pct)
         if "rain" in e.label.lower():
             return i18n.t("disp.rain", lang, pct=pct)
@@ -115,7 +120,7 @@ def display_numbers(rec: RankedRecommendation) -> set[float]:
     accepted only right before a '%' (see `ungrounded_numbers_display`)."""
     out: set[float] = set()
     for e in rec.evidence:
-        if e.unit == "0-1" and isinstance(e.value, (int, float)):
+        if e.unit in ("0-1", "0-1 rel") and isinstance(e.value, (int, float)):
             out.add(float(round(e.value * 100)))
     for c in rec.counterfactuals:
         if c.crowd is not None:

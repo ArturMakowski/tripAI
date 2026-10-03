@@ -108,7 +108,15 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   get exact-date checks) and the proactive scan use the same typical spend as the cards.
 - **Money consistency:** `total_cost_pln == flight_cost_pln + hotel_cost_pln` exactly (rounded parts), and
   comparisons always name the option they describe ("Same trip in Jul (peak season): 1046 PLN more, 42 pts lower",
-  flip "Naples: 59 PLN more"). Property tests check every card in both phases and both languages.
+  flip "If the flight to Naples gets 59 PLN pricier, …"). Property tests check every card in both phases and both languages.
+- **"What would flip it"** is written in plain language and names the concrete modelled trigger: the flight
+  price (that's how the price route is modelled) or the user's own priorities. It never forecasts weather or
+  crowds. EN: "If the flight to Athens gets 177 PLN pricier, Lisbon wins."; PL: "Jeśli lot do Aten podrożeje
+  o 177 zł, lepszą opcją będzie Lizbona." Polish city names are declined (`i18n.city`). Weights stay in brackets
+  for verification. Crowd evidence reads "Tłum: 28% szczytu sezonu" / "Crowds: 28% of peak season". One number per
+  row: for live seed data the value is the share of the peak month's tourist nights (Eurostat), and that is
+  also what's scored (`seed.load.crowd_level`). Cities without that data show a relative "/100" scale, never
+  "% of peak". `inputs_hash` ignores (localised) evidence labels.
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache

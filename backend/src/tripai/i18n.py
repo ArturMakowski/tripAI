@@ -213,16 +213,34 @@ MESSAGES: dict[str, dict[str, str]] = {
         "pl": "{dates} (następny najlepszy termin)",
     },
     "cf.runner_up": {"en": "{city} {dates} (runner-up)", "pl": "{city} {dates} (drugie miejsce)"},
-    "flip.weight": {"en": "{factor} weight {a} -> {b}", "pl": "waga „{factor}” {a} -> {b}"},
-    "flip.price": {"en": "{city}: {amount} more", "pl": "{city}: o {amount} drożej"},
-    "flip.or": {"en": " or ", "pl": " albo "},
-    "flip.text": {
-        "en": "{lo} would overtake {hi} with: {parts}",
-        "pl": "{lo} wyprzedziłoby {hi}, gdyby: {parts}",
+    # "what would flip it": plain language, the concrete modelled trigger, never a forecast
+    "flip.if_price": {
+        "en": "the flight to {to} gets {amount} pricier",
+        "pl": "lot do {to} podrożeje o {amount}",
     },
+    "flip.if_weight.price": {
+        "en": "price matters more to you (weight from {a} to {b})",
+        "pl": "cena będzie dla Ciebie ważniejsza (waga z {a} na {b})",
+    },
+    "flip.if_weight.weather": {
+        "en": "weather matters more to you (weight from {a} to {b})",
+        "pl": "pogoda będzie dla Ciebie ważniejsza (waga z {a} na {b})",
+    },
+    "flip.if_weight.crowds": {
+        "en": "avoiding crowds matters more to you (weight from {a} to {b})",
+        "pl": "unikanie tłumów będzie dla Ciebie ważniejsze (waga z {a} na {b})",
+    },
+    "flip.if_weight.taste": {
+        "en": "matching your interests matters more to you (weight from {a} to {b})",
+        "pl": "dopasowanie do Twoich zainteresowań będzie dla Ciebie ważniejsze (waga z {a} na {b})",
+    },
+    "flip.or": {"en": ", or if ", "pl": " albo "},
+    "flip.text": {"en": "If {conds}, {lo} wins.", "pl": "Jeśli {conds}, lepszą opcją {be} {lo}."},
+    "flip.be": {"en": "", "pl": "będzie"},
+    "flip.be_pl": {"en": "", "pl": "będą"},  # plural city names: "będą Ateny"
     "flip.none": {
-        "en": "No single weight or price change makes {lo} overtake {hi}",
-        "pl": "Żadna pojedyncza zmiana wagi ani ceny nie sprawi, że {lo} wyprzedzi {hi}",
+        "en": "No single change in price or priorities makes {lo} beat {hi}.",
+        "pl": "Żadna pojedyncza zmiana ceny ani priorytetów nie sprawi, że {lo} wyprzedzi {hi}.",
     },
     "factor.price": {"en": "price", "pl": "cena"},
     "factor.weather": {"en": "weather", "pl": "pogoda"},
@@ -272,7 +290,26 @@ MESSAGES: dict[str, dict[str, str]] = {
     "why.with": {"en": ", with ", "pl": ", "},
     "why.matches": {"en": "Matches your love of {tags}.", "pl": "Pasuje do Twoich pasji: {tags}."},
     "why.highlights": {"en": "Highlights: {items}.", "pl": "Warto zobaczyć: {items}."},
-    "disp.crowd": {"en": "{pct}% of peak", "pl": "{pct}% szczytu"},
+    "disp.crowd": {"en": "{pct}% of peak season", "pl": "{pct}% szczytu sezonu"},
+    "crowd.label": {"en": "Crowds: {pct}% of peak season", "pl": "Tłum: {pct}% szczytu sezonu"},
+    "crowd.when": {"en": " ({city}, {month})", "pl": " ({city}, {month})"},
+    "crowd.relative": {
+        "en": "Crowds in {city}, {month} (0 = quietest month, 1 = busiest)",
+        "pl": "Tłum: {city}, {month} (0 = najspokojniejszy miesiąc, 1 = najbardziej zatłoczony)",
+    },
+    "crowd.proxy": {
+        "en": "; estimated from comparable regions (no Eurostat data for this region)",
+        "pl": "; szacunek na podstawie podobnych regionów (brak danych Eurostatu dla tego regionu)",
+    },
+    "crowd.country": {
+        "en": "; country-level data for {country}",
+        "pl": "; dane dla całego kraju: {country}",
+    },
+    "crowd.peak_month": {"en": "Peak-crowd month: ", "pl": "Najbardziej zatłoczony miesiąc: "},
+    "disp.crowd_rel": {
+        "en": "{pct}/100 (0 = quietest month)",
+        "pl": "{pct}/100 (0 = najspokojniejszy miesiąc)",
+    },
     "disp.rain": {"en": "{pct}% of days", "pl": "{pct}% dni"},
     # ---- fit verdict
     "fit.neutral_prefix": {
@@ -698,3 +735,59 @@ def tag(name: str, lang: str | None = None) -> str:
 
 def tags(names: "list[str] | tuple[str, ...]", lang: str | None = None) -> str:
     return ", ".join(tag(n, lang) for n in names)
+
+
+# Polish city names (nominative, genitive) for the candidate cities; others stay as given and
+# use "miasta X" for the genitive ("lot do miasta X").
+CITIES_PL = {
+    "Rome": ("Rzym", "Rzymu"), "Milan": ("Mediolan", "Mediolanu"), "Naples": ("Neapol", "Neapolu"),
+    "Venice": ("Wenecja", "Wenecji"), "Catania": ("Katania", "Katanii"),
+    "Barcelona": ("Barcelona", "Barcelony"), "Madrid": ("Madryt", "Madrytu"),
+    "Málaga": ("Malaga", "Malagi"), "Valencia": ("Walencja", "Walencji"),
+    "Palma de Mallorca": ("Palma de Mallorca", "Palmy de Mallorca"),
+    "Tenerife": ("Teneryfa", "Teneryfy"), "Lisbon": ("Lizbona", "Lizbony"),
+    "Porto": ("Porto", "Porto"), "Funchal (Madeira)": ("Funchal (Madera)", "Funchal (Madera)"),
+    "Paris": ("Paryż", "Paryża"), "Nice": ("Nicea", "Nicei"), "Amsterdam": ("Amsterdam", "Amsterdamu"),
+    "Berlin": ("Berlin", "Berlina"), "Munich": ("Monachium", "Monachium"),
+    "Vienna": ("Wiedeń", "Wiednia"), "Innsbruck": ("Innsbruck", "Innsbrucka"),
+    "Prague": ("Praga", "Pragi"), "Budapest": ("Budapeszt", "Budapesztu"),
+    "Athens": ("Ateny", "Aten"), "Heraklion (Crete)": ("Heraklion (Kreta)", "Heraklionu (Kreta)"),
+    "Split": ("Split", "Splitu"), "Dubrovnik": ("Dubrownik", "Dubrownika"),
+    "Valletta (Malta)": ("Valletta (Malta)", "Valletty (Malta)"), "Valletta": ("Valletta", "Valletty"),
+    "Copenhagen": ("Kopenhaga", "Kopenhagi"), "Stockholm": ("Sztokholm", "Sztokholmu"),
+    "Oslo": ("Oslo", "Oslo"), "Reykjavík": ("Reykjavík", "Reykjavíku"),
+    "Dublin": ("Dublin", "Dublina"), "Larnaca (Cyprus)": ("Larnaka (Cypr)", "Larnaki (Cypr)"),
+    "London": ("Londyn", "Londynu"), "Tirana": ("Tirana", "Tirany"),
+    "Edinburgh": ("Edynburg", "Edynburga"),
+}  # fmt: skip
+
+
+def city(name: str, lang: str | None = None, case: str = "nom") -> str:
+    """City name in the user's language; `case="gen"` for Polish 'do {city}' phrases."""
+    if pick(lang) != "pl":
+        return name
+    forms = CITIES_PL.get(name)
+    if forms is None:
+        return f"miasta {name}" if case == "gen" else name
+    return forms[1] if case == "gen" else forms[0]
+
+
+PLURAL_PL = {"Athens"}  # "Ateny" takes plural verbs
+
+
+def is_plural(name: str, lang: str | None = None) -> bool:
+    return pick(lang) == "pl" and name in PLURAL_PL
+
+
+COUNTRIES_PL = {
+    "Albania": "Albania", "Austria": "Austria", "Croatia": "Chorwacja", "Cyprus": "Cypr",
+    "Czechia": "Czechy", "Denmark": "Dania", "France": "Francja", "Germany": "Niemcy",
+    "Greece": "Grecja", "Hungary": "Węgry", "Iceland": "Islandia", "Ireland": "Irlandia",
+    "Italy": "Włochy", "Malta": "Malta", "Netherlands": "Holandia", "Norway": "Norwegia",
+    "Portugal": "Portugalia", "Spain": "Hiszpania", "Sweden": "Szwecja",
+    "United Kingdom": "Wielka Brytania", "Poland": "Polska",
+}  # fmt: skip
+
+
+def country(name: str, lang: str | None = None) -> str:
+    return COUNTRIES_PL.get(name, name) if pick(lang) == "pl" else name

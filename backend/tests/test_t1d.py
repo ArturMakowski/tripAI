@@ -114,7 +114,7 @@ def test_payload_uses_display_strings():
     assert payload["total_cost"].endswith(" PLN") and ".0 PLN" not in text
     assert "2027-01-14" not in text
     crowd = next(e for e in payload["evidence"] if "crowd" in e["label"].lower())
-    assert crowd["display"].endswith("% of peak")
+    assert crowd["display"].endswith("% of peak season")
     assert all("value" not in e for e in payload["evidence"])
 
 
@@ -122,7 +122,7 @@ def test_fmt_value_forms():
     rec = _recs()[0]
     by_kind = {e.kind: e for e in rec.evidence}
     assert fmt_value(by_kind["flight"]) == f"{round(by_kind['flight'].value)} PLN"
-    assert fmt_value(by_kind["crowds"]) == f"{round(by_kind['crowds'].value * 100)}% of peak"
+    assert fmt_value(by_kind["crowds"]) == f"{round(by_kind['crowds'].value * 100)}% of peak season"
     assert fmt_value(by_kind["weather"]).endswith(" °C")
 
 
@@ -170,6 +170,7 @@ def test_percent_only_numbers_need_a_percent_sign():
     from tripai.agents.explain import allowed_numbers, display_numbers, ungrounded_numbers_display
 
     rec = _recs()[0]
+    # the crowd label states the percentage too; it must still count only before a '%'
     crowd = round(next(e.value for e in rec.evidence if e.kind == "crowds") * 100)
     allowed, pct = allowed_numbers(rec), display_numbers(rec)
     assert crowd in pct and crowd not in allowed
