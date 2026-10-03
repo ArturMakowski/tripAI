@@ -47,16 +47,17 @@ Profile creation is a swipe deck built from the team questionnaire in `docs/TRAV
   bundled Unsplash city photos. Every card shows its photo credit, and the full list is in `public/swipe/CREDITS.md`.
 
 ## Loading and budget on `/trips`
-- **Two-phase loading.** `POST /recommendations?phase=fast` (cached and calendar prices, under 2 s) puts cards on screen. Then
-  `phase=full` (exact live prices plus explanations) updates and re-orders them in place, using layout animation.
-  - **Cost safety:** the client only fires `full` when the fast response confirms `X-TripAI-Phase: fast`. A backend without phase
-    support answers in full straight away, so it is never called twice.
-  - **Loader:** while nothing is on screen there is a plane on a dotted route, staged pipeline steps and filling skeletons. The last
-    step of each phase stays "in progress" until that response actually arrives.
-  - **Refining:** while estimates are on screen, a "Refining live prices…" strip shows and prices carry a sheen. "Live prices in"
-    confirms when the full response lands.
-  - **Reduced motion:** with `prefers-reduced-motion` the plane is static, steps don't tick, and the sheen is off.
-  - **Mock:** `lib/mock/api.ts` mocks both phases, and fast estimates differ from exact prices so the reorder is visible.
+- **Loading.** The backend contract is in issue #18.
+  - **Two phases only when the backend says so.** If `/health.phases` includes `fast` and `full`, `POST /recommendations?phase=fast`
+    puts cards on screen and `phase=full` then updates and re-orders them in place.
+  - **Otherwise one call.** This covers today's backend, an unreachable `/health`, or a failed fast call: the client makes the classic
+    single call (`explain_top: 3`). The pipeline never runs twice and explanations are never lost.
+  - **Loader:** a plane on a dotted route (SVG `animateMotion`, so it scales to the card), a description of what the pipeline is
+    doing, and sheen skeletons. Only real signals get a ✓ (e.g. "Found 7 free windows").
+  - **Refining:** a fixed-height slot shows "Refining live prices…" (or "…(demo data)" on fixtures), then a confirmation that stays.
+    The push toast floats over the page, so the cards never jump.
+  - **Accessibility:** one persistent screen-reader live region. `MotionConfig reducedMotion="user"` app-wide plus a static plane and
+    no sheen under `prefers-reduced-motion`.
 - **Budget.**
   - A "Budget 1,000 PLN · set in profile" chip links to the profile.
   - Cards show "Over budget +X PLN" from the backend's `over_budget_pln`, falling back to total minus budget.

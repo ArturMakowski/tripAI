@@ -27,7 +27,8 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
       animate={{ y: 0, opacity: 1, scale: 1 }}
       exit={{ y: -30, opacity: 0 }}
       transition={{ type: "spring", stiffness: 220, damping: 24, delay: 0.6 }}
-      className="relative mb-5 rounded-2xl border border-line bg-card/95 p-3.5 shadow-lift backdrop-blur"
+      // Floating toast: it arrives only with final prices, so it must not push the cards around.
+      className="fixed inset-x-0 top-16 z-40 mx-auto w-[calc(100%-2rem)] max-w-[408px] rounded-2xl border border-line bg-card/95 p-3.5 shadow-lift backdrop-blur"
       role="status"
     >
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -56,7 +57,7 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
 function Trips() {
   const params = useSearchParams();
   const windowFilter = params.get("window");
-  const { ranked, loading, refining, weights } = useRecommendations();
+  const { ranked, loading, refining, phased, mode, weights } = useRecommendations();
   const slider = useTrip((s) => s.slider);
   const setSlider = useTrip((s) => s.setSlider);
   const [dismissed, setDismissed] = useState(false);
@@ -97,31 +98,41 @@ function Trips() {
   // Like the notifier (T5b): only push a good or great fit.
   const top = refining ? undefined : ranked.find((r) => !r.fit || r.fit.label === "great_fit" || r.fit.label === "good_fit");
 
-  // Brief "live prices in" confirmation when phase 2 lands.
+  // Phase 2 landed: the status slot switches from "refining" to a confirmation that stays put
+  // (same height, so the cards never jump).
   const wasRefining = useRef(false);
-  const [justRefined, setJustRefined] = useState(false);
+  const [landed, setLanded] = useState(false);
   useEffect(() => {
-    const landed = wasRefining.current && !refining;
+    const justLanded = wasRefining.current && !refining;
     wasRefining.current = refining;
-    if (!landed) return;
-    const on = setTimeout(() => setJustRefined(true), 0);
-    const off = setTimeout(() => setJustRefined(false), 2600);
-    return () => {
-      clearTimeout(on);
-      clearTimeout(off);
-    };
+    if (!justLanded) return;
+    const t = setTimeout(() => setLanded(true), 0);
+    return () => clearTimeout(t);
   }, [refining]);
+  const liveData = mode === "live";
 
   const origin = (profile ?? DEMO_PROFILE).origin_airports.join("/");
   const windowCount = windows.length + longWeekends.length;
+  // Only real signals get a ✓ (the windows actually loaded). The rest describes what the
+  // pipeline is doing until the response replaces the loader.
   const stages: Stage[] = [
-    {
-      label: "Finding your free windows",
-      done: windowCount ? `Found ${windowCount} free windows and long weekends` : "Checked your free windows",
-    },
-    { label: `Scanning destinations from ${origin}`, done: `Scanned destinations from ${origin}` },
-    { label: "Checking cached flight prices" },
+    windowCount
+      ? { label: `Found ${windowCount} free windows and long weekends`, done: true }
+      : { label: "Finding your free windows" },
+    { label: `Scanning destinations from ${origin}` },
+    ...(phased === false
+      ? [{ label: "Checking flight and hotel prices" }, { label: "Weather, crowds and ranking for your Travel DNA" }]
+      : [{ label: "Checking cached flight prices" }]),
   ];
+  const announce = loading
+    ? "Finding trips for you."
+    : refining
+      ? "Showing cached prices. Refining live prices."
+      : landed
+        ? liveData
+          ? "Live prices in. Ranking updated."
+          : "Demo prices updated. Ranking updated."
+        : "";
 
   return (
     <AppShell>
@@ -179,31 +190,47 @@ function Trips() {
 
       {loading && !list.length && (
         <div className="mt-5">
-          <TripLoader origin={origin} stages={stages} upNext="live flight prices, hotels, weather, then ranking for your Travel DNA" />
+          <TripLoader
+            origin={origin}
+            title="Finding trips for your free time"
+            stages={stages}
+            upNext={phased === false ? undefined : "live flight prices, hotels, weather, then ranking for your Travel DNA"}
+          />
         </div>
       )}
 
+      {/* One persistent live region for screen readers; the visual strips below are aria-hidden. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {announce}
+      </p>
+
       <div className="mt-5 space-y-3 empty:hidden">
-        <AnimatePresence>
-          {refining && list.length > 0 && (
-            <RefiningStrip
-              key="refining"
-              steps={["Checking live flight prices", "Hotels for your dates", "Weather for your dates", "Ranking for your Travel DNA"]}
-            />
-          )}
-          {justRefined && (
-            <motion.p
-              key="refined"
-              role="status"
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-2 rounded-2xl bg-pine px-3.5 py-2.5 text-sm font-medium text-paper"
-            >
-              <Check className="size-4" aria-hidden /> Live prices in. Ranking updated.
-            </motion.p>
-          )}
-        </AnimatePresence>
+        {(refining || landed) && list.length > 0 && (
+          <div className="relative h-[58px]">
+            <AnimatePresence mode="wait" initial={false}>
+              {refining ? (
+                <motion.div key="refining" className="absolute inset-0" exit={{ opacity: 0 }}>
+                  <RefiningStrip
+                    title={liveData ? "Refining live prices…" : "Refining prices (demo data)…"}
+                    detail="Exact flights, hotels and weather, then ranking for your Travel DNA"
+                    tag="cached prices shown"
+                  />
+                </motion.div>
+              ) : (
+                <motion.p
+                  key="landed"
+                  aria-hidden
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 flex items-center gap-2 rounded-2xl bg-pine px-3.5 text-sm font-medium text-paper"
+                >
+                  <Check className="size-4" />
+                  {liveData ? "Live prices in. Ranking updated." : "Exact demo prices in. Ranking updated."}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {banner && (
           <div role="note" className="flex gap-2.5 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm leading-snug text-ink">
@@ -220,6 +247,18 @@ function Trips() {
                     </button>
                   </>
                 )}
+                .
+              </p>
+            ) : banner.kind === "fits_hidden" ? (
+              <p>
+                <b>
+                  Your top pick is {formatPLN(banner.over)} over your {formatPLN(banner.budget)} budget.
+                </b>{" "}
+                {banner.hiddenCount} trip{banner.hiddenCount > 1 ? "s" : ""} that fit{banner.hiddenCount > 1 ? "" : "s"} it{" "}
+                {banner.hiddenCount > 1 ? "are" : "is"} listed under{" "}
+                <button onClick={() => setShowPoor(true)} className="font-semibold text-pine underline-offset-2 hover:underline">
+                  Not your style
+                </button>
                 .
               </p>
             ) : (
@@ -247,7 +286,7 @@ function Trips() {
       </div>
 
       <LayoutGroup>
-        <ul className="mt-4 space-y-4">
+        <ul className="mt-4 space-y-4" aria-busy={loading || refining}>
           {fitting.map((rec, i) => (
             <motion.li key={rec.id} layout transition={{ type: "spring", stiffness: 200, damping: 28 }}>
               <RecCard

@@ -13,7 +13,9 @@ export function overBudget(rec: Pick<RankedRecommendation, "total_cost_pln" | "o
 
 export type BudgetBanner =
   | { kind: "none_fit"; budget: number; cheapest: RankedRecommendation; over: number }
-  | { kind: "top_over"; budget: number; top: RankedRecommendation; over: number; withinCount: number };
+  | { kind: "top_over"; budget: number; top: RankedRecommendation; over: number; withinCount: number }
+  /** trips that fit exist, but only among the collapsed "Not your style" ones */
+  | { kind: "fits_hidden"; budget: number; top: RankedRecommendation; over: number; hiddenCount: number };
 
 /**
  * Never show an over-budget trip as #1 without saying so. `list` is in display order.
@@ -30,12 +32,16 @@ export function budgetBanner(
   const top = list[0];
   const topOver = overBudget(top, budget) ?? 0;
   if (topOver <= 0) return null;
-  const within = pool.filter((r) => (overBudget(r, budget) ?? 0) <= 0);
-  if (!within.length) {
+  const fits = (r: RankedRecommendation) => (overBudget(r, budget) ?? 0) <= 0;
+  const withinPool = pool.filter(fits);
+  if (!withinPool.length) {
     const cheapest = pool.reduce((a, b) => (b.total_cost_pln < a.total_cost_pln ? b : a));
     return { kind: "none_fit", budget, cheapest, over: overBudget(cheapest, budget) ?? 0 };
   }
-  return { kind: "top_over", budget, top, over: topOver, withinCount: within.length };
+  // Count only what "Show those first" can actually move up (the visible list).
+  const withinVisible = list.filter(fits).length;
+  if (!withinVisible) return { kind: "fits_hidden", budget, top, over: topOver, hiddenCount: withinPool.length };
+  return { kind: "top_over", budget, top, over: topOver, withinCount: withinVisible };
 }
 
 /** Stable partition: trips within budget first, each group keeps its ranking order. */

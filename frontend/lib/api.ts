@@ -69,13 +69,9 @@ export class HttpError extends Error {
   }
 }
 
-export const PHASE_HEADER = "X-TripAI-Phase";
+let caps: Promise<{ phases: boolean }> | null = null;
 
 async function http<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Promise<T> {
-  return (await httpFull<T>(path, init, timeoutMs)).data;
-}
-
-async function httpFull<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Promise<{ data: T; headers: Headers }> {
   const timeout = AbortSignal.timeout(timeoutMs);
   const token = readSession();
   const res = await fetch(`${API_URL}${path}`, {
@@ -88,7 +84,7 @@ async function httpFull<T>(path: string, init?: RequestInit, timeoutMs = 25_000)
     const detail = await res.text().catch(() => "");
     throw new HttpError(res.status, `${init?.method ?? "GET"} ${path} -> ${res.status} ${detail.slice(0, 300)}`);
   }
-  return { data: (await res.json()) as T, headers: res.headers };
+  return (await res.json()) as T;
 }
 
 async function withFallback<T>(live: () => Promise<T>, fixture: () => Promise<T>, signal?: AbortSignal): Promise<Result<T>> {
@@ -144,21 +140,34 @@ export const api = {
    * without phase support ignores the query and answers in full, so `served` is null and
    * the caller must NOT fire a second (expensive) full request.
    */
-  recommendationsPhase: (req: RecommendationsRequest, phase: RecPhase, signal?: AbortSignal) =>
-    withFallback<{ recs: RankedRecommendation[]; served: RecPhase | null }>(
-      async () => {
-        const body = phase === "fast" ? { limit: 10, explain_top: 0, ...req } : { limit: 10, explain_top: 3, ...req };
-        const { data, headers } = await httpFull<RankedRecommendation[]>(
-          `/recommendations?phase=${phase}`,
-          { ...post(body), signal },
-          phase === "fast" ? 8_000 : 60_000,
-        );
-        const served = headers.get(PHASE_HEADER);
-        return { recs: data, served: served === "fast" || served === "full" ? served : null };
-      },
-      async () => ({ recs: await mock.recommendations(req, phase), served: phase }),
-      signal,
-    ),
+  /**
+   * Does the backend support two-phase /recommendations? Asked once per page load via the
+   * proposed `/health.phases` flag. Fixture mode always does (mocked); anything else, including
+   * an unreachable /health, means "no": the client then makes the single classic call.
+   */
+  capabilities: (): Promise<{ phases: boolean }> => {
+    if (FORCE_MOCK) return Promise.resolve({ phases: true });
+    caps ??= http<Health>("/health", undefined, 5_000)
+      .then((h) => ({ phases: Array.isArray(h.phases) && h.phases.includes("fast") && h.phases.includes("full") }))
+      .catch(() => ({ phases: false }));
+    return caps;
+  },
+
+  /**
+   * One phase of a two-phase load. Only call after `capabilities().phases`. In live mode a
+   * failure THROWS (never a fixture "fast" result): the caller then degrades to the single
+   * classic `recommendations()` call, so the backend runs the pipeline at most once more.
+   */
+  recommendationsPhase: async (
+    req: RecommendationsRequest,
+    phase: RecPhase,
+    signal?: AbortSignal,
+  ): Promise<Result<RankedRecommendation[]>> => {
+    if (FORCE_MOCK) return { data: await mock.recommendations(req, phase), mode: "fixture" };
+    const body = phase === "fast" ? { limit: 10, explain_top: 0, ...req } : { limit: 10, explain_top: 3, ...req };
+    const data = await http<RankedRecommendation[]>(`/recommendations?phase=${phase}`, { ...post(body), signal }, phase === "fast" ? 8_000 : 60_000);
+    return { data, mode: "live" };
+  },
 
   /** Travel DNA swipes -> profile + weights + reasons (backend: tripai.profile.dna). */
   profileDna: (req: DnaRequest) =>

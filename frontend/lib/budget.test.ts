@@ -34,6 +34,12 @@ describe("budget", () => {
     expect(b?.kind === "none_fit" && b.cheapest.city).toBe("Athens");
   });
 
+  it("counts only trips 'Show those first' can move; ones only under 'Not your style' get their own message", () => {
+    const visible = recs.filter((r) => r.total_cost_pln > 1400); // fits are all collapsed
+    const b = budgetBanner(visible, 1400, recs);
+    expect(b).toMatchObject({ kind: "fits_hidden", hiddenCount: 2 });
+  });
+
   it("#1 over budget while others fit: explains and offers within-budget first", () => {
     const b = budgetBanner(recs, 1400); // Rome 1442 over by 42; Athens 1104, Porto 1302 fit
     expect(b).toMatchObject({ kind: "top_over", over: 42, withinCount: 2 });

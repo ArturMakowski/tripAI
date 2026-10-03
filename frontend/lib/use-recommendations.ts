@@ -28,23 +28,38 @@ export function useRecommendations() {
   const seq = useRef(0);
   const [now] = useState(() => Date.now()); // staleness is judged once per mount
 
-  const fresh =
-    !!recsMeta && recsMeta.profileKey === profileKey(profile) && now - recsMeta.at < RECS_TTL_MS && recs.length > 0;
+  // An empty answer is still an answer: show the empty state instead of loading forever.
+  const fresh = !!recsMeta && recsMeta.profileKey === profileKey(profile) && now - recsMeta.at < RECS_TTL_MS;
   // Receipts (flip hint, counterfactual score deltas, hash) were computed at these weights.
   const scoredAtCurrentWeights = sameWeights(recsMeta?.weights, weights);
 
   // Fast results are on screen, exact live prices still coming.
   const refining = fresh && recsMeta?.phase === "fast";
 
-  // Phase 1 (initial / stale load): fast cached prices so cards appear in ~1-2 s.
+  // Initial / stale load. Two-phase only when the backend says it supports it (/health.phases);
+  // otherwise, or if the fast call fails, exactly one classic call (with explanations), as before.
+  const [phased, setPhased] = useState<boolean | null>(null);
   useEffect(() => {
     if (!hydrated || fresh) return;
     const id = ++seq.current;
     const ctrl = new AbortController();
-    api.recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights }, "fast", ctrl.signal).then(({ data, mode }) => {
+    const req = { profile: profile ?? DEMO_PROFILE, weights };
+    const single = () =>
+      api.recommendations(req, ctrl.signal).then(({ data, mode }) => {
+        if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "full" });
+      });
+    api.capabilities().then(({ phases }) => {
       if (id !== seq.current) return;
-      // A backend without phase support answered in full already: don't pay for a second call.
-      setRecs(data.recs, { profile, weights, mode, phase: data.served === "fast" ? "fast" : "full" });
+      setPhased(phases);
+      if (!phases) return single();
+      return api
+        .recommendationsPhase(req, "fast", ctrl.signal)
+        .then(({ data, mode }) => {
+          if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "fast" });
+        })
+        .catch(() => {
+          if (!ctrl.signal.aborted) return single();
+        });
     });
     return () => ctrl.abort();
     // weights intentionally excluded: slider moves are handled below
@@ -52,14 +67,21 @@ export function useRecommendations() {
   }, [hydrated, fresh, profile]);
 
   // Phase 2: exact live prices + explanations; cards update and re-order in place.
+  // If it fails, the fast list stays (marked final) rather than swapping in fixtures.
   useEffect(() => {
     if (!hydrated || !refining) return;
     const id = ++seq.current;
     const ctrl = new AbortController();
-    api.recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights }, "full", ctrl.signal).then(({ data, mode }) => {
-      if (id !== seq.current) return;
-      setRecs(data.recs, { profile, weights, mode, phase: "full" });
-    });
+    const current = () => useTrip.getState().recs;
+    api
+      .recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights }, "full", ctrl.signal)
+      .then(({ data, mode }) => {
+        if (id === seq.current) setRecs(data, { profile, weights, mode, phase: "full" });
+      })
+      .catch(() => {
+        if (!ctrl.signal.aborted && id === seq.current)
+          setRecs(current(), { profile, weights, mode: useTrip.getState().modes.recs ?? "live", phase: "full", merge: false });
+      });
     return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, refining]);
@@ -95,5 +117,14 @@ export function useRecommendations() {
     // Backend verdicts win; until the fit agent ships, a rule-based preview is computed here and labelled as such.
     return withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL);
   }, [recs, weights, fixture, fitProfile]);
-  return { ranked, loading: !recs.length, refining, weights, scoredAtCurrentWeights: fixture || scoredAtCurrentWeights };
+  return {
+    ranked,
+    loading: !fresh,
+    refining,
+    /** null until known; false = classic single call (backend without phase support) */
+    phased,
+    mode: modes.recs ?? null,
+    weights,
+    scoredAtCurrentWeights: fixture || scoredAtCurrentWeights,
+  };
 }

@@ -123,7 +123,7 @@ export interface FlipHint {
 
 export interface RankedRecommendation extends Recommendation {
   rank: number;
-  /** PROPOSED (T5a): total minus the profile budget, > 0 when over; null/absent = no budget or not marked. */
+  /** PROPOSED (issue #18): total minus the profile budget, > 0 when over; null/absent = no budget or not marked. */
   over_budget_pln?: number | null;
   counterfactuals: Counterfactual[];
   flip: FlipHint | null;
@@ -224,6 +224,8 @@ export interface Health {
   calendar: string;
   llm: string | null;
   scoring_version: string;
+  /** PROPOSED (issue #18): phases /recommendations supports, e.g. ["fast", "full"]. Absent = single call only. */
+  phases?: string[];
 }
 
 // --- profile/dna (docs/TRAVEL_DNA.md) ----------------------------------------------

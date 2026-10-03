@@ -21,31 +21,47 @@ describe("mock two-phase /recommendations", () => {
   });
 });
 
-describe("api.recommendationsPhase never double-spends", () => {
-  async function liveApi(phaseHeader: string | null) {
+describe("two-phase loading is gated on backend support", () => {
+  async function liveApi(health: unknown, recStatus = 200) {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "http://backend.test");
     const urls: string[] = [];
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string) => {
         urls.push(url);
-        return new Response("[]", { status: 200, headers: phaseHeader ? { "X-TripAI-Phase": phaseHeader } : {} });
+        if (url.endsWith("/health")) {
+          if (health === "down") throw new TypeError("network");
+          return new Response(JSON.stringify(health), { status: 200 });
+        }
+        return new Response("[]", { status: recStatus });
       }),
     );
     const { api } = await import("./api");
     return { api, urls };
   }
 
-  it("reports the phase the server confirmed", async () => {
-    const { api, urls } = await liveApi("fast");
-    const r = await api.recommendationsPhase({ profile: DEMO_PROFILE }, "fast");
-    expect(r).toMatchObject({ mode: "live", data: { served: "fast" } });
-    expect(urls[0]).toBe("http://backend.test/recommendations?phase=fast");
+  it("today's backend (no /health.phases) -> no phases: the classic single call is used", async () => {
+    const { api } = await liveApi({ ok: true, provider: "LiveProvider" });
+    expect(await api.capabilities()).toEqual({ phases: false });
   });
 
-  it("a backend without phase support yields served=null (caller must not fire full)", async () => {
-    const { api } = await liveApi(null);
+  it("unreachable /health -> no phases", async () => {
+    const { api } = await liveApi("down");
+    expect(await api.capabilities()).toEqual({ phases: false });
+  });
+
+  it("phases advertised -> phase URLs; capability asked once", async () => {
+    const { api, urls } = await liveApi({ ok: true, phases: ["fast", "full"] });
+    expect(await api.capabilities()).toEqual({ phases: true });
+    await api.capabilities();
     const r = await api.recommendationsPhase({ profile: DEMO_PROFILE }, "fast");
-    expect(r.data.served).toBeNull();
+    expect(r.mode).toBe("live");
+    expect(urls.filter((u) => u.endsWith("/health"))).toHaveLength(1);
+    expect(urls.at(-1)).toBe("http://backend.test/recommendations?phase=fast");
+  });
+
+  it("a failing live phase call throws (never a fixture 'fast' result posing as live)", async () => {
+    const { api } = await liveApi({ ok: true, phases: ["fast", "full"] }, 503);
+    await expect(api.recommendationsPhase({ profile: DEMO_PROFILE }, "fast")).rejects.toThrow(/503/);
   });
 });
