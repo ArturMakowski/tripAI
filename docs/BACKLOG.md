@@ -6,7 +6,7 @@
 - [ ] T4b swipe onboarding = Travel DNA deck (docs/TRAVEL_DNA.md), frontend
 - [ ] T1b POST /profile/dna deterministic mapping + personalize=False honoured, backend
 - [ ] T5a integration: LiveProvider (seed + connectors) behind core Provider, Supabase persistence
-- [ ] T5b DBOS proactive scan workflow + notifications (after T1+T2)
+- [ ] T5b proactive scan (DBOS daily + "Run scan now") → in-app inbox + web push (VAPID), prefs/opt-in, migration 0003
 - [ ] T6 pitch: 10-slide PDF + demo script ("auditable engine, not a chatbot" — see COMPETITORS.md)
 - [ ] T7 replan on disruption (stretch)
 
