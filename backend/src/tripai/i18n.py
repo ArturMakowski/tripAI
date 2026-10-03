@@ -396,6 +396,12 @@ MESSAGES: dict[str, dict[str, str]] = {
         "en": "by car, estimate (OSRM route, no traffic)",
         "pl": "samochodem, szacunek (trasa OSRM, bez korków)",
     },
+    "party.label": {
+        "en": "{n} travellers, {r} room(s): flights {n} × {flight} + hotel {r} × {room} = {group} "
+        "for the group ({pp} per person)",
+        "pl": "{n} os., pokoje: {r}: loty {n} × {flight} + hotel {r} × {room} = {group} razem "
+        "({pp}/os.)",
+    },
     "budget.slightly": {
         "en": "Slightly over budget: +{amount} ({pct}%)",
         "pl": "Nieco ponad budżet: +{amount} ({pct}%)",

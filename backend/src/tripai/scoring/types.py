@@ -42,6 +42,9 @@ class Candidate(BaseModel):
     # the concrete itinerary / property behind flight_cost_pln / hotel_cost_pln (if known)
     flight: FlightDetails | None = None
     hotel: HotelDetails | None = None
+    # docs/BUDGET.md "Price honesty": "exact" = both legs priced for these dates; "partial" = one
+    # leg; "estimate" = other dates / city average. Only exact prices feed the price factor.
+    price_status: Literal["exact", "partial", "estimate"] = "exact"
 
     @property
     def total_cost_pln(self) -> float:

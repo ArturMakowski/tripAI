@@ -157,7 +157,7 @@ def test_fast_phase_uses_seed_climate_and_a_per_call_deadline(monkeypatch):
     t = time.monotonic()
     fast = asyncio.run(p.candidates("KRK", ws, profile=prof, fast=True))
     assert time.monotonic() - t < 1.0
-    assert p.last_stats["late_calls"] == 1 and len(fast) == 10
+    assert p.last_stats["late_calls"] >= 1 and len(fast) == 10
     rome = next(c for c in fast if c.city == "Rome")
     flight = next(e for e in rome.evidence if e.kind == "flight")
     assert "Google Travel Explore" in flight.label  # Travelpayouts was too slow: next source

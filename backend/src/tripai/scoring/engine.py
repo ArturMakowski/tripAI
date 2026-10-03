@@ -29,6 +29,7 @@ DEFAULT_SPEND_PLN = {
 }
 DEFAULT_BUDGET_PLN = DEFAULT_SPEND_PLN  # old name
 
+NEUTRAL_PRICE_SCORE = 0.5  # cap on the price factor of non-exact prices (docs/BUDGET.md)
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
@@ -127,10 +128,24 @@ def score_candidate(
 ) -> ScoreBreakdown:
     w = normalise_weights(weights)
     parts = {
-        "price": price_score(
-            c.total_cost_pln,
-            effective_budget(profile, typical_spend_pln),
-            c.seasonal_median_cost_pln,
+        # price honesty: a price from other dates / a city average says little about this
+        # trip's cost - it may not help (capped at neutral) but a high estimate still counts
+        # against it, so not knowing a price never beats a known one (docs/BUDGET.md)
+        "price": (
+            price_score(
+                c.total_cost_pln,
+                effective_budget(profile, typical_spend_pln),
+                c.seasonal_median_cost_pln,
+            )
+            if c.price_status == "exact"
+            else min(
+                NEUTRAL_PRICE_SCORE,
+                price_score(
+                    c.total_cost_pln,
+                    effective_budget(profile, typical_spend_pln),
+                    c.seasonal_median_cost_pln,
+                ),
+            )
         ),
         "weather": weather_score(
             c.temp_c, profile.preferred_temp_c, profile.dislikes, c.rainy_day_share, c.sunshine_h
@@ -505,6 +520,7 @@ def _rank(
                 crowd=c.crowd,
                 flight=c.flight,
                 hotel=c.hotel,
+                price_status=c.price_status,
             )
         )
     return out

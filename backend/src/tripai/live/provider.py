@@ -22,6 +22,7 @@ from typing import Any
 
 import httpx
 
+from tripai import i18n
 from tripai.connectors import config
 from tripai.connectors.base import SYNTHETIC_TAG, FixtureNotFound
 from tripai.connectors.cache import Cache, DiskCache, LayeredCache, NullCache, SupabaseCache
@@ -47,6 +48,7 @@ from tripai.models import (
     TasteProfile,
     Weights,
 )
+from tripai.scoring import party
 from tripai.scoring.engine import MONTHS, candidate_id, taste_score
 from tripai.scoring.provider import LUXURY_HOTEL_MULT, CityInfo, FixtureProvider, TripDataProvider
 from tripai.scoring.types import Candidate, PeakQuote
@@ -55,10 +57,11 @@ from tripai.seed import load
 log = logging.getLogger(__name__)
 
 DEFAULT_MAX_CITIES = 12
+DEFAULT_EXACT_TOP = 10  # cards that get a free exact-date Travelpayouts fare (price honesty)
 DEFAULT_TOP_N = 3  # exact-date SerpApi flights + hotels for this many cities...
 DEFAULT_MAX_REFINE = 6  # ...re-checked until the top N are refined, at most this many in total
 KIND_ORDER = {k: i for i, k in enumerate(
-    ("flight", "hotel", "price_baseline", "peak", "weather", "crowds", "holiday", "attraction",
+    ("flight", "hotel", "party", "price_baseline", "peak", "weather", "crowds", "holiday", "attraction",
      "photo", "confidence")
 )}  # fmt: skip
 TAG_MIN_WEIGHT = 0.5
@@ -144,6 +147,35 @@ def _flight_evidence(flights: Any, price: float) -> list[Evidence]:
     return ev
 
 
+def _party_evidence(
+    flight_pp: float, room_total: float, profile: TasteProfile | None
+) -> list[Evidence]:
+    """How the per-person price is built for a group (docs/BUDGET.md "Party pricing")."""
+    n, r = party.travelers(profile), party.rooms(profile)
+    if n == 1 and r == 1:
+        return []
+    group = flight_pp * n + room_total * r
+    label = i18n.t(
+        "party.label",
+        n=n,
+        r=r,
+        flight=i18n.fmt_pln(flight_pp),
+        room=i18n.fmt_pln(room_total),
+        group=i18n.fmt_pln(group),
+        pp=i18n.fmt_pln(group / n),
+    )
+    return [
+        Evidence(
+            kind="party",
+            label=label,
+            value=round(group),
+            unit="PLN",
+            source="tripai:party",
+            fetched_at=datetime.now(UTC),
+        )
+    ]
+
+
 def _plain(name: str) -> str:
     """Search-friendly city name: "Valletta (Malta)" -> "Valletta"."""
     return name.split(" (")[0]
@@ -154,6 +186,12 @@ class _Quality:
     """Per-factor data quality (1 = live, exact dates) and a human-readable basis."""
 
     parts: dict[str, tuple[float, str]] = field(default_factory=dict)
+    exact: dict[str, bool] = field(default_factory=dict)  # "flight"/"hotel" priced for these dates
+    tried_exact: bool = False  # exact-date Travelpayouts lookup already done for this card
+
+    def price_status(self) -> str:
+        n = sum(self.exact.get(k, False) for k in ("flight", "hotel"))
+        return ("estimate", "partial", "exact")[n]
 
     def set(self, factor: str, q: float, basis: str) -> None:
         self.parts[factor] = (q, basis)
@@ -274,6 +312,7 @@ class _Session:
         # SerpApi: metered live connectors + fixture twins served once a cap is hit
         self.budget = budget or global_budget()
         self.fast = fast  # cache-only SerpApi, no fixture stand-ins
+        self.profile: TasteProfile | None = None  # party size for per-person hotel shares
         self.deadline: float | None = None  # monotonic; set by the provider in the fast phase
         self.late_calls = 0
         self.request_cap = 0 if fast else request_cap()
@@ -431,6 +470,7 @@ class LiveProvider:
         max_cities: int | None = None,
         top_n: int | None = None,
         max_refine: int | None = None,
+        exact_top: int | None = None,
         fixtures: bool | None = None,
         cache: Cache | None = None,
         today: date | None = None,
@@ -458,6 +498,11 @@ class LiveProvider:
         self.budget = budget
         self.last_stats: dict[str, Any] = {}
         self.fast_deadline = float(config.env("TRIPAI_FAST_DEADLINE_S") or FAST_DEADLINE_S)
+        self.exact_top = (
+            exact_top
+            if exact_top is not None
+            else _env_int("TRIPAI_LIVE_EXACT_TOP", DEFAULT_EXACT_TOP)
+        )
 
     def _refine_targets(
         self,
@@ -468,10 +513,25 @@ class LiveProvider:
     ) -> list[str]:
         """Exact-date checks go to what the user will see first: the top N under the same
         hard-budget policy and price reference (typical spend) the API applies."""
+        return self._targets(cands, profile, weights, self.top_n, typical_spend_pln)
+
+    @staticmethod
+    def _targets(
+        cands: list[Candidate],
+        profile: TasteProfile,
+        weights: Weights | None,
+        n: int,
+        typical_spend_pln: float | None = None,
+    ) -> list[str]:
+        """Which cards to verify next. Status-blind on purpose: every card is ranked on its
+        current (possibly other-dates) price as if it were known, so verifying a card can't lift
+        it over unverified ones - a refined trip whose exact price came back high drops out and
+        the next candidate gets checked. (Display ranking stays exact-first: budget_fit.)"""
         from tripai.scoring.budget_fit import rank_within_budget
 
+        blind = [c.model_copy(update={"price_status": "exact"}) for c in cands]
         ranked = rank_within_budget(
-            cands, profile, weights, limit=self.top_n, typical_spend_pln=typical_spend_pln
+            blind, profile, weights, limit=n, typical_spend_pln=typical_spend_pln
         )
         return [r.id for r, _ in ranked]
 
@@ -616,7 +676,7 @@ class LiveProvider:
             for d in data:
                 for w in windows:
                     try:
-                        built = self._candidate(d, origin, w, luxury)
+                        built = self._candidate(d, origin, w, luxury, profile)
                     except Exception as exc:  # noqa: BLE001 - drop this option only
                         log.warning("live provider: %s %s dropped: %r", d.city.id, w.start, exc)
                         s.failures.append(f"candidate {d.city.id} {w.start}: {type(exc).__name__}")
@@ -625,6 +685,12 @@ class LiveProvider:
                         cands.append(built[0])
                         quality[candidate_id(built[0])] = built[1]
             by_city = {d.city.iata: d for d in data}
+            s.profile = profile
+            # Price honesty: give the cards users see first an exact-date fare (free Travelpayouts
+            # prices_for_dates) before anything is shown as this trip's price.
+            cands = await self._exact_flights(
+                s, origin, cands, quality, profile, weights, typical_spend_pln
+            )
             refined: set[str] = set()
             # Exact-date prices usually differ from the cached estimates, so re-rank after each
             # round until the top N are all refined or the refinement budget is spent.
@@ -758,9 +824,10 @@ class LiveProvider:
 
     def _flight(
         self, d: _CityData, origin: str, w: FreeWindow
-    ) -> tuple[float, Evidence, float, str, FlightDetails | None] | None:
-        """Price, evidence, quality, basis and the itinerary behind that exact price (None for
-        a month median: no single itinerary)."""
+    ) -> tuple[float, Evidence, float, str, FlightDetails | None, bool] | None:
+        """(price, evidence, quality, basis, itinerary, exact). The itinerary is the one behind
+        that exact price (None for a month median); `exact` only for a fare that departs on the
+        window's first day and returns on its last (docs/BUDGET.md "Price honesty")."""
         cal = d.calendars.get((w.start.year, w.start.month))
         if cal is not None:
             by_day = cal.by_departure_day()
@@ -781,14 +848,19 @@ class LiveProvider:
                 )
                 ev = cal._ev("flight", label, fare.price, cal.currency, fare.link)
                 det = details.flight_from_fare(fare, origin, _src(cal), cal.fetched_at)
-                return fare.price, ev, q, "Aviasales cached fare", det
+                exact = (
+                    fare.departure_at.date() == w.start
+                    and fare.return_at is not None
+                    and fare.return_at.date() == w.end
+                )
+                return fare.price, ev, q, "Aviasales cached fare", det, exact
             med = round(statistics.median(f.price for f in cal.fares))
             label = (
                 f"Typical return {origin}-{d.city.iata} in {MONTHS[w.start.month - 1]} "
                 f"(median of {len(cal.fares)} Aviasales cached fares, not your exact dates)"
             )
             ev = cal._ev("flight", label, med, cal.currency)
-            return med, ev, 0.45, "month median fare", None
+            return med, ev, 0.45, "month median fare", None, False
         e = d.explore
         if e is not None and e.flight_price is not None and d.explore_res is not None:
             dates = f" {_span(e.start_date, e.end_date)}" if e.start_date and e.end_date else ""
@@ -799,7 +871,7 @@ class LiveProvider:
             ev = d.explore_res._ev("flight", label, e.flight_price, d.explore_res.currency, e.link)
             res = d.explore_res
             det = details.flight_from_explore(e, origin, _src(res), res.fetched_at)
-            return e.flight_price, ev, 0.35, "Google Travel Explore", det
+            return e.flight_price, ev, 0.35, "Google Travel Explore", det, False
         return None
 
     def _hotel(
@@ -811,7 +883,8 @@ class LiveProvider:
         if e is not None and e.hotel_price is not None and d.explore_res is not None:
             total = round(e.hotel_price * mult * nights)
             label = (
-                f"Hotel {nights} nights in {d.city.name}: {e.hotel_price:.0f} PLN/night "
+                f"Hotel {nights} nights in {d.city.name}, price for 1 room: "
+                f"{e.hotel_price:.0f} PLN/night "
                 f"(Google Travel Explore, not your exact dates) x{mult} for {luxury.value}"
             )
             return total, d.explore_res._ev("hotel", label, total, "PLN"), 0.5, "Explore nightly"
@@ -820,7 +893,8 @@ class LiveProvider:
         ev = Evidence(
             kind="hotel",
             label=(
-                f"Hotel {nights} nights in {d.city.name}: rough estimate {nightly} PLN/night "
+                f"Hotel {nights} nights in {d.city.name}, price for 1 room: rough estimate "
+                f"{nightly} PLN/night "
                 f"x{mult} for {luxury.value} (no live hotel data; editorial per-country table of "
                 "typical mid-range double rooms, compiled 3 Oct 2026, not a fetched price)"
             ),
@@ -1021,21 +1095,28 @@ class LiveProvider:
         return quote, ev
 
     def _candidate(
-        self, d: _CityData, origin: str, w: FreeWindow, luxury: LuxuryLevel
+        self,
+        d: _CityData,
+        origin: str,
+        w: FreeWindow,
+        luxury: LuxuryLevel,
+        profile: TasteProfile | None = None,
     ) -> tuple[Candidate, _Quality] | None:
         flight = self._flight(d, origin, w)
         weather = self._weather(d, w)
         if flight is None or weather is None:
             return None  # can't score without a price and a temperature
         q = _Quality()
-        f_cost, f_ev, f_q, f_basis, f_details = flight
-        h_cost, h_ev, h_q, h_basis = self._hotel(d, w, luxury)
+        f_cost, f_ev, f_q, f_basis, f_details, f_exact = flight
+        h_room, h_ev, h_q, h_basis = self._hotel(d, w, luxury)  # per room, never exact here
+        h_cost = party.hotel_share(h_room, profile)  # this person's share of the rooms
         temp, w_ev, w_q, w_basis = weather
         crowd, c_ev, c_q, c_basis = self._crowds(d, w)
         q.set("flight", f_q, f_basis)
         q.set("hotel", h_q, h_basis)
         q.set("weather", w_q, w_basis)
         q.set("crowds", c_q, c_basis)
+        q.exact = {"flight": f_exact, "hotel": False}
         median, base_ev = self._baseline(d, origin, f_cost, h_cost)
         peak, peak_ev = self._peak(d, w, h_cost)
         evidence = [
@@ -1060,8 +1141,9 @@ class LiveProvider:
             seasonal_median_cost_pln=median,
             peak=peak,
             highlights=d.highlights,
-            evidence=evidence,
+            evidence=[*evidence, *_party_evidence(f_cost, h_room, profile)],
             flight=f_details,
+            price_status=q.price_status(),
         )
         return cand, q
 
@@ -1131,8 +1213,19 @@ class LiveProvider:
             ev = [e for e in ev if e.kind != "flight"]
             ev[:0] = _flight_evidence(flights, flight_cost)
             q.set("flight", 1.0, "Google Flights, exact dates")
+            q.exact["flight"] = True
             if flights.typical_price_range:
                 flight_base = sum(flights.typical_price_range) / 2
+        elif not q.exact.get("flight") and not q.tried_exact:
+            # SerpApi capped/failed: exact-date Travelpayouts next (unless the free pass already
+            # asked for exactly these dates and got nothing)
+            got = await self._exact_flight(s, origin, c)
+            if got is not None:
+                flight_cost, f_ev, flight_details = got  # shown = priced
+                ev = [e for e in ev if e.kind != "flight"]
+                ev.insert(0, f_ev)
+                q.set("flight", 0.85, "Aviasales fare, exact dates")
+                q.exact["flight"] = True
         upd["flight_cost_pln"] = flight_cost
         upd["flight"] = flight_details
 
@@ -1150,21 +1243,22 @@ class LiveProvider:
         picked = details.pick_offer(hotels.offers, pct) if hotels else None
         if picked is not None:
             offer, n_priced = picked
-            hotel_cost = details.stay_cost(offer, nights)  # this property is what is shown
+            hotel_room = details.stay_cost(offer, nights)  # this property is what is shown
+            hotel_cost = party.hotel_share(hotel_room, s.profile)  # per-person share of rooms
+            q.exact["hotel"] = True
             ev = [e for e in ev if e.kind != "hotel"]
             mine = hotels._ev(
                 "hotel",
                 f"{offer.name}: {nights} nights in {d.city.name} {_span(w.start, w.end)}, "
-                f"{offer.price_per_night:.0f} PLN/night (the property at the "
+                f"price for 1 room, {offer.price_per_night:.0f} PLN/night (the property at the "
                 f"{round(pct * 100)}th percentile of {n_priced} Google Hotels offers, "
                 f"{luxury.value})",
-                round(hotel_cost),
+                round(hotel_room),  # the property's price for the stay (one room)
                 hotels.currency,
                 offer.link,
             )
             ev[1:1] = [mine, *hotels.evidence()]
             q.set("hotel", 1.0, "Google Hotels, exact dates")
-            # where the priced flight lands: Google's airport name matches Google's hotel data
             # the airport the *priced* flight lands at, never the city's main code by default:
             # Google's itinerary (with Google's own airport name), else the Travelpayouts /
             # Explore itinerary's landing airport, else unknown -> no airport pin, no OSRM
@@ -1173,9 +1267,9 @@ class LiveProvider:
                 arrival_iata = flight_details.outbound[-1].to_iata
                 if flight_details.source.startswith("serpapi:google_flights") and cheapest:
                     arrival_name = cheapest.legs[-1].to_name
-            hotel_details = details.hotel_details(
-                offer, hotel_cost, d.city, arrival_iata, arrival_name, _src(hotels),
-                hotels.fetched_at,
+            hotel_details = details.hotel_details(  # group price: this property x rooms
+                offer, hotel_room * party.rooms(s.profile), d.city, arrival_iata, arrival_name,
+                _src(hotels), hotels.fetched_at,
             )  # fmt: skip
             if not hotel_details.transfers:
                 hotel_details = await self._drive_transfer(s, hotel_details)
@@ -1210,6 +1304,11 @@ class LiveProvider:
             upd["seasonal_median_cost_pln"] = base_flight + hotel_cost
         if c.peak is not None:
             upd["peak"] = c.peak.model_copy(update={"hotel_cost_pln": hotel_cost})
+        upd["price_status"] = q.price_status()
+        room_total = hotel_cost * party.travelers(s.profile) / party.rooms(s.profile)
+        ev = [e for e in ev if e.kind != "party"] + _party_evidence(
+            flight_cost, room_total, s.profile
+        )
 
         best = images.best() if images is not None else None
         if best is not None:
@@ -1225,3 +1324,70 @@ class LiveProvider:
             )
         upd["evidence"] = ev
         return c.model_copy(update=upd)
+
+    # ------------------------------------------------------------------ exact-date fares
+
+    async def _exact_flight(self, s: "_Session", origin: str, c: Candidate):
+        """Cheapest Aviasales cached fare for exactly these dates (Travelpayouts prices_for_dates
+        with departure_at/return_at), or None. Free; cached 6 h."""
+        w = c.window
+        res = await s.call(
+            f"travelpayouts exact {origin}-{c.iata} {w.start}",
+            lambda: s.tp.prices_for_dates(origin, c.iata, w.start, w.end),
+        )
+        fares = [
+            f
+            for f in (res.fares if res is not None else [])
+            if f.departure_at.date() == w.start and f.return_at and f.return_at.date() == w.end
+        ]
+        if not fares:
+            return None
+        f = min(fares, key=lambda f: f.price)
+        stops = "direct" if not f.transfers else f"{f.transfers} stop(s)"
+        label = (
+            f"Return {origin}-{c.iata} {_span(w.start, w.end)} (your dates), "
+            f"{f.airline or '?'} {stops}, cheapest of {len(fares)} Aviasales cached fares "
+            "(not bookable)"
+        )
+        det = details.flight_from_fare(f, origin, _src(res), res.fetched_at)
+        return f.price, res._ev("flight", label, f.price, res.currency, f.link), det
+
+    async def _exact_flights(
+        self,
+        s: "_Session",
+        origin: str,
+        cands: list[Candidate],
+        quality: dict[str, "_Quality"],
+        profile: TasteProfile,
+        weights: Weights | None,
+        typical_spend_pln: float | None = None,
+    ) -> list[Candidate]:
+        """Exact-date fares for the top EXACT_TOP cards whose flight is from other dates."""
+        top = self._targets(cands, profile, weights, self.exact_top, typical_spend_pln)
+        todo = [
+            c
+            for c in cands
+            if candidate_id(c) in top and not quality[candidate_id(c)].exact.get("flight")
+        ]
+        got = await asyncio.gather(*(self._exact_flight(s, origin, c) for c in todo))
+        for c in todo:
+            quality[candidate_id(c)].tried_exact = True
+        swap: dict[str, Candidate] = {}
+        for c, hit in zip(todo, got):
+            if hit is None:
+                continue
+            q = quality[candidate_id(c)]
+            q.set("flight", 0.85, "Aviasales fare, exact dates")
+            q.exact["flight"] = True
+            price, f_ev, f_det = hit
+            room = c.hotel_cost_pln * party.travelers(profile) / party.rooms(profile)
+            ev = [f_ev, *(e for e in c.evidence if e.kind not in ("flight", "party"))]
+            swap[candidate_id(c)] = c.model_copy(
+                update={
+                    "flight_cost_pln": price,
+                    "flight": f_det,  # the itinerary behind the exact-date price
+                    "evidence": [*ev, *_party_evidence(price, room, profile)],
+                    "price_status": q.price_status(),
+                }
+            )
+        return [swap.get(candidate_id(c), c) for c in cands]

@@ -90,8 +90,10 @@ def _fitting(
     """Proactive picks obey the hard budget and never include over-budget fallbacks: a card may
     show "closest options, over budget", a push saying "go here" must not. (Watched picks are
     re-priced with plain `rank()`: the user chose that trip; the alert is about its price.)"""
+    # price honesty: a push quotes a total, so both legs must be priced for these dates
+    # ("partial" = exact flight + city-average hotel is still not this trip's price)
     ranked = rank_within_budget(cands, p, w, limit=limit, fallback=False, typical_spend_pln=typical)
-    return [r for r, _ in ranked]
+    return [r for r, _ in ranked if r.price_status == "exact"]
 
 
 @dataclass(frozen=True)
@@ -419,8 +421,16 @@ def build_drafts(
                          reason="no current price for this pick")
             )  # fmt: skip
             continue
-        add(draft_price_drop(RankedRecommendation.model_validate(raw),
-                             picks[rec_id]["baseline_pln"]))  # fmt: skip
+        rec = RankedRecommendation.model_validate(raw)
+        if rec.price_status != "exact":
+            # price honesty: an other-dates fare / city-average hotel is not "the price fell" -
+            # no alert, and the baseline ("last real price we told them") stays untouched
+            decisions.append(
+                Decision(kind="price_drop", recommendation_id=rec_id, notify=False,
+                         reason=f"no exact-date price for this pick ({rec.price_status})")
+            )  # fmt: skip
+            continue
+        add(draft_price_drop(rec, picks[rec_id]["baseline_pln"]))
     return drafts, decisions
 
 

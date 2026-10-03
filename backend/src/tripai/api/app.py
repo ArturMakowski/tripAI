@@ -56,6 +56,7 @@ from tripai.scoring import (
     apply_feedback,
     free_windows,
     long_weekends,
+    party,
     trip_windows,
 )
 from tripai.scoring.budget_fit import rank_within_budget
@@ -221,7 +222,13 @@ def create_app(
         chip = i18n.t(chip_key, amount=i18n.fmt_pln(typical.pln))
         recs = [
             ApiRecommendation(
-                **r.model_dump(),
+                **r.model_dump()
+                | {
+                    # docs/BUDGET.md "Party pricing": total_cost_pln stays per person
+                    "travelers": party.travelers(profile),
+                    "per_person_pln": r.total_cost_pln,
+                    "party_total_pln": round(party.party_total(r.total_cost_pln, profile)),
+                },
                 budget=status,
                 over_budget_pln=None if status is None else status.overage_pln,
                 phase=phase,

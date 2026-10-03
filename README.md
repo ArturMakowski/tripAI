@@ -432,3 +432,40 @@ route handler `frontend/app/api/[...path]/route.ts` (`frontend/lib/proxy.ts`) fo
 - The backend container starts with `python -m tripai.serve`: one dual-stack socket on `[::]` (IPv6 for Railway private
   networking, IPv4 too) on `$PORT`. Plain `uvicorn --host ::` would be IPv6-only, because asyncio sets `IPV6_V6ONLY`.
 - `python -m tripai.warm` sends the key itself when it is set.
+
+## Price honesty + party pricing (T5d, docs/BUDGET.md)
+
+**Only prices for the trip's own dates count.**
+- **`price_status`:** each card carries `exact` (both legs priced for these dates), `partial` (one leg) or `estimate` (other dates or
+  a city average).
+- **Flight, exact-date order:**
+  1. SerpApi Google Flights (top cards, within the SerpApi cap);
+  2. Travelpayouts `prices_for_dates` with exactly `departure_at`/`return_at`. It's free, and the top `TRIPAI_LIVE_EXACT_TOP` (default 10)
+     cards get it in both phases;
+  3. otherwise no exact price.
+
+  A month-calendar fare also counts as exact only if it departs on day 1 and returns on the last day.
+- **Hotel:** exact only from Google Hotels for the dates. Explore's nightly price or the editorial table stays an estimate.
+- **Scoring:** a non-exact card's price factor is capped at neutral: `min(NEUTRAL_PRICE_SCORE, price_score(estimate))`. Not knowing a
+  price never helps a card, but a high estimate still counts against it.
+- **Ordering, with or without a budget:** exact-priced options come first, then the non-exact ones. Those are labelled via
+  `price_status` and get no flip hints, because a "would overtake" on a guessed price is meaningless. With a budget, non-exact cards
+  get no `budget` status, are listed only if even their estimate fits, and over-budget fallbacks come only from exact prices.
+- **Refinement targets are status-blind:** every card is ranked on its current price as if it were known. Verifying a card therefore
+  can't lift it over unverified ones. When an exact price comes back high, the loop moves on to the next candidate.
+- **Pushes need exact prices:** the proactive scan only pushes `exact` trips, because a push quotes a total. A watched pick re-priced
+  from other dates is "no exact-date price": no price-drop alert, and its baseline is not updated.
+- **Fast phase:** hotels are never exact before refinement, so in budget mode fast cards carry no `budget` status. The full answer
+  adds them.
+- **Evidence:** keeps saying "not your exact dates". The UI shows these prices muted ("od ~X zł (inne daty)").
+- **Regression test** (`tests/test_price_honesty.py`): the tester's Nice 11–15 Nov card, 358 PLN from a 22–29 Nov fare + a 1,292 PLN
+  city average, now becomes the exact 588 PLN fare + ibis budget at 829 PLN, or a labelled `partial`/`estimate`.
+
+**Party pricing.** `TasteProfile.adults`, `children` and `rooms` (default: ceil(people / 2)).
+- **Per-person card:** flights are per person, hotels per room. `flight_cost_pln + hotel_cost_pln = total_cost_pln` is **per person**: the
+  flight plus this person's share of the rooms.
+- **Group fields:** `travelers`, `party_total_pln` (= per person × travellers) and `per_person_pln`.
+- **Hotel details:** `hotel.price_pln_total` is the group's price for the property (rooms × room price). Hotel evidence rows say
+  "price for 1 room". The card's `hotel_cost_pln` is the per-person share, and the `party` row ties the three together.
+- **Evidence:** a `party` row shows the sum, e.g. "2 os., pokoje: 1: loty 2 × … + hotel 1 × … = … razem".
+- **Both providers:** the `FixtureProvider` sample data applies the same per-person hotel share.
