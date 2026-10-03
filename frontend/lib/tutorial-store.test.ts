@@ -4,6 +4,8 @@ import { MESSAGES } from "@/lib/i18n";
 import {
   EMPTY_FLAGS,
   loadFlags,
+  mergeFlags,
+  readCookieFlags,
   safeStorage,
   saveFlags,
   shouldAutoOpenIntro,
@@ -72,12 +74,28 @@ describe("routing", () => {
     expect(tourForPath("/")).toBeNull();
   });
 
-  it("opens the intro once, and never on credits or a push landing", () => {
+  it("opens the intro once, only at the start of the app, never over deep links", () => {
     expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/")).toBe(true);
-    expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/trips")).toBe(true);
+    expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/onboarding")).toBe(true);
+    expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/trips")).toBe(false);
+    expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/trips/rome-2027-01-14")).toBe(false);
+    expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/windows")).toBe(false);
     expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/credits")).toBe(false);
     expect(shouldAutoOpenIntro(EMPTY_FLAGS, "/inbox/open")).toBe(false);
     expect(shouldAutoOpenIntro({ intro: true, tours: {} }, "/")).toBe(false);
+  });
+});
+
+describe("cookie fallback", () => {
+  it("reads flags from the cookie and merges them with storage (seen in either = seen)", () => {
+    const cookie = `other=1; tripai_tutorial=${encodeURIComponent(JSON.stringify({ intro: true, tours: { trips: true } }))}`;
+    expect(readCookieFlags(cookie)).toEqual({ intro: true, tours: { trips: true } });
+    expect(readCookieFlags("x=1")).toEqual(EMPTY_FLAGS);
+    expect(readCookieFlags("tripai_tutorial=%7Bbroken")).toEqual(EMPTY_FLAGS);
+    expect(mergeFlags({ intro: false, tours: { windows: true } }, { intro: true, tours: { trips: true } })).toEqual({
+      intro: true,
+      tours: { windows: true, trips: true },
+    });
   });
 });
 
@@ -117,6 +135,13 @@ describe("store", () => {
     s.replay();
     expect(useTutorial.getState().introOpen).toBe(true);
     expect(loadFlags(mem)).toEqual(EMPTY_FLAGS);
+  });
+
+  it("marks the intro seen the moment it opens (a reload mid-intro never shows it again)", () => {
+    const s = useTutorial.getState();
+    s.hydrate();
+    s.openIntro();
+    expect(loadFlags(mem).intro).toBe(true);
   });
 
   it("keeps working in memory when storage throws", () => {

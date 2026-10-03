@@ -119,6 +119,11 @@ overall rating is half stars with the exact value in small text (`★★★★½
   evidence, audit).
 - **Evidence values** go through `lib/evidence-display.ts`: crowds with peak data read "Tłum · 46% szczytu sezonu"; a
   relative scale (`unit: "0-1 rel"`, e.g. London) reads "76/100 (0 = najspokojniejszy miesiąc)", never a percentage.
+- **What would flip it** shows only the scorer's plain-language text (`rec.flip.text`, PR #32), e.g. "Jeśli cena będzie dla
+  Ciebie ważniejsza (waga z 0,25 na 0,53), lepszą opcją będą Ateny". Fixture mode mirrors that wording (`lib/flip-text.ts`).
+- **Ties:** a score gap under 0.5 pts reads "praktycznie remis" / "practically a tie" (`lib/compare.ts`).
+- **Country names** go through `lib/country.ts` (`Intl.DisplayNames`), so PL shows "Francja", never "FRANCE".
+- **Fit badge** shows only the verdict; the check's confidence is in Audit.
 - **Comparisons name the trip:** "Rzym: wynik wyższy o 3,6 pkt · drożej o 108 zł".
 
 ## Pick your dates (`/windows`, T4f)
@@ -191,6 +196,9 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
 
 ## First-run tutorial (T11)
 A new user should get what TripAI does in under 30 seconds.
+- **Exactly once per device.** The intro opens on its own only on a first visit to `/` or `/onboarding` (never over a
+  deep link such as `/trips` or a shared `/trips/<id>`), and is marked seen the moment it opens, so Skip, Esc, finishing
+  or a reload mid-intro all count. Each screen's coach marks are marked seen as they start.
 - **Intro.** Four full-screen steps on the first visit, each with a small looping illustration built from app pieces
   (DNA card, calendar with the long-weekend band, ranked rows with fit badge and source tag, approve button + alert):
   *Powiedz nam, jak lubisz podróżować → Znajdziemy, kiedy masz wolne → Gdzie i kiedy, z dowodami → Ty decydujesz*.
@@ -201,8 +209,9 @@ A new user should get what TripAI does in under 30 seconds.
   - Each tip targets `[data-tour="…"]`. Anchors that don't render are skipped. If none render, the tour stays unseen.
   - "Hide tips", ✕ or Esc ends that screen's tour.
 - **Replay.** "How it works" on Profile resets every flag and opens the intro again.
-- **Flags.** `localStorage["tripai-tutorial-v1"]` holds `{intro, tours}`. If storage is missing or throws, the flags live in
-  memory for the session.
+- **Flags.** `localStorage["tripai-tutorial-v1"]` holds `{intro, tours}`, mirrored in a `tripai_tutorial` cookie (1 year).
+  Seen in either counts as seen, so clearing one never brings the intro back. If both are blocked, the flags live in memory
+  for the session.
 - **Accessibility.** Both are modal dialogs with a focus trap; focus returns to the opener on close.
   - In the intro, each step's heading takes focus and the step counter is a live region.
   - Targets are at least 40px.

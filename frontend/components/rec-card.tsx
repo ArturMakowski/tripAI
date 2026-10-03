@@ -15,28 +15,9 @@ import type { BridgeWindow, Recommendation, RankedRecommendation } from "@/lib/t
 import { peakMonth } from "@/lib/counterfactual";
 import { moneyOf } from "@/lib/money";
 import { TripPrice, ValueBadge } from "@/components/money";
+import { localCountry } from "@/lib/country";
 import { cn } from "@/lib/utils";
 
-/** English country names from the backend -> ISO 3166 codes, so Intl can name them in the UI language. */
-const COUNTRY_CODE: Record<string, string> = {
-  Italy: "IT", Portugal: "PT", Greece: "GR", Spain: "ES", France: "FR", Malta: "MT", Denmark: "DK",
-  "United Kingdom": "GB", Croatia: "HR", Germany: "DE", Austria: "AT", Netherlands: "NL", Czechia: "CZ",
-  "Czech Republic": "CZ", Hungary: "HU", Cyprus: "CY", Montenegro: "ME", Albania: "AL", Turkey: "TR",
-  Türkiye: "TR", Morocco: "MA", Egypt: "EG", Georgia: "GE", Ireland: "IE", Belgium: "BE", Switzerland: "CH",
-  Norway: "NO", Sweden: "SE", Finland: "FI", Iceland: "IS", Bulgaria: "BG", Romania: "RO", Slovenia: "SI",
-  Slovakia: "SK", Poland: "PL", "Canary Islands": "IC", Tunisia: "TN", Israel: "IL", Jordan: "JO",
-};
-
-/** "Italy" -> "Włochy" in PL; unknown names pass through unchanged. */
-export function localCountry(name: string, locale: string): string {
-  const code = COUNTRY_CODE[name];
-  if (!code) return name;
-  try {
-    return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? name;
-  } catch {
-    return name;
-  }
-}
 
 
 /** Illustrated stand-in for a city without a bundled photo: dusk sky, sun, hills and the city name. Never blank. */
@@ -79,6 +60,7 @@ export function CityPhoto({
   const photo = cityPhoto(rec.iata);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showPhoto = photo !== null && failedSrc !== photo;
+  const { fmt } = useT();
   return (
     <div className={cn("@container relative overflow-hidden", className)}>
       <CityIllustration city={rec.city} label={!thumb} />
@@ -86,7 +68,7 @@ export function CityPhoto({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={photo}
-          alt={thumb ? "" : [rec.city, rec.country].filter(Boolean).join(", ")}
+          alt={thumb ? "" : [rec.city, rec.country && localCountry(rec.country, fmt.locale)].filter(Boolean).join(", ")}
           onError={() => setFailedSrc(photo)}
           className="absolute inset-0 size-full object-cover"
         />

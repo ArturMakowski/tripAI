@@ -9,6 +9,7 @@ import { CityPhoto } from "@/components/rec-card";
 import { OverallStars } from "@/components/stars";
 import type { Lang } from "@/lib/dna";
 import { PriceInline, priceText } from "@/components/money";
+import { localCountry } from "@/lib/country";
 import { useT } from "@/lib/i18n";
 import { moneyOf } from "@/lib/money";
 import { swipeCopy, tagLabel, type OfferGesture } from "@/lib/reactions";
@@ -38,7 +39,7 @@ function OfferFace({ rec, lang, index, total }: { rec: RankedRecommendation; lan
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm text-white/75">
-              {rec.country} · {fmt.range(rec.window)}
+              {localCountry(rec.country, fmt.locale)} · {fmt.range(rec.window)}
             </p>
             <p className="font-display text-[2.1rem] leading-[1.05] font-medium">{rec.city}</p>
             <p className="tabular mt-1 text-base text-white/90">
