@@ -5,20 +5,34 @@
  * Needs the live backend (NEXT_PUBLIC_API_URL); in fixture mode the inbox explains that instead.
  */
 import { create } from "zustand";
-import { API_URL, FORCE_MOCK, api } from "./api";
+import { API_URL, FORCE_MOCK, SESSION_HEADER, api, readSession, rememberSession } from "./api";
 import { DEMO_PROFILE } from "./mock/fixtures";
 import type { AppNotification, Inbox, NotificationPrefs, ScanResult } from "./notify-types";
-import { ensureSession, rememberSession, sessionHeaders } from "./session";
 import { useTrip } from "./store";
 import type { RankedRecommendation, TasteProfile, Weights } from "./types";
 
 export const NOTIFY_AVAILABLE = !FORCE_MOCK;
 
+let bootstrap: Promise<void> | null = null;
+
+/** Get the server-issued session (lib/api.ts) once before the first notify calls, so the bell's
+ * poll and the inbox load don't each get a different session on a fresh browser. */
+function ensureSession(): Promise<void> {
+  if (readSession()) return Promise.resolve();
+  bootstrap ??= fetch(`${API_URL}/session`, { signal: AbortSignal.timeout(10_000) })
+    .then(rememberSession, () => {})
+    .finally(() => {
+      bootstrap = null;
+    });
+  return bootstrap;
+}
+
 async function http<T>(path: string, init?: RequestInit, timeoutMs = 20_000): Promise<T> {
-  await ensureSession(API_URL);
+  await ensureSession();
+  const token = readSession();
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "content-type": "application/json", ...sessionHeaders(), ...(init?.headers ?? {}) },
+    headers: { "content-type": "application/json", ...(token ? { [SESSION_HEADER]: token } : {}), ...(init?.headers ?? {}) },
     signal: AbortSignal.timeout(timeoutMs),
   });
   rememberSession(res);

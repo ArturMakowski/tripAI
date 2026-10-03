@@ -250,7 +250,7 @@ Each notification carries `title`, `body`, `recommendation_id`, `inputs_hash`, `
 
 **Who is "the user"?** There are no accounts. Every endpoint acts for the server-issued session from `tripai.api.session`
 (`X-TripAI-Session` header or cookie). Any `user_id` the client sends is ignored. The frontend keeps the token in
-localStorage (`lib/session.ts`), so each browser has its own inbox, prefs, picks and push subscription, and one visitor
+localStorage (`frontend/lib/api.ts`), so each browser has its own inbox, prefs, picks and push subscription, and one visitor
 can't trigger, mute or receive another's pushes. Set `TRIPAI_SESSION_SECRET` in production. Without it, sessions (and
 therefore inboxes) reset when the backend restarts. Real auth is out of scope for the hackathon.
 
