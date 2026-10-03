@@ -14,7 +14,7 @@ import { buildRecommendations, DEMO_PROFILE } from "./mock/fixtures";
 import { useTrip } from "./store";
 import { commitLearning, hiddenIds, react, unreact, useSwipe } from "./use-reactions";
 
-// No NEXT_PUBLIC_API_URL in tests: every call is answered by the in-browser mirror (fixture mode).
+// NEXT_PUBLIC_MOCK=1 in tests (vitest.config.mts): every call is answered by the in-browser mirror (fixture mode).
 const recs = buildRecommendations();
 
 describe("swipe flow (fixture mode)", () => {

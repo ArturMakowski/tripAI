@@ -1,7 +1,7 @@
 /**
  * In-browser stand-in for the FastAPI backend (API v0). Same request/response
  * shapes as backend/src/tripai/api; deterministic, no network. Used when
- * NEXT_PUBLIC_API_URL is unset or the backend is unreachable.
+ * NEXT_PUBLIC_MOCK=1 or the backend is unreachable.
  */
 import { flipConditions, normalise, rerank, FACTORS, type Factor } from "../scoring";
 import type {

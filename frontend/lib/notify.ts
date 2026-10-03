@@ -2,7 +2,7 @@
 
 /**
  * T5b client: inbox, prefs, scan-now and web push (backend/src/tripai/api/notify.py).
- * Needs the live backend (NEXT_PUBLIC_API_URL); in fixture mode the inbox explains that instead.
+ * Needs the live backend (via the /api proxy); in fixture mode (NEXT_PUBLIC_MOCK=1) the inbox explains that instead.
  */
 import { create } from "zustand";
 import { API_URL, FORCE_MOCK, SESSION_HEADER, acceptLanguage, api, getApiLang, readSession, rememberSession } from "./api";

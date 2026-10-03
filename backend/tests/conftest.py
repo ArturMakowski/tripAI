@@ -17,6 +17,9 @@ def _offline(monkeypatch):
         "TYPESAFE_API_KEY",
         "TYPESAFEAI_API_KEY",
         "TRIPAI_FIT_ENGINE",
+        "TRIPAI_INTERNAL_KEY",  # private-backend tests set it explicitly (test_internal.py)
+        "RAILWAY_ENVIRONMENT",
+        "TRIPAI_ENV",
     ):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("TRIPAI_LLM", "0")

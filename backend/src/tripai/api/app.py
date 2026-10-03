@@ -4,7 +4,7 @@ import asyncio
 from datetime import date, datetime, timedelta
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from tripai.agents.dna_chat import DnaChatResult, chat_dna
@@ -13,6 +13,12 @@ from tripai.agents.fit import fit, fit_engine
 from tripai.agents.interview import InterviewResult, interview
 from tripai.agents.jev import jev_enabled, jev_model_name
 from tripai.agents.llm import llm_enabled, model_name
+from tripai.api.internal import (
+    InternalKeyMiddleware,
+    internal_caller,
+    internal_key,
+    require_key_when_deployed,
+)
 from tripai.api.lang import LanguageMiddleware, use_lang
 from tripai.api.notify import install_notifications
 from tripai.api.schemas import (
@@ -73,19 +79,29 @@ def create_app(
     store = store or MemoryStore()
 
     app = FastAPI(title="TripAI", version="0.1.0")
+    key = internal_key()
+    require_key_when_deployed(key)
     app.add_middleware(LanguageMiddleware)  # Accept-Language / ?lang= -> i18n context
+    if (
+        key is None
+    ):  # local dev: browser may call the API directly. With a key: same-origin proxy only
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["*"],
+            allow_headers=["*"],
+            expose_headers=[SESSION_HEADER, "Content-Language"],
+        )
     app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_methods=["*"],
-        allow_headers=["*"],
-        expose_headers=[SESSION_HEADER, "Content-Language"],
-    )
+        InternalKeyMiddleware, key=key
+    )  # added last = outermost (tripai.api.internal)
     User = Annotated[str, Depends(session_user)]  # server-issued; client `user_id`s are ignored
     app.state.provider, app.state.calendar, app.state.store = provider, calendar, store
 
     @app.get("/health")
-    async def health() -> dict:
+    async def health(request: Request) -> dict:
+        if not internal_caller(request):  # public health check: liveness only, no internals
+            return {"ok": True}
         budget = getattr(provider, "budget_status", None)
         return {
             "ok": True,

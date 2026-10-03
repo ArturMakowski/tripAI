@@ -6,9 +6,10 @@ On desktop it renders inside a phone-sized column.
 ```bash
 cd frontend
 npm install
-npm run dev          # http://localhost:3000, uses fixtures unless NEXT_PUBLIC_API_URL is set
+npm run dev          # http://localhost:3000; /api proxies to localhost:8000 (fixtures if it is down, or NEXT_PUBLIC_MOCK=1)
 npm test             # vitest: scoring, flip math, inputs hash, mock backend (no network)
 npm run lint && npm run typecheck && npm run build
+npm run test:bundle  # build with canary secrets, assert none reach .next/static
 ```
 
 ## Screens and demo flow
@@ -159,7 +160,8 @@ A new user should get what TripAI does in under 30 seconds.
 ## Data: live vs fixture
 `lib/api.ts` implements API v0 exactly as `backend/src/tripai/api/app.py` serves it: `POST /interview`, `GET /windows`,
 `GET /windows/long-weekends`, `POST /recommendations` (→ `RankedRecommendation[]`), and `POST /feedback` (→ the profile plus `weights`
-and `diff`). If `NEXT_PUBLIC_API_URL` is unset, `NEXT_PUBLIC_MOCK=1`, or the backend can't be reached, every call is served by
+and `diff`). It calls the same-origin `/api/*` proxy (`app/api/[...path]/route.ts` → `lib/proxy.ts`), which forwards to the private
+backend with `X-TripAI-Internal-Key` (see "Private backend (T12)" in the root README). If `NEXT_PUBLIC_MOCK=1`, or the backend can't be reached, every call is served by
 `lib/mock/api.ts`. That is a deterministic in-browser copy of the backend that returns the same shapes (`lib/mock/fixtures.ts`:
 KRK → Rome, Lisbon, Athens, Venice and Porto, Jan 2027). The header badge shows **Live API** or **Demo fixtures**. Evidence whose
 `source` starts with `fixture:` is a recorded response and is labelled "(recorded)" in the receipt.
@@ -187,8 +189,9 @@ The photos are landscape Wikimedia Commons images (CC0, public domain, CC BY or 
   under 250 KB that has a credit and a row in `CREDITS.md`. It runs the same check on every code in `scoring/provider.py`. If a city is added without a photo, the test fails.
 
 ## Deploy (Railway)
-Create a service with root directory `frontend/`. Set `NEXT_PUBLIC_API_URL` to the backend URL. It is inlined at **build** time, so
-redeploy after changing it. `railway.json` runs `npm run build` and then `npm start` (`next start -H 0.0.0.0`, which reads `PORT`).
+Create a service with root directory `frontend/`. Set the server-only runtime variables `BACKEND_INTERNAL_URL` (the backend's
+private-network URL) and `TRIPAI_INTERNAL_KEY` (same value as the backend's). Neither is inlined into the client, and
+`NEXT_PUBLIC_API_URL` is not needed in production. `railway.json` runs `npm run build` and then `npm start` (`next start -H 0.0.0.0`, which reads `PORT`).
 
 ## Contract
 `lib/types.ts` mirrors `models.py` plus the API-level types from `scoring/types.py` (`RankedRecommendation`, `Counterfactual`,

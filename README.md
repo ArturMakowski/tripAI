@@ -15,14 +15,17 @@ cp .env.example .env            # optional: fill keys (ask Artur); without keys 
 # backend → http://localhost:8000/docs
 cd backend && uv sync && uv run uvicorn tripai.main:app --reload
 
-# frontend (second terminal) → http://localhost:3000
+# frontend (second terminal) → http://localhost:3000; the browser calls /api, proxied to localhost:8000
 cd frontend && npm install
-NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
-#   or against the hosted API:  NEXT_PUBLIC_API_URL=<backend-url> npm run dev
-#   or no backend at all (in-browser demo data):  npm run dev
+npm run dev
+#   other backend:  BACKEND_INTERNAL_URL=<backend-url> TRIPAI_INTERNAL_KEY=<key> npm run dev
+#   no backend at all (in-browser demo data):  NEXT_PUBLIC_MOCK=1 npm run dev
 ```
 
 Tests: `cd backend && uv run pytest && uv run ruff check .` · `cd frontend && npm test && npm run build`
+
+Private backend (T12): the browser only talks to the frontend (same-origin `/api/*`); see
+[Private backend](#private-backend-t12).
 
 Docs: [concept](docs/CONCEPT.md) · [architecture](docs/ARCHITECTURE.md) · [data sources](docs/DATA_SOURCES.md) · [competitors](docs/COMPETITORS.md) · [backlog](docs/BACKLOG.md)
 
@@ -390,3 +393,28 @@ refined.
 
 **Cost.** No extra SerpApi calls: everything comes from the searches pricing already makes. Fixture-served details are tagged
 `[recorded fixture]` / `[synthetic fixture]` like evidence.
+
+## Private backend (T12)
+
+The backend is not meant to be called from the internet. The browser only talks to the frontend; the frontend's
+route handler `frontend/app/api/[...path]/route.ts` (`frontend/lib/proxy.ts`) forwards `/api/*` to the backend and adds
+`X-TripAI-Internal-Key`. Neither the backend URL nor the key is `NEXT_PUBLIC`, so neither reaches the client bundle
+(`cd frontend && npm run test:bundle` builds with canary values and greps `.next/static`).
+
+| Where | Variable | What |
+|---|---|---|
+| backend | `TRIPAI_INTERNAL_KEY` | Shared secret. When set, every route needs `X-TripAI-Internal-Key` (constant-time compare, else 401), including `/docs` and `/openapi.json`, and CORS is off (same-origin via the proxy). Unset (local dev, tests): everything is open, CORS `*`, and a warning is logged at startup. Unset on a deployment (`RAILWAY_ENVIRONMENT` set, or `TRIPAI_ENV=production`): the backend refuses to start (fail closed). Use an ASCII value, e.g. `openssl rand -hex 32` |
+| frontend (server) | `TRIPAI_INTERNAL_KEY` | Same value; the proxy adds it to every forwarded request. Unset in production: `/api/*` answers 503 (fail closed) |
+| frontend (server) | `BACKEND_INTERNAL_URL` | Backend base URL, e.g. the backend's Railway private-network host and port. Unset in dev: `NEXT_PUBLIC_API_URL`, else `http://localhost:8000`; unset in production: `/api/*` answers 503 and the app falls back to demo fixtures |
+| frontend (build) | `NEXT_PUBLIC_MOCK` | `1` forces in-browser fixtures (unchanged) |
+
+- `GET /health` stays open for platform health checks but answers only `{"ok": true}` without the key; through the proxy it
+  returns the full status (provider, sources, budget, `phases`).
+- The proxy forwards method, path, query string, (streamed) body, `X-TripAI-Session`, cookies and `Accept-Language`, and returns
+  status and headers, including `X-TripAI-Session` and every `Set-Cookie`. A client-sent `X-TripAI-Internal-Key` is dropped, and a
+  backend `Location` is rewritten to `/api/...` so the private host never reaches the browser. `lib/proxy.ts` imports `server-only`.
+  Upstream timeouts: 60 s for `/recommendations`, 95 s for `/scan/*`, 50 s for `/interview`, 30 s otherwise (504 on timeout,
+  502 if the backend is unreachable).
+- The backend container starts with `python -m tripai.serve`: one dual-stack socket on `[::]` (IPv6 for Railway private
+  networking, IPv4 too) on `$PORT`. Plain `uvicorn --host ::` would be IPv6-only, because asyncio sets `IPV6_V6ONLY`.
+- `python -m tripai.warm` sends the key itself when it is set.
