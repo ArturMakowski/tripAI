@@ -17,6 +17,7 @@ import type {
   InterviewResult,
   RankedRecommendation,
   RecommendationsRequest,
+  RecPhase,
 } from "./types";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
@@ -68,7 +69,13 @@ export class HttpError extends Error {
   }
 }
 
+export const PHASE_HEADER = "X-TripAI-Phase";
+
 async function http<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Promise<T> {
+  return (await httpFull<T>(path, init, timeoutMs)).data;
+}
+
+async function httpFull<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Promise<{ data: T; headers: Headers }> {
   const timeout = AbortSignal.timeout(timeoutMs);
   const token = readSession();
   const res = await fetch(`${API_URL}${path}`, {
@@ -81,7 +88,7 @@ async function http<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Pr
     const detail = await res.text().catch(() => "");
     throw new HttpError(res.status, `${init?.method ?? "GET"} ${path} -> ${res.status} ${detail.slice(0, 300)}`);
   }
-  return (await res.json()) as T;
+  return { data: (await res.json()) as T, headers: res.headers };
 }
 
 async function withFallback<T>(live: () => Promise<T>, fixture: () => Promise<T>, signal?: AbortSignal): Promise<Result<T>> {
@@ -129,6 +136,27 @@ export const api = {
     withFallback<RankedRecommendation[]>(
       () => http("/recommendations", { ...post({ limit: 10, explain_top: 3, ...req }), signal }, 45_000),
       () => mock.recommendations(req),
+      signal,
+    ),
+
+  /**
+   * Two-phase load. The server confirms the phase it served in X-TripAI-Phase; a backend
+   * without phase support ignores the query and answers in full, so `served` is null and
+   * the caller must NOT fire a second (expensive) full request.
+   */
+  recommendationsPhase: (req: RecommendationsRequest, phase: RecPhase, signal?: AbortSignal) =>
+    withFallback<{ recs: RankedRecommendation[]; served: RecPhase | null }>(
+      async () => {
+        const body = phase === "fast" ? { limit: 10, explain_top: 0, ...req } : { limit: 10, explain_top: 3, ...req };
+        const { data, headers } = await httpFull<RankedRecommendation[]>(
+          `/recommendations?phase=${phase}`,
+          { ...post(body), signal },
+          phase === "fast" ? 8_000 : 60_000,
+        );
+        const served = headers.get(PHASE_HEADER);
+        return { recs: data, served: served === "fast" || served === "full" ? served : null };
+      },
+      async () => ({ recs: await mock.recommendations(req, phase), served: phase }),
       signal,
     ),
 

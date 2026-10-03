@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { Bell, CalendarDays, ChevronDown, X } from "lucide-react";
+import { Bell, CalendarDays, Check, ChevronDown, Wallet, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { PrioritySlider } from "@/components/priority-slider";
 import { RecCard } from "@/components/rec-card";
+import { RefiningStrip, TripLoader, type Stage } from "@/components/trip-loader";
+import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
 import { AppShell, PageTitle } from "@/components/shell";
 import { formatPLN, formatRange, pct } from "@/lib/format";
 import { useTrip } from "@/lib/store";
@@ -51,26 +53,14 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
   );
 }
 
-function SkeletonCard() {
-  return (
-    <div className="overflow-hidden rounded-[1.75rem] border border-line bg-card">
-      <div className="h-44 animate-pulse bg-paper-deep" />
-      <div className="space-y-2 p-4">
-        <div className="h-5 w-1/2 animate-pulse rounded bg-paper-deep" />
-        <div className="h-3 w-full animate-pulse rounded bg-paper-deep" />
-      </div>
-    </div>
-  );
-}
-
 function Trips() {
   const params = useSearchParams();
   const windowFilter = params.get("window");
-  const { ranked, loading, weights } = useRecommendations();
+  const { ranked, loading, refining, weights } = useRecommendations();
   const slider = useTrip((s) => s.slider);
   const setSlider = useTrip((s) => s.setSlider);
   const [dismissed, setDismissed] = useState(false);
-  const { longWeekends } = useWindows();
+  const { windows, longWeekends } = useWindows();
 
   const [wStart, wEnd = wStart] = windowFilter?.split("_") ?? [];
   // the backend splits long windows into trip-length sub-windows, so match on overlap
@@ -91,7 +81,12 @@ function Trips() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowFilter, loading, matching.length]);
   const list = matching;
-  const fitting = list.filter((r) => r.fit?.label !== "poor_fit");
+  const budget = (profile ?? DEMO_PROFILE).budget_pln;
+  const [withinFirst, setWithinFirst] = useState(false);
+  const ranks = list.filter((r) => r.fit?.label !== "poor_fit");
+  const fitting = withinFirst ? withinBudgetFirst(ranks, budget) : ranks;
+  // Never let an over-budget trip sit at #1 without saying so (cheapest/fit counts come from every trip).
+  const banner = budgetBanner(fitting, budget, list);
   const notMyStyle = list.filter((r) => r.fit?.label === "poor_fit");
   const [showPoor, setShowPoor] = useState(false);
   // Top picks that all share one window read like a bug; explain it (and only blame fixtures in fixture mode).
@@ -100,7 +95,33 @@ function Trips() {
     !windowFilter && top3.length >= 2 && top3.every((r) => r.window.start === top3[0].window.start && r.window.end === top3[0].window.end);
   const fixtureRecs = useTrip((s) => s.modes.recs) === "fixture";
   // Like the notifier (T5b): only push a good or great fit.
-  const top = ranked.find((r) => !r.fit || r.fit.label === "great_fit" || r.fit.label === "good_fit");
+  const top = refining ? undefined : ranked.find((r) => !r.fit || r.fit.label === "great_fit" || r.fit.label === "good_fit");
+
+  // Brief "live prices in" confirmation when phase 2 lands.
+  const wasRefining = useRef(false);
+  const [justRefined, setJustRefined] = useState(false);
+  useEffect(() => {
+    const landed = wasRefining.current && !refining;
+    wasRefining.current = refining;
+    if (!landed) return;
+    const on = setTimeout(() => setJustRefined(true), 0);
+    const off = setTimeout(() => setJustRefined(false), 2600);
+    return () => {
+      clearTimeout(on);
+      clearTimeout(off);
+    };
+  }, [refining]);
+
+  const origin = (profile ?? DEMO_PROFILE).origin_airports.join("/");
+  const windowCount = windows.length + longWeekends.length;
+  const stages: Stage[] = [
+    {
+      label: "Finding your free windows",
+      done: windowCount ? `Found ${windowCount} free windows and long weekends` : "Checked your free windows",
+    },
+    { label: `Scanning destinations from ${origin}`, done: `Scanned destinations from ${origin}` },
+    { label: "Checking cached flight prices" },
+  ];
 
   return (
     <AppShell>
@@ -109,6 +130,21 @@ function Trips() {
       <PageTitle eyebrow="Picked for your free time" title={<>Where &amp; when, ranked.</>}>
         Every score is a weighted sum of four sourced factors. Move the slider and the ranking updates as you drag.
       </PageTitle>
+
+      <Link
+        href="/profile"
+        className="mb-3 inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1.5 text-sm text-ink-soft shadow-soft hover:border-pine/40"
+      >
+        <Wallet className="size-4 text-pine" aria-hidden />
+        {budget != null ? (
+          <>
+            Budget <b className="tabular font-semibold text-ink">{formatPLN(budget)}</b>
+          </>
+        ) : (
+          <>No budget limit</>
+        )}
+        <span className="text-muted-foreground">· {budget != null ? "set in profile" : "set one"}</span>
+      </Link>
 
       <PrioritySlider value={slider} weights={weights} onChange={setSlider} />
 
@@ -141,12 +177,87 @@ function Trips() {
         </p>
       )}
 
+      {loading && !list.length && (
+        <div className="mt-5">
+          <TripLoader origin={origin} stages={stages} upNext="live flight prices, hotels, weather, then ranking for your Travel DNA" />
+        </div>
+      )}
+
+      <div className="mt-5 space-y-3 empty:hidden">
+        <AnimatePresence>
+          {refining && list.length > 0 && (
+            <RefiningStrip
+              key="refining"
+              steps={["Checking live flight prices", "Hotels for your dates", "Weather for your dates", "Ranking for your Travel DNA"]}
+            />
+          )}
+          {justRefined && (
+            <motion.p
+              key="refined"
+              role="status"
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center gap-2 rounded-2xl bg-pine px-3.5 py-2.5 text-sm font-medium text-paper"
+            >
+              <Check className="size-4" aria-hidden /> Live prices in. Ranking updated.
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {banner && (
+          <div role="note" className="flex gap-2.5 rounded-2xl border border-clay/30 bg-clay-soft p-3.5 text-sm leading-snug text-ink">
+            <Wallet className="mt-0.5 size-4 shrink-0 text-clay" aria-hidden />
+            {banner.kind === "none_fit" ? (
+              <p>
+                <b>Nothing fits {formatPLN(banner.budget)} for these dates.</b> These are the closest options, still ranked by score. The
+                cheapest is {banner.cheapest.city} at {formatPLN(banner.cheapest.total_cost_pln)} (+{formatPLN(banner.over)})
+                {!fitting.some((r) => r.id === banner.cheapest.id) && (
+                  <>
+                    , listed under{" "}
+                    <button onClick={() => setShowPoor(true)} className="font-semibold text-pine underline-offset-2 hover:underline">
+                      Not your style
+                    </button>
+                  </>
+                )}
+                .
+              </p>
+            ) : (
+              <p>
+                <b>
+                  Your top pick is {formatPLN(banner.over)} over your {formatPLN(banner.budget)} budget.
+                </b>{" "}
+                It ranks first on the other factors. {banner.withinCount} trip{banner.withinCount > 1 ? "s" : ""} fit
+                {banner.withinCount > 1 ? "" : "s"} your budget.{" "}
+                <button onClick={() => setWithinFirst(true)} className="font-semibold text-pine underline-offset-2 hover:underline">
+                  Show those first
+                </button>
+              </p>
+            )}
+          </div>
+        )}
+        {withinFirst && !banner && (
+          <p className="flex items-center justify-between rounded-xl bg-paper-deep px-3 py-2 text-sm text-ink-soft">
+            Showing trips within your budget first
+            <button onClick={() => setWithinFirst(false)} className="font-medium text-pine underline-offset-2 hover:underline">
+              Back to ranking
+            </button>
+          </p>
+        )}
+      </div>
+
       <LayoutGroup>
-        <ul className="mt-5 space-y-4">
-          {loading && !list.length && [0, 1].map((i) => <SkeletonCard key={i} />)}
+        <ul className="mt-4 space-y-4">
           {fitting.map((rec, i) => (
-            <motion.li key={rec.id} layout transition={{ type: "spring", stiffness: 260, damping: 30 }}>
-              <RecCard rec={rec} weights={weights} featured={i === 0} bridge={bridgeFor(rec.window, longWeekends)} />
+            <motion.li key={rec.id} layout transition={{ type: "spring", stiffness: 200, damping: 28 }}>
+              <RecCard
+                rec={rec}
+                weights={weights}
+                featured={i === 0}
+                bridge={bridgeFor(rec.window, longWeekends)}
+                refining={refining}
+                overBudgetPln={overBudget(rec, budget)}
+              />
             </motion.li>
           ))}
         </ul>
@@ -175,7 +286,13 @@ function Trips() {
                 >
                   {notMyStyle.map((rec) => (
                     <li key={rec.id} className="opacity-90 saturate-[0.85]">
-                      <RecCard rec={rec} weights={weights} bridge={bridgeFor(rec.window, longWeekends)} />
+                      <RecCard
+                        rec={rec}
+                        weights={weights}
+                        bridge={bridgeFor(rec.window, longWeekends)}
+                        refining={refining}
+                        overBudgetPln={overBudget(rec, budget)}
+                      />
                     </li>
                   ))}
                 </motion.ul>

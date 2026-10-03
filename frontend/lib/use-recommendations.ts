@@ -33,23 +33,40 @@ export function useRecommendations() {
   // Receipts (flip hint, counterfactual score deltas, hash) were computed at these weights.
   const scoredAtCurrentWeights = sameWeights(recsMeta?.weights, weights);
 
-  // Initial / stale load (with LLM explanations for the top 3).
+  // Fast results are on screen, exact live prices still coming.
+  const refining = fresh && recsMeta?.phase === "fast";
+
+  // Phase 1 (initial / stale load): fast cached prices so cards appear in ~1-2 s.
   useEffect(() => {
     if (!hydrated || fresh) return;
     const id = ++seq.current;
     const ctrl = new AbortController();
-    const p = profile ?? DEMO_PROFILE;
-    api.recommendations({ profile: p, weights }, ctrl.signal).then(({ data, mode }) => {
-      if (id === seq.current) setRecs(data, { profile, weights, mode });
+    api.recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights }, "fast", ctrl.signal).then(({ data, mode }) => {
+      if (id !== seq.current) return;
+      // A backend without phase support answered in full already: don't pay for a second call.
+      setRecs(data.recs, { profile, weights, mode, phase: data.served === "fast" ? "fast" : "full" });
     });
     return () => ctrl.abort();
     // weights intentionally excluded: slider moves are handled below
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, fresh, profile]);
 
+  // Phase 2: exact live prices + explanations; cards update and re-order in place.
+  useEffect(() => {
+    if (!hydrated || !refining) return;
+    const id = ++seq.current;
+    const ctrl = new AbortController();
+    api.recommendationsPhase({ profile: profile ?? DEMO_PROFILE, weights }, "full", ctrl.signal).then(({ data, mode }) => {
+      if (id !== seq.current) return;
+      setRecs(data.recs, { profile, weights, mode, phase: "full" });
+    });
+    return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, refining]);
+
   // Slider settled with different weights: refresh receipts (no new LLM calls; keep existing "why").
   useEffect(() => {
-    if (!hydrated || !fresh || modes.recs !== "live" || scoredAtCurrentWeights) return;
+    if (!hydrated || !fresh || refining || modes.recs !== "live" || scoredAtCurrentWeights) return;
     const ctrl = new AbortController();
     const t = setTimeout(() => {
       const id = ++seq.current;
@@ -78,5 +95,5 @@ export function useRecommendations() {
     // Backend verdicts win; until the fit agent ships, a rule-based preview is computed here and labelled as such.
     return withFit(r, fitProfile, fixture ? "rules" : CLIENT_PREVIEW_MODEL);
   }, [recs, weights, fixture, fitProfile]);
-  return { ranked, loading: !recs.length, weights, scoredAtCurrentWeights: fixture || scoredAtCurrentWeights };
+  return { ranked, loading: !recs.length, refining, weights, scoredAtCurrentWeights: fixture || scoredAtCurrentWeights };
 }

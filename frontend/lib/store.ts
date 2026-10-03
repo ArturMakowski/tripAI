@@ -6,7 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { DataMode } from "./api";
 import type { DnaSwipe, Lang } from "./dna";
 import { weightsFromSlider } from "./scoring";
-import type { BridgeWindow, Change, DnaResponse, ChatMessage, FreeWindow, RankedRecommendation, TasteProfile, Weights } from "./types";
+import type { BridgeWindow, Change, DnaResponse, RecPhase, ChatMessage, FreeWindow, RankedRecommendation, TasteProfile, Weights } from "./types";
 
 export interface FeedbackDiff {
   tripId: string;
@@ -34,7 +34,7 @@ interface TripState {
   longWeekends: BridgeWindow[];
   recs: RankedRecommendation[];
   /** When/for which profile+weights the cached recs were scored. */
-  recsMeta: { at: number; profileKey: string; weights: Weights } | null;
+  recsMeta: { at: number; profileKey: string; weights: Weights; phase: RecPhase } | null;
   windowsAt: number | null;
   /** Slider position 0..100 (price -> comfort -> experience). null = custom weights from feedback. */
   slider: number | null;
@@ -49,7 +49,10 @@ interface TripState {
   setMessages: (m: ChatMessage[]) => void;
   setProfile: (p: TasteProfile | null) => void;
   setWindows: (w: FreeWindow[], lw: BridgeWindow[], mode: DataMode) => void;
-  setRecs: (r: RankedRecommendation[], meta: { profile: TasteProfile | null; weights: Weights; mode: DataMode; merge?: boolean }) => void;
+  setRecs: (
+    r: RankedRecommendation[],
+    meta: { profile: TasteProfile | null; weights: Weights; mode: DataMode; merge?: boolean; phase?: RecPhase },
+  ) => void;
   setSlider: (pos: number) => void;
   setWeights: (w: Weights) => void;
   setMode: (d: Dataset, m: DataMode) => void;
@@ -84,10 +87,11 @@ export const useTrip = create<TripState>()(
       setProfile: (profile) => set({ profile, recs: [], recsMeta: null }),
       setWindows: (windows, longWeekends, mode) =>
         set((s) => ({ windows, longWeekends, windowsAt: Date.now(), modes: { ...s.modes, windows: mode } })),
-      setRecs: (recs, { profile, weights, mode, merge }) =>
+      setRecs: (recs, { profile, weights, mode, merge, phase = "full" }) =>
         set((s) => ({
           recs,
-          recsMeta: { at: Date.now(), profileKey: profileKey(profile), weights },
+          // merged extras keep the list's phase (a fast list stays "refining")
+          recsMeta: { at: Date.now(), profileKey: profileKey(profile), weights, phase: merge ? (s.recsMeta?.phase ?? phase) : phase },
           // merging fixture recs into a live list downgrades the whole list
           modes: { ...s.modes, recs: merge && s.modes.recs === "fixture" ? "fixture" : mode },
         })),

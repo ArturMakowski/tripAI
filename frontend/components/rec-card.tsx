@@ -34,11 +34,17 @@ export function RecCard({
   weights,
   featured,
   bridge,
+  refining,
+  overBudgetPln,
 }: {
   rec: RankedRecommendation;
   weights: Weights;
   featured?: boolean;
   bridge?: BridgeWindow;
+  /** fast-phase card: price is a cached estimate, exact live price on the way */
+  refining?: boolean;
+  /** PLN over the user's budget (> 0 shows the badge) */
+  overBudgetPln?: number | null;
 }) {
   const rank = rec.rank;
   const split = disagreement(rec);
@@ -97,8 +103,24 @@ export function RecCard({
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">All-in, per person</p>
-            <p className="tabular font-display text-2xl leading-tight font-semibold text-ink">{formatPLN(rec.total_cost_pln)}</p>
+            <p className="text-xs text-muted-foreground">{refining ? "Cached estimate" : "All-in, per person"}</p>
+            <motion.p
+              key={rec.total_cost_pln}
+              initial={{ opacity: 0.4, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={cn(
+                "tabular rounded-md font-display text-2xl leading-tight font-semibold text-ink",
+                refining && "sheen text-ink-soft",
+              )}
+            >
+              {refining && "~"}
+              {formatPLN(rec.total_cost_pln)}
+            </motion.p>
+            {overBudgetPln != null && overBudgetPln > 0 && (
+              <span className="mt-1 inline-block rounded-full bg-clay-soft px-2 py-0.5 text-xs font-semibold text-clay">
+                Over budget +{formatPLN(overBudgetPln)}
+              </span>
+            )}
           </div>
         </div>
 

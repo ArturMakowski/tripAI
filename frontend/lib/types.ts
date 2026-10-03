@@ -123,6 +123,8 @@ export interface FlipHint {
 
 export interface RankedRecommendation extends Recommendation {
   rank: number;
+  /** PROPOSED (T5a): total minus the profile budget, > 0 when over; null/absent = no budget or not marked. */
+  over_budget_pln?: number | null;
   counterfactuals: Counterfactual[];
   flip: FlipHint | null;
   inputs_hash: string;
@@ -174,6 +176,9 @@ export interface InterviewResult {
   reply: string;
   profile: TasteProfile | null;
 }
+
+/** Two-phase loading (T5a): `fast` = cached/calendar prices in < 2 s, `full` = exact live prices + explanations. */
+export type RecPhase = "fast" | "full";
 
 export interface RecommendationsRequest {
   profile: TasteProfile;
