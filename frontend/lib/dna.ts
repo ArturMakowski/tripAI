@@ -37,8 +37,8 @@ export const DNA_DECK: DnaCard[] = [
     kind: "statement",
     text: { pl: "Lubię odkrywać miejsca, których jeszcze nie znam.", en: "I love discovering places I don't know yet." },
     short: { pl: "odkrywaniu nowych miejsc", en: "discovering new places" },
-    image: "/swipe/long-flights.jpg",
-    credit: { author: "U.S. Department of Agriculture", license: "Public domain", source: WM("A_wing_tip_of_an_airplane_(40118125441).jpg") },
+    image: "/swipe/explore.jpg",
+    credit: { author: "Kalen Emsley / Unsplash", license: "CC0", source: "https://unsplash.com/photos/mgJSkgIo_JI" },
   },
   {
     id: "q2",

@@ -43,7 +43,7 @@ Profile creation is a swipe deck built from the team questionnaire in `docs/TRAV
     and the mock feedback keeps the profile unchanged.
 - **Hand-off.** "Looks right" stores the profile (with budget and airports) and the DNA weights, then continues to free windows.
   "Fine-tune by chat" opens the earlier LLM interview, now at `/onboarding/chat`.
-- **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA). Three cards reuse the
+- **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA) or Unsplash (CC0). Three cards reuse the
   bundled Unsplash city photos. Every card shows its photo credit, and the full list is in `public/swipe/CREDITS.md`.
 
 ## Data: live vs fixture

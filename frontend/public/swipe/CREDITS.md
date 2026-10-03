@@ -2,7 +2,7 @@
 
 | Card | Image | Author | License | Source |
 |---|---|---|---|---|
-| q1 | `/swipe/long-flights.jpg` | U.S. Department of Agriculture | Public domain | https://commons.wikimedia.org/wiki/File:A_wing_tip_of_an_airplane_(40118125441).jpg |
+| q1 | `/swipe/explore.jpg` | Kalen Emsley (Unsplash) | CC0 | https://unsplash.com/photos/mgJSkgIo_JI (mirrored at https://commons.wikimedia.org/wiki/File:Backpacker_on_a_high_ledge_(Unsplash).jpg) |
 | q2 | `/swipe/plan.jpg` | Anna Goelet / Johan Nieuhof | Public domain | https://commons.wikimedia.org/wiki/File:AMH-6926-KB_Map_of_the_Cape_of_Good_Hope.jpg |
 | q3 | `/swipe/nightlife.jpg` | PattayaPatrol | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:DSCF0502_A_chilled_cocktail_on_the_bar_ice_clinking_and_neon_lights_blurring_into_a_colorful_night.jpg |
 | q4 | `/swipe/heat.jpg` | Mustang Joe | CC0 | https://commons.wikimedia.org/wiki/File:Climbing_the_Merzouga_Dunes.jpg |
