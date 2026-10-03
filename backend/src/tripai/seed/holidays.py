@@ -29,19 +29,24 @@ MEN_SOURCE = (
 MEN_URL = "https://www.gov.pl/web/edukacja/kalendarz-roku-szkolnego"
 MEN_PRESS_URL = "https://www.rmf24.pl/fakty/polska/news-jest-kalendarz-roku-szkolnego-20262027-kiedy-ferie-i-przerwy,nId,8082077"
 
+# All region codes in holidays.json are ISO 3166-2 (OpenHolidays' own codes are translated).
 VOIVODESHIPS = {
-    "DS": "dolnośląskie", "KP": "kujawsko-pomorskie", "LU": "lubelskie", "LB": "lubuskie",
-    "LD": "łódzkie", "MA": "małopolskie", "MZ": "mazowieckie", "OP": "opolskie",
-    "PK": "podkarpackie", "PD": "podlaskie", "PM": "pomorskie", "SL": "śląskie",
-    "SK": "świętokrzyskie", "WN": "warmińsko-mazurskie", "WP": "wielkopolskie",
-    "ZP": "zachodniopomorskie",
+    "PL-02": "dolnośląskie", "PL-04": "kujawsko-pomorskie", "PL-06": "lubelskie",
+    "PL-08": "lubuskie", "PL-10": "łódzkie", "PL-12": "małopolskie", "PL-14": "mazowieckie",
+    "PL-16": "opolskie", "PL-18": "podkarpackie", "PL-20": "podlaskie", "PL-22": "pomorskie",
+    "PL-24": "śląskie", "PL-26": "świętokrzyskie", "PL-28": "warmińsko-mazurskie",
+    "PL-30": "wielkopolskie", "PL-32": "zachodniopomorskie",
 }  # fmt: skip
-AIRPORT_VOIVODESHIP = {"KRK": "MA", "KTW": "SL", "WAW": "MZ", "GDN": "PM"}
+AIRPORT_VOIVODESHIP = {"KRK": "PL-12", "KTW": "PL-24", "WAW": "PL-14", "GDN": "PL-22"}
 
 FERIE_2027 = [  # MEN, school year 2026/2027
-    ("2027-01-18", "2027-01-31", ["DS", "LD", "OP", "PK", "PD", "SL"]),
-    ("2027-02-01", "2027-02-14", ["LU", "MZ", "PM", "SK"]),
-    ("2027-02-15", "2027-02-28", ["KP", "LB", "MA", "WN", "WP", "ZP"]),
+    # I: dolnośląskie, łódzkie, opolskie, podkarpackie, podlaskie, śląskie
+    ("2027-01-18", "2027-01-31", ["PL-02", "PL-10", "PL-16", "PL-18", "PL-20", "PL-24"]),
+    # II: lubelskie, mazowieckie, pomorskie, świętokrzyskie
+    ("2027-02-01", "2027-02-14", ["PL-06", "PL-14", "PL-22", "PL-26"]),
+    # III: kujawsko-pomorskie, lubuskie, małopolskie, warmińsko-mazurskie, wielkopolskie,
+    # zachodniopomorskie
+    ("2027-02-15", "2027-02-28", ["PL-04", "PL-08", "PL-12", "PL-28", "PL-30", "PL-32"]),
 ]
 NATIONAL_BREAKS_2026_27 = [
     ("christmas", "Zimowa przerwa świąteczna", "2026-12-23", "2026-12-31"),
@@ -119,6 +124,26 @@ def openholidays_countries(http: httpx.Client) -> set[str]:
     return {c["isoCode"] for c in r.json()}
 
 
+def openholidays_iso_codes(http: httpx.Client, country: str) -> dict[str, str]:
+    """OpenHolidays subdivision code → ISO 3166-2 (e.g. PL-SK → PL-24 śląskie, AT-WI → AT-9).
+
+    Codes without an ISO equivalent (FR school zones, NL municipalities) map to themselves.
+    """
+    r = http.get(
+        f"{OPENHOLIDAYS}/Subdivisions", params={"countryIsoCode": country, "languageIsoCode": "EN"}
+    )
+    r.raise_for_status()
+    out: dict[str, str] = {}
+
+    def walk(nodes: list[dict[str, Any]]) -> None:
+        for n in nodes:
+            out[n["code"]] = n.get("isoCode") or n["code"]
+            walk(n.get("children") or [])
+
+    walk(r.json())
+    return out
+
+
 def openholidays_school(http: httpx.Client, country: str) -> list[dict[str, Any]]:
     params = {
         "countryIsoCode": country,
@@ -128,6 +153,7 @@ def openholidays_school(http: httpx.Client, country: str) -> list[dict[str, Any]
     }
     r = http.get(f"{OPENHOLIDAYS}/SchoolHolidays", params=params)
     r.raise_for_status()
+    iso = openholidays_iso_codes(http, country)
     out = []
     for h in r.json():
         names = {n["language"]: n["text"] for n in h.get("name", [])}
@@ -138,7 +164,7 @@ def openholidays_school(http: httpx.Client, country: str) -> list[dict[str, Any]
                 "end": h["endDate"],
                 "name": names.get("EN") or next(iter(names.values()), ""),
                 "nationwide": h.get("nationwide", False),
-                "regions": [s["code"] for s in h.get("subdivisions") or []],
+                "regions": [iso.get(s["code"], s["code"]) for s in h.get("subdivisions") or []],
             }
         )
     return out
@@ -153,9 +179,13 @@ def ferie_mismatches(oh_pl: list[dict[str, Any]]) -> list[str]:
         if oh is None:
             issues.append(f"{s}..{e}: missing in OpenHolidays")
             continue
-        got = {r.removeprefix("PL-") for r in oh["regions"]}
+        got = set(oh["regions"])
         if got != regions:
-            issues.append(f"{s}..{e}: MEN={sorted(regions)} OpenHolidays={sorted(got)} (using MEN)")
+            extra = ", ".join(VOIVODESHIPS.get(r, r) for r in sorted(got - regions)) or "-"
+            missing = ", ".join(VOIVODESHIPS.get(r, r) for r in sorted(regions - got)) or "-"
+            issues.append(
+                f"{s}..{e}: OpenHolidays adds [{extra}], lacks [{missing}] vs MEN (using MEN)"
+            )
     return issues
 
 
@@ -164,7 +194,10 @@ def main() -> None:
     countries = sorted({"PL"} | {c["country"] for c in cities})
     try:
         with client() as http:
-            public = [h for cc in countries for y in YEARS for h in nager_public(http, cc, y)]
+            by_country = {
+                cc: [h for y in YEARS for h in nager_public(http, cc, y)] for cc in countries
+            }
+            public = [h for hs in by_country.values() for h in hs]
             long_weekends = [w for y in YEARS for w in nager_long_weekends(http, y)]
             supported = openholidays_countries(http)
             school = [
@@ -187,6 +220,7 @@ def main() -> None:
                 "school_holidays": f"{OPENHOLIDAYS}/SchoolHolidays (ODbL)",
             },
             countries=countries,
+            public_holidays_missing=[c for c, hs in by_country.items() if not hs],
             school_holidays_missing=[c for c in countries if c not in supported],
             ferie_crosscheck_vs_openholidays=mismatches,
         ),

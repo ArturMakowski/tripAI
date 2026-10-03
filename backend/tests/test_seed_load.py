@@ -77,6 +77,41 @@ def test_crowd_flags_for_destination_holidays():
     assert any("Liberation" in f for f in flags)
 
 
+def test_crowd_flags_ignore_other_regions_holidays():
+    window = (date(2027, 2, 27), date(2027, 3, 1))
+    assert not any(
+        "Andaluc" in f or "Balearic" in f for f in load.crowd_flags("barcelona", *window)
+    )
+    assert any("Balearic" in f for f in load.crowd_flags("palma", *window))
+    assert any("Andaluc" in f for f in load.crowd_flags("malaga", *window))
+
+
+def test_every_city_has_iso_subdivisions():
+    for c in load.cities():
+        assert c.subdivisions and all(s.startswith(f"{c.country}-") for s in c.subdivisions)
+
+
+def test_unknown_origin_airport_raises_instead_of_returning_all_ferie():
+    with pytest.raises(KeyError):
+        load.school_breaks(airport="POZ")
+    for airport in ORIGINS:  # every supported origin maps to a voivodeship
+        assert load.voivodeship_for_airport(airport).startswith("PL-")
+
+
+def test_crowd_evidence_url_matches_source_dataset():
+    for c in load.cities():
+        ev = load.crowd_evidence(c.id, 7)
+        dataset = "tour_occ_nim/" if load.crowd(c.id).geo_level == "country" else "tour_occ_nin2m/"
+        assert dataset in ev.url, c.id
+    assert "estimated from comparable regions" in load.crowd_evidence("london", 1).label
+
+
+def test_crowd_evidence_survives_degenerate_profile(monkeypatch):
+    p = load.crowd("rome").model_copy(update={"peak_ratio": [0.0] * 12})
+    monkeypatch.setitem(load.crowds(), "rome", p)
+    assert load.crowd_evidence("rome", 3).value == p.score[2]
+
+
 def test_attractions_ranked_by_taste():
     items = load.attractions("rome")
     assert 1 <= len(items) <= 8 and all(a.url.startswith("https://") for a in items)

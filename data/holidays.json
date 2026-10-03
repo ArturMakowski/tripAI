@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "nager.date + openholidaysapi.org + MEN",
-    "fetched_at": "2026-10-03T11:36:23+00:00",
+    "fetched_at": "2026-10-03T11:58:07+00:00",
     "generator": "uv run python -m tripai.seed.holidays",
     "sources": {
       "public": "https://date.nager.at/api/v3/PublicHolidays/{year}/{country}",
@@ -32,6 +32,7 @@
       "PT",
       "SE"
     ],
+    "public_holidays_missing": [],
     "school_holidays_missing": [
       "CY",
       "DK",
@@ -41,34 +42,33 @@
       "NO"
     ],
     "ferie_crosscheck_vs_openholidays": [
-      "2027-01-18..2027-01-31: MEN=['DS', 'LD', 'OP', 'PD', 'PK', 'SL'] OpenHolidays=['DS', 'LD', 'OP', 'PD', 'PK', 'SK'] (using MEN)",
-      "2027-02-01..2027-02-14: MEN=['LU', 'MZ', 'PM', 'SK'] OpenHolidays=['LU', 'MZ', 'PM', 'SL'] (using MEN)",
-      "2027-02-15..2027-02-28: MEN=['KP', 'LB', 'MA', 'WN', 'WP', 'ZP'] OpenHolidays=['KP', 'MA', 'WN', 'WP', 'ZP'] (using MEN)"
+      "2027-02-01..2027-02-14: OpenHolidays adds [lubuskie], lacks [lubelskie] vs MEN (using MEN)",
+      "2027-02-15..2027-02-28: OpenHolidays adds [-], lacks [lubuskie] vs MEN (using MEN)"
     ]
   },
   "voivodeships": {
-    "DS": "dolnośląskie",
-    "KP": "kujawsko-pomorskie",
-    "LU": "lubelskie",
-    "LB": "lubuskie",
-    "LD": "łódzkie",
-    "MA": "małopolskie",
-    "MZ": "mazowieckie",
-    "OP": "opolskie",
-    "PK": "podkarpackie",
-    "PD": "podlaskie",
-    "PM": "pomorskie",
-    "SL": "śląskie",
-    "SK": "świętokrzyskie",
-    "WN": "warmińsko-mazurskie",
-    "WP": "wielkopolskie",
-    "ZP": "zachodniopomorskie"
+    "PL-02": "dolnośląskie",
+    "PL-04": "kujawsko-pomorskie",
+    "PL-06": "lubelskie",
+    "PL-08": "lubuskie",
+    "PL-10": "łódzkie",
+    "PL-12": "małopolskie",
+    "PL-14": "mazowieckie",
+    "PL-16": "opolskie",
+    "PL-18": "podkarpackie",
+    "PL-20": "podlaskie",
+    "PL-22": "pomorskie",
+    "PL-24": "śląskie",
+    "PL-26": "świętokrzyskie",
+    "PL-28": "warmińsko-mazurskie",
+    "PL-30": "wielkopolskie",
+    "PL-32": "zachodniopomorskie"
   },
   "airport_voivodeship": {
-    "KRK": "MA",
-    "KTW": "SL",
-    "WAW": "MZ",
-    "GDN": "PM"
+    "KRK": "PL-12",
+    "KTW": "PL-24",
+    "WAW": "PL-14",
+    "GDN": "PL-22"
   },
   "public": [
     {
@@ -7568,22 +7568,22 @@
       "start": "2026-12-23",
       "end": "2026-12-31",
       "voivodeships": [
-        "DS",
-        "KP",
-        "LB",
-        "LD",
-        "LU",
-        "MA",
-        "MZ",
-        "OP",
-        "PD",
-        "PK",
-        "PM",
-        "SK",
-        "SL",
-        "WN",
-        "WP",
-        "ZP"
+        "PL-02",
+        "PL-04",
+        "PL-06",
+        "PL-08",
+        "PL-10",
+        "PL-12",
+        "PL-14",
+        "PL-16",
+        "PL-18",
+        "PL-20",
+        "PL-22",
+        "PL-24",
+        "PL-26",
+        "PL-28",
+        "PL-30",
+        "PL-32"
       ],
       "source": "men",
       "url": "https://www.rmf24.pl/fakty/polska/news-jest-kalendarz-roku-szkolnego-20262027-kiedy-ferie-i-przerwy,nId,8082077"
@@ -7594,12 +7594,12 @@
       "start": "2027-01-18",
       "end": "2027-01-31",
       "voivodeships": [
-        "DS",
-        "LD",
-        "OP",
-        "PD",
-        "PK",
-        "SL"
+        "PL-02",
+        "PL-10",
+        "PL-16",
+        "PL-18",
+        "PL-20",
+        "PL-24"
       ],
       "source": "men",
       "url": "https://www.rmf24.pl/fakty/polska/news-jest-kalendarz-roku-szkolnego-20262027-kiedy-ferie-i-przerwy,nId,8082077"
@@ -7610,10 +7610,10 @@
       "start": "2027-02-01",
       "end": "2027-02-14",
       "voivodeships": [
-        "LU",
-        "MZ",
-        "PM",
-        "SK"
+        "PL-06",
+        "PL-14",
+        "PL-22",
+        "PL-26"
       ],
       "source": "men",
       "url": "https://www.rmf24.pl/fakty/polska/news-jest-kalendarz-roku-szkolnego-20262027-kiedy-ferie-i-przerwy,nId,8082077"
@@ -7624,12 +7624,12 @@
       "start": "2027-02-15",
       "end": "2027-02-28",
       "voivodeships": [
-        "KP",
-        "LB",
-        "MA",
-        "WN",
-        "WP",
-        "ZP"
+        "PL-04",
+        "PL-08",
+        "PL-12",
+        "PL-28",
+        "PL-30",
+        "PL-32"
       ],
       "source": "men",
       "url": "https://www.rmf24.pl/fakty/polska/news-jest-kalendarz-roku-szkolnego-20262027-kiedy-ferie-i-przerwy,nId,8082077"
@@ -7640,22 +7640,22 @@
       "start": "2027-03-25",
       "end": "2027-03-30",
       "voivodeships": [
-        "DS",
-        "KP",
-        "LB",
-        "LD",
-        "LU",
-        "MA",
-        "MZ",
-        "OP",
-        "PD",
-        "PK",
-        "PM",
-        "SK",
-        "SL",
-        "WN",
-        "WP",
-        "ZP"
+        "PL-02",
+        "PL-04",
+        "PL-06",
+        "PL-08",
+        "PL-10",
+        "PL-12",
+        "PL-14",
+        "PL-16",
+        "PL-18",
+        "PL-20",
+        "PL-22",
+        "PL-24",
+        "PL-26",
+        "PL-28",
+        "PL-30",
+        "PL-32"
       ],
       "source": "men",
       "url": "https://www.rmf24.pl/fakty/polska/news-jest-kalendarz-roku-szkolnego-20262027-kiedy-ferie-i-przerwy,nId,8082077"
@@ -7666,22 +7666,22 @@
       "start": "2027-06-26",
       "end": "2027-08-31",
       "voivodeships": [
-        "DS",
-        "KP",
-        "LB",
-        "LD",
-        "LU",
-        "MA",
-        "MZ",
-        "OP",
-        "PD",
-        "PK",
-        "PM",
-        "SK",
-        "SL",
-        "WN",
-        "WP",
-        "ZP"
+        "PL-02",
+        "PL-04",
+        "PL-06",
+        "PL-08",
+        "PL-10",
+        "PL-12",
+        "PL-14",
+        "PL-16",
+        "PL-18",
+        "PL-20",
+        "PL-22",
+        "PL-24",
+        "PL-26",
+        "PL-28",
+        "PL-30",
+        "PL-32"
       ],
       "source": "men",
       "url": "https://www.rmf24.pl/fakty/polska/news-jest-kalendarz-roku-szkolnego-20262027-kiedy-ferie-i-przerwy,nId,8082077"
@@ -7870,7 +7870,7 @@
       "name": "Holidays after first period",
       "nationwide": false,
       "regions": [
-        "FR-RU"
+        "FR-974"
       ]
     },
     {
@@ -8071,19 +8071,19 @@
       "name": "All Saints Holidays",
       "nationwide": false,
       "regions": [
-        "FR-IF",
-        "FR-BF",
-        "FR-NO",
-        "FR-OC",
-        "FR-PC",
-        "FR-GE",
+        "FR-IDF",
+        "FR-BFC",
+        "FR-NOR",
+        "FR-OCC",
+        "FR-PAC",
+        "FR-GES",
         "FR-ZC",
-        "FR-BT",
-        "FR-NA",
-        "FR-CV",
-        "FR-PL",
-        "FR-AR",
-        "FR-HF",
+        "FR-BRE",
+        "FR-NAQ",
+        "FR-CVL",
+        "FR-PDL",
+        "FR-ARA",
+        "FR-HDF",
         "FR-ZA",
         "FR-ZB"
       ]
@@ -8382,19 +8382,19 @@
       "name": "Christmas Holidays",
       "nationwide": false,
       "regions": [
-        "FR-IF",
-        "FR-BF",
-        "FR-NO",
-        "FR-OC",
-        "FR-PC",
-        "FR-GE",
+        "FR-IDF",
+        "FR-BFC",
+        "FR-NOR",
+        "FR-OCC",
+        "FR-PAC",
+        "FR-GES",
         "FR-ZC",
-        "FR-BT",
-        "FR-NA",
-        "FR-CV",
-        "FR-PL",
-        "FR-AR",
-        "FR-HF",
+        "FR-BRE",
+        "FR-NAQ",
+        "FR-CVL",
+        "FR-PDL",
+        "FR-ARA",
+        "FR-HDF",
         "FR-ZA",
         "FR-ZB"
       ]
@@ -8406,7 +8406,7 @@
       "name": "Southern summer holidays",
       "nationwide": false,
       "regions": [
-        "FR-RU"
+        "FR-974"
       ]
     },
     {
@@ -8592,12 +8592,12 @@
       "name": "Winter Holidays",
       "nationwide": false,
       "regions": [
-        "PL-SK",
-        "PL-PD",
-        "PL-PK",
-        "PL-DS",
-        "PL-OP",
-        "PL-LD"
+        "PL-24",
+        "PL-18",
+        "PL-20",
+        "PL-02",
+        "PL-16",
+        "PL-10"
       ]
     },
     {
@@ -8625,8 +8625,8 @@
       "name": "Semester Holidays",
       "nationwide": false,
       "regions": [
-        "AT-NÖ",
-        "AT-WI"
+        "AT-3",
+        "AT-9"
       ]
     },
     {
@@ -8636,21 +8636,21 @@
       "name": "Spring holidays",
       "nationwide": false,
       "regions": [
-        "CZ-ST-KL",
-        "CZ-LI-JN",
-        "CZ-VY-ZR",
-        "CZ-VY-HB",
-        "CZ-ST-KH",
-        "CZ-LI-LB",
-        "CZ-LI-CL",
-        "CZ-VY-JI",
-        "CZ-LI-SM",
-        "CZ-KR-NA",
-        "CZ-VY-PE",
-        "CZ-ST-KO",
-        "CZ-VY-TR",
-        "CZ-MO-BR",
-        "CZ-JC-PI"
+        "CZ-203",
+        "CZ-512",
+        "CZ-635",
+        "CZ-631",
+        "CZ-205",
+        "CZ-513",
+        "CZ-511",
+        "CZ-632",
+        "CZ-514",
+        "CZ-523",
+        "CZ-633",
+        "CZ-204",
+        "CZ-634",
+        "CZ-801",
+        "CZ-314"
       ]
     },
     {
@@ -8720,10 +8720,10 @@
       "name": "Winter Holidays",
       "nationwide": false,
       "regions": [
-        "PL-SL",
-        "PL-LU",
-        "PL-MZ",
-        "PL-PM"
+        "PL-26",
+        "PL-08",
+        "PL-14",
+        "PL-22"
       ]
     },
     {
@@ -8733,7 +8733,7 @@
       "name": "Winter Holidays",
       "nationwide": false,
       "regions": [
-        "FR-IF",
+        "FR-IDF",
         "FR-ZC"
       ]
     },
@@ -8744,11 +8744,11 @@
       "name": "Semester Holidays",
       "nationwide": false,
       "regions": [
-        "AT-KÄ",
-        "AT-TI",
-        "AT-BL",
-        "AT-VA",
-        "AT-SB"
+        "AT-2",
+        "AT-7",
+        "AT-1",
+        "AT-8",
+        "AT-5"
       ]
     },
     {
@@ -8758,20 +8758,20 @@
       "name": "Spring holidays",
       "nationwide": false,
       "regions": [
-        "CZ-JC-PT",
-        "CZ-OL-JE",
-        "CZ-KR-JC",
-        "CZ-US-MO",
-        "CZ-OL-SU",
-        "CZ-JC-TA",
-        "CZ-ST-PB",
-        "CZ-US-CV",
-        "CZ-KR-RK",
-        "CZ-MO-OP",
-        "CZ-US-UL",
-        "CZ-ST-MB",
-        "CZ-JC-ST",
-        "CZ-OL-OC"
+        "CZ-315",
+        "CZ-711",
+        "CZ-522",
+        "CZ-425",
+        "CZ-715",
+        "CZ-317",
+        "CZ-20B",
+        "CZ-422",
+        "CZ-524",
+        "CZ-805",
+        "CZ-427",
+        "CZ-207",
+        "CZ-316",
+        "CZ-712"
       ]
     },
     {
@@ -8975,9 +8975,9 @@
       "name": "Winter Holidays",
       "nationwide": false,
       "regions": [
-        "FR-BF",
-        "FR-NA",
-        "FR-AR",
+        "FR-BFC",
+        "FR-NAQ",
+        "FR-ARA",
         "FR-ZA"
       ]
     },
@@ -8988,8 +8988,8 @@
       "name": "Semester Holidays",
       "nationwide": false,
       "regions": [
-        "AT-OÖ",
-        "AT-SM"
+        "AT-4",
+        "AT-6"
       ]
     },
     {
@@ -8999,19 +8999,19 @@
       "name": "Spring holidays",
       "nationwide": false,
       "regions": [
-        "CZ-PA-UO",
-        "CZ-MO-OV",
-        "CZ-PL-KT",
-        "CZ-ST-BE",
-        "CZ-PA-CR",
-        "CZ-ST-BN",
-        "CZ-KR-TU",
-        "CZ-JC-CK",
-        "CZ-PA-SY",
-        "CZ-OL-PV",
-        "CZ-PA-PU",
-        "CZ-JC-CB",
-        "CZ-PL-RO"
+        "CZ-534",
+        "CZ-806",
+        "CZ-322",
+        "CZ-202",
+        "CZ-531",
+        "CZ-201",
+        "CZ-525",
+        "CZ-312",
+        "CZ-533",
+        "CZ-713",
+        "CZ-532",
+        "CZ-311",
+        "CZ-326"
       ]
     },
     {
@@ -9021,11 +9021,11 @@
       "name": "Winter Holidays",
       "nationwide": false,
       "regions": [
-        "PL-WP",
-        "PL-WN",
-        "PL-ZP",
-        "PL-MA",
-        "PL-KP"
+        "PL-30",
+        "PL-28",
+        "PL-32",
+        "PL-12",
+        "PL-04"
       ]
     },
     {
@@ -9170,13 +9170,13 @@
       "name": "Winter Holidays",
       "nationwide": false,
       "regions": [
-        "FR-NO",
-        "FR-PC",
-        "FR-GE",
-        "FR-BT",
-        "FR-CV",
-        "FR-PL",
-        "FR-HF",
+        "FR-NOR",
+        "FR-PAC",
+        "FR-GES",
+        "FR-BRE",
+        "FR-CVL",
+        "FR-PDL",
+        "FR-HDF",
         "FR-ZB"
       ]
     },
@@ -9187,17 +9187,17 @@
       "name": "Spring holidays",
       "nationwide": false,
       "regions": [
-        "CZ-PL-DO",
-        "CZ-PL-TC",
-        "CZ-JM-VY",
-        "CZ-JM-BO",
-        "CZ-JM-BM",
-        "CZ-JM-BV",
-        "CZ-US-LN",
-        "CZ-JM-BK",
-        "CZ-MO-KI",
-        "CZ-JM-HO",
-        "CZ-JM-ZN"
+        "CZ-321",
+        "CZ-327",
+        "CZ-646",
+        "CZ-643",
+        "CZ-642",
+        "CZ-644",
+        "CZ-424",
+        "CZ-641",
+        "CZ-803",
+        "CZ-645",
+        "CZ-647"
       ]
     },
     {
@@ -9207,7 +9207,7 @@
       "name": "Spring holidays",
       "nationwide": false,
       "regions": [
-        "CZ-PR"
+        "CZ-10"
       ]
     },
     {
@@ -9217,7 +9217,7 @@
       "name": "Spring holidays",
       "nationwide": false,
       "regions": [
-        "CZ-PR"
+        "CZ-10"
       ]
     },
     {
@@ -9227,15 +9227,15 @@
       "name": "Spring holidays",
       "nationwide": false,
       "regions": [
-        "CZ-KA-CH",
-        "CZ-US-DC",
-        "CZ-KA-KV",
-        "CZ-KA-SO",
-        "CZ-ST-NB",
-        "CZ-MO-FM",
-        "CZ-JC-JH",
-        "CZ-US-LT",
-        "CZ-OL-PR"
+        "CZ-411",
+        "CZ-421",
+        "CZ-412",
+        "CZ-413",
+        "CZ-208",
+        "CZ-802",
+        "CZ-313",
+        "CZ-423",
+        "CZ-714"
       ]
     },
     {
@@ -9255,20 +9255,20 @@
       "name": "Spring holidays",
       "nationwide": false,
       "regions": [
-        "CZ-KR-HK",
-        "CZ-ZL-ZL",
-        "CZ-ZL-VS",
-        "CZ-ST-RA",
-        "CZ-ZL-KM",
-        "CZ-ST-PZ",
-        "CZ-ZL-UH",
-        "CZ-US-TP",
-        "CZ-ST-ME",
-        "CZ-PL-PJ",
-        "CZ-MO-NJ",
-        "CZ-PL-PM",
-        "CZ-ST-PH",
-        "CZ-PL-PS"
+        "CZ-521",
+        "CZ-724",
+        "CZ-723",
+        "CZ-20C",
+        "CZ-721",
+        "CZ-20A",
+        "CZ-722",
+        "CZ-426",
+        "CZ-206",
+        "CZ-324",
+        "CZ-804",
+        "CZ-323",
+        "CZ-209",
+        "CZ-325"
       ]
     },
     {
@@ -9278,7 +9278,7 @@
       "name": "Holidays after third period",
       "nationwide": false,
       "regions": [
-        "FR-RU"
+        "FR-974"
       ]
     },
     {
@@ -9288,10 +9288,10 @@
       "name": "Saint Joseph's Day",
       "nationwide": false,
       "regions": [
-        "AT-KÄ",
-        "AT-TI",
-        "AT-VA",
-        "AT-SM"
+        "AT-2",
+        "AT-7",
+        "AT-8",
+        "AT-6"
       ]
     },
     {
@@ -9495,8 +9495,8 @@
       "name": "Spring Holidays",
       "nationwide": false,
       "regions": [
-        "FR-IF",
-        "FR-OC",
+        "FR-IDF",
+        "FR-OCC",
         "FR-ZC"
       ]
     },
@@ -9507,9 +9507,9 @@
       "name": "Spring Holidays",
       "nationwide": false,
       "regions": [
-        "FR-BF",
-        "FR-NA",
-        "FR-AR",
+        "FR-BFC",
+        "FR-NAQ",
+        "FR-ARA",
         "FR-ZA"
       ]
     },
@@ -9520,13 +9520,13 @@
       "name": "Spring Holidays",
       "nationwide": false,
       "regions": [
-        "FR-NO",
-        "FR-PC",
-        "FR-GE",
-        "FR-BT",
-        "FR-CV",
-        "FR-PL",
-        "FR-HF",
+        "FR-NOR",
+        "FR-PAC",
+        "FR-GES",
+        "FR-BRE",
+        "FR-CVL",
+        "FR-PDL",
+        "FR-HDF",
         "FR-ZB"
       ]
     },
@@ -9672,7 +9672,7 @@
       "name": "Saint Florian's Day",
       "nationwide": false,
       "regions": [
-        "AT-OÖ"
+        "AT-4"
       ]
     },
     {
@@ -9682,19 +9682,19 @@
       "name": "Ascension Bridge",
       "nationwide": false,
       "regions": [
-        "FR-IF",
-        "FR-BF",
-        "FR-NO",
-        "FR-OC",
-        "FR-PC",
-        "FR-GE",
+        "FR-IDF",
+        "FR-BFC",
+        "FR-NOR",
+        "FR-OCC",
+        "FR-PAC",
+        "FR-GES",
         "FR-ZC",
-        "FR-BT",
-        "FR-NA",
-        "FR-CV",
-        "FR-PL",
-        "FR-AR",
-        "FR-HF",
+        "FR-BRE",
+        "FR-NAQ",
+        "FR-CVL",
+        "FR-PDL",
+        "FR-ARA",
+        "FR-HDF",
         "FR-ZA",
         "FR-ZB"
       ]
@@ -9706,7 +9706,7 @@
       "name": "Holidays after fourth period",
       "nationwide": false,
       "regions": [
-        "FR-RU"
+        "FR-974"
       ]
     },
     {
@@ -10016,9 +10016,9 @@
       "name": "Summer Holidays",
       "nationwide": false,
       "regions": [
-        "AT-BL",
-        "AT-NÖ",
-        "AT-WI"
+        "AT-1",
+        "AT-3",
+        "AT-9"
       ]
     },
     {
@@ -10048,19 +10048,19 @@
       "name": "End of lessons",
       "nationwide": false,
       "regions": [
-        "FR-IF",
-        "FR-BF",
-        "FR-NO",
-        "FR-OC",
-        "FR-PC",
-        "FR-GE",
+        "FR-IDF",
+        "FR-BFC",
+        "FR-NOR",
+        "FR-OCC",
+        "FR-PAC",
+        "FR-GES",
         "FR-ZC",
-        "FR-BT",
-        "FR-NA",
-        "FR-CV",
-        "FR-PL",
-        "FR-AR",
-        "FR-HF",
+        "FR-BRE",
+        "FR-NAQ",
+        "FR-CVL",
+        "FR-PDL",
+        "FR-ARA",
+        "FR-HDF",
         "FR-ZA",
         "FR-ZB"
       ]
@@ -10102,12 +10102,12 @@
       "name": "Summer Holidays",
       "nationwide": false,
       "regions": [
-        "AT-KÄ",
-        "AT-OÖ",
-        "AT-TI",
-        "AT-VA",
-        "AT-SB",
-        "AT-SM"
+        "AT-2",
+        "AT-4",
+        "AT-7",
+        "AT-8",
+        "AT-5",
+        "AT-6"
       ]
     },
     {
@@ -10282,7 +10282,7 @@
       "name": "Southern winter holidays",
       "nationwide": false,
       "regions": [
-        "FR-RU"
+        "FR-974"
       ]
     },
     {
@@ -10589,7 +10589,7 @@
       "name": "Saint Rupert's Day",
       "nationwide": false,
       "regions": [
-        "AT-SB"
+        "AT-5"
       ]
     },
     {
@@ -11074,7 +11074,7 @@
       "name": "Saint Martin's Day",
       "nationwide": false,
       "regions": [
-        "AT-BL"
+        "AT-1"
       ]
     },
     {
@@ -11084,8 +11084,8 @@
       "name": "Saint Leopold's Day",
       "nationwide": false,
       "regions": [
-        "AT-NÖ",
-        "AT-WI"
+        "AT-3",
+        "AT-9"
       ]
     },
     {

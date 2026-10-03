@@ -120,6 +120,21 @@ _CITIES: list[_C] = [
 ]
 # fmt: on
 
+# ISO 3166-2 subdivisions a city is in (plus FR school zones): used to keep only the regional
+# holidays that actually apply at the destination. Matching is exact; when unsure we list fewer.
+SUBDIVISIONS: dict[str, list[str]] = {
+    "rome": ["IT-62"], "milan": ["IT-25"], "naples": ["IT-72"], "venice": ["IT-34"],
+    "catania": ["IT-82"], "barcelona": ["ES-CT"], "madrid": ["ES-MD"], "malaga": ["ES-AN"],
+    "valencia": ["ES-VC"], "palma": ["ES-IB"], "tenerife": ["ES-CN"], "lisbon": ["PT-11"],
+    "porto": ["PT-13"], "funchal": ["PT-30"], "paris": ["FR-IDF", "FR-ZC"],
+    "nice": ["FR-PAC", "FR-ZB"], "amsterdam": ["NL-NH"], "berlin": ["DE-BE"],
+    "munich": ["DE-BY"], "vienna": ["AT-9"], "innsbruck": ["AT-7"], "prague": ["CZ-10"],
+    "budapest": ["HU-BU"], "athens": ["GR-I"], "heraklion": ["GR-M"], "split": ["HR-17"],
+    "dubrovnik": ["HR-19"], "valletta": ["MT-60"], "copenhagen": ["DK-84"],
+    "stockholm": ["SE-AB"], "oslo": ["NO-03"], "reykjavik": ["IS-1"], "dublin": ["IE-D"],
+    "larnaca": ["CY-03"], "london": ["GB-ENG", "GB-LND"], "tirana": ["AL-11"],
+}  # fmt: skip
+
 COUNTRY_NAMES = {
     "IT": "Italy", "ES": "Spain", "PT": "Portugal", "FR": "France", "NL": "Netherlands",
     "DE": "Germany", "AT": "Austria", "CZ": "Czechia", "HU": "Hungary", "GR": "Greece",
@@ -133,6 +148,7 @@ def build() -> list[dict[str, Any]]:
     for cid, name, cc, iata, airports, lat, lon, nuts2, direct, radius, tags in _CITIES:
         assert set(tags) <= set(TAGS), (cid, set(tags) - set(TAGS))
         assert set(direct) <= set(ORIGINS), cid
+        assert all(code.startswith(cc + "-") for code in SUBDIVISIONS[cid]), cid
         out.append(
             {
                 "id": cid,
@@ -144,6 +160,7 @@ def build() -> list[dict[str, Any]]:
                 "lat": lat,
                 "lon": lon,
                 "nuts2": nuts2,
+                "subdivisions": SUBDIVISIONS[cid],
                 "direct_from": list(direct),
                 "attractions_radius_km": radius,
                 "tags": {t: tags.get(t, 0.0) for t in TAGS},
@@ -162,7 +179,8 @@ def main() -> None:
                 "Hand-curated list. Tag weights (0..1) are editorial priors; direct_from is an "
                 "approximate list of PL origins with direct (often seasonal) flights, to be "
                 "verified by flight connectors. nuts2 uses Eurostat NUTS 2024 codes "
-                "(UKI has no post-Brexit Eurostat data; IS00 uses country-level data)."
+                "(UKI has no post-Brexit Eurostat data; IS00 uses country-level data). subdivisions are "
+                "ISO 3166-2 codes (plus FR school zones FR-ZA/ZB/ZC) for regional holiday matching."
             ),
             tags=list(TAGS),
             origins=list(ORIGINS),

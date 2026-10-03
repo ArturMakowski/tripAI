@@ -39,6 +39,7 @@ class City(BaseModel):
     lat: float
     lon: float
     nuts2: str
+    subdivisions: list[str]  # ISO 3166-2 (+ FR school zones), for regional holiday matching
     direct_from: list[str]
     attractions_radius_km: int
     tags: dict[str, float]
@@ -173,12 +174,22 @@ def crowd_score(key: str, month: int) -> float:
     return crowd(key).score[month - 1]
 
 
+EUROSTAT_VIEW = "https://ec.europa.eu/eurostat/databrowser/view/{}/default/table"
+
+
 def crowd_evidence(key: str, month: int) -> Evidence:
     c, p = city(key), crowd(key)
+    if not 1 <= month <= 12:
+        raise ValueError(f"month must be 1..12, got {month}")
     label = f"Crowds in {c.name}, {MONTHS[month - 1]} (0 = quietest month, 1 = busiest)"
+    if p.geo_level == "proxy":
+        label += f"; estimated from comparable regions ({p.source}), no Eurostat data for {p.geo}"
+    elif p.geo_level == "country":
+        label += f"; country-level data for {c.country_name}"
     if p.peak_ratio is not None:
-        peak = MONTHS[p.peak_ratio.index(1.0)]
+        peak = MONTHS[max(range(12), key=p.peak_ratio.__getitem__)]
         label += f"; {round(p.peak_ratio[month - 1] * 100)}% of {peak} tourist nights"
+    dataset = p.source.split(":", 1)[1].split()[0]  # "eurostat:tour_occ_nim" → "tour_occ_nim"
     return Evidence(
         kind="crowds",
         label=label,
@@ -186,7 +197,7 @@ def crowd_evidence(key: str, month: int) -> Evidence:
         unit="0-1",
         source=p.source,
         fetched_at=meta("crowds.json").fetched_at,
-        url="https://ec.europa.eu/eurostat/databrowser/view/tour_occ_nin2m/default/table",
+        url=EUROSTAT_VIEW.format(dataset),
     )
 
 
@@ -199,8 +210,22 @@ def public_holidays(country: str | None = None) -> tuple[PublicHoliday, ...]:
     return tuple(h for h in rows if country is None or h.country == country.upper())
 
 
-def holidays_in(country: str, start: date, end: date) -> list[PublicHoliday]:
-    return [h for h in public_holidays(country) if start <= h.date <= end]
+def _applies(nationwide: bool, regions: list[str], subdivisions: list[str] | None) -> bool:
+    """Nationwide, or (when the place is known) the holiday's regions include it."""
+    if nationwide or subdivisions is None:
+        return True
+    return any(r in subdivisions for r in regions)
+
+
+def holidays_in(
+    country: str, start: date, end: date, subdivisions: list[str] | None = None
+) -> list[PublicHoliday]:
+    """Public holidays in [start, end]; pass `subdivisions` to drop other regions' holidays."""
+    return [
+        h
+        for h in public_holidays(country)
+        if start <= h.date <= end and _applies(h.nationwide, h.regions, subdivisions)
+    ]
 
 
 def long_weekends(start: date | None = None, end: date | None = None) -> list[LongWeekend]:
@@ -208,32 +233,52 @@ def long_weekends(start: date | None = None, end: date | None = None) -> list[Lo
     return [w for w in rows if w.overlaps(start or date.min, end or date.max)]
 
 
-def voivodeship_for_airport(airport: str) -> str | None:
-    return _raw("holidays.json")["airport_voivodeship"].get(airport.upper())
+def voivodeship_for_airport(airport: str) -> str:
+    """ISO 3166-2 voivodeship of a PL origin airport; KeyError for airports we don't map."""
+    try:
+        return _raw("holidays.json")["airport_voivodeship"][airport.upper()]
+    except KeyError:
+        raise KeyError(f"no voivodeship known for origin airport {airport!r}") from None
 
 
 @cache
 def school_breaks(
     voivodeship: str | None = None, airport: str | None = None
 ) -> tuple[SchoolBreak, ...]:
-    """PL school breaks 2026/27; filter by voivodeship code ("MA") or origin airport ("KRK")."""
+    """PL school breaks 2026/27; filter by ISO voivodeship ("PL-12") or origin airport ("KRK").
+
+    An unknown airport raises KeyError rather than returning every voivodeship's ferie.
+    """
     if airport:
         voivodeship = voivodeship_for_airport(airport)
     rows = (SchoolBreak.model_validate(b) for b in _raw("holidays.json")["pl_school_breaks"])
     return tuple(b for b in rows if voivodeship is None or voivodeship in b.voivodeships)
 
 
-def school_holidays(country: str, start: date, end: date) -> list[SchoolHoliday]:
+def school_holidays(
+    country: str, start: date, end: date, subdivisions: list[str] | None = None
+) -> list[SchoolHoliday]:
     rows = (SchoolHoliday.model_validate(h) for h in _raw("holidays.json")["school_holidays"])
-    return [h for h in rows if h.country == country.upper() and h.overlaps(start, end)]
+    return [
+        h
+        for h in rows
+        if h.country == country.upper()
+        and h.overlaps(start, end)
+        and _applies(h.nationwide, h.regions, subdivisions)
+    ]
 
 
 def crowd_flags(key: str, start: date, end: date) -> list[str]:
-    """Human-readable reasons a trip window may be busier than the monthly score suggests."""
+    """Human-readable reasons a trip window may be busier than the monthly score suggests.
+
+    Only holidays that apply at the destination: nationwide ones, or regional ones whose regions
+    include the city's ISO 3166-2 subdivision.
+    """
     c = city(key)
-    flags = [f"{h.name} ({c.country}, {h.date})" for h in holidays_in(c.country, start, end)]
-    for h in school_holidays(c.country, start, end):
-        scope = "nationwide" if h.nationwide else f"{len(h.regions)} regions"
+    sub = c.subdivisions
+    flags = [f"{h.name} ({c.country}, {h.date})" for h in holidays_in(c.country, start, end, sub)]
+    for h in school_holidays(c.country, start, end, sub):
+        scope = "nationwide" if h.nationwide else "regional, incl. " + ", ".join(sub)
         flags.append(f"{h.name} school holidays ({c.country}, {scope}, {h.start}..{h.end})")
     return flags
 

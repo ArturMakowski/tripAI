@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "eurostat:tour_occ_nin2m",
-    "fetched_at": "2026-10-03T11:35:39+00:00",
+    "fetched_at": "2026-10-03T11:58:30+00:00",
     "generator": "uv run python -m tripai.seed.crowds",
     "notes": "Nights at tourist accommodation (NACE I551-I553, all residents), monthly mean of the last 3 complete years. score = min-max across months per city (0 quietest, 1 busiest); peak_ratio = nights / busiest month. Arrays are Jan..Dec. NUTS2 regions are wider than cities (e.g. ES61 = all Andalucía).",
     "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/tour_occ_nin2m",

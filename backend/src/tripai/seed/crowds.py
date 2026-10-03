@@ -118,7 +118,10 @@ def build(cities: list[dict[str, Any]], regional: dict, national: dict) -> list[
             entry = {
                 "geo_level": "proxy",
                 "source": "eurostat:tour_occ_nin2m (proxy: " + ", ".join(PROXIES[geo]) + ")",
-                "years": profiles[PROXIES[geo][0]][2]["years"],
+                # years every proxy region contributed (they may differ if one region lags)
+                "years": sorted(
+                    set.intersection(*(set(profiles[g][2]["years"]) for g in PROXIES[geo]))
+                ),
                 "nights": None,
                 "score": score,
                 "peak_ratio": None,

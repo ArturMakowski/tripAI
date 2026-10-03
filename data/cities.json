@@ -1,9 +1,9 @@
 {
   "meta": {
     "source": "curated:tripai-team",
-    "fetched_at": "2026-10-03T11:34:16+00:00",
+    "fetched_at": "2026-10-03T11:57:40+00:00",
     "generator": "uv run python -m tripai.seed.cities",
-    "notes": "Hand-curated list. Tag weights (0..1) are editorial priors; direct_from is an approximate list of PL origins with direct (often seasonal) flights, to be verified by flight connectors. nuts2 uses Eurostat NUTS 2024 codes (UKI has no post-Brexit Eurostat data; IS00 uses country-level data).",
+    "notes": "Hand-curated list. Tag weights (0..1) are editorial priors; direct_from is an approximate list of PL origins with direct (often seasonal) flights, to be verified by flight connectors. nuts2 uses Eurostat NUTS 2024 codes (UKI has no post-Brexit Eurostat data; IS00 uses country-level data). subdivisions are ISO 3166-2 codes (plus FR school zones FR-ZA/ZB/ZC) for regional holiday matching.",
     "tags": [
       "food",
       "history",
@@ -35,6 +35,9 @@
       "lat": 41.8967,
       "lon": 12.4822,
       "nuts2": "ITI4",
+      "subdivisions": [
+        "IT-62"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -67,6 +70,9 @@
       "lat": 45.4642,
       "lon": 9.19,
       "nuts2": "ITC4",
+      "subdivisions": [
+        "IT-25"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -97,6 +103,9 @@
       "lat": 40.8518,
       "lon": 14.2681,
       "nuts2": "ITF3",
+      "subdivisions": [
+        "IT-72"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -127,6 +136,9 @@
       "lat": 45.4381,
       "lon": 12.3358,
       "nuts2": "ITH3",
+      "subdivisions": [
+        "IT-34"
+      ],
       "direct_from": [
         "KTW",
         "WAW"
@@ -155,6 +167,9 @@
       "lat": 37.5079,
       "lon": 15.083,
       "nuts2": "ITG1",
+      "subdivisions": [
+        "IT-82"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -185,6 +200,9 @@
       "lat": 41.3874,
       "lon": 2.1686,
       "nuts2": "ES51",
+      "subdivisions": [
+        "ES-CT"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -215,6 +233,9 @@
       "lat": 40.4168,
       "lon": -3.7038,
       "nuts2": "ES30",
+      "subdivisions": [
+        "ES-MD"
+      ],
       "direct_from": [
         "KRK",
         "WAW",
@@ -244,6 +265,9 @@
       "lat": 36.7213,
       "lon": -4.4214,
       "nuts2": "ES61",
+      "subdivisions": [
+        "ES-AN"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -274,6 +298,9 @@
       "lat": 39.4699,
       "lon": -0.3763,
       "nuts2": "ES52",
+      "subdivisions": [
+        "ES-VC"
+      ],
       "direct_from": [
         "KRK",
         "WAW",
@@ -303,6 +330,9 @@
       "lat": 39.5696,
       "lon": 2.6502,
       "nuts2": "ES53",
+      "subdivisions": [
+        "ES-IB"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -334,6 +364,9 @@
       "lat": 28.2916,
       "lon": -16.6291,
       "nuts2": "ES70",
+      "subdivisions": [
+        "ES-CN"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -364,6 +397,9 @@
       "lat": 38.7223,
       "lon": -9.1393,
       "nuts2": "PT1A",
+      "subdivisions": [
+        "PT-11"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -394,6 +430,9 @@
       "lat": 41.1579,
       "lon": -8.6291,
       "nuts2": "PT11",
+      "subdivisions": [
+        "PT-13"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -424,6 +463,9 @@
       "lat": 32.6669,
       "lon": -16.9241,
       "nuts2": "PT30",
+      "subdivisions": [
+        "PT-30"
+      ],
       "direct_from": [
         "WAW",
         "KRK",
@@ -455,6 +497,10 @@
       "lat": 48.8566,
       "lon": 2.3522,
       "nuts2": "FR10",
+      "subdivisions": [
+        "FR-IDF",
+        "FR-ZC"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -485,6 +531,10 @@
       "lat": 43.7102,
       "lon": 7.262,
       "nuts2": "FRL0",
+      "subdivisions": [
+        "FR-PAC",
+        "FR-ZB"
+      ],
       "direct_from": [
         "KRK",
         "WAW",
@@ -515,6 +565,9 @@
       "lat": 52.3676,
       "lon": 4.9041,
       "nuts2": "NL32",
+      "subdivisions": [
+        "NL-NH"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -545,6 +598,9 @@
       "lat": 52.52,
       "lon": 13.405,
       "nuts2": "DE30",
+      "subdivisions": [
+        "DE-BE"
+      ],
       "direct_from": [
         "KRK",
         "WAW",
@@ -574,6 +630,9 @@
       "lat": 48.1351,
       "lon": 11.582,
       "nuts2": "DE21",
+      "subdivisions": [
+        "DE-BY"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -604,6 +663,9 @@
       "lat": 48.2082,
       "lon": 16.3738,
       "nuts2": "AT13",
+      "subdivisions": [
+        "AT-9"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -634,6 +696,9 @@
       "lat": 47.2692,
       "lon": 11.4041,
       "nuts2": "AT33",
+      "subdivisions": [
+        "AT-7"
+      ],
       "direct_from": [
         "KTW",
         "WAW"
@@ -662,6 +727,9 @@
       "lat": 50.0755,
       "lon": 14.4378,
       "nuts2": "CZ01",
+      "subdivisions": [
+        "CZ-10"
+      ],
       "direct_from": [
         "WAW",
         "GDN"
@@ -690,6 +758,9 @@
       "lat": 47.4979,
       "lon": 19.0402,
       "nuts2": "HU11",
+      "subdivisions": [
+        "HU-BU"
+      ],
       "direct_from": [
         "WAW",
         "GDN"
@@ -718,6 +789,9 @@
       "lat": 37.9838,
       "lon": 23.7275,
       "nuts2": "EL30",
+      "subdivisions": [
+        "GR-I"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -748,6 +822,9 @@
       "lat": 35.3387,
       "lon": 25.1442,
       "nuts2": "EL43",
+      "subdivisions": [
+        "GR-M"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -778,6 +855,9 @@
       "lat": 43.5081,
       "lon": 16.4402,
       "nuts2": "HR03",
+      "subdivisions": [
+        "HR-17"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -808,6 +888,9 @@
       "lat": 42.6507,
       "lon": 18.0944,
       "nuts2": "HR03",
+      "subdivisions": [
+        "HR-19"
+      ],
       "direct_from": [
         "KRK",
         "WAW",
@@ -837,6 +920,9 @@
       "lat": 35.8989,
       "lon": 14.5146,
       "nuts2": "MT00",
+      "subdivisions": [
+        "MT-60"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -867,6 +953,9 @@
       "lat": 55.6761,
       "lon": 12.5683,
       "nuts2": "DK01",
+      "subdivisions": [
+        "DK-84"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -897,6 +986,9 @@
       "lat": 59.3293,
       "lon": 18.0686,
       "nuts2": "SE11",
+      "subdivisions": [
+        "SE-AB"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -927,6 +1019,9 @@
       "lat": 59.9139,
       "lon": 10.7522,
       "nuts2": "NO08",
+      "subdivisions": [
+        "NO-03"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -957,6 +1052,9 @@
       "lat": 64.1466,
       "lon": -21.9426,
       "nuts2": "IS00",
+      "subdivisions": [
+        "IS-1"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -987,6 +1085,9 @@
       "lat": 53.3498,
       "lon": -6.2603,
       "nuts2": "IE06",
+      "subdivisions": [
+        "IE-D"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -1018,6 +1119,9 @@
       "lat": 34.9167,
       "lon": 33.6333,
       "nuts2": "CY00",
+      "subdivisions": [
+        "CY-03"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -1051,6 +1155,10 @@
       "lat": 51.5074,
       "lon": -0.1278,
       "nuts2": "UKI",
+      "subdivisions": [
+        "GB-ENG",
+        "GB-LND"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
@@ -1081,6 +1189,9 @@
       "lat": 41.3275,
       "lon": 19.8187,
       "nuts2": "AL02",
+      "subdivisions": [
+        "AL-11"
+      ],
       "direct_from": [
         "KRK",
         "KTW",
