@@ -54,7 +54,7 @@ export default function Welcome() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.6 }}
         >
-          Free 14–19 Jan → Rome · 1,442 PLN
+          e.g. &ldquo;You&rsquo;re free 14–19 Jan → Rome&rdquo;
         </motion.div>
       </div>
 

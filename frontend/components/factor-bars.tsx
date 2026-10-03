@@ -86,7 +86,7 @@ export function FactorBars({ score, weights }: { score: ScoreBreakdown; weights:
 
 export function FactorLegend({ className }: { className?: string }) {
   return (
-    <div className={cn("flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground", className)}>
+    <div className={cn("flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground", className)}>
       {FACTORS.map((f) => (
         <span key={f} className="flex items-center gap-1">
           <span className="size-2 rounded-full" style={{ background: FACTOR_COLOR[f] }} />

@@ -61,10 +61,10 @@ export function RecCard({
             {rank}
           </motion.span>
           {rec.window.source === "gcal" && (
-            <span className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">You&rsquo;re free</span>
+            <span className="rounded-full bg-black/35 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">You&rsquo;re free</span>
           )}
           {bridge && bridge.leave_days.length > 0 && (
-            <span className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+            <span className="rounded-full bg-black/35 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
               {bridge.leave_days.length}d off → {bridge.total_days}d
             </span>
           )}

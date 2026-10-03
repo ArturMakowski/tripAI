@@ -20,30 +20,13 @@ import { CityPhoto } from "@/components/rec-card";
 import { ScoreRing } from "@/components/score-ring";
 import { ModeBadge } from "@/components/shell";
 import { Button } from "@/components/ui/button";
-import { dayCount, formatPLN, formatRange, formatTimestamp, sourceName } from "@/lib/format";
+import { dayCount, formatPLN, formatRange } from "@/lib/format";
 import { FACTOR_LABEL, flipConditions, inputsHash } from "@/lib/scoring";
-import type { Evidence, RankedRecommendation, Weights } from "@/lib/types";
+import type { RankedRecommendation, Weights } from "@/lib/types";
 import { useRecommendations } from "@/lib/use-recommendations";
+import { SourceTag } from "@/components/source-tag";
+import { originOf } from "@/lib/handoff";
 import { cn } from "@/lib/utils";
-
-function SourceTag({ e }: { e: Pick<Evidence, "source" | "fetched_at" | "url"> }) {
-  const inner = (
-    <>
-      {sourceName(e.source)} · {formatTimestamp(e.fetched_at)}
-      {e.url && <ExternalLink className="size-2.5" aria-hidden />}
-    </>
-  );
-  const cls = "inline-flex items-center gap-1 font-sans text-[10.5px] text-muted-foreground";
-  return e.url ? (
-    <a href={e.url} target="_blank" rel="noreferrer" className={cn(cls, "underline-offset-2 hover:text-pine hover:underline")} title={e.source}>
-      {inner}
-    </a>
-  ) : (
-    <span className={cls} title={e.source}>
-      {inner}
-    </span>
-  );
-}
 
 function Section({ title, icon: Icon, children, className }: { title: string; icon: typeof Bot; children: React.ReactNode; className?: string }) {
   return (
@@ -74,27 +57,28 @@ function Line({ label, value, sub, strong }: { label: React.ReactNode; value: Re
   );
 }
 
-function Compare({ label, pts, pln, there }: { label: string; pts: number; pln: number; there: string }) {
+function Compare({ label, pts, pln, there }: { label: string; pts: number | null; pln: number; there: string }) {
   return (
     <div className="py-2">
       <p className="text-ink">{label}</p>
       <p className="mt-0.5 text-[12.5px]">
         <Delta pts={pts} pln={pln} />
       </p>
-      <p className="font-sans text-[10.5px] text-muted-foreground">There: {there}</p>
+      <p className="font-sans text-xs text-muted-foreground">There: {there}</p>
     </div>
   );
 }
 
-function Delta({ pts, pln }: { pts: number; pln: number }) {
+function Delta({ pts, pln }: { pts: number | null; pln: number }) {
   return (
     <span className="whitespace-nowrap">
-      <span className={pts >= 0 ? "text-pine" : "text-clay"}>
-        {pts >= 0 ? "+" : "−"}
-        {Math.abs(pts).toFixed(1)} pts
-      </span>
+      {pts != null && (
+        <span className={pts >= 0 ? "text-pine" : "text-clay"}>
+          {pts >= 0 ? "+" : "−"}
+          {Math.abs(pts).toFixed(1)} pts{" · "}
+        </span>
+      )}
       <span className="text-muted-foreground">
-        {" · "}
         {pln >= 0 ? `${formatPLN(pln)} cheaper` : `${formatPLN(-pln)} pricier`}
       </span>
     </span>
@@ -110,7 +94,7 @@ function HashLine({ rec, weights }: { rec: RankedRecommendation; weights: Weight
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl bg-ink px-4 py-3 text-paper">
       <div className="min-w-0">
-        <p className="text-[11px] text-paper/60">
+        <p className="text-xs text-paper/60">
           sha256 of inputs · {rec.inputs_hash ? `scorer ${rec.scoring_version}` : "computed on this device"}
         </p>
         <p className="truncate font-mono text-sm">{hash ? `${hash.slice(0, 12)}…${hash.slice(-8)}` : "…"}</p>
@@ -134,7 +118,7 @@ function HashLine({ rec, weights }: { rec: RankedRecommendation; weights: Weight
 export default function ReceiptPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { ranked, weights, loading } = useRecommendations();
+  const { ranked, weights, loading, scoredAtCurrentWeights } = useRecommendations();
 
   const rank = ranked.findIndex((r) => r.id === id);
   const rec = ranked[rank];
@@ -161,7 +145,9 @@ export default function ReceiptPage() {
   const facts = rec.evidence.filter((e) => !["flight", "hotel", "price_baseline"].includes(e.kind));
   // Rank-independent counterfactuals come from the scorer; the runner-up follows the live ranking.
   const counterfactuals = rec.counterfactuals.filter((c) => c.kind !== "runner_up");
-  const priceFlip = rec.flip?.price_increase_pln != null ? rec.flip : null;
+  // The scorer's flip is about a specific neighbour at specific weights: only show it while both still hold.
+  const scorerFlipValid = !!rec.flip && scoredAtCurrentWeights && rival?.id === rec.flip.rival_id;
+  const priceFlip = scorerFlipValid && rec.flip?.price_increase_pln != null ? rec.flip : null;
   const flipHi = rank === 0 ? rec.city : rival?.city;
   const flipLo = rank === 0 ? rival?.city : rec.city;
 
@@ -195,7 +181,7 @@ export default function ReceiptPage() {
       <main className="-mt-4 flex-1 rounded-t-[1.75rem] bg-paper px-5 pt-6 pb-32">
         <h2 className="font-display text-[1.9rem] leading-tight text-ink">Why this, why now</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{rec.why}</p>
-        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
           <Bot className="size-3.5" aria-hidden /> Written by AI from the evidence below. Every number in it is quoted from a source.
         </p>
 
@@ -207,7 +193,7 @@ export default function ReceiptPage() {
               <span className="text-sm font-semibold text-ink">Total score</span>
               <span className="tabular font-mono text-lg font-semibold text-ink">{(rec.score.total * 100).toFixed(1)} / 100</span>
             </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               Σ factor score × your weight. Factor scores come from <span className="font-mono">tripai.scoring</span>, and the weights come
               from your slider.
             </p>
@@ -218,8 +204,8 @@ export default function ReceiptPage() {
           <div className="receipt-edge bg-card px-5 pt-5 pb-8 font-mono text-[13px] shadow-soft">
             <div className="text-center">
               <p className="font-display text-lg font-semibold tracking-tight text-ink not-italic">TripAI</p>
-              <p className="text-[11px] text-muted-foreground">
-                {rec.evidence.find((e) => e.kind === "flight")?.label.match(/\b([A-Z]{3})-/)?.[1] ?? "KRK"} ⇄ {rec.iata} · {formatRange(rec.window)} {rec.window.start.slice(0, 4)} · 1 adult
+              <p className="text-xs text-muted-foreground">
+                {originOf(rec)} ⇄ {rec.iata} · {formatRange(rec.window)} {rec.window.start.slice(0, 4)} · 1 adult
               </p>
             </div>
             <div className="my-3 border-t border-dashed border-ink/25" />
@@ -239,12 +225,15 @@ export default function ReceiptPage() {
             {(counterfactuals.length > 0 || rival) && (
               <>
                 <div className="my-3 border-t border-dashed border-ink/25" />
-                <p className="mb-1 text-[11px] tracking-[0.12em] text-muted-foreground uppercase">This trip vs.</p>
+                <p className="mb-1 text-xs tracking-[0.12em] text-muted-foreground uppercase">This trip vs.</p>
+                {!scoredAtCurrentWeights && (
+                  <p className="mb-1 font-sans text-xs text-muted-foreground">Score differences refresh in a moment for your new slider position.</p>
+                )}
                 {counterfactuals.map((c) => (
                   <Compare
                     key={c.kind}
                     label={c.label.charAt(0).toUpperCase() + c.label.slice(1)}
-                    pts={c.score_delta * 100}
+                    pts={scoredAtCurrentWeights ? c.score_delta * 100 : null}
                     pln={c.cost_delta_pln}
                     there={
                       `${formatPLN(c.total_cost_pln)}` +
@@ -264,7 +253,7 @@ export default function ReceiptPage() {
               </>
             )}
             <div className="my-3 border-t border-dashed border-ink/25" />
-            <p className="text-center text-[11px] text-muted-foreground">Prices are cached quotes, not bookable fares. They are re-checked before hand-off.</p>
+            <p className="text-center text-xs text-muted-foreground">Prices are cached quotes, not bookable fares. They are re-checked before hand-off.</p>
           </div>
         </Section>
 
@@ -290,7 +279,7 @@ export default function ReceiptPage() {
             {priceFlip && flipHi && flipLo && (
               <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">
                 If {flipHi} cost <b className="tabular">{formatPLN(priceFlip.price_increase_pln!)} more</b>, {flipLo} would rank above it.
-                <span className="mt-1 block text-[11px] text-muted-foreground">From the TripAI scorer · {rec.scoring_version}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">From the TripAI scorer · {rec.scoring_version}</span>
               </li>
             )}
             {flips.slice(0, 2).map((f) => (
@@ -300,10 +289,10 @@ export default function ReceiptPage() {
                   {Math.abs(f.deltaPts)} pts {f.deltaPts > 0 ? "more" : "less"}
                 </b>{" "}
                 in your weights, {flipLo} would rank above {flipHi}.
-                <span className="mt-1 block text-[11px] text-muted-foreground">Calculated exactly from the weighted sum at your current slider</span>
+                <span className="mt-1 block text-xs text-muted-foreground">Calculated exactly from the weighted sum at your current slider</span>
               </li>
             ))}
-            {!priceFlip && !flips.length && rec.flip && (
+            {!priceFlip && !flips.length && scorerFlipValid && rec.flip && (
               <li className="rounded-2xl border border-line bg-card p-3.5 text-sm text-ink shadow-soft">{rec.flip.text}</li>
             )}
             {!rec.flip && !flips.length && (

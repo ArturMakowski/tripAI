@@ -27,20 +27,23 @@ export interface Result<T> {
 }
 
 async function http<T>(path: string, init?: RequestInit, timeoutMs = 25_000): Promise<T> {
+  const timeout = AbortSignal.timeout(timeoutMs);
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
-    signal: AbortSignal.timeout(timeoutMs),
+    signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
   });
   if (!res.ok) throw new Error(`${init?.method ?? "GET"} ${path} -> ${res.status}`);
   return (await res.json()) as T;
 }
 
-async function withFallback<T>(live: () => Promise<T>, fixture: () => Promise<T>): Promise<Result<T>> {
+async function withFallback<T>(live: () => Promise<T>, fixture: () => Promise<T>, signal?: AbortSignal): Promise<Result<T>> {
   if (FORCE_MOCK) return { data: await fixture(), mode: "fixture" };
   try {
     return { data: await live(), mode: "live" };
   } catch (err) {
+    // Superseded by a newer request: never resolve (callers ignore it anyway).
+    if (signal?.aborted) return new Promise<Result<T>>(() => {});
     console.warn("[tripai] backend unavailable, using fixtures:", err);
     return { data: await fixture(), mode: "fixture" };
   }
@@ -71,10 +74,11 @@ export const api = {
       () => mock.longWeekends(from, to),
     ),
 
-  recommendations: (req: RecommendationsRequest) =>
+  recommendations: (req: RecommendationsRequest, signal?: AbortSignal) =>
     withFallback<RankedRecommendation[]>(
-      () => http("/recommendations", post({ limit: 10, explain_top: 3, ...req }), 45_000),
+      () => http("/recommendations", { ...post({ limit: 10, explain_top: 3, ...req }), signal }, 45_000),
       () => mock.recommendations(req),
+      signal,
     ),
 
   feedback: (req: FeedbackRequest) =>

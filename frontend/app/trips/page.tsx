@@ -27,7 +27,7 @@ function PushBanner({ rec, onClose }: { rec: RankedRecommendation; onClose: () =
       className="relative mb-5 rounded-2xl border border-line bg-card/95 p-3.5 shadow-lift backdrop-blur"
       role="status"
     >
-      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span className="grid size-5 place-items-center rounded-md bg-pine">
           <Bell className="size-3 text-paper" />
         </span>
@@ -83,9 +83,9 @@ function Trips() {
     if (!windowFilter || loading || matching.length) return;
     api
       .recommendations({ profile: profile ?? DEMO_PROFILE, weights, windows: [{ start: wStart, end: wEnd, source: "manual" }] })
-      .then(({ data }) => {
+      .then(({ data, mode }) => {
         const known = new Set(recs.map((r) => r.id));
-        setRecs([...recs, ...data.filter((r) => !known.has(r.id))]);
+        setRecs([...recs, ...data.filter((r) => !known.has(r.id))], { profile, weights, mode, merge: true });
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowFilter, loading, matching.length]);

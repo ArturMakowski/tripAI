@@ -57,7 +57,7 @@ function Legend() {
     ["free", "Free in calendar"],
   ];
   return (
-    <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-muted-foreground">
+    <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
       {items.map(([k, label]) => (
         <span key={k} className="flex items-center gap-1.5">
           <span className={cn("size-2.5 rounded-[4px]", KIND_STYLE[k])} />
@@ -121,7 +121,7 @@ export default function WindowsPage() {
                   </p>
                 </div>
                 {i === 0 && (
-                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-sun-soft px-2 py-0.5 text-[11px] font-semibold text-ink">
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-sun-soft px-2 py-0.5 text-xs font-semibold text-ink">
                     <Sparkles className="size-3" /> Best ratio
                   </span>
                 )}

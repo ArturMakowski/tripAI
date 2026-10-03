@@ -22,7 +22,7 @@ export function PrioritySlider({
     <div className="rounded-3xl border border-line bg-card p-4 shadow-soft">
       <div className="mb-3 flex items-baseline justify-between">
         <p className="text-sm font-semibold text-ink">What matters most this time?</p>
-        {value === null && <span className="text-[11px] font-medium text-clay">Tuned by your feedback</span>}
+        {value === null && <span className="text-xs font-medium text-clay">Tuned by your feedback</span>}
       </div>
       <Slider
         value={[pos]}
@@ -49,7 +49,7 @@ export function PrioritySlider({
       </div>
       <div className="mt-4 border-t border-dashed border-line pt-3">
         <ContributionBar score={{ price: 1, weather: 1, crowds: 1, taste: 1, total: 1 }} weights={weights} className="h-1.5" />
-        <div className="mt-2 grid grid-cols-4 gap-1 text-[11px] text-muted-foreground">
+        <div className="mt-2 grid grid-cols-4 gap-1 text-xs text-muted-foreground">
           {FACTORS.map((f) => (
             <span key={f} className="flex items-center gap-1">
               <span className="size-2 rounded-full" style={{ background: FACTOR_COLOR[f] }} />

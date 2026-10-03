@@ -12,7 +12,6 @@ export default function ProfilePage() {
   const hydrated = useHydrated();
   const profile = useTrip((s) => s.profile);
   const setProfile = useTrip((s) => s.setProfile);
-  const setRecs = useTrip((s) => s.setRecs);
 
   if (!hydrated) return <AppShell>{null}</AppShell>;
   const p = profile ?? DEMO_PROFILE;
@@ -26,8 +25,7 @@ export default function ProfilePage() {
       <ProfileChips
         profile={p}
         onChange={(next) => {
-          setProfile(next);
-          setRecs([]); // taste fit depends on the profile: refetch on the trips screen
+          setProfile(next); // also invalidates cached recs: taste fit depends on the profile
         }}
       />
 

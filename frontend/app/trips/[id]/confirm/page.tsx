@@ -12,7 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { dayCount, formatPLN, formatRange } from "@/lib/format";
 import { useTrip } from "@/lib/store";
 import type { Recommendation } from "@/lib/types";
-import { handoffLinks } from "@/lib/handoff";
+import { SourceTag } from "@/components/source-tag";
+import { handoffLinks, originOf } from "@/lib/handoff";
 import { useRecommendations } from "@/lib/use-recommendations";
 
 function icsFor(rec: Recommendation) {
@@ -38,17 +39,29 @@ function icsFor(rec: Recommendation) {
 
 export default function ConfirmPage() {
   const { id } = useParams<{ id: string }>();
-  const { ranked } = useRecommendations();
+  const { ranked, loading } = useRecommendations();
+  const profile = useTrip((s) => s.profile);
   const approved = useTrip((s) => s.approved);
   const approve = useTrip((s) => s.approve);
   const [ok, setOk] = useState(false);
 
   const rec = ranked.find((r) => r.id === id);
-  if (!rec) return <AppShell back="/trips">{null}</AppShell>;
+  if (!rec) {
+    return (
+      <AppShell back="/trips" title="Trips" nav={false}>
+        <div className="grid place-items-center py-24 text-sm text-muted-foreground">
+          {loading ? "Loading your trip…" : <Link href="/trips" className="text-pine underline-offset-2 hover:underline">Trip not found. Back to trips.</Link>}
+        </div>
+      </AppShell>
+    );
+  }
 
   const done = approved.includes(rec.id);
   const nights = dayCount(rec.window) - 1;
-  const links = handoffLinks(rec);
+  const origin = originOf(rec, profile?.origin_airports[0]);
+  const links = handoffLinks(rec, profile?.origin_airports[0]);
+  const flightEv = rec.evidence.find((e) => e.kind === "flight");
+  const hotelEv = rec.evidence.find((e) => e.kind === "hotel");
 
   return (
     <AppShell back={`/trips/${rec.id}`} title={rec.city} nav={false}>
@@ -69,15 +82,19 @@ export default function ConfirmPage() {
           <li className="flex items-center gap-3 py-3.5">
             <Plane className="size-5 text-pine" />
             <div className="flex-1 text-sm">
-              <p className="font-medium text-ink">Return flight KRK ⇄ {rec.iata}</p>
+              <p className="font-medium text-ink">
+                Return flight {origin} ⇄ {rec.iata}
+              </p>
               <p className="text-muted-foreground">Quoted {formatPLN(rec.flight_cost_pln)}</p>
+              {flightEv && <SourceTag e={flightEv} />}
             </div>
           </li>
           <li className="flex items-center gap-3 py-3.5">
             <BedDouble className="size-5 text-pine" />
             <div className="flex-1 text-sm">
-              <p className="font-medium text-ink">{nights} nights, central 3★</p>
+              <p className="font-medium text-ink">{hotelEv?.label ?? `Hotel, ${nights} nights`}</p>
               <p className="text-muted-foreground">Quoted {formatPLN(rec.hotel_cost_pln)}</p>
+              {hotelEv && <SourceTag e={hotelEv} />}
             </div>
           </li>
         </ul>
@@ -117,7 +134,7 @@ export default function ConfirmPage() {
                   <Check className="size-7" />
                 </motion.div>
                 <p className="mt-3 font-display text-2xl text-ink">Approved by you</p>
-                <p className="mt-1 text-sm text-ink-soft">Book at these links. We&rsquo;ll watch prices until you do.</p>
+                <p className="mt-1 text-sm text-ink-soft">Book at these links. Check the final price there before you pay.</p>
               </div>
               <ul className="mt-5 space-y-2.5">
                 {links.map((l) => (
@@ -144,7 +161,7 @@ export default function ConfirmPage() {
                   </a>
                 </li>
               </ul>
-              <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
                 Affiliate links may earn TripAI a commission. That never changes the ranking.
               </p>
               <Link href="/survey" className="mt-4 block text-center text-sm font-medium text-pine hover:underline">

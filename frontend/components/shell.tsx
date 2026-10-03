@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, Compass, MessageSquareHeart, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 import { FORCE_MOCK } from "@/lib/api";
-import { useTrip } from "@/lib/store";
+import { overallMode, useTrip } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
@@ -22,12 +22,13 @@ export function Logo({ className }: { className?: string }) {
 }
 
 export function ModeBadge() {
-  const mode = useTrip((s) => s.mode) ?? (FORCE_MOCK ? "fixture" : null);
+  const modes = useTrip((s) => s.modes);
+  const mode = overallMode(modes) ?? (FORCE_MOCK ? "fixture" : null);
   if (!mode) return null;
   const live = mode === "live";
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-2.5 py-1 text-[11px] font-medium text-ink-soft"
+      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-2.5 py-1 text-xs font-medium text-ink-soft"
       title={live ? "Answers come from the TripAI backend" : "Backend not configured or unreachable: recorded fixtures"}
     >
       <span className={cn("size-1.5 rounded-full", live ? "bg-pine animate-pulse" : "bg-sun")} />
@@ -55,7 +56,7 @@ function BottomNav() {
               <Link
                 href={href}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors",
+                  "flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors",
                   active ? "text-pine" : "text-muted-foreground hover:text-ink",
                 )}
               >

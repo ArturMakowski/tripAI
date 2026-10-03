@@ -60,7 +60,7 @@ export default function Onboarding() {
   const router = useRouter();
   const hydrated = useHydrated();
   const { messages, setMessages, profile, setProfile, setMode } = useTrip();
-    const [picked, setPicked] = useState<string[]>([]);
+  const [picked, setPicked] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -92,7 +92,7 @@ export default function Onboarding() {
     setPicked([]);
     setBusy(true);
     const { data, mode } = await api.interview(next);
-    setMode(mode);
+    setMode("interview", mode);
     setBusy(false);
     setMessages([...next, { role: "assistant", content: data.reply }]);
     if (data.profile) {
@@ -116,7 +116,11 @@ export default function Onboarding() {
           ))}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          {result ? "Done. Your answers only shape your taste profile." : `Question ${Math.min(answered + 1, TOTAL_QUESTIONS)} of ${TOTAL_QUESTIONS}`}
+          {result
+            ? "Done. Your answers only shape your taste profile."
+            : answered >= TOTAL_QUESTIONS
+              ? "Almost done. Just a follow-up or two."
+              : `Question ${answered + 1} of ${TOTAL_QUESTIONS}`}
         </p>
       </div>
 

@@ -19,17 +19,29 @@ import { cn } from "@/lib/utils";
 
 const QUESTIONS: { factor: Factor; q: string; low: string; high: string }[] = [
   { factor: "crowds", q: "How were the crowds?", low: "Unbearable", high: "Peaceful" },
-  { factor: "weather", q: "And the weather?", low: "Too hot", high: "Perfect" },
+  { factor: "weather", q: "And the weather?", low: "Awful", high: "Perfect" },
   { factor: "price", q: "Value for money?", low: "Overpriced", high: "A steal" },
   { factor: "taste", q: "Did it suit what you love?", low: "Not me", high: "Exactly me" },
 ];
 
 const TAGS = ["food", "history", "architecture", "beach", "nightlife", "art", "walking"];
 
-function Rating({ value, onChange, low, high }: { value?: number; onChange: (v: number) => void; low: string; high: string }) {
+function Rating({
+  value,
+  onChange,
+  low,
+  high,
+  labelledBy,
+}: {
+  value?: number;
+  onChange: (v: number) => void;
+  low: string;
+  high: string;
+  labelledBy: string;
+}) {
   return (
     <div>
-      <div className="grid grid-cols-5 gap-1.5">
+      <div role="radiogroup" aria-labelledby={labelledBy} className="grid grid-cols-5 gap-1.5">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
@@ -38,7 +50,9 @@ function Rating({ value, onChange, low, high }: { value?: number; onChange: (v: 
               "relative h-11 rounded-xl border text-sm font-semibold transition-colors",
               value === n ? "border-transparent text-paper" : "border-line bg-card text-ink-soft hover:border-pine/40",
             )}
-            aria-pressed={value === n}
+            role="radio"
+            aria-checked={value === n}
+            aria-label={`${n} of 5${n === 1 ? `, ${low}` : n === 5 ? `, ${high}` : ""}`}
           >
             {value === n && (
               <motion.span layoutId={`r-${low}`} className="absolute inset-0 rounded-xl bg-ink" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
@@ -47,7 +61,7 @@ function Rating({ value, onChange, low, high }: { value?: number; onChange: (v: 
           </button>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+      <div className="mt-1 flex justify-between text-xs text-muted-foreground">
         <span>{low}</span>
         <span>{high}</span>
       </div>
@@ -229,10 +243,10 @@ export default function SurveyPage() {
     const items: FeedbackDiff["items"] = {};
     for (const r of [...ranked, ...fresh.data])
       items[r.id] = { city: r.city, iata: r.iata, window: r.window, total_cost_pln: r.total_cost_pln };
-    setMode(fresh.mode);
+    setMode("feedback", fb.mode);
     setProfile(nextProfile);
     setWeights(nextWeights);
-    setRecs(fresh.data);
+    setRecs(fresh.data, { profile: nextProfile, weights: nextWeights, mode: fresh.mode });
     setFeedback({
       tripId: PAST_TRIP.id,
       before,
@@ -317,8 +331,16 @@ export default function SurveyPage() {
       <div className="space-y-6">
         {QUESTIONS.map((q) => (
           <div key={q.factor}>
-            <p className="mb-2.5 text-[15px] font-medium text-ink">{q.q}</p>
-            <Rating value={ratings[q.factor]} onChange={(v) => setRatings((r) => ({ ...r, [q.factor]: v }))} low={q.low} high={q.high} />
+            <p id={`q-${q.factor}`} className="mb-2.5 text-[15px] font-medium text-ink">
+              {q.q}
+            </p>
+            <Rating
+              value={ratings[q.factor]}
+              onChange={(v) => setRatings((r) => ({ ...r, [q.factor]: v }))}
+              low={q.low}
+              high={q.high}
+              labelledBy={`q-${q.factor}`}
+            />
           </div>
         ))}
         <div>
