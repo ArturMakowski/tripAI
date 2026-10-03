@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight, BedDouble, Bot, Check, ChevronLeft, Copy, MapPinned, Plane } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowRight, BedDouble, Bot, ChevronLeft, MapPinned, Plane } from "lucide-react";
 import { Chip, Disclosure, InfoTip } from "@/components/declutter";
 import { ContributionBar, FactorBars } from "@/components/factor-bars";
 import { FitBadge } from "@/components/fit-badge";
-import { FitAudit, FitClaims, FitDisagreement, isStockPhoto } from "@/components/fit-section";
+import { FitClaims, FitDisagreement, isStockPhoto } from "@/components/fit-section";
 import { ScoreRing } from "@/components/score-ring";
 import { LangSwitch } from "@/components/lang-switch";
 import { EstimateNote, MoneyLines } from "@/components/money";
@@ -24,9 +23,8 @@ import { capitalise, peakMonth } from "@/lib/counterfactual";
 import { dayCount } from "@/lib/format";
 import { useT, type Fmt, type Messages } from "@/lib/i18n";
 import { DEMO_PROFILE } from "@/lib/mock/fixtures";
-import { inputsHash } from "@/lib/scoring";
 import { useTrip } from "@/lib/store";
-import type { Evidence, RankedRecommendation, Weights } from "@/lib/types";
+import type { Evidence, RankedRecommendation } from "@/lib/types";
 import { evidenceDisplay } from "@/lib/evidence-display";
 import { moneyOf } from "@/lib/money";
 import { scoreGap } from "@/lib/compare";
@@ -66,40 +64,6 @@ function Compare({ label, subject, pts, pln, there }: { label: string; subject: 
   );
 }
 
-function HashLine({ rec, weights }: { rec: RankedRecommendation; weights: Weights }) {
-  const [hash, setHash] = useState<string | null>(rec.inputs_hash ?? null);
-  const [copied, setCopied] = useState(false);
-  const { t } = useT();
-  useEffect(() => {
-    if (!rec.inputs_hash) inputsHash(rec, weights).then(setHash);
-  }, [rec, weights]);
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-ink px-4 py-3 text-paper">
-      <div className="min-w-0">
-        <p className="text-xs text-paper/60">{rec.inputs_hash ? t.receipt.hashScorer(rec.scoring_version) : t.receipt.hashDevice}</p>
-        <p className="truncate font-mono text-sm">{hash ? `${hash.slice(0, 12)}…${hash.slice(-8)}` : "…"}</p>
-      </div>
-      <button
-        onClick={() => {
-          if (!hash) return;
-          navigator.clipboard?.writeText(hash);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1500);
-        }}
-        className="shrink-0 rounded-full bg-paper/10 p-2 hover:bg-paper/20"
-        aria-label={t.receipt.copyHash}
-      >
-        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-      </button>
-    </div>
-  );
-}
-
-/**
- * The typical/median comparison as one chip, using only numbers present in the evidence:
- * a numeric baseline ("Seasonal median total") becomes "31% below typical (1,449 PLN)",
- * a fare range ("310–480") becomes "Typical 310–480 PLN".
- */
 function typicalChip(rec: RankedRecommendation, base: Evidence, r: Messages["receipt"], fmt: Fmt): string | null {
   if (typeof base.value === "number") {
     const mine = /total|median|łącz/i.test(base.label) ? rec.total_cost_pln : rec.flight_cost_pln;
@@ -149,7 +113,6 @@ export default function ReceiptPage() {
   const ev = (e: Evidence) => `ev-${rec.evidence.indexOf(e)}`;
   const details = trustedDetails(rec);
   const baseline = rec.evidence.find((e) => e.kind === "price_baseline");
-  const confidence = rec.evidence.find((e) => e.kind === "confidence" && typeof e.value === "number");
   // Everything else is listed under "Evidence"; stock photos aren't evidence.
   const facts = rec.evidence.filter(
     (e) => !["flight", "hotel", "price_baseline", "confidence"].includes(e.kind) && !isStockPhoto(e),
@@ -332,22 +295,6 @@ export default function ReceiptPage() {
               </span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{r.formulaTip}</p>
-            <div className="mt-4 border-t border-dashed border-line pt-3">
-              <HashLine rec={rec} weights={weights} />
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{r.hashNote}</p>
-            {rec.fit && (
-              <div className="mt-3">
-                <p className="text-xs font-semibold text-ink">{r.fitCheck}</p>
-                <FitAudit rec={rec} profile={profile ?? DEMO_PROFILE} lang={lang} />
-              </div>
-            )}
-            {confidence && (
-              <div className="mt-3">
-                <p className="text-xs font-semibold text-ink">{r.dataConfidence}</p>
-                <p className="text-xs text-ink-soft">{confidence.label}</p>
-              </div>
-            )}
           </Disclosure>
         </div>
       </main>
