@@ -49,9 +49,38 @@ const screens = (rec: RankedRecommendation) => ({
 
 function recs(people: number, fast: boolean) {
   const profile = { ...DEMO_PROFILE, adults: people, children: 0, rooms: null };
-  const full = withParty(withPriceStatus(scoreLocally(profile, DEFAULT_WEIGHTS)), profile);
-  return fast ? withParty(fastEstimates(full), profile) : full;
+  const base = withPriceStatus(scoreLocally(profile, DEFAULT_WEIGHTS));
+  return withParty(fast ? fastEstimates(base) : base, profile);
 }
+
+/** Lines on the receipt/confirm add up to the total shown under them (the Palma bug), for 1, 2 and 3 people. */
+describe.each(["pl", "en"] as const)("lines sum == total shown (%s)", (lang) => {
+  beforeAll(() => useTrip.setState({ lang }));
+  it.each([1, 2, 3])("%i traveller(s), every fixture trip incl. partial and estimate", (people) => {
+    for (const rec of recs(people, false)) {
+      const html = renderToStaticMarkup(<MoneyLines rec={rec} nights="4" />);
+      const amt = (re: RegExp) => Number(html.match(re)?.[1]);
+      const flight = amt(/data-line="flight" data-amount="(\d+)"/);
+      const hotel = amt(/data-line="hotel" data-amount="(\d+)"/);
+      const total = people > 1 ? amt(/data-testid="party-total" data-amount="(\d+)"/) : amt(/data-testid="trip-total" data-amount="(\d+)"/);
+      expect(flight + hotel, `${rec.id} x${people}: ${flight} + ${hotel} vs ${total}`).toBe(total);
+      expect(flight, rec.id).toBe(Math.round(rec.flight_cost_pln) * people);
+      expect(hotel, rec.id).toBe(Math.round(rec.hotel_cost_pln));
+      // and what is displayed matches the data attributes
+      const shown = (html.match(/data-testid="(?:party|trip)-total"[^>]*>([^<]+)</)?.[1] ?? "").replace(/[^\d]/g, "");
+      expect(shown, rec.id).toBe(String(total));
+    }
+  });
+  it("a backend whose own totals disagree with its lines (the Palma case) still shows lines == total", () => {
+    const [rec] = recs(2, false);
+    const palma = { ...rec, flight_cost_pln: 705, hotel_cost_pln: 848, party_total_pln: 3106, per_person_pln: 1553, total_cost_pln: 1553 };
+    const html = renderToStaticMarkup(<MoneyLines rec={palma} nights="4" />);
+    expect(html).toMatch(/data-line="flight" data-amount="1410"/);
+    expect(html).toMatch(/data-line="hotel" data-amount="848"/);
+    expect(html).toMatch(/data-testid="party-total" data-amount="2258"/);
+    expect(html).toMatch(/data-testid="trip-total" data-amount="1129"/);
+  });
+});
 
 describe.each(["pl", "en"] as const)("money consistency (%s)", (lang) => {
   beforeAll(() => useTrip.setState({ lang }));
@@ -80,9 +109,13 @@ describe.each(["pl", "en"] as const)("money consistency (%s)", (lang) => {
       const num = (t: string) => t.replace(/&nbsp;|\u00a0|\u202f/g, " ").match(/[\d\s.,]+(?=\s?(zł|PLN))/)?.[0].trim();
       // an estimate reads "od ~X" / "from ~X" on every screen, never as a bare price
       if (rec.price_status === "estimate") for (const got of [card[0], ...receipt, ...confirm]) expect(got[1], rec.id).toMatch(/~/);
-      for (const got of [...receipt, ...confirm]) expect(num(got[1]), `${rec.id} text`).toBe(num(want[1]));
+      // the visible text shows that same per-person number (party headlines read "1 704 zł razem · 852 zł/os.")
+      const digits = (t: string) => t.replace(/[^\d]/g, " ").split(/\s+/).join("");
+      const perDigits = String(Number(want[0]));
+      for (const got of [card[0], ...receipt, ...confirm]) expect(digits(got[1]), `${rec.id} text: ${got[1]}`).toContain(perDigits);
       // and the per-person number is what the party pays divided by its size
       expect(Number(want[0])).toBe(Math.round(rec.party_total_pln! / rec.travelers!));
+      void num;
     }
   });
 });

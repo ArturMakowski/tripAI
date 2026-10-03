@@ -60,8 +60,9 @@ export function labelFromScore(total: number): Label {
   return total >= 0.8 ? "great_fit" : total >= 0.72 ? "good_fit" : total >= 0.62 ? "mixed" : "poor_fit";
 }
 
-const FOOD = /food|market|tavern|trattoria|cuisine|cicchetti|tapas|pastr|street food|francesinha|wine/i;
-const ACTIVE = /hik|trail|surf|cycl|kayak|climb|ridge/i;
+// EN + PL (fixture sights are localized on PL screens)
+const FOOD = /food|market|tavern|trattoria|cuisine|cicchetti|tapas|pastr|street food|francesinh|wine|kulinar|degust|targ|tawern|ciastk|wino|winn/i;
+const ACTIVE = /hik|trail|surf|cycl|kayak|climb|ridge|szlak|wędrów|rower|kajak|wspinacz/i;
 
 const num = (v: number | string | undefined) => (typeof v === "number" ? v : Number.NaN);
 

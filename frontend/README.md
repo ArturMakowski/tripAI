@@ -93,6 +93,11 @@ overall rating is half stars with the exact value in small text (`★★★★½
   itself when a link targets something inside), `InfoTip` (ⓘ expands one line in place) and `Chip` (a compact source or fact).
   The data-source pill moved to `/credits`. The receipt keeps the hero, a two-line AI "why" with More, the stars row, bold fit
   claims and the money lines with one source chip each. Everything else is one tap away.
+- **Lines always add up.** Backend semantics: `flight_cost_pln` per traveller, `hotel_cost_pln` the whole stay for all rooms.
+  The receipt and confirm show "Loty × n" = flight × n and the stay as-is, and **the total shown is always their sum**;
+  `party_total_pln` / `per_person_pln` are only cross-checked (a disagreement sets `mismatch`, the lines win). Party
+  headlines read "2 258 zł razem · 1 129 zł/os."; estimates "od ~2 258 zł razem · ~1 129 zł/os. (inne daty)".
+  `components/money-consistency.test.tsx` pins lines == total for 1, 2 and 3 travellers plus the Palma case.
 - **One money block.** `lib/money.ts` `moneyOf()` is the only place a trip total is computed. Cards (`TripPrice`), the receipt
   and confirm (`MoneyLines`) all render through it, so the same trip shows the same total everywhere, in both loading phases
   and both languages. `components/money-consistency.test.tsx` renders all three for solo, party, exact, partial and estimate
