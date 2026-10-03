@@ -20,6 +20,9 @@ def _offline(monkeypatch):
     ):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setenv("TRIPAI_LLM", "0")
+    from tripai.agents.jev import clear_screen_cache
+
+    clear_screen_cache()
 
 
 @pytest.fixture

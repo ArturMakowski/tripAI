@@ -14,10 +14,12 @@ Decision points (docs/FIT_VERDICT.md "Engines"):
 
 import asyncio
 import logging
+import math
 import os
 import re
 import time
 import weakref
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Literal
 
@@ -31,8 +33,9 @@ log = logging.getLogger(__name__)
 
 DEFAULT_JEV_MODEL = "jev-latest"
 KEY_ENV = ("TYPESAFE_API_KEY", "TYPESAFEAI_API_KEY")
-# below this a decision is "not sure" (fit label -> mixed, DNA card -> follow-up)
-LOW_CONFIDENCE = float(os.getenv("TRIPAI_JEV_MIN_CONFIDENCE", "0.6"))
+# below this an answer is "not sure": a DNA card gets a follow-up; an escalated GPT verdict -> mixed
+LOW_CONFIDENCE = 0.6
+DEFAULT_ESCALATE_BELOW = 0.5
 NOTIFY_MIN_P = 0.8  # push only if P(worth interrupting) >= this
 
 
@@ -42,6 +45,15 @@ def jev_api_key() -> str | None:
 
 def jev_model_name() -> str:
     return os.getenv("TRIPAI_JEV_MODEL") or DEFAULT_JEV_MODEL
+
+
+def escalate_below() -> float:
+    """Fit label confidence under which Jev hands the decision to the LLM (System 1 -> System 2)."""
+    try:
+        value = float(os.getenv("TRIPAI_JEV_ESCALATE_BELOW", DEFAULT_ESCALATE_BELOW))
+    except ValueError:
+        return DEFAULT_ESCALATE_BELOW
+    return DEFAULT_ESCALATE_BELOW if math.isnan(value) else min(1.0, max(0.0, value))
 
 
 def jev_enabled() -> bool:
@@ -371,6 +383,41 @@ async def guard(text: str, model: Model | None = None) -> GuardResult:
         engine=d.model,
         reply=INJECTION_REPLY if inj else OFF_TOPIC_REPLY if off else None,
     )
+
+
+_SCREENED: "OrderedDict[tuple[str, str], GuardResult]" = OrderedDict()  # (engine, text) -> result
+_SCREEN_CACHE_SIZE = 2048
+
+
+async def screen(texts: list[str], model: Model | None = None) -> list[GuardResult]:
+    """Guard every message of a conversation (the client resends the whole history and controls
+    `role`, so an earlier or "assistant" message is as untrusted as the last one). Results are
+    cached by text, so each message costs one Jev call per process, not one per turn."""
+    engine = (
+        f"model:{id(model)}"
+        if model is not None
+        else jev_model_name()
+        if jev_enabled()
+        else "rules"
+    )
+
+    async def one(text: str) -> GuardResult:
+        key = (engine, text)
+        if key in _SCREENED:
+            _SCREENED.move_to_end(key)
+            return _SCREENED[key]
+        g = await guard(text, model=model)
+        if g.engine != "rules" or engine == "rules":  # don't pin a Jev outage's regex result
+            _SCREENED[key] = g
+            while len(_SCREENED) > _SCREEN_CACHE_SIZE:
+                _SCREENED.popitem(last=False)
+        return g
+
+    return list(await asyncio.gather(*(one(t) for t in texts)))
+
+
+def clear_screen_cache() -> None:
+    _SCREENED.clear()
 
 
 # ---------------------------------------------------------------- notification gate

@@ -3,8 +3,10 @@ against the user's Travel DNA. The scorer ranks; this agent only labels and cite
 
 Engines (`TRIPAI_FIT_ENGINE=jev|llm|rules`, default jev when a TypeSafe key is set, else llm when
 an LLM key is set, else rules):
-- jev: Jev (`tripai.agents.jev`) decides the label + one bool per DNA check with calibrated
-  confidence; the LLM (or a template) only phrases those decisions + their cited evidence.
+- jev (cascade): Jev (`tripai.agents.jev`) decides the label + one bool per DNA check with
+  calibrated confidence; the LLM (or a template) only phrases those decisions + their cited
+  evidence. If Jev's label confidence is below TRIPAI_JEV_ESCALATE_BELOW (0.5), the decision is
+  escalated to the LLM agent (System 1 -> System 2), then to rules if that fails.
 - llm: the LLM labels and writes grounded points itself.
 - rules: deterministic score bands + DNA rules.
 Fallback chain: jev -> llm -> rules. Grounding is enforced by output validators (ModelRetry).
@@ -32,6 +34,7 @@ from tripai.agents.jev import (
     Decision,
     FitDecision,
     decide,
+    escalate_below,
     fit_decision_agent,
     jev_enabled,
     jev_model_name,
@@ -389,7 +392,6 @@ class JevFit:
 
     draft: FitDraft
     checks: dict[str, tuple[bool, float]]  # check -> (answer, confidence)
-    unsure: bool  # label confidence < LOW_CONFIDENCE -> shown as mixed
     point_checks: list[str] = field(default_factory=list)  # check behind each match, then concern
 
 
@@ -414,15 +416,10 @@ def jev_fit(d: Decision[FitDecision], rec: RankedRecommendation, profile: TasteP
         (matches if kind == "match" else concerns).append(pt)
         (m_checks if kind == "match" else c_checks).append(name)
     label, conf = d.output.label_name, d.conf("label")
-    unsure = conf < LOW_CONFIDENCE
-    if unsure:
-        label = "mixed"
     summary = template_summary(label, matches, concerns)
-    if unsure:
-        summary = UNSURE_PREFIX + _lower_first(summary)
     draft = FitDraft(label=label, confidence=conf, summary=summary,
                      matches=matches, concerns=concerns)  # fmt: skip
-    return JevFit(draft=draft, checks=checks, unsure=unsure, point_checks=m_checks + c_checks)
+    return JevFit(draft=draft, checks=checks, point_checks=m_checks + c_checks)
 
 
 class Phrasing(BaseModel):
@@ -444,8 +441,7 @@ PHRASE_INSTRUCTIONS = """A decision engine has already judged whether a travel o
 words: a one-sentence summary and one short text per match and per concern, in the same order.
 Do NOT change the verdict, add or drop points, or add facts. Each text may only use the DNA
 statements and evidence given for that point; prefer words over numbers and never invent prices,
-scores or percentages. If `unsure` is true, the summary is shown after "We're not sure about this
-one; here's why:", so write only the why."""
+scores or percentages."""
 
 phrase_agent = Agent(
     None,
@@ -478,7 +474,6 @@ def phrase_payload(jf: JevFit, rec: RankedRecommendation, profile: TasteProfile)
         {
             "offer": f"{rec.city}, {rec.country}, {rec.window.start} to {rec.window.end}",
             "verdict": jf.draft.label,
-            "unsure": jf.unsure,
             "matches": [point(m) for m in jf.draft.matches],
             "concerns": [point(c) for c in jf.draft.concerns],
         },
@@ -536,6 +531,8 @@ class FitRun:
     latency_ms: float
     cost_usd: float | None = None
     jev: Decision[FitDecision] | None = None  # Jev's raw decision, when the jev engine ran
+    escalated: bool = False  # Jev was unsure and handed the decision on
+    degraded: bool = False  # e.g. GPT phrasing failed and the template wording was used
 
 
 def _add(a: float | None, b: float | None) -> float | None:
@@ -547,38 +544,66 @@ def _cost(result) -> float | None:
     return float(cost) if cost is not None else None
 
 
-async def _run_llm(rec, profile, model) -> tuple[FitVerdict, float | None]:
-    name = model if isinstance(model, str) else model.model_name if model else model_name()
+def _llm_name(model: Model | str | None) -> str:
+    return model if isinstance(model, str) else model.model_name if model else model_name()
+
+
+async def _run_llm(rec, profile, model) -> tuple[FitDraft, float | None]:
     result = await fit_agent.run(
         "FIT INPUT:\n" + fit_payload(rec, profile),
         model=model or model_name(),
         deps=FitDeps(rec=rec, profile=profile),
     )
-    return _finish(result.output, name, rec, profile), _cost(result)
+    return result.output, _cost(result)
 
 
-async def _run_jev(rec, profile, model, jev, phrase: bool):
-    """-> (verdict, cost, Jev's raw decision)."""
+async def _phrase(jf: JevFit, rec, profile, model) -> tuple[FitDraft, str, float | None]:
+    """GPT words Jev's decisions; on failure the template wording stays."""
+    try:
+        result = await phrase_agent.run(
+            "DECISIONS:\n" + phrase_payload(jf, rec, profile),
+            model=model or model_name(),
+            deps=PhraseDeps(jf=jf, rec=rec, profile=profile),
+        )
+        return _phrased(jf, result.output), _llm_name(model), _cost(result)
+    except Exception as exc:  # noqa: BLE001 - Jev's decisions stand; template wording
+        log.warning("fit phrasing failed for %s, using template: %s", rec.id, exc)
+        return jf.draft, "template", None
+
+
+class EscalationFailed(Exception):
+    """Jev was unsure and the LLM couldn't take over: the caller falls back to rules."""
+
+
+async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool):
+    """Jev decides when sure; else the LLM decides.
+
+    -> (verdict, cost, Jev decision, escalated, degraded)."""
     d = await decide(fit_decision_agent, "FIT INPUT:\n" + fit_payload(rec, profile), model=jev)
-    jf = jev_fit(d, rec, profile)
-    draft, phraser, cost = jf.draft, "template", d.cost_usd
-    if phrase:
-        try:
-            result = await phrase_agent.run(
-                "DECISIONS:\n" + phrase_payload(jf, rec, profile),
-                model=model or model_name(),
-                deps=PhraseDeps(jf=jf, rec=rec, profile=profile),
-            )
-            draft = _phrased(jf, result.output)
-            phraser = (
-                model if isinstance(model, str) else model.model_name if model else model_name()
-            )
-            cost = _add(cost, _cost(result))
-        except Exception as exc:  # noqa: BLE001 - Jev's decisions stand; template wording
-            log.warning("fit phrasing failed for %s, using template: %s", rec.id, exc)
-    if jf.unsure and phraser != "template":  # the template already says it
-        draft = draft.model_copy(update={"summary": UNSURE_PREFIX + _lower_first(draft.summary)})
-    return _finish(draft, f"{d.model}+{phraser}", rec, profile), cost, d
+    p = d.conf("label")
+    if p >= escalate_below():
+        jf = jev_fit(d, rec, profile)
+        draft, phraser, cost = jf.draft, "template", d.cost_usd
+        if phrase:
+            draft, phraser, phrase_cost = await _phrase(jf, rec, profile, model)
+            cost = _add(cost, phrase_cost)
+        name = d.model if phraser == "template" else f"{d.model}+{phraser}"
+        run_degraded = phrase and phraser == "template"  # GPT wording failed: don't cache
+        return _finish(draft, name, rec, profile), cost, d, False, run_degraded
+
+    # System 2: the LLM makes the decision itself, under the same grounding validator
+    if not use_llm:
+        raise EscalationFailed(f"jev unsure (p={p:.2f}) and no LLM configured")
+    try:
+        draft, llm_cost = await _run_llm(rec, profile, model)
+    except Exception as exc:
+        raise EscalationFailed(f"jev unsure (p={p:.2f}) and the LLM failed: {exc}") from exc
+    if draft.confidence < LOW_CONFIDENCE:  # GPT is the final engine and unsure itself
+        draft = draft.model_copy(
+            update={"label": "mixed", "summary": UNSURE_PREFIX + _lower_first(draft.summary)}
+        )
+    name = f"{d.model}\u2192{_llm_name(model)} (escalated, jev p={p:.2f}; confidence self-rated)"
+    return _finish(draft, name, rec, profile), _add(d.cost_usd, llm_cost), d, True, False
 
 
 async def fit_run(
@@ -608,16 +633,21 @@ async def fit_run(
     if use_jev:
         try:
             phrase = use_llm if phrase is None else phrase
-            verdict, cost, d = await _run_jev(rec, profile, model, jev, phrase)
+            verdict, cost, d, escalated, degraded = await _run_cascade(
+                rec, profile, model, jev, use_llm, phrase
+            )
             run = done(verdict, "jev")
-            run.jev = d
+            run.jev, run.escalated, run.degraded = d, escalated, degraded
             return run
-        except Exception as exc:  # noqa: BLE001 - next engine in the chain
+        except EscalationFailed as exc:
+            log.warning("fit for %s: %s; using rules", rec.id, exc)
+            return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
+        except Exception as exc:  # noqa: BLE001 - Jev itself failed: next engine in the chain
             log.warning("jev fit failed for %s, falling back: %s", rec.id, exc)
     if use_llm:
         try:
-            verdict, cost = await _run_llm(rec, profile, model)
-            return done(verdict, "llm")
+            draft, cost = await _run_llm(rec, profile, model)
+            return done(_finish(draft, _llm_name(model), rec, profile), "llm")
         except Exception as exc:  # noqa: BLE001 - fall back to rules, never break ranking
             log.warning("fit agent failed for %s, using rules: %s", rec.id, exc)
     return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
@@ -671,7 +701,7 @@ async def fit(
         return _CACHE[key].model_copy(deep=True)  # callers may mutate their copy
 
     run = await fit_run(rec, profile, model, engine=engine, jev=jev)
-    if run.engine != engine:
+    if run.engine != engine or run.degraded:
         return run.verdict  # don't cache a fallback under the primary key: retry next request
     _CACHE[key] = run.verdict.model_copy(deep=True)
     while len(_CACHE) > CACHE_SIZE:

@@ -50,8 +50,8 @@ class Row(BaseModel):
     label: str
     rules: str
     llm: str | None = None  # "*" suffix: that engine failed and a fallback answered
-    jev: str | None = None
-    jev_raw: str | None = None  # Jev's own label before the low-confidence -> mixed gate
+    cascade: str | None = None  # the jev engine: Jev, or the LLM when Jev escalated ("^" suffix)
+    jev_raw: str | None = None  # Jev's own label, whatever its confidence
 
 
 class EngineStats(BaseModel):
@@ -63,6 +63,7 @@ class EngineStats(BaseModel):
     p50_ms: float
     cost_usd: float | None = None  # mean per verdict; None if the provider reports no price
     fallbacks: int = 0
+    escalated: int | None = None  # cascade only: cases Jev handed to the LLM
 
 
 class Report(BaseModel):
@@ -72,8 +73,8 @@ class Report(BaseModel):
     rules_within_one: int
     llm_exact: int | None = None
     llm_within_one: int | None = None
-    jev_exact: int | None = None
-    jev_within_one: int | None = None
+    cascade_exact: int | None = None
+    cascade_within_one: int | None = None
     engines: list[EngineStats] = Field(default_factory=list)
 
 
@@ -124,9 +125,10 @@ async def evaluate(
     use_jev = (jev is not None or jev_enabled()) if use_jev is None else use_jev
     clear_cache()
     rows: list[Row] = []
-    ms: dict[str, list[float]] = {"rules": [], "llm": [], "jev": [], "jev_raw": []}
-    cost: dict[str, list[float | None]] = {"rules": [], "llm": [], "jev": [], "jev_raw": []}
-    fallbacks = {"llm": 0, "jev": 0}
+    ms: dict[str, list[float]] = {"rules": [], "llm": [], "cascade": [], "jev_raw": []}
+    cost: dict[str, list[float | None]] = {"rules": [], "llm": [], "cascade": [], "jev_raw": []}
+    fallbacks = {"llm": 0, "cascade": 0}
+    escalated = 0
     for case in cases:
         profile = case_profile(case)
         rec = await case_recommendation(case, profile)
@@ -134,16 +136,18 @@ async def evaluate(
         row = Row(id=case.id, label=case.label, rules=rules_verdict(rec, profile).label)
         ms["rules"].append((time.perf_counter() - t0) * 1000)
         cost["rules"].append(0.0)
-        for engine, on in (("llm", use_llm), ("jev", use_jev)):
+        for col, engine, on in (("llm", "llm", use_llm), ("cascade", "jev", use_jev)):
             if not on:
                 continue
             run = await fit_run(rec, profile, model=model, engine=engine, jev=jev,
                                 phrase=use_llm)  # fmt: skip
             ok = run.engine == engine
-            fallbacks[engine] += not ok
-            setattr(row, engine, run.verdict.label + ("" if ok else "*"))
-            ms[engine].append(run.latency_ms)
-            cost[engine].append(run.cost_usd)
+            fallbacks[col] += not ok
+            escalated += run.escalated
+            mark = "" if ok else "*"
+            setattr(row, col, run.verdict.label + ("^" if run.escalated else mark))
+            ms[col].append(run.latency_ms)
+            cost[col].append(run.cost_usd)
             if run.jev is not None:  # the decision alone: no phrasing, no gate
                 row.jev_raw = run.jev.output.label_name
                 ms["jev_raw"].append(run.jev.latency_ms)
@@ -151,16 +155,16 @@ async def evaluate(
         rows.append(row)
 
     def score(pred: str) -> tuple[int, int]:
-        ok = [(r.label, getattr(r, pred).rstrip("*")) for r in rows if getattr(r, pred)]
+        ok = [(r.label, getattr(r, pred).rstrip("*^")) for r in rows if getattr(r, pred)]
         return sum(a == b for a, b in ok), sum(_within_one(a, b) for a, b in ok)
 
     llm_name = _model_label(model, model_name())
     phraser = llm_name if use_llm else "template"
     names = {"rules": "rules", "llm": llm_name,
-             "jev": f"typesafe:{_model_label(jev, jev_model_name())}+{phraser}",
+             "cascade": f"typesafe:{_model_label(jev, jev_model_name())}\u2192{llm_name if use_llm else 'rules'} (phrasing: {phraser})",
              "jev_raw": f"typesafe:{_model_label(jev, jev_model_name())} (decision only)"}  # fmt: skip
     stats = []
-    for engine in ("jev", "jev_raw", "llm", "rules"):
+    for engine in ("cascade", "jev_raw", "llm", "rules"):
         if not ms[engine]:
             continue
         exact, within = score(engine)
@@ -175,6 +179,7 @@ async def evaluate(
                 p50_ms=round(statistics.median(ms[engine]), 1),
                 cost_usd=sum(known) / len(known) if known else None,
                 fallbacks=fallbacks.get(engine, 0),
+                escalated=escalated if engine == "cascade" else None,
             )
         )
 
@@ -184,12 +189,16 @@ async def evaluate(
         report.model = llm_name
         report.llm_exact, report.llm_within_one = score("llm")
     if use_jev:
-        report.jev_exact, report.jev_within_one = score("jev")
+        report.cascade_exact, report.cascade_within_one = score("cascade")
     return report
 
 
 def _mark(pred: str | None, label: str) -> str:
-    return "" if pred is None else ("ok" if pred.rstrip("*") == label else "x")
+    return "" if pred is None else ("ok" if pred.rstrip("*^") == label else "x")
+
+
+def _pct(k: int | None, n: int) -> str:
+    return "" if k is None or not n else f"{k}/{n} ({100 * k / n:.0f}%)"
 
 
 def _usd(c: float | None) -> str:
@@ -198,13 +207,13 @@ def _usd(c: float | None) -> str:
 
 def format_report(report: Report) -> str:
     n = len(report.rows)
-    head = f"{'case':<28} {'label':<10} {'rules':<13} {'AI':<13} {'jev':<13} {'jev raw':<13}"
+    head = f"{'case':<28} {'label':<10} {'rules':<13} {'AI':<13} {'cascade':<13} {'jev raw':<13}"
     lines = [head, "-" * len(head)]
     for r in report.rows:
         lines.append(
             f"{r.id:<28} {r.label:<10} {r.rules:<10}{_mark(r.rules, r.label):<3} "
             f"{(r.llm or '-'):<10}{_mark(r.llm, r.label):<3} "
-            f"{(r.jev or '-'):<10}{_mark(r.jev, r.label):<3} "
+            f"{(r.cascade or '-'):<10}{_mark(r.cascade, r.label):<3} "
             f"{(r.jev_raw or '-'):<10}{_mark(r.jev_raw, r.label)}"
         )
     lines.append("")
@@ -218,19 +227,21 @@ def format_report(report: Report) -> str:
         )
     else:
         lines.append("AI: skipped (no LLM key for TRIPAI_MODEL, or --no-llm)")
-    if report.jev_exact is None:
+    if report.cascade_exact is None:
         lines.append("jev: skipped (no TYPESAFE_API_KEY / TYPESAFEAI_API_KEY, or --no-jev)")
-    if any(x and x.endswith("*") for r in report.rows for x in (r.llm, r.jev)):
+    if any(x and x.endswith("*") for r in report.rows for x in (r.llm, r.cascade)):
         lines.append("* that engine failed on this case and the next one in the chain answered")
+    if any(r.cascade and r.cascade.endswith("^") for r in report.rows):
+        lines.append("^ Jev was unsure (label p < escalate threshold) and the LLM decided")
     if report.engines:
-        lines += ["", "jev = Jev label, < 0.6 confidence shown as mixed; jev raw = Jev's label ungated",
-                  "", "| engine | model | exact | within one | p50 latency | est. cost / verdict |",
-                  "|---|---|---|---|---|---|"]  # fmt: skip
+        lines += ["", "cascade = Jev decides, escalates to the LLM when unsure; jev raw = Jev's label always",
+                  "", "| engine | model | exact | within one | p50 latency | est. cost / verdict | escalated |",
+                  "|---|---|---|---|---|---|---|"]  # fmt: skip
         for e in report.engines:
             fb = f" ({e.fallbacks} fallbacks)" if e.fallbacks else ""
             lines.append(
                 f"| {e.engine} | {e.model} | {e.exact}/{e.n}{fb} | {e.within_one}/{e.n} | "
-                f"{e.p50_ms:.0f} ms | {_usd(e.cost_usd)} |"
+                f"{e.p50_ms:.0f} ms | {_usd(e.cost_usd)} | {_pct(e.escalated, e.n)} |"
             )
     return "\n".join(lines)
 

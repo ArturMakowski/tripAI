@@ -48,7 +48,11 @@ Other Jev decision points: notification gate (`worth_interrupting: bool`, push o
 (`int` score per q1..q12 from free text, follow-up when confidence < 0.6), guardrail on user free text
 (`prompt_injection`, `off_topic`). The fit eval prints jev vs llm vs rules: agreement, p50 latency, cost.
 
-Implemented in T1e (`tripai.agents.jev`, see README). Per-point confidence is applied as a filter (a check is shown
-only at P(yes) >= 0.7) because `FitPoint` has no confidence field yet (contract change = its own PR).
-Live eval (3 Oct, 20 cases): Jev decision alone 13/20 exact, 20/20 within one, p50 ~0.5 s, ~$0.0001;
-gated + GPT phrasing 12/20, 17/20; GPT-6 Luna alone 13/20, 20/20, p50 ~6.7 s; rules 10/20, 18/20.
+Implemented in T1e (`tripai.agents.jev`, see README), with one change decided on 3 Oct: **cascade instead of
+collapse**. When Jev's label confidence is >= 0.5 (`TRIPAI_JEV_ESCALATE_BELOW`), Jev decides. Below that, the
+decision escalates to GPT-6 Luna (System 2) under the same grounding validator, then to rules. The 0.6 -> `mixed`
+rule applies only when the final engine is GPT and its self-rated confidence is low. `FitVerdict.model` says who
+decided. Per-point confidence is applied as a filter (a check is shown only at P(yes) >= 0.7), because `FitPoint`
+has no confidence field yet (a contract change is its own PR).
+Live eval (3 Oct, 20 cases): cascade 16/20 exact, 20/20 within one, p50 ~3.0 s, ~$0.00022, 15% escalated;
+Jev alone 14/20, 20/20, ~0.5 s, ~$0.0001; GPT-6 Luna alone 14/20, 20/20, ~6.5 s, ~$0.0003; rules 10/20, 18/20.

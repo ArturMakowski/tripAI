@@ -23,8 +23,8 @@ from tripai.agents.jev import (
     LOW_CONFIDENCE,
     decide,
     dna_decision_agent,
-    guard,
     jev_enabled,
+    screen,
 )
 
 log = logging.getLogger(__name__)
@@ -126,27 +126,27 @@ def _next(
 async def chat_dna(
     messages: list[ChatMessage], model: Model | None = None, guard_model: Model | None = None
 ) -> DnaChatResult:
-    """One chat turn: guard the last user message, read DNA from the transcript, ask or finish.
+    """One chat turn: guard every message, read DNA from the messages that pass, ask or finish.
 
+    A blocked message is dropped from the transcript (now and on every later turn), so it never
+    reaches Jev's DNA read or any LLM. If the latest user message is blocked, the reply is the
+    guard's and `blocked` is set; the answers are still those read from the rest of the chat.
     `model` / `guard_model` override the Jev model for the DNA read / the guardrail (tests)."""
     use_jev = model is not None or jev_enabled()
     engine = "scripted"
-    user_msgs = [m for m in messages if m.role == "user"]
-    if not user_msgs:
+    if not any(m.role == "user" for m in messages):
         return DnaChatResult(reply=OPENER, done=False, engine="typesafe:jev" if use_jev else engine)
-    g = await guard(user_msgs[-1].content, model=guard_model)
-    if g.blocked:
-        answers, yes_no = _scripted_answers(messages[:-1])
-        return DnaChatResult(
-            reply=g.reply or "", done=False, answers=answers, yes_no=yes_no,
-            engine=g.engine, blocked=True,
-        )  # fmt: skip
+    verdicts = await screen([m.content for m in messages], model=guard_model)
+    clean = [m for m, g in zip(messages, verdicts) if not g.blocked]
+    last_user = max(i for i, m in enumerate(messages) if m.role == "user")
+    blocked = verdicts[last_user] if verdicts[last_user].blocked else None
 
-    answers, yes_no = _scripted_answers(messages)
+    # a direct reply to a card question wins over Jev's reading of the whole chat
+    answers, yes_no = _scripted_answers(clean)
     confidence: dict[str, float] = {}
-    if use_jev:
+    if use_jev and any(m.role == "user" for m in clean):
         try:
-            d = await decide(dna_decision_agent, "CONVERSATION:\n" + _transcript(messages), model)
+            d = await decide(dna_decision_agent, "CONVERSATION:\n" + _transcript(clean), model)
         except Exception as exc:  # noqa: BLE001 - scripted flow still works
             log.warning("jev DNA read failed, using scripted flow: %s", exc)
         else:
@@ -154,8 +154,14 @@ async def chat_dna(
             out = d.output
             for q in STATEMENTS:
                 v = getattr(out, q)
-                if v != "not_said" and d.conf(q) >= LOW_CONFIDENCE:
+                if q not in answers and v != "not_said" and d.conf(q) >= LOW_CONFIDENCE:
                     answers[q] = int(v)
-            if out.y1 != "not_said" and d.conf("y1") >= LOW_CONFIDENCE:
+            if "y1" not in yes_no and out.y1 != "not_said" and d.conf("y1") >= LOW_CONFIDENCE:
                 yes_no["y1"] = out.y1 == "yes"
-    return _next(answers, yes_no, confidence, messages, engine)
+    if blocked is not None:
+        missing = [c for c in PRIORITY if c not in answers and c not in yes_no]
+        return DnaChatResult(
+            reply=blocked.reply or "", done=False, answers=answers, yes_no=yes_no,
+            confidence=confidence, missing=missing, engine=engine, blocked=True,
+        )  # fmt: skip
+    return _next(answers, yes_no, confidence, clean, engine)
