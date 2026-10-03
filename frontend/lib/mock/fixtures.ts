@@ -16,6 +16,10 @@ export const DEMO_PROFILE: TasteProfile = {
   dislikes: ["long layovers"],
   preferred_temp_c: [12, 24],
   trip_length_days: [3, 6],
+  // Travel DNA answers (docs/TRAVEL_DNA.md): a foodie who avoids crowds and watches the price.
+  traits: { q1: 5, q2: 4, q3: 2, q4: 4, q5: 5, q6: 2, q7: 3, q8: 4, q9: 4, q10: 3, q11: 5, q12: 2, pace: 0.5, novelty: 0.88 },
+  daily_discovery: true,
+  personalize: true,
 };
 
 const NAGER = "builtin:pl-holidays";
