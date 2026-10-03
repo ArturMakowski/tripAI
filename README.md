@@ -87,6 +87,15 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   (0.16 with a heat/cold dislike). Rainy-day share and sunshine hours scale it down when the provider has them.
 - `FixtureProvider` numbers are hand-curated: evidence `source` is `fixture:sample`, shown as "TripAI sample data"
   with no fetch time. "(recorded)" is reserved for real recorded API responses.
+- **Language (pl | en):** every user-facing text the backend writes follows the request language. That covers
+  the 'why' text, fit summaries and points, DNA reasons, feedback reasons, interview and DNA-chat questions,
+  guard replies, receipts (counterfactuals, flip, filter), radar labels ('Weź 2 dni wolnego → 5 dni') and
+  notifications. The language comes from a `lang` body field (`/interview`, `/interview/dna`, `/recommendations`,
+  `/profile/dna`, `/feedback`, `/scan/run`), else `?lang=` or `Accept-Language`, else `en`; responses carry
+  `Content-Language`. Notifications are written at scan time in `notification_prefs.lang` (set by `/scan/run`
+  or `PUT /notifications/prefs`; needs migration `0004`). Strings live in `tripai.i18n`; scores and
+  `inputs_hash` don't depend on the language. Polish numbers use `1 098 zł` / `18,5 °C`, and the grounding
+  guards accept both forms. Jev's decision prompts stay English (decisions, not text).
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache

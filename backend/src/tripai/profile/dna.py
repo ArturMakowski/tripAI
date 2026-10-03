@@ -6,6 +6,7 @@ Pure and deterministic: no I/O, no LLM. Every derived value lists the card ids i
 
 from pydantic import BaseModel, Field, StrictBool, StrictInt, field_validator
 
+from tripai import i18n
 from tripai.models import LuxuryLevel, TasteProfile, Weights
 from tripai.scoring.engine import normalise_weights
 
@@ -29,7 +30,6 @@ CARDS_EN = {
     "y1": "Do you want to discover new places every day?",
     "y2": "Should the app tailor recommendations to your style?",
 }
-GESTURE = {1: "Not me", 2: "Rather not", 3: "Depends", 4: "That's me", 5: "So me"}
 PACE_THRESHOLD = 0.25
 
 
@@ -37,6 +37,7 @@ class DnaRequest(BaseModel):
     user_id: str = "demo"
     answers: dict[str, StrictInt] = Field(default_factory=dict)  # q1..q12 -> 1..5
     yes_no: dict[str, StrictBool] = Field(default_factory=dict)  # y1, y2
+    lang: str | None = None  # "pl" | "en" for the reason texts (else Accept-Language, else en)
 
     @field_validator("answers")
     @classmethod
@@ -131,23 +132,38 @@ def _swiped(cards: list[str], a: dict[str, int], given: set[str]) -> str:
     parts = []
     for c in cards:
         if c in given:
-            parts.append(f"{GESTURE[a[c]]} on {c}")
+            parts.append(i18n.t("dna.swiped", gesture=i18n.t(f"dna.gesture.{a[c]}"), card=c))
         else:
-            parts.append(f"no answer on {c} (counted as Depends)")
+            parts.append(i18n.t("dna.no_answer", card=c))
     return "; ".join(parts)
+
+
+def _v(x: float) -> str:
+    return i18n.fmt_fixed(x, 2)
 
 
 DNA_OWNED_DISLIKES = {"crowds"}
 
 
-def map_dna(req: DnaRequest, base: TasteProfile | None = None) -> DnaResult:
+def map_dna(
+    req: DnaRequest, base: TasteProfile | None = None, lang: str | None = None
+) -> DnaResult:
     """Map answers to a profile. With `base` (the stored profile), only DNA-owned fields change:
-    budget, airports, temperature range, trip length and non-DNA interests/dislikes are kept."""
+    budget, airports, temperature range, trip length and non-DNA interests/dislikes are kept.
+    Reason texts are in `lang` (else `req.lang`, else the request's language)."""
+    with i18n.using(i18n.pick(lang or req.lang)):
+        return _map_dna(req, base)
+
+
+def _map_dna(req: DnaRequest, base: TasteProfile | None) -> DnaResult:
     given = set(req.answers)
     a = {q: req.answers.get(q, MISSING) for q in STATEMENTS}
     personalize = req.yes_no.get("y2", True)
     daily = req.yes_no.get("y1")
     reasons: list[Reason] = []
+
+    def add(field: str, value, because: list[str], key: str, **kw) -> None:
+        reasons.append(Reason(field=field, value=value, because=because, text=i18n.t(key, **kw)))
 
     if personalize:
         weights = normalise_weights(raw_weights(a))
@@ -159,71 +175,42 @@ def map_dna(req: DnaRequest, base: TasteProfile | None = None) -> DnaResult:
         }
         for f, cards in sources.items():
             v = getattr(weights, f)
-            reasons.append(Reason(field=f"weights.{f}", value=v, because=cards,
-                                  text=f"{f} weight {v:.2f} because you swiped "
-                                  f"{_swiped(cards, a, given)}"))  # fmt: skip
+            add(f"weights.{f}", v, cards, "dna.weight", factor=i18n.t(f"factor.{f}"), v=_v(v),
+                sw=_swiped(cards, a, given))  # fmt: skip
     else:
         weights = normalise_weights(Weights())
         for f in ("price", "weather", "crowds", "taste"):
             v = getattr(weights, f)
-            reasons.append(Reason(field=f"weights.{f}", value=v, because=["y2"],
-                                  text=f"{f} weight {v:.2f}: neutral default, because you chose "
-                                  "not to tailor recommendations to your style"))  # fmt: skip
+            add(f"weights.{f}", v, ["y2"], "dna.weight_neutral", factor=i18n.t(f"factor.{f}"),
+                v=_v(v))  # fmt: skip
 
     tags: dict[str, float] = {}
+    role = "" if personalize else i18n.t("dna.filter_role")
     for tag, (v, cards) in interests(a).items():
         tags[tag] = _r(v)
-        role = "" if personalize else " (used only as a filter, not for ranking)"
-        reasons.append(Reason(field=f"interests.{tag}", value=tags[tag], because=cards,
-                              text=f"{tag} {tags[tag]:.2f}{role} because you swiped "
-                              f"{_swiped(cards, a, given)}"))  # fmt: skip
+        add(f"interests.{tag}", tags[tag], cards, "dna.interest", tag=i18n.tag(tag),
+            v=_v(tags[tag]), role=role, sw=_swiped(cards, a, given))  # fmt: skip
 
     dislikes: list[str] = []
     crowd_cards = [c for c in ("q8", "q11") if a[c] >= 4]
     if crowd_cards:
         dislikes.append("crowds")
-        reasons.append(Reason(field="dislikes", value=["crowds"], because=crowd_cards,
-                              text=f"avoiding crowds because you swiped "
-                              f"{_swiped(crowd_cards, a, given)}"))  # fmt: skip
+        add("dislikes", ["crowds"], crowd_cards, "dna.crowds", sw=_swiped(crowd_cards, a, given))
 
     lux, lux_cards = luxury(a)
-    reasons.append(Reason(field="luxury", value=lux.value, because=lux_cards,
-                          text=f"{lux.value} comfort level because you swiped "
-                          f"{_swiped(lux_cards, a, given)}"))  # fmt: skip
+    add("luxury", lux.value, lux_cards, "dna.luxury", level=i18n.t(f"lux.{lux.value}"),
+        sw=_swiped(lux_cards, a, given))  # fmt: skip
 
     p, p_label = pace(a)
     novelty = tags["discovery"]
-    reasons.append(Reason(field="traits.pace", value=_r(p), because=["q2", "q3"],
-                          text=f"{p_label} pace because you swiped "
-                          f"{_swiped(['q2', 'q3'], a, given)}"))  # fmt: skip
-    reasons.append(Reason(field="traits.novelty", value=novelty, because=["q1", "q12"],
-                          text=f"novelty {novelty:.2f} because you swiped "
-                          f"{_swiped(['q1', 'q12'], a, given)}"))  # fmt: skip
+    add("traits.pace", _r(p), ["q2", "q3"], "dna.pace", label=i18n.t(f"dna.pace.{p_label}"),
+        sw=_swiped(["q2", "q3"], a, given))  # fmt: skip
+    add("traits.novelty", novelty, ["q1", "q12"], "dna.novelty", v=_v(novelty),
+        sw=_swiped(["q1", "q12"], a, given))  # fmt: skip
     if daily is not None:
-        what = "a new attraction every day" if daily else "no need for something new every day"
-        answer = "Yes" if daily else "No"
-        reasons.append(
-            Reason(
-                field="daily_discovery",
-                value=daily,
-                because=["y1"],
-                text=f"{what} because you answered {answer} on y1",
-            )
-        )
-    if personalize:
-        text = "recommendations tailored to your style; post-trip feedback updates your profile"
-    else:
-        text = (
-            "neutral ranking; post-trip feedback will not change your profile (your choice on y2)"
-        )
-    reasons.append(
-        Reason(
-            field="personalize",
-            value=personalize,
-            because=["y2"] if "y2" in req.yes_no else [],
-            text=text,
-        )
-    )
+        add("daily_discovery", daily, ["y1"], "dna.daily_yes" if daily else "dna.daily_no")
+    add("personalize", personalize, ["y2"] if "y2" in req.yes_no else [],
+        "dna.personalize_on" if personalize else "dna.personalize_off")  # fmt: skip
 
     traits = {q: float(a[q]) for q in STATEMENTS} | {"pace": _r(p), "novelty": novelty}
     base = base or TasteProfile(user_id=req.user_id)

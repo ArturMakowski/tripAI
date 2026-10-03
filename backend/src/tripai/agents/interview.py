@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
+from tripai import i18n
 from tripai.agents.jev import screen
 from tripai.agents.llm import llm_enabled, model_name
 from tripai.models import LuxuryLevel, TasteProfile
@@ -75,7 +76,7 @@ You are TripAI's onboarding interviewer. In at most 3 short questions, learn:
 1) what the user loves doing on a trip (map to tags: {", ".join(TAG_VOCABULARY)}),
 2) budget per person in PLN and comfort level (budget/standard/comfort/luxury),
 3) preferred temperature and anything they dislike ({", ".join(DISLIKE_VOCABULARY)}).
-Ask one friendly question per turn. Reply in the user's language (Polish or English).
+Ask one friendly question per turn, in the language given by the LANGUAGE line.
 When you have enough (or the user has answered 3 times), set done=true, fill `profile`
 (interest weights 0..1 reflecting enthusiasm) and give a one-sentence summary as `reply`.
 Never invent prices or destinations."""
@@ -97,14 +98,7 @@ def _transcript(messages: list[ChatMessage]) -> str:
 
 # ---------------------------------------------------------------- deterministic fallback
 
-QUESTIONS = [
-    "Hi! What do you love doing on a trip - food, history, beaches, nature, nightlife, art?",
-    (
-        "Nice. What's your budget per person in PLN, and how comfy should it be "
-        "(budget / standard / comfort / luxury)?"
-    ),
-    "Last one: what temperature feels ideal, and is there anything you avoid (crowds, heat, cold)?",
-]
+QUESTIONS = ["iv.q1", "iv.q2", "iv.q3"]  # i18n keys (tripai.i18n): asked in order
 _KEYWORDS = {
     "food": ["food", "eat", "cuisine", "jedzenie", "kuchnia", "restaur", "tapas", "wine", "wino"],
     "history": ["history", "histor", "ancient", "ruins", "zabyt", "castle", "zamk"],
@@ -120,6 +114,12 @@ _KEYWORDS = {
     "design": ["design"],
     "festivals": ["festival", "festiwal", "concert", "koncert"],
 }
+_LUXURY_WORDS = {  # checked in this order (en + pl stems)
+    LuxuryLevel.luxury: ["luxury", "luksus"],
+    LuxuryLevel.comfort: ["comfort", "komfort", "wygod"],
+    LuxuryLevel.budget: ["budget", "budżet", "budzet", "tanio", "cheap"],
+    LuxuryLevel.standard: ["standard"],
+}
 _DISLIKES = {
     "crowds": ["crowd", "tłum", "tlum"],
     "heat": ["heat", "upał", "upal", "too hot"],
@@ -130,7 +130,7 @@ _DISLIKES = {
 def _rule_based(messages: list[ChatMessage], user_id: str) -> InterviewResult:
     answers = [m.content for m in messages if m.role == "user"]
     if len(answers) < len(QUESTIONS):
-        return InterviewResult(reply=QUESTIONS[len(answers)])
+        return InterviewResult(reply=i18n.t(QUESTIONS[len(answers)]))
     text = " ".join(answers).lower()
     interests = {tag: 0.8 for tag, kws in _KEYWORDS.items() if any(k in text for k in kws)} or {
         "food": 0.6,
@@ -143,7 +143,10 @@ def _rule_based(messages: list[ChatMessage], user_id: str) -> InterviewResult:
     else:
         amounts = (int(re.sub(r"\s", "", x)) for x in re.findall(r"\d[\d ]*\d", text))
         budget = next((a for a in amounts if a >= 300), None)
-    luxury = next((lv for lv in LuxuryLevel if lv.value in text), LuxuryLevel.standard)
+    luxury = next(
+        (lv for lv, words in _LUXURY_WORDS.items() if any(w in text for w in words)),
+        LuxuryLevel.standard,
+    )
     lo, hi = 15.0, 26.0
     temps = [int(t) for t in re.findall(r"(-?\d{1,2})\s*(?:°|stopni|deg|c\b)", text)]
     if temps:
@@ -157,19 +160,34 @@ def _rule_based(messages: list[ChatMessage], user_id: str) -> InterviewResult:
         preferred_temp_max_c=hi,
     )
     profile = draft.to_profile(user_id)
-    summary = (
-        f"Got it: {', '.join(profile.interests)}; "
-        f"{'budget ' + str(profile.budget_pln) + ' PLN, ' if profile.budget_pln else ''}"
-        f"{profile.luxury.value} level, {lo:g}-{hi:g} °C"
-        f"{', avoiding ' + ', '.join(dislikes) if dislikes else ''}. Let me find your trips!"
+    budget = profile.budget_pln
+    summary = i18n.t(
+        "iv.summary",
+        interests=i18n.tags(list(profile.interests)),
+        budget=i18n.t("iv.budget", amount=i18n.fmt_pln(budget)) if budget else "",
+        luxury=i18n.t(f"lux.{profile.luxury.value}"),
+        lo=i18n.fmt_dec(lo),
+        hi=i18n.fmt_dec(hi),
+        avoid=i18n.t("iv.avoid", items=i18n.tags(dislikes)) if dislikes else "",
     )
     return InterviewResult(reply=summary, profile=profile)
 
 
 async def interview(
-    messages: list[ChatMessage], user_id: str = "demo", model: Model | str | None = None
+    messages: list[ChatMessage],
+    user_id: str = "demo",
+    model: Model | str | None = None,
+    lang: str | None = None,
 ) -> InterviewResult:
-    """One interview turn. Uses the LLM when available, otherwise a scripted 3-question flow."""
+    """One interview turn in `lang` (default: the request's). Uses the LLM when available,
+    otherwise a scripted 3-question flow."""
+    with i18n.using(i18n.pick(lang)):
+        return await _interview(messages, user_id, model)
+
+
+async def _interview(
+    messages: list[ChatMessage], user_id: str, model: Model | str | None
+) -> InterviewResult:
     # guard every message (the client resends history and sets `role`) before any LLM sees it;
     # blocked messages are dropped from the transcript, now and on later turns
     verdicts = await screen([m.content for m in messages])
@@ -180,7 +198,8 @@ async def interview(
         return _rule_based(messages, user_id)
     try:
         result = await interview_agent.run(
-            "Conversation so far:\n" + _transcript(messages), model=model or model_name()
+            "Conversation so far:\n" + _transcript(messages) + "\n\n" + i18n.llm_language_rule(),
+            model=model or model_name(),
         )
     except Exception as exc:  # noqa: BLE001
         log.warning("interview agent failed, using scripted flow: %s", exc)

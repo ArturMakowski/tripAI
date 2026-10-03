@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Any
 
+from tripai import i18n
 from tripai.api.state import Store
 from tripai.models import FitVerdict, FreeWindow, TasteProfile, Weights
 from tripai.notify.models import (
@@ -172,8 +173,9 @@ async def _candidates(
 class Scan:
     """The steps. Each method is one DBOS step: does I/O, returns JSON."""
 
-    def __init__(self, deps: ScanDeps) -> None:
+    def __init__(self, deps: ScanDeps, lang: str = "en") -> None:
         self.deps = deps
+        self.lang = lang  # user-facing texts (bridge labels, receipts, fit) follow prefs.lang
 
     # 1 ------------------------------------------------------------------ context
     async def load_context(self, user_id: str) -> dict:
@@ -214,6 +216,10 @@ class Scan:
 
     # 2 ------------------------------------------------------------------ windows
     async def find_windows(self, today_iso: str) -> dict:
+        with i18n.using(i18n.pick(self.lang)):
+            return await self._find_windows(today_iso)
+
+    async def _find_windows(self, today_iso: str) -> dict:
         today = date.fromisoformat(today_iso)
         end = today + timedelta(days=SCAN_HORIZON_DAYS)
         busy = await self.deps.calendar.busy(today, end)
@@ -225,6 +231,10 @@ class Scan:
 
     # 3 ------------------------------------------------------------------ rank
     async def rank_trips(self, profile: dict, weights: dict, windows: list[dict]) -> dict:
+        with i18n.using(i18n.pick(self.lang)):
+            return await self._rank_trips(profile, weights, windows)
+
+    async def _rank_trips(self, profile: dict, weights: dict, windows: list[dict]) -> dict:
         p, w = TasteProfile.model_validate(profile), Weights.model_validate(weights)
         trips = trip_windows([FreeWindow.model_validate(x) for x in windows], p.trip_length_days)
         cands = await _candidates(self.deps, p, w, trips)
@@ -238,6 +248,10 @@ class Scan:
 
     async def rank_long_weekends(self, profile: dict, weights: dict, bridges: list[dict]) -> dict:
         """Best trip per soon long weekend (ranked on its own so it isn't crowded out)."""
+        with i18n.using(i18n.pick(self.lang)):
+            return await self._rank_long_weekends(profile, weights, bridges)
+
+    async def _rank_long_weekends(self, profile: dict, weights: dict, bridges: list[dict]) -> dict:
         p, w = TasteProfile.model_validate(profile), Weights.model_validate(weights)
         best: list[dict | None] = []
         for b in bridges:
@@ -250,6 +264,10 @@ class Scan:
         return {"best": best}
 
     async def price_picks(self, profile: dict, weights: dict, picks: list[dict]) -> dict:
+        with i18n.using(i18n.pick(self.lang)):
+            return await self._price_picks(profile, weights, picks)
+
+    async def _price_picks(self, profile: dict, weights: dict, picks: list[dict]) -> dict:
         """Re-price every watched pick (same city, same dates) from the provider."""
         p, w = TasteProfile.model_validate(profile), Weights.model_validate(weights)
         out: dict[str, dict | None] = {}
@@ -433,6 +451,14 @@ async def scan_body(
 async def _scan(deps, user_id, today_iso, run_step, mode, trigger, workflow_id) -> dict:
     s = Scan(deps)
     ctx = await run_step("load_context", s.load_context, user_id)
+    # notification texts are written in the user's saved language (POST /scan/run stores it)
+    s.lang = NotificationPrefs.model_validate(ctx["prefs"]).lang
+    with i18n.using(i18n.pick(s.lang)):
+        return await _scan_with(s, ctx, deps, user_id, today_iso, run_step, mode, trigger,
+                                workflow_id)  # fmt: skip
+
+
+async def _scan_with(s, ctx, deps, user_id, today_iso, run_step, mode, trigger, workflow_id):
     now = datetime.fromisoformat(ctx["now"])
     today = date.fromisoformat(today_iso) if today_iso else now.astimezone(TZ).date()
     profile = TasteProfile.model_validate(ctx["profile"])

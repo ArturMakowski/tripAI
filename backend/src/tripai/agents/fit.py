@@ -27,6 +27,7 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models import Model
 
+from tripai import i18n
 from tripai.agents.explain import _ALWAYS_OK, allowed_numbers, numbers_in, ungrounded_numbers
 from tripai.agents.jev import (
     FIT_CHECKS,
@@ -55,7 +56,7 @@ def _without_card_ids(text: str) -> str:
 
 
 LABELS = ["poor_fit", "mixed", "good_fit", "great_fit"]  # worst -> best
-NEUTRAL_PREFIX = "Neutral check (personalisation off): "
+NEUTRAL_PREFIX = i18n.MESSAGES["fit.neutral_prefix"]["en"]  # en form; see i18n for pl
 DNA_EN = {
     "q1": "loves discovering new places",
     "q2": "likes every day planned",
@@ -269,60 +270,60 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
     if avoids_crowds and crowd is not None:
         if crowd > 0.7:
             hard_at.add(len(concerns))
-            concerns.append(FitPoint(text="Peak tourist crowds, and you prefer to avoid them",
+            concerns.append(FitPoint(text=i18n.t("fit.r.crowds_bad"),
                                      dna=crowd_cards, evidence=ev_crowd))  # fmt: skip
         elif crowd <= 0.4:
-            matches.append(FitPoint(text="Quiet season, away from the crowds you avoid",
+            matches.append(FitPoint(text=i18n.t("fit.r.crowds_good"),
                                     dna=crowd_cards, evidence=ev_crowd))  # fmt: skip
 
     if a["q6"] >= 4:
         if tags & NIGHTLIFE and not tags & RELAX:
             hard_at.add(len(concerns))
-            party = ", ".join(sorted(tags & NIGHTLIFE))
-            concerns.append(FitPoint(text=f"Known for {party}, but you travel to rest",
+            party = i18n.tags(sorted(tags & NIGHTLIFE))
+            concerns.append(FitPoint(text=i18n.t("fit.r.party", tags=party),
                                      dna=["q6"]))  # fmt: skip
         elif tags & RELAX:
-            restful = ", ".join(sorted(tags & RELAX))  # only what the city's tags actually say
-            matches.append(FitPoint(text=f"Good for rest: {restful}", dna=["q6"]))
+            restful = i18n.tags(sorted(tags & RELAX))  # only what the city's tags actually say
+            matches.append(FitPoint(text=i18n.t("fit.r.rest", tags=restful), dna=["q6"]))
 
     lo, hi = p.preferred_temp_c
     if temp is not None:
         if "heat" in p.dislikes and temp > hi:
             hard_at.add(len(concerns))
-            concerns.append(FitPoint(text="Hotter than you like", evidence=ev_weather))
+            concerns.append(FitPoint(text=i18n.t("fit.r.hot"), evidence=ev_weather))
         elif temp < lo - 4 or temp > hi + 4:
-            concerns.append(FitPoint(text="Weather well outside your comfort range",
+            concerns.append(FitPoint(text=i18n.t("fit.r.weather_far"),
                                      evidence=ev_weather))  # fmt: skip
         elif lo <= temp <= hi and ev_weather:
-            matches.append(FitPoint(text="Weather in your comfort range", evidence=ev_weather))
+            matches.append(FitPoint(text=i18n.t("fit.r.weather_ok"), evidence=ev_weather))
 
     if rec.score.price >= 0.7 and rec.score.weather < 0.5:
-        concerns.append(FitPoint(text="Cheap partly because the weather is poor then",
+        concerns.append(FitPoint(text=i18n.t("fit.r.cheap_bad_weather"),
                                  evidence=ev_price + ev_weather))  # fmt: skip
 
     if a["q9"] >= 4:
         if rec.score.price < 0.4:
             hard_at.add(len(concerns))
-            concerns.append(FitPoint(text="Expensive for someone price-driven", dna=["q9"],
+            concerns.append(FitPoint(text=i18n.t("fit.r.expensive"), dna=["q9"],
                                      evidence=ev_price))  # fmt: skip
         elif rec.score.price >= 0.7:
-            matches.append(FitPoint(text="A genuinely good price, which matters to you",
+            matches.append(FitPoint(text=i18n.t("fit.r.good_price"),
                                     dna=["q9"], evidence=ev_price))  # fmt: skip
 
     if a["q5"] >= 4:
         if tags & CULTURE:
-            matches.append(FitPoint(text="Strong local food and culture", dna=["q5"],
+            matches.append(FitPoint(text=i18n.t("fit.r.culture"), dna=["q5"],
                                     evidence=ev_sights))  # fmt: skip
         else:
-            concerns.append(FitPoint(text="Not much of a food and culture destination",
+            concerns.append(FitPoint(text=i18n.t("fit.r.no_culture"),
                                      dna=["q5"]))  # fmt: skip
     if a["q7"] >= 4 and tags & ACTIVE:
-        matches.append(FitPoint(text="Plenty to do actively outdoors", dna=["q7"]))
+        matches.append(FitPoint(text=i18n.t("fit.r.active"), dna=["q7"]))
     if (a["q1"] >= 4 or p.daily_discovery) and len(rec.highlights) >= 3:
         cards = ["q1"] if a["q1"] >= 4 else []
         if p.daily_discovery:
             cards.append("y1")
-        matches.append(FitPoint(text="Enough sights for something new each day", dna=cards,
+        matches.append(FitPoint(text=i18n.t("fit.r.novelty"), dna=cards,
                                 evidence=ev_sights))  # fmt: skip
 
     # Rule 1 applies to the fallback too: drop any point that cites nothing (e.g. a live provider
@@ -338,14 +339,7 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
     label = label_from_score(rec.score.total)
     idx = max(0, LABELS.index(label) - hard)
     label = LABELS[idx]
-    phrase = {"great_fit": "A great fit for you", "good_fit": "A good fit for you",
-              "mixed": "A mixed fit for you", "poor_fit": "Probably not your style"}[label]  # fmt: skip
-    summary = phrase
-    if matches:
-        summary += f": {matches[0].text[0].lower()}{matches[0].text[1:]}"
-    if concerns:
-        summary += f"; watch out: {concerns[0].text[0].lower()}{concerns[0].text[1:]}"
-    summary += "."
+    summary = template_summary(label, matches, concerns)
     confidence = 0.5 if not (matches or concerns) else 0.6
     return FitDraft(label=label, confidence=confidence, summary=summary,
                     matches=matches, concerns=concerns)  # fmt: skip
@@ -354,23 +348,7 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
 # ---------------------------------------------------------------- jev engine
 
 POINT_MIN_CONFIDENCE = 0.4  # a Jev yes/no below this (P(yes) < 0.7) is too unsure to show
-UNSURE_PREFIX = "We're not sure about this one; here's why: "
-CHECK_TEXT = {
-    "crowd_conflict": "Busy tourist period, and you prefer to avoid crowds",
-    "relax_conflict": "Known more for buzz than for rest, and you travel to unwind",
-    "budget_conflict": "Pricey for someone price-driven",
-    "weather_conflict": "Weather outside your comfort range",
-    "pace_conflict": "Few concrete sights to plan your days around",
-    "culture_match": "Strong local food and culture",
-    "active_match": "Plenty to do actively outdoors",
-    "novelty_match": "Enough sights for something new each day",
-}
-LABEL_PHRASE = {
-    "great_fit": "A great fit for you",
-    "good_fit": "A good fit for you",
-    "mixed": "A mixed fit for you",
-    "poor_fit": "Probably not your style",
-}
+UNSURE_PREFIX = i18n.MESSAGES["fit.unsure_prefix"]["en"]  # en form; see i18n for pl
 
 
 def _lower_first(text: str) -> str:
@@ -378,11 +356,12 @@ def _lower_first(text: str) -> str:
 
 
 def template_summary(label: str, matches: list[FitPoint], concerns: list[FitPoint]) -> str:
-    summary = LABEL_PHRASE[label]
+    """'A good fit for you: …; watch out: ….' in the current language."""
+    summary = i18n.t(f"fit.label.{label}")
     if matches:
         summary += f": {_lower_first(matches[0].text)}"
     if concerns:
-        summary += f"; watch out: {_lower_first(concerns[0].text)}"
+        summary += f"; {i18n.t('fit.watch_out')}: {_lower_first(concerns[0].text)}"
     return summary + "."
 
 
@@ -410,7 +389,7 @@ def jev_fit(d: Decision[FitDecision], rec: RankedRecommendation, profile: TasteP
             continue
         dna = [c for c in cards if (c in a and a[c] >= 4) or (c == "y1" and p.daily_discovery)]
         evidence = [i for k in kinds for i in _ev_index(rec, k)]
-        pt = FitPoint(text=CHECK_TEXT[name], dna=dna, evidence=evidence)
+        pt = FitPoint(text=i18n.t(f"fit.c.{name}"), dna=dna, evidence=evidence)
         if not (pt.dna or pt.evidence) or point_problems(pt, rec, a):
             continue  # rule 1: a point that can't cite anything is not shown
         (matches if kind == "match" else concerns).append(pt)
@@ -550,7 +529,7 @@ def _llm_name(model: Model | str | None) -> str:
 
 async def _run_llm(rec, profile, model) -> tuple[FitDraft, float | None]:
     result = await fit_agent.run(
-        "FIT INPUT:\n" + fit_payload(rec, profile),
+        "FIT INPUT:\n" + fit_payload(rec, profile) + "\n\n" + i18n.llm_language_rule(),
         model=model or model_name(),
         deps=FitDeps(rec=rec, profile=profile),
     )
@@ -561,7 +540,7 @@ async def _phrase(jf: JevFit, rec, profile, model) -> tuple[FitDraft, str, float
     """GPT words Jev's decisions; on failure the template wording stays."""
     try:
         result = await phrase_agent.run(
-            "DECISIONS:\n" + phrase_payload(jf, rec, profile),
+            "DECISIONS:\n" + phrase_payload(jf, rec, profile) + "\n\n" + i18n.llm_language_rule(),
             model=model or model_name(),
             deps=PhraseDeps(jf=jf, rec=rec, profile=profile),
         )
@@ -600,7 +579,10 @@ async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool):
         raise EscalationFailed(f"jev unsure (p={p:.2f}) and the LLM failed: {exc}") from exc
     if draft.confidence < LOW_CONFIDENCE:  # GPT is the final engine and unsure itself
         draft = draft.model_copy(
-            update={"label": "mixed", "summary": UNSURE_PREFIX + _lower_first(draft.summary)}
+            update={
+                "label": "mixed",
+                "summary": i18n.t("fit.unsure_prefix") + _lower_first(draft.summary),
+            }
         )
     name = f"{d.model}\u2192{_llm_name(model)} (escalated, jev p={p:.2f}; confidence self-rated)"
     return _finish(draft, name, rec, profile), _add(d.cost_usd, llm_cost), d, True, False
@@ -614,6 +596,20 @@ async def fit_run(
     engine: Engine | None = None,
     jev: Model | None = None,
     phrase: bool | None = None,
+    lang: str | None = None,
+) -> FitRun:
+    with i18n.using(i18n.pick(lang)):
+        return await _fit_run(rec, profile, model, engine=engine, jev=jev, phrase=phrase)
+
+
+async def _fit_run(
+    rec: RankedRecommendation,
+    profile: TasteProfile,
+    model: Model | str | None,
+    *,
+    engine: Engine | None,
+    jev: Model | None,
+    phrase: bool | None,
 ) -> FitRun:
     """One uncached verdict through the fallback chain jev -> llm -> rules.
 
@@ -653,14 +649,15 @@ async def fit_run(
     return done(_finish(rules_verdict(rec, profile), "rules", rec, profile), "rules")
 
 
-_CACHE: "OrderedDict[tuple[str, str, str, str], FitVerdict]" = OrderedDict()
+_CACHE: "OrderedDict[tuple[str, str, str, str, str], FitVerdict]" = OrderedDict()
 CACHE_SIZE = 1024
 
 
 def _finish(draft: FitDraft, model: str, rec: RankedRecommendation, profile: TasteProfile):
     summary = draft.summary
-    if not profile.personalize and not summary.startswith(NEUTRAL_PREFIX):
-        summary = NEUTRAL_PREFIX + summary
+    neutral = i18n.t("fit.neutral_prefix")
+    if not profile.personalize and not summary.startswith(neutral):
+        summary = neutral + summary
     return FitVerdict(
         label=draft.label,
         confidence=round(draft.confidence, 2),
@@ -687,20 +684,23 @@ async def fit(
     *,
     engine: Engine | None = None,
     jev: Model | None = None,
+    lang: str | None = None,
 ) -> FitVerdict:
-    """Grounded fit verdict; cached by (engine+model, inputs_hash, profile hash, recommendation id)."""
+    """Grounded fit verdict in `lang` (default: the request's); cached by
+    (engine+model, inputs_hash, profile hash, recommendation id, language)."""
+    lg = i18n.pick(lang)
     if engine is None:
         engine = "jev" if jev is not None else "llm" if model is not None else fit_engine()
     if engine == "jev" and jev is None and not jev_enabled():
         engine = "llm"
     if engine == "llm" and model is None and not llm_enabled():
         engine = "rules"
-    key = (_engine_key(engine, model, jev), rec.inputs_hash, profile_hash(profile), rec.id)
+    key = (_engine_key(engine, model, jev), rec.inputs_hash, profile_hash(profile), rec.id, lg)
     if key in _CACHE:
         _CACHE.move_to_end(key)
         return _CACHE[key].model_copy(deep=True)  # callers may mutate their copy
 
-    run = await fit_run(rec, profile, model, engine=engine, jev=jev)
+    run = await fit_run(rec, profile, model, engine=engine, jev=jev, lang=lg)
     if run.engine != engine or run.degraded:
         return run.verdict  # don't cache a fallback under the primary key: retry next request
     _CACHE[key] = run.verdict.model_copy(deep=True)

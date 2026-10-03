@@ -17,6 +17,7 @@ from itertools import pairwise
 from pydantic import BaseModel, Field
 from pydantic_ai.models import Model
 
+from tripai import i18n
 from tripai.agents.interview import ChatMessage
 from tripai.agents.jev import (
     CARDS_EN,
@@ -33,10 +34,7 @@ STATEMENTS = [f"q{i}" for i in range(1, 13)]
 # which unsure card to ask about first: the ones that move weights/dislikes/interests the most
 PRIORITY = ["q9", "q11", "q6", "q5", "q7", "q1", "q10", "q4", "q8", "q2", "q3", "q12", "y1"]
 MAX_FOLLOW_UPS = 4
-OPENER = (
-    "Tell me how you like to travel: what do you love doing, how much does price matter, "
-    "and do you plan every day or go with the flow?"
-)
+OPENER = i18n.MESSAGES["chat.opener"]["en"]  # en form; replies follow the request language
 
 
 class DnaChatResult(BaseModel):
@@ -51,14 +49,18 @@ class DnaChatResult(BaseModel):
     blocked: bool = False  # the guardrail stopped the last message
 
 
-def follow_up_question(card: str) -> str:
+def follow_up_question(card: str, lang: str | None = None) -> str:
     if card == "y1":
-        return f"Quick one: {CARDS_EN['y1']} (yes / no)"
-    return f"One more: is this you? “{CARDS_EN[card]}” (not me / depends / that's me / so me)"
+        return i18n.t("chat.ask_y1", lang, card=i18n.t("card.y1", lang))
+    return i18n.t("chat.ask_card", lang, card=i18n.t(f"card.{card}", lang))
 
 
 def _asked_card(text: str) -> str | None:
-    return next((c for c, s in CARDS_EN.items() if s in text), None)
+    """Which card the assistant asked about (its statement in either language)."""
+    for c in CARDS_EN:
+        if any(i18n.t(f"card.{c}", lg) in text for lg in i18n.LANGS):
+            return c
+    return None
 
 
 _REPLY_WORDS: list[tuple[re.Pattern[str], int]] = [
@@ -117,7 +119,7 @@ def _next(
             confidence=confidence, missing=missing, asked=card, engine=engine,
         )  # fmt: skip
     return DnaChatResult(
-        reply="Thanks, that's your Travel DNA. Have a look and adjust anything I got wrong.",
+        reply=i18n.t("chat.done"),
         done=True, answers=answers, yes_no=yes_no, confidence=confidence,
         missing=sorted(missing, key=PRIORITY.index), engine=engine,
     )  # fmt: skip
@@ -135,7 +137,9 @@ async def chat_dna(
     use_jev = model is not None or jev_enabled()
     engine = "scripted"
     if not any(m.role == "user" for m in messages):
-        return DnaChatResult(reply=OPENER, done=False, engine="typesafe:jev" if use_jev else engine)
+        return DnaChatResult(
+            reply=i18n.t("chat.opener"), done=False, engine="typesafe:jev" if use_jev else engine
+        )
     verdicts = await screen([m.content for m in messages], model=guard_model)
     clean = [m for m, g in zip(messages, verdicts) if not g.blocked]
     last_user = max(i for i, m in enumerate(messages) if m.role == "user")

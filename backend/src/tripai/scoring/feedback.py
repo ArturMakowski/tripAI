@@ -4,6 +4,7 @@ from collections.abc import Sequence
 
 from pydantic import BaseModel
 
+from tripai import i18n
 from tripai.models import TasteProfile, Weights
 from tripai.scoring.engine import FACTORS, normalise_weights
 
@@ -40,7 +41,8 @@ def apply_feedback(
     answers: dict,
     trip_tags: Sequence[str] = (),
     trip_temp_c: float | None = None,
-    trip_label: str = "this trip",
+    trip_label: str | None = None,
+    lang: str | None = None,
 ) -> FeedbackResult:
     """Survey answers (1-5 satisfaction per factor or tag, plus optional `loved`/`disliked` tag lists).
 
@@ -49,13 +51,18 @@ def apply_feedback(
     - tag rated r       -> interest moves halfway toward r/5
     - weather rated <=2 with a temperature inside your range -> range narrows away from it
     """
+    with i18n.using(i18n.pick(lang)):
+        return _apply(profile, weights, answers, trip_tags, trip_temp_c, trip_label)
+
+
+def _apply(profile, weights, answers, trip_tags, trip_temp_c, trip_label) -> FeedbackResult:
+    trip_label = trip_label or i18n.t("fb.this_trip")
     if not profile.personalize:
         return FeedbackResult(
             profile=profile,
             weights=normalise_weights(weights),
             diff=[],
-            note="Personalisation is off (your choice in Travel DNA), so feedback does not "
-            "change your profile or weights.",
+            note=i18n.t("fb.off"),
         )
     before_w = normalise_weights(weights)
     raw = {f: getattr(before_w, f) for f in FACTORS}
@@ -74,13 +81,13 @@ def apply_feedback(
                 if new != old:
                     interests[t] = new
                     diff.append(Change(field=f"interests.{t}", before=old, after=new,
-                                       reason=f"you loved {t} on {trip_label}"))  # fmt: skip
+                                       reason=i18n.t("fb.loved", tag=i18n.tag(t), trip=trip_label)))  # fmt: skip
             continue
         if k == "disliked" and isinstance(val, list):
             for t in val:
                 if t not in dislikes:
                     diff.append(Change(field="dislikes", before=list(dislikes),
-                                       after=[*dislikes, t], reason=f"you disliked {t}"))  # fmt: skip
+                                       after=[*dislikes, t], reason=i18n.t("fb.disliked", tag=i18n.tag(t))))  # fmt: skip
                     dislikes.append(t)
             continue
         r = _rating(val)
@@ -89,10 +96,12 @@ def apply_feedback(
         if k in FACTORS:
             if r <= 2:
                 raw[k] += WEIGHT_STEP * (3 - r)
-                reasons[k] = f"{k} rated {r:g}/5 on {trip_label}"
+                reasons[k] = i18n.t(
+                    "fb.rated", what=i18n.t(f"factor.{k}"), r=f"{r:g}", trip=trip_label
+                )
             if r == 1 and k == "crowds" and "crowds" not in dislikes:
                 diff.append(Change(field="dislikes", before=list(dislikes),
-                                   after=[*dislikes, "crowds"], reason="crowds rated 1/5"))  # fmt: skip
+                                   after=[*dislikes, "crowds"], reason=i18n.t("fb.crowds_one")))  # fmt: skip
                 dislikes.append("crowds")
             if k == "weather" and r <= 2 and trip_temp_c is not None and lo <= trip_temp_c <= hi:
                 old_range = [lo, hi]
@@ -102,7 +111,7 @@ def apply_feedback(
                     lo = min(hi - 3, trip_temp_c + 1)
                 diff.append(Change(field="preferred_temp_c", before=str(old_range),
                                    after=str([lo, hi]),
-                                   reason=f"weather rated {r:g}/5 at {trip_temp_c:g} °C"))  # fmt: skip
+                                   reason=i18n.t("fb.weather_narrow", r=f"{r:g}", temp=i18n.fmt_temp(trip_temp_c))))  # fmt: skip
         elif k in trip_tags or k in interests:
             old = interests.get(k)
             base = 0.5 if old is None else old
@@ -110,7 +119,7 @@ def apply_feedback(
             if new != old:
                 interests[k] = new
                 diff.append(Change(field=f"interests.{k}", before=old, after=new,
-                                   reason=f"{k} rated {r:g}/5 on {trip_label}"))  # fmt: skip
+                                   reason=i18n.t("fb.rated", what=i18n.tag(k), r=f"{r:g}", trip=trip_label)))  # fmt: skip
 
     after_w = normalise_weights(Weights(**raw))
     weight_changes = [
@@ -118,7 +127,7 @@ def apply_feedback(
             field=f"weights.{f}",
             before=getattr(before_w, f),
             after=getattr(after_w, f),
-            reason=reasons.get(f, "re-normalised after another weight changed"),
+            reason=reasons.get(f, i18n.t("fb.renorm")),
         )
         for f in FACTORS
         if abs(getattr(after_w, f) - getattr(before_w, f)) >= 0.005

@@ -37,6 +37,7 @@ class NotificationPrefs(BaseModel):
     max_per_week: int = Field(3, ge=0, le=50)
     muted_cities: list[str] = Field(default_factory=list)  # city names or IATA codes
     snooze_until: UTCDateTime | None = None
+    lang: Literal["en", "pl"] = "en"  # language of notification titles/bodies (scan-time)
     updated_at: UTCDateTime = Field(default_factory=now_utc)
 
 

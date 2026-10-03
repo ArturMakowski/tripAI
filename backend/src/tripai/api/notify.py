@@ -11,11 +11,13 @@ import time
 from collections import deque
 from contextlib import asynccontextmanager
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from tripai import i18n
+from tripai.api.lang import use_lang
 from tripai.api.session import session_user
 from tripai.api.state import Store
 from tripai.models import TasteProfile, Weights
@@ -39,6 +41,7 @@ User = Annotated[str, Depends(session_user)]
 
 
 class ScanRequest(BaseModel):
+    lang: str | None = None  # "pl" | "en": saved to prefs, used by every later scan
     today: date | None = None  # pin "now" for reproducible demos
     # optional: the client's current profile/weights (saved first, as POST /recommendations does)
     profile: TasteProfile | None = None
@@ -56,6 +59,7 @@ class PrefsUpdate(BaseModel):
     max_per_week: int | None = Field(None, ge=0, le=50)
     muted_cities: list[str] | None = None
     snooze_until: str | None = None  # ISO datetime (naive = UTC), "" clears it
+    lang: Literal["en", "pl"] | None = None  # language of notification texts
 
 
 class SubscriptionJSON(BaseModel):
@@ -154,6 +158,14 @@ def _router(deps: ScanDeps, limiter: ScanRateLimiter) -> APIRouter:
     async def post_scan_run(req: ScanRequest, uid: User) -> ScanResult:
         """Run the proactive scan now (demo button). Durable DBOS workflow when enabled."""
         limiter.check(uid)
+        use_lang(req.lang)  # this response
+        # Only an explicit body `lang` changes the saved notification language: a missing one
+        # (or the browser's Accept-Language / the en default) must not undo PUT prefs {lang}.
+        # The scan itself writes in prefs.lang.
+        explicit = i18n.normalise(req.lang)
+        prefs = notify.get_prefs(uid)
+        if explicit is not None and explicit != prefs.lang:
+            notify.save_prefs(prefs.model_copy(update={"lang": explicit, "updated_at": now_utc()}))
         if req.profile is not None:
             await deps.store.save_profile(req.profile.model_copy(update={"user_id": uid}))
         if req.weights is not None:
