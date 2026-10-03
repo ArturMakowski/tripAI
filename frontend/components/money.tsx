@@ -182,7 +182,8 @@ export function MoneyLines({
   return (
     <div>
       {legs.map((l) => (
-        <div key={l.key} id={l.e && idFor ? idFor(l.e) : undefined} className="-mx-2 rounded-lg px-2">
+        // data-line / data-amount: stable hooks for the e2e price invariant (e2e/tests/10)
+        <div key={l.key} id={l.e && idFor ? idFor(l.e) : undefined} data-line={l.key} data-amount={l.value} className="-mx-2 rounded-lg px-2">
           <MoneyRow
             icon={l.icon}
             label={l.label}
@@ -237,7 +238,7 @@ export function MoneyLines({
 }
 
 /** "Świetna cena" / "Warto dopłacić +300 zł"; the reason is one tap away. */
-export function ValueBadge({ rec, className, inLink = false }: { rec: Pick<Recommendation, "value_badge" | "value_reason">; className?: string; inLink?: boolean }) {
+export function ValueBadge({ rec, className }: { rec: Pick<Recommendation, "value_badge" | "value_reason">; className?: string }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   if (!rec.value_badge) return null;
@@ -248,10 +249,7 @@ export function ValueBadge({ rec, className, inLink = false }: { rec: Pick<Recom
     <span className={cn("inline-flex flex-col items-start", className)}>
       <button
         type="button"
-        onClick={(e) => {
-          if (inLink) e.preventDefault(); // inside a card link: show the reason, don't navigate
-          setOpen((o) => !o);
-        }}
+        onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={`${label}. ${t.money.valueWhy}`}
         className={cn(

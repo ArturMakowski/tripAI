@@ -124,6 +124,9 @@ overall rating is half stars with the exact value in small text (`★★★★½
 - **Ties:** a score gap under 0.5 pts reads "praktycznie remis" / "practically a tie" (`lib/compare.ts`).
 - **Country names** go through `lib/country.ts` (`Intl.DisplayNames`), so PL shows "Francja", never "FRANCE".
 - **Fit badge** shows only the verdict; the check's confidence is in Audit.
+- **Trip cards** are an `<article>` with one stretched link (named "Rzym, 14–19 sty, 1 442 zł"); the value badge and the
+  "vs peak" chip are real buttons beside it, never nested inside the link. Money carries `data-testid="trip-total"` /
+  `data-line` + `data-amount` hooks for the e2e price invariant.
 - **Comparisons name the trip:** "Rzym: wynik wyższy o 3,6 pkt · drożej o 108 zł".
 
 ## Pick your dates (`/windows`, T4f)

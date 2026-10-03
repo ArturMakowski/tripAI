@@ -3,7 +3,7 @@ import { expect } from 'e2e';
 import { guard } from './support/tripai.ts';
 
 /**
- * Invariant for the top 3 trips: card total == receipt TOTAL == confirm total == flight + hotel,
+ * Invariant for the top 3 trips: card total == receipt total == confirm total == flight + hotel (one traveller),
  * on every screen, and the hotel nights shown match the trip dates.
  * Fully deterministic (DOM reads, no model calls). Numbers are parsed in both formats:
  * "1,096 PLN" (EN) and "1 096 zł" (PL, with NBSP / narrow NBSP).
@@ -34,43 +34,27 @@ function readScreen(arg: { screen: 'card' | 'receipt' | 'confirm'; id: string })
     return m ? Number(m[1]) : null;
   };
   const textOf = (el: Element | null | undefined) => (el?.textContent ?? '').trim();
-  const iconParent = (root: Element, icon: string) => root.querySelector(`svg.lucide-${icon}`)?.parentElement ?? null;
 
-  if (arg.screen === 'card') {
-    const card = document.querySelector(`main li a[href="/trips/${arg.id}"]`);
-    if (!card) return null;
-    return {
-      total: amount(textOf(card.querySelector('p.font-display.text-2xl'))),
-      flight: amount(textOf(iconParent(card, 'plane'))),
-      hotel: amount(textOf(iconParent(card, 'bed-double'))),
-      nights: nightsIn(textOf(card.querySelector('p.font-display.text-lg'))),
-    };
-  }
-  if (arg.screen === 'receipt') {
-    const rows = [...document.querySelectorAll('main div[id^="ev-"]')];
-    const value = (el: Element | undefined) => amount(textOf(el?.querySelector('span.tabular')));
-    // rows in order: return flight, hotel, then the "typical trip cost" baseline (not a line item)
-    const hotelRow = rows.find((r) => /hotel|noc|night/i.test(textOf(r.querySelector('span'))));
-    const flightRow = rows.find((r) => r !== hotelRow);
-    const totalLine = [...document.querySelectorAll('main div.font-semibold')].find((d) => /^(total|razem|suma)/i.test(textOf(d)));
-    return {
-      total: value(totalLine),
-      flight: value(flightRow),
-      hotel: value(hotelRow),
-      nights: nightsIn(textOf(hotelRow?.querySelector('span'))),
-    };
-  }
-  const main = document.querySelector('main');
-  if (!main) return null;
-  const items = [...main.querySelectorAll('ul li')];
-  const flightItem = items.find((li) => li.querySelector('svg.lucide-plane'));
-  const hotelItem = items.find((li) => li.querySelector('svg.lucide-bed-double'));
-  const header = main.querySelector('p.font-display.text-2xl')?.parentElement;
+  // Since PR #31 every screen marks its money with data hooks (frontend/components/money.tsx, rec-card.tsx):
+  // [data-testid="trip-total"] carries the per-person total, [data-line="flight"|"hotel"] each line's amount.
+  const num = (el: Element | null | undefined) => {
+    const v = el?.getAttribute('data-amount');
+    return v == null ? null : Number(v);
+  };
+  const root =
+    arg.screen === 'card' ? document.querySelector(`main li article:has(a[href="/trips/${arg.id}"])`) : document.querySelector('main');
+  if (!root) return null;
+  const total = root.querySelector('[data-testid="trip-total"]');
+  // the visible number must agree with its data-amount (a stale hook would hide a display bug)
+  const shown = amount(textOf(total));
+  const flightLine = root.querySelector('[data-line="flight"]');
+  const hotelLine = root.querySelector('[data-line="hotel"]');
   return {
-    total: amount(textOf(main.querySelector('p.tabular.font-display.text-2xl'))),
-    flight: amount(textOf(flightItem?.querySelector('p.text-muted-foreground'))),
-    hotel: amount(textOf(hotelItem?.querySelector('p.text-muted-foreground'))),
-    nights: nightsIn(textOf(header)),
+    total: shown != null && shown === num(total) ? shown : null,
+    flight: amount(textOf(flightLine)) ?? num(flightLine),
+    hotel: amount(textOf(hotelLine)) ?? num(hotelLine),
+    // card: "6–10 Jan · 4 nights"; receipt: the stay line; confirm: the hero "… · 5 nights"
+    nights: nightsIn(arg.screen === 'receipt' ? textOf(hotelLine) : textOf(root)),
   };
 }
 
@@ -89,16 +73,16 @@ test(`Price invariant (${lang}): top 3 trips add up the same on card, receipt an
   await app.open('/trips');
   // The app-wide PL/EN switch in the header (stored, so it holds across the page loads below).
   await screen.getByRole('radio', lang).tap();
-  const cards = browser.locator('main li:has(a[href^="/trips/"])');
+  const cards = browser.locator('main li:has(article a[href^="/trips/"])');
   await expect(cards.first()).toBeVisible({ timeout: 60_000 });
   // Wait for final prices: while refining, totals read "~1,096 PLN" (cached estimate).
-  await expect(browser.locator('main li a[href^="/trips/"] p.font-display.text-2xl').first()).not.toContainText('~', { timeout: 60_000 });
+  await expect(browser.locator('main li article [data-testid="trip-total"]').first()).not.toContainText('~', { timeout: 60_000 });
 
   // The numbers below are parsed in this screen's own format: "1,096 PLN" (EN) or "1 096 zł" (PL).
-  await expect(browser.locator('main li a[href^="/trips/"] p.font-display.text-2xl').first()).toContainText(lang === 'Polski' ? /zł/ : /PLN/);
+  await expect(browser.locator('main li article [data-testid="trip-total"]').first()).toContainText(lang === 'Polski' ? /zł/ : /PLN/);
 
   const hrefs = (await browser.evaluate(() =>
-    [...document.querySelectorAll('main li a[href^="/trips/"]')].slice(0, 3).map((a) => a.getAttribute('href') ?? ''),
+    [...document.querySelectorAll('main li article a[href^="/trips/"]')].slice(0, 3).map((a) => a.getAttribute('href') ?? ''),
   )) as string[];
   expect(hrefs.length, 'trips on screen').toBe(3);
 
@@ -109,16 +93,16 @@ test(`Price invariant (${lang}): top 3 trips add up the same on card, receipt an
     const seen: Record<string, Seen | null> = {};
 
     await browser.goto('/trips');
-    await expect(browser.locator(`main li a[href="${href}"]`)).toBeVisible({ timeout: 60_000 });
+    await expect(browser.locator(`main li article a[href="${href}"]`)).toBeVisible({ timeout: 60_000 });
     seen.card = (await browser.evaluate(readScreen, { screen: 'card', id })) as Seen | null;
 
     await browser.goto(href);
-    await expect(screen.getByRole('heading', /^(receipt|paragon)$/i)).toBeVisible({ timeout: 30_000 });
+    await expect(browser.locator('main [data-line="flight"]')).toBeVisible({ timeout: 30_000 });
     seen.receipt = (await browser.evaluate(readScreen, { screen: 'receipt', id })) as Seen | null;
     const receiptBad = check(id, 'receipt', seen.receipt, expectedNights);
 
     await browser.goto(`${href}/confirm`);
-    await expect(browser.locator('main ul li:has(svg.lucide-plane)')).toBeVisible({ timeout: 30_000 });
+    await expect(browser.locator('main [data-line="flight"]')).toBeVisible({ timeout: 30_000 });
     seen.confirm = (await browser.evaluate(readScreen, { screen: 'confirm', id })) as Seen | null;
     const confirmBad = check(id, 'confirm', seen.confirm, expectedNights);
     const cardBad = check(id, 'card', seen.card, expectedNights);

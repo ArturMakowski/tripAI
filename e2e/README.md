@@ -32,22 +32,23 @@ SerpApi is paid and capped (30/day). `tests/support/tripai.ts` → `guard()` re-
 and the swipe re-rank. The console test checks that the guard fired. Only tests tagged **`live`** skip the guard: today that is the
 inbox scan, which runs the real proactive workflow. `npm run e2e` excludes them, so run `e2e:prod` sparingly (at most twice a day).
 
-`guard()` also injects a small error recorder into every HTML page. It captures `console.error`, uncaught errors (React hydration
+`guard()` also marks the first-run tutorial as seen (pass `{ tutorial: true }` to test it), so its overlay never covers the flow
+under test. It also injects a small error recorder into every HTML page. It captures `console.error`, uncaught errors (React hydration
 errors land here in production) and unhandled rejections. The framework has no console hook yet.
 
 ## Tests
 | File | Flow | Agent | Deterministic checks |
 |---|---|---|---|
-| `01-travel-dna` | Swipe all 14 Travel DNA cards → budget → airports → result | switch to EN; finish budget/airport | "because you swiped" reasons render |
+| `01-travel-dna` | Dates + party + airports (step 1) → swipe all 14 Travel DNA cards → result | none (deterministic steps) | step 1 comes first; "2 people"; the deck follows; the result's "Why these weights" ⓘ shows "because you swiped" reasons |
 | `02-language` | PL/EN switch on each main screen (one test per screen) | find + use the switch; judge "no PL/EN mix" | page title text actually changes |
 | `03-pick-dates` | Pick 1–3 Jan 2027 in the Free time calendar → Trips | pick the range | Trips header "For your dates: 1–3 Jan" |
-| `04-trips-budget` | Budget 1,000 PLN → trip cards | judge photo/price/badge (vision) | every card: PLN price, fit badge, photo decodes; no in-budget card below an over-budget one |
-| `05-receipt` | Open the top trip's "why this, why now" | open it | each priced row has `Source · 3 Oct, 16:57`; inputs hash shown |
+| `04-trips-budget` | Profile: switch on "Never show trips over…" (off by default) and set 1,000 PLN → trip cards | judge photo/price/badge (vision) | every card: PLN price, fit badge, photo decodes; no in-budget card below an over-budget one |
+| `05-receipt` | Open the top trip's receipt | none (deterministic) | each money line has a `Source · 3 Oct` chip with the time in its tooltip (demo data excepted); inputs hash under "Audit" |
 | `06-swipe-offers` | Swipe mode → like → undo | like; undo | "Learned: … {city}" toast; "Undone" toast; the same card is back on top |
 | `07-survey` | Post-trip survey → profile update | answer + submit | "Ranking weights" with `x% → y%` lines |
 | `08-inbox` `@live` | Run the proactive scan | run it | scan finishes; "N new notifications" or "Nothing new worth a ping" |
 | `09-console` | Every route + a receipt | none | no console/page/hydration errors; no "Application error" |
-| `10-price-invariant` | Top 3 trips, EN and PL | none | card total = receipt TOTAL = confirm total = flight + hotel; nights shown = nights from the dates; screenshots on mismatch |
+| `10-price-invariant` | Top 3 trips, EN and PL | none | card total = receipt total = confirm total = flight + hotel, read from the `data-testid="trip-total"` / `data-line` hooks (and checked against the visible text); nights shown = nights from the dates; screenshots on mismatch |
 
 Run output (report, screenshots, traces) goes to `.e2e/` and is not committed. `report/2026-10-03/` keeps the first runs' summaries and the
 screenshots attached to the T9 PR.
