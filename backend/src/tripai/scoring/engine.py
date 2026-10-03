@@ -82,10 +82,26 @@ def score_candidate(c: Candidate, profile: TasteProfile, weights: Weights) -> Sc
         ),
         "weather": weather_score(c.temp_c, profile.preferred_temp_c, profile.dislikes),
         "crowds": crowd_score(c.crowd),
-        "taste": taste_score(c.tags, profile.interests, profile.dislikes),
+        # personalize=False: interests act only as a filter (see rank), never as a ranking signal
+        "taste": taste_score(c.tags, profile.interests, profile.dislikes)
+        if profile.personalize
+        else 0.5,
     }
     total = sum(getattr(w, f) * parts[f] for f in FACTORS)
     return ScoreBreakdown(**{f: round(v, 4) for f, v in parts.items()}, total=round(total, 4))
+
+
+INTEREST_FILTER_MIN = 0.5
+
+
+def interest_filter(candidates: Sequence[Candidate], profile: TasteProfile) -> list[Candidate]:
+    """personalize=False (Travel DNA y2 = No): interests are kept only as a filter. Keep the cities
+    matching at least one interest >= 0.5; if that would leave nothing, keep everything."""
+    if profile.personalize:
+        return list(candidates)
+    liked = {t for t, w in profile.interests.items() if w >= INTEREST_FILTER_MIN}
+    kept = [c for c in candidates if liked & set(c.tags)]
+    return kept or list(candidates)
 
 
 def candidate_id(c: Candidate) -> str:
@@ -279,6 +295,7 @@ def rank(
     """Score every candidate, keep the best window per city, attach the receipt."""
     weights = normalise_weights(weights)
     candidates = list({candidate_id(c): c for c in reversed(candidates)}.values())  # first wins
+    candidates = interest_filter(candidates, profile)
     digest = inputs_hash(candidates, profile, weights)
     scored = [(c, score_candidate(c, profile, weights)) for c in candidates]
     scored.sort(key=lambda cs: (-cs[1].total, cs[0].total_cost_pln, cs[0].iata, cs[0].window.start))

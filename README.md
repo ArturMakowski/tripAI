@@ -51,7 +51,8 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
 | `POST /windows` `{from, to, busy[], min_days}` | free windows from explicit busy intervals |
 | `GET /windows/long-weekends?from&to&max_leave` | długi weekend radar: "Take 1 day off (Fri 28 May) -> 4 days" |
 | `POST /recommendations` `{profile, windows?, weights?, limit, explain_top, today?}` | ranked `RankedRecommendation[]` |
-| `POST /feedback` `{trip_id, answers, user_id?, profile?, weights?}` | the updated `TasteProfile` (top-level fields, as in the spec), plus `weights`, a `diff` saying what changed and why, and `profile` nested |
+| `POST /feedback` `{trip_id, answers, user_id?, profile?, weights?}` | the updated `TasteProfile` (top-level fields, as in the spec), plus `weights`, a `diff` saying what changed and why, and `profile` nested. With `personalize=false`, nothing changes: the `diff` is empty and `note` explains why |
+| `POST /profile/dna` `{user_id, answers: {q1..q12: 1..5}, yes_no: {y1, y2}}` | Travel DNA (docs/TRAVEL_DNA.md): `{profile, weights, reasons[]}`. Deterministic; each reason lists its `because` card ids; a missing answer counts as 3 |
 | `GET /health`, `GET /cities` | status / candidate cities |
 
 - `tripai.scoring.rank()` is deterministic. Price (vs budget and vs the seasonal median), weather fit vs
@@ -66,6 +67,10 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   every hint and asserts that the pair swaps.
 - Known limits of the explain guard: it checks digits only, so number words ("two thousand") slip through,
   and small integers that also occur in the evidence (e.g. the trip length) are accepted in any context.
+- `TasteProfile.personalize=false` (Travel DNA y2 = No): ranking uses neutral default weights (stored
+  feedback weights are ignored; only an explicit slider `weights` overrides them). Interests act only as a filter
+  (cities matching an interest >= 0.5; if none match, nothing is filtered) and the taste score is a neutral
+  0.5. `/feedback` never changes the profile.
 - Connector seam: `tripai.scoring.provider.TripDataProvider` / `CalendarProvider` (Protocols).
   `FixtureProvider` serves 10 cities from KRK; its evidence is labelled `fixture:*`. Pass a live
   provider with `create_app(provider=...)`.
