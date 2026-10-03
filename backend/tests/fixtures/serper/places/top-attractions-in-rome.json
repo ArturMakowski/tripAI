@@ -1,0 +1,140 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Rome, Italy"
+  }
+ },
+ "fetched_at": "2026-10-03T11:52:30.966479+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Rome, Italy",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Roman Forum",
+    "address": "Rome, Metropolitan City of Rome Capital, Italy",
+    "latitude": 41.89209,
+    "longitude": 12.486438,
+    "rating": 4.8,
+    "ratingCount": 147000,
+    "category": "Tourist attraction",
+    "website": "https://colosseo.it/area/foro-romano/",
+    "cid": "18055282783150702054"
+   },
+   {
+    "position": 2,
+    "title": "Trevi Fountain",
+    "latitude": 41.900932,
+    "longitude": 12.483313,
+    "rating": 4.7,
+    "ratingCount": 525000,
+    "category": "Tourist attraction",
+    "website": "https://fontanaditrevi.roma.it/",
+    "cid": "17759648132674796470"
+   },
+   {
+    "position": 3,
+    "title": "Colosseum",
+    "address": "P.za del Colosseo, 1",
+    "latitude": 41.89021,
+    "longitude": 12.492231,
+    "rating": 4.8,
+    "ratingCount": 508000,
+    "category": "Tourist attraction",
+    "website": "https://colosseo.it/",
+    "cid": "2950359333223072708"
+   },
+   {
+    "position": 4,
+    "title": "Pantheon",
+    "latitude": 41.89861,
+    "longitude": 12.476872,
+    "rating": 4.8,
+    "ratingCount": 288000,
+    "category": "Tourist attraction",
+    "website": "https://direzionemuseiroma.cultura.gov.it/pantheon/",
+    "cid": "14614574390750662188"
+   },
+   {
+    "position": 5,
+    "title": "Piazza Navona",
+    "latitude": 41.899162,
+    "longitude": 12.473074,
+    "rating": 4.7,
+    "ratingCount": 219000,
+    "category": "Plaza",
+    "website": "https://www.turismoroma.it/it/node/1516",
+    "cid": "11769916103722152778"
+   },
+   {
+    "position": 6,
+    "title": "Mouth of Truth",
+    "address": "Piazza della Bocca della Verità, 18",
+    "latitude": 41.888237,
+    "longitude": 12.481444,
+    "rating": 4.3,
+    "ratingCount": 26000,
+    "category": "Tourist attraction",
+    "website": "https://www.turismoroma.it/it/luoghi/bocca-della-verit%C3%A0",
+    "cid": "9396440243381514727"
+   },
+   {
+    "position": 7,
+    "title": "Campo de' Fiori",
+    "latitude": 41.895603,
+    "longitude": 12.472176,
+    "rating": 4.4,
+    "ratingCount": 72000,
+    "category": "Plaza",
+    "website": "https://www.turismoroma.it/it/luoghi/campo-de%E2%80%99-fiori",
+    "cid": "1731911669032481476"
+   },
+   {
+    "position": 8,
+    "title": "Castel Sant'Angelo",
+    "address": "Lungotevere Castello, 50",
+    "latitude": 41.903065,
+    "longitude": 12.466276,
+    "rating": 4.7,
+    "ratingCount": 112000,
+    "category": "Tourist attraction",
+    "website": "http://castelsantangelo.beniculturali.it/",
+    "cid": "3921528191373361545"
+   },
+   {
+    "position": 9,
+    "title": "Fontana dei Tritoni",
+    "address": "Botanical Garden of Rome, Largo Cristina di Svezia, 23 A - 24",
+    "latitude": 41.89214,
+    "longitude": 12.464507,
+    "rating": 4.3,
+    "ratingCount": 100,
+    "category": "Tourist attraction",
+    "cid": "14354460984938320433"
+   },
+   {
+    "position": 10,
+    "title": "Spanish Steps",
+    "latitude": 41.90599,
+    "longitude": 12.482775,
+    "rating": 4.6,
+    "ratingCount": 113000,
+    "category": "Tourist attraction",
+    "website": "https://www.turismoroma.it/it/luoghi/scalinata-di-trinit%C3%A0-dei-monti",
+    "cid": "9205591385677129999"
+   }
+  ],
+  "credits": 1
+ }
+}

@@ -1,0 +1,4926 @@
+{
+  "meta": {
+    "source": "wikidata",
+    "fetched_at": "2026-10-03T11:41:30+00:00",
+    "generator": "uv run python -m tripai.seed.attractions",
+    "notes": "Items within attractions_radius_km of the city centre, filtered by P31 type, ranked by Wikipedia sitelink count (popularity), top 8. tags map to cities.TAGS; popularity is a proxy, not visitor numbers.",
+    "url": "https://query.wikidata.org/sparql",
+    "licence": "Wikidata CC0; Wikipedia text CC BY-SA 4.0; images: see Wikimedia Commons page",
+    "attribution": "Data from Wikidata (wikidata.org) and Wikipedia contributors"
+  },
+  "attractions": [
+    {
+      "city_id": "rome",
+      "iata": "FCO",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:44+00:00",
+      "items": [
+        {
+          "name": "Sistine Chapel",
+          "wikidata": "Q2943",
+          "lat": 41.90296,
+          "lon": 12.45443,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural property",
+            "Catholic church building",
+            "chapel"
+          ],
+          "popularity": 90,
+          "url": "https://en.wikipedia.org/wiki/Sistine_Chapel",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sistina-interno.jpg"
+        },
+        {
+          "name": "Roman Forum",
+          "wikidata": "Q180212",
+          "lat": 41.8922,
+          "lon": 12.4852,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "roman ruins",
+            "forum",
+            "tourist destination",
+            "archaeological site",
+            "real property"
+          ],
+          "popularity": 72,
+          "url": "https://en.wikipedia.org/wiki/Roman_Forum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Foro%20Romano%20Musei%20Capitolini%20Roma.jpg"
+        },
+        {
+          "name": "Trevi Fountain",
+          "wikidata": "Q185382",
+          "lat": 41.90093,
+          "lon": 12.48331,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "fountain",
+            "sculpture"
+          ],
+          "popularity": 68,
+          "url": "https://en.wikipedia.org/wiki/Trevi_Fountain",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Trevi%20Fountain%20-%20Roma.jpg"
+        },
+        {
+          "name": "Capitoline Hill",
+          "wikidata": "Q34925",
+          "lat": 41.89333,
+          "lon": 12.48306,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "hill"
+          ],
+          "popularity": 68,
+          "url": "https://en.wikipedia.org/wiki/Capitoline_Hill",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aracoeli-fachada.jpg"
+        },
+        {
+          "name": "Saint Peter's Square",
+          "wikidata": "Q83425",
+          "lat": 41.90218,
+          "lon": 12.45724,
+          "tags": [],
+          "types": [
+            "boundary point",
+            "square"
+          ],
+          "popularity": 66,
+          "url": "https://en.wikipedia.org/wiki/St._Peter%27s_Square",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/St%20Peter%27s%20Square%2C%20Vatican%20City%20-%20April%202007.jpg"
+        },
+        {
+          "name": "Vatican Museums",
+          "wikidata": "Q182955",
+          "lat": 41.90639,
+          "lon": 12.45444,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "art museum"
+          ],
+          "popularity": 65,
+          "url": "https://en.wikipedia.org/wiki/Vatican_Museums",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mura%20vaticane%20-%20ingresso%20ai%20Musei%2000410.JPG"
+        },
+        {
+          "name": "Palatine Hill",
+          "wikidata": "Q200642",
+          "lat": 41.88833,
+          "lon": 12.48694,
+          "tags": [
+            "history",
+            "art",
+            "nature"
+          ],
+          "types": [
+            "national museum",
+            "archaeological site",
+            "hill"
+          ],
+          "popularity": 63,
+          "url": "https://en.wikipedia.org/wiki/Palatine_Hill",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Palatine%20Hill.Pavement.jpg"
+        },
+        {
+          "name": "Apostolic Palace",
+          "wikidata": "Q145093",
+          "lat": 41.90361,
+          "lon": 12.45639,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "palace of the Popes",
+            "Palazzo",
+            "official residence",
+            "palace"
+          ],
+          "popularity": 60,
+          "url": "https://en.wikipedia.org/wiki/Apostolic_Palace",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2018-03-18%20Apostolischer%20Palast.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "milan",
+      "iata": "MXP",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:42+00:00",
+      "items": [
+        {
+          "name": "Milan Cathedral",
+          "wikidata": "Q18068",
+          "lat": 45.46397,
+          "lon": 9.19058,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral",
+            "architectural ensemble",
+            "tourist destination",
+            "church building",
+            "domus"
+          ],
+          "popularity": 78,
+          "url": "https://en.wikipedia.org/wiki/Milan_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20110724%20Milan%20Cathedral%205260.jpg"
+        },
+        {
+          "name": "La Scala",
+          "wikidata": "Q5471",
+          "lat": 45.4675,
+          "lon": 9.18917,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "opera house"
+          ],
+          "popularity": 74,
+          "url": "https://en.wikipedia.org/wiki/La_Scala",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20110725%20Milano%20La%20Scala%205507.jpg"
+        },
+        {
+          "name": "Santa Maria delle Grazie",
+          "wikidata": "Q244952",
+          "lat": 45.46583,
+          "lon": 9.17111,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "abbey church",
+            "minor basilica",
+            "church building"
+          ],
+          "popularity": 54,
+          "url": "https://en.wikipedia.org/wiki/Santa_Maria_delle_Grazie,_Milan",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/3048%20-%20Milano%20-%20S.%20Maria%20delle%20Grazie%20-%20Facciata%20-%20Foto%20Giovanni%20Dall%27Orto%20-%206-Mar-2008.jpg"
+        },
+        {
+          "name": "Sforza Castle",
+          "wikidata": "Q23354",
+          "lat": 45.471,
+          "lon": 9.17969,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/Sforza_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20110725%20Castello%20Sforzesco%20Milan%205557.jpg"
+        },
+        {
+          "name": "Galleria Vittorio Emanuele II",
+          "wikidata": "Q51112",
+          "lat": 45.46564,
+          "lon": 9.19,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "commercial gallery",
+            "architectural ensemble"
+          ],
+          "popularity": 42,
+          "url": "https://en.wikipedia.org/wiki/Galleria_Vittorio_Emanuele_II",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Veduta%20della%20Galleria%20Vittorio%20Emanuele%20II%20da%20piazza%20del%20Duomo%2C%20Milano.jpg"
+        },
+        {
+          "name": "Piazzale Loreto",
+          "wikidata": "Q525297",
+          "lat": 45.48623,
+          "lon": 9.21677,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 25,
+          "url": "https://en.wikipedia.org/wiki/Piazzale_Loreto",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Milano%20-%20piazzale%20Loreto.jpg"
+        },
+        {
+          "name": "Basilica of Sant'Ambrogio",
+          "wikidata": "Q1071570",
+          "lat": 45.4625,
+          "lon": 9.17583,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "minor basilica",
+            "architectural ensemble"
+          ],
+          "popularity": 25,
+          "url": "https://en.wikipedia.org/wiki/Basilica_of_Sant%27Ambrogio",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Milan%20Sant%27Ambrogio%20016%204923.jpg"
+        },
+        {
+          "name": "piazza del Duomo",
+          "wikidata": "Q51108",
+          "lat": 45.46417,
+          "lon": 9.19,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Cathedral Square",
+            "pedestrian zone"
+          ],
+          "popularity": 24,
+          "url": "https://en.wikipedia.org/wiki/Piazza_del_Duomo,_Milan",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Milano%2C%20Duomo%20with%20Milan%20Cathedral%20and%20Galleria%20Vittorio%20Emanuele%20II%2C%202016.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "naples",
+      "iata": "NAP",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:41+00:00",
+      "items": [
+        {
+          "name": "Phlegraean Fields",
+          "wikidata": "Q755123",
+          "lat": 40.827,
+          "lon": 14.139,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "volcanic field",
+            "mountain range",
+            "caldera"
+          ],
+          "popularity": 75,
+          "url": "https://en.wikipedia.org/wiki/Phlegraean_Fields",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pozzuoli%20NASA%20ISS004-E-5376%20added%20names.jpg"
+        },
+        {
+          "name": "Teatro di San Carlo",
+          "wikidata": "Q628491",
+          "lat": 40.83739,
+          "lon": 14.24969,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "cultural institution",
+            "Italian theater",
+            "opera house"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/Teatro_di_San_Carlo",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Teatro%20de%20San%20Carlos%2C%20N%C3%A1poles%2C%20Italia%2C%202023-03-25%2C%20DD%20184-186%20HDR.jpg"
+        },
+        {
+          "name": "Castel Nuovo",
+          "wikidata": "Q781219",
+          "lat": 40.83838,
+          "lon": 14.25381,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle"
+          ],
+          "popularity": 35,
+          "url": "https://en.wikipedia.org/wiki/Castel_Nuovo",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Naples-Castel%20Nuovo.jpg"
+        },
+        {
+          "name": "Naples Cathedral",
+          "wikidata": "Q256486",
+          "lat": 40.85261,
+          "lon": 14.25953,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/Naples_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Naples%20duomo%20facade.jpg"
+        },
+        {
+          "name": "Solfatara",
+          "wikidata": "Q943209",
+          "lat": 40.82722,
+          "lon": 14.13917,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Solfatara_(volcano)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Campi%20Flegrei.JPG"
+        },
+        {
+          "name": "Villa of the Papyri",
+          "wikidata": "Q1347586",
+          "lat": 40.80667,
+          "lon": 14.34556,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "ancient Roman structure",
+            "Roman villa",
+            "archaeological site"
+          ],
+          "popularity": 29,
+          "url": "https://en.wikipedia.org/wiki/Villa_of_the_Papyri",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Villaofthepapyri.jpg"
+        },
+        {
+          "name": "Castel dell'Ovo",
+          "wikidata": "Q645041",
+          "lat": 40.82832,
+          "lon": 14.24766,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/Castel_dell%27Ovo",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Castel%20dell%27%20Ovo.jpg"
+        },
+        {
+          "name": "Nisida",
+          "wikidata": "Q1192720",
+          "lat": 40.79528,
+          "lon": 14.16333,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 24,
+          "url": "https://en.wikipedia.org/wiki/Nisida",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nisida%20al%20tramonto.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "venice",
+      "iata": "VCE",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:43+00:00",
+      "items": [
+        {
+          "name": "St Mark's Basilica",
+          "wikidata": "Q172988",
+          "lat": 45.43444,
+          "lon": 12.33972,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "minor basilica",
+            "cathedral"
+          ],
+          "popularity": 65,
+          "url": "https://en.wikipedia.org/wiki/St_Mark%27s_Basilica",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Venice%20-%20St.%20Marc%27s%20Basilica%2001.jpg"
+        },
+        {
+          "name": "Doge's Palace",
+          "wikidata": "Q189883",
+          "lat": 45.43367,
+          "lon": 12.34042,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "museum of a public entity",
+            "art museum",
+            "palace"
+          ],
+          "popularity": 60,
+          "url": "https://en.wikipedia.org/wiki/Doge%27s_Palace",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%28Venice%29%20Doge%27s%20Palace%20facing%20the%20sea.jpg"
+        },
+        {
+          "name": "Piazza San Marco",
+          "wikidata": "Q217527",
+          "lat": 45.434,
+          "lon": 12.338,
+          "tags": [],
+          "types": [
+            "architectural ensemble",
+            "square"
+          ],
+          "popularity": 54,
+          "url": "https://en.wikipedia.org/wiki/Piazza_San_Marco",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Piazza%20San%20Marco%20%28Venice%29%20at%20night-msu-2021-6449-.jpg"
+        },
+        {
+          "name": "Venetian Lagoon",
+          "wikidata": "Q76925",
+          "lat": 45.41306,
+          "lon": 12.29722,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "lagoon",
+            "bay"
+          ],
+          "popularity": 53,
+          "url": "https://en.wikipedia.org/wiki/Venetian_Lagoon",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Venetian%20Lagoon%20ESA25362327%20%28cropped%29.tiff"
+        },
+        {
+          "name": "Murano",
+          "wikidata": "Q52437",
+          "lat": 45.4575,
+          "lon": 12.35361,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "locality",
+            "island"
+          ],
+          "popularity": 52,
+          "url": "https://en.wikipedia.org/wiki/Murano",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aerial%20photographs%20of%20Venice%202013%2C%20Anton%20Nossik%2C%20009.jpg"
+        },
+        {
+          "name": "Rialto Bridge",
+          "wikidata": "Q52505",
+          "lat": 45.43801,
+          "lon": 12.33564,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "renaissance bridge",
+            "built-on bridge",
+            "stone bridge",
+            "covered bridge",
+            "footbridge"
+          ],
+          "popularity": 52,
+          "url": "https://en.wikipedia.org/wiki/Rialto_Bridge",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rialto%202025%204.jpg"
+        },
+        {
+          "name": "Santa Maria della Salute",
+          "wikidata": "Q52531",
+          "lat": 45.43057,
+          "lon": 12.33473,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "octagonal church",
+            "votive church",
+            "minor basilica"
+          ],
+          "popularity": 46,
+          "url": "https://en.wikipedia.org/wiki/Santa_Maria_della_Salute",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Santa%20Maria%20della%20Salute%20from%20Hotel%20Monaco.jpg"
+        },
+        {
+          "name": "Teatro La Fenice",
+          "wikidata": "Q223942",
+          "lat": 45.4337,
+          "lon": 12.3339,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "opera house"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/La_Fenice",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Teatro%20La%20Fenice%20%28Venice%29%20-%20Facade.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "catania",
+      "iata": "CTA",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:42+00:00",
+      "items": [
+        {
+          "name": "Mount Etna",
+          "wikidata": "Q16990",
+          "lat": 37.75083,
+          "lon": 14.99322,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "stratovolcano",
+            "decipoint"
+          ],
+          "popularity": 125,
+          "url": "https://en.wikipedia.org/wiki/Mount_Etna",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/View%20of%20Mount%20Etna%20from%20Reggio%20Calabria%20-%20Italy%20-%2010%20Feb.%202017%20-%20%281%29.jpg"
+        },
+        {
+          "name": "Catania Cathedral",
+          "wikidata": "Q1499188",
+          "lat": 37.50246,
+          "lon": 15.08821,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "minor basilica",
+            "church building",
+            "cathedral"
+          ],
+          "popularity": 23,
+          "url": "https://en.wikipedia.org/wiki/Catania_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Catania%20BW%202025-04-25%2015-15-28.jpg"
+        },
+        {
+          "name": "Castello Ursino",
+          "wikidata": "Q1048850",
+          "lat": 37.49897,
+          "lon": 15.08439,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle",
+            "Category:Hohenstaufen castles in Southern Italy"
+          ],
+          "popularity": 17,
+          "url": "https://en.wikipedia.org/wiki/Castello_Ursino",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Catania%20Castel%20Ursino.jpg"
+        },
+        {
+          "name": "Teatro Massimo Bellini",
+          "wikidata": "Q1429352",
+          "lat": 37.50417,
+          "lon": 15.09,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "opera house"
+          ],
+          "popularity": 14,
+          "url": "https://en.wikipedia.org/wiki/Teatro_Massimo_Bellini",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Catania%20BW%202012-10-06%2011-11-06.jpg"
+        },
+        {
+          "name": "Acireale Cathedral",
+          "wikidata": "Q1736162",
+          "lat": 37.61305,
+          "lon": 15.16609,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "minor basilica",
+            "church building",
+            "cathedral"
+          ],
+          "popularity": 14,
+          "url": "https://en.wikipedia.org/wiki/Acireale_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Acirealeren%20eliza%201.JPG"
+        },
+        {
+          "name": "Cyclopean Isles",
+          "wikidata": "Q245578",
+          "lat": 37.55,
+          "lon": 15.15,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island group"
+          ],
+          "popularity": 12,
+          "url": "https://en.wikipedia.org/wiki/Cyclopean_Isles",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Islands%20of%20the%20Cyclops%20at%20Dawn%20Sicily%20Italy%20-%20Creative%20Commons%20by%20gnuckx.jpg"
+        },
+        {
+          "name": "Basilica della Collegiata",
+          "wikidata": "Q1109136",
+          "lat": 37.5042,
+          "lon": 15.08647,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "minor basilica",
+            "church building"
+          ],
+          "popularity": 12,
+          "url": "https://en.wikipedia.org/wiki/Basilica_della_Collegiata",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Catania%2C%20Basilica%20Collegiata%20-%20panoramio.jpg"
+        },
+        {
+          "name": "Palazzo dei Principi Natoli",
+          "wikidata": "Q28975630",
+          "lat": 37.71056,
+          "lon": 15.2184,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "Palazzo",
+            "museum"
+          ],
+          "popularity": 11,
+          "url": "https://www.wikidata.org/wiki/Q28975630",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Torre%20Archirafi%2001%20fokuso.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "barcelona",
+      "iata": "BCN",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:45+00:00",
+      "items": [
+        {
+          "name": "Basilica and Expiatory Church of the Holy Family",
+          "wikidata": "Q48435",
+          "lat": 41.40369,
+          "lon": 2.17433,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "expiatory temple",
+            "minor basilica"
+          ],
+          "popularity": 109,
+          "url": "https://en.wikipedia.org/wiki/Sagrada_Fam%C3%ADlia",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/SF%20maig%202026.jpg"
+        },
+        {
+          "name": "Park Güell",
+          "wikidata": "Q212867",
+          "lat": 41.41361,
+          "lon": 2.15278,
+          "tags": [
+            "art",
+            "nature"
+          ],
+          "types": [
+            "sculpture garden",
+            "park"
+          ],
+          "popularity": 55,
+          "url": "https://en.wikipedia.org/wiki/Park_G%C3%BCell",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%BCell%20BCN%20edited.jpg"
+        },
+        {
+          "name": "Palau de la Música Catalana",
+          "wikidata": "Q327940",
+          "lat": 41.38767,
+          "lon": 2.17528,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "concert hall"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/Palau_de_la_M%C3%BAsica_Catalana",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Palau%20m%C3%BAsica%20catalana%20exterior.jpg"
+        },
+        {
+          "name": "Cathedral of the Holy Cross and Saint Eulalia",
+          "wikidata": "Q17155",
+          "lat": 41.38389,
+          "lon": 2.17639,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral",
+            "minor basilica"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/Barcelona_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Barcelona%20Cathedral%20Saint%20Eulalia.jpg"
+        },
+        {
+          "name": "Plaça de Catalunya",
+          "wikidata": "Q822881",
+          "lat": 41.38703,
+          "lon": 2.17008,
+          "tags": [],
+          "types": [
+            "transport hub",
+            "square"
+          ],
+          "popularity": 37,
+          "url": "https://en.wikipedia.org/wiki/Pla%C3%A7a_de_Catalunya",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/14-08-06-barcelona-RalfR-304.jpg"
+        },
+        {
+          "name": "Palau Güell",
+          "wikidata": "Q597051",
+          "lat": 41.37882,
+          "lon": 2.17439,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "palace"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Palau_G%C3%BCell",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Palau%20G%C3%BCell%2C%20Antoni%20Gaudi%2C%20Barcelona%202.jpg"
+        },
+        {
+          "name": "Casa Vicens",
+          "wikidata": "Q746333",
+          "lat": 41.40349,
+          "lon": 2.15064,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "historic house museum"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Casa_Vicens",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gaud%C3%AD%20-%20Casa%20Vicens.JPG"
+        },
+        {
+          "name": "Museu Nacional d'Art de Catalunya",
+          "wikidata": "Q861252",
+          "lat": 41.36833,
+          "lon": 2.15331,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum"
+          ],
+          "popularity": 31,
+          "url": "https://en.wikipedia.org/wiki/Museu_Nacional_d%27Art_de_Catalunya",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/WLM14ES%20-%20Palau%20Nacional%20i%20seu%20del%20MNAC%20de%20Barcelona%20-%20MARIA%20ROSA%20FERRE.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "madrid",
+      "iata": "MAD",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:51+00:00",
+      "items": [
+        {
+          "name": "Almudena Cathedral",
+          "wikidata": "Q849711",
+          "lat": 40.41556,
+          "lon": -3.71444,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral"
+          ],
+          "popularity": 43,
+          "url": "https://en.wikipedia.org/wiki/Almudena_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Almudena%202022%20-%20overview.jpg"
+        },
+        {
+          "name": "Thyssen-Bornemisza Museum",
+          "wikidata": "Q176251",
+          "lat": 40.41604,
+          "lon": -3.69493,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum",
+            "museum"
+          ],
+          "popularity": 37,
+          "url": "https://en.wikipedia.org/wiki/Thyssen-Bornemisza_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Site%20of%20the%20Retiro%20and%20the%20Prado%20in%20Madrid%2049%20%2829684554308%29.jpg"
+        },
+        {
+          "name": "Main Square",
+          "wikidata": "Q1123493",
+          "lat": 40.41546,
+          "lon": -3.70738,
+          "tags": [],
+          "types": [
+            "porticoed square",
+            "tourist destination"
+          ],
+          "popularity": 37,
+          "url": "https://en.wikipedia.org/wiki/Plaza_Mayor,_Madrid",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Madrid%2C%20Plaza%20Mayor%2C%202016%2C%20%2802%29.jpg"
+        },
+        {
+          "name": "El Retiro Park",
+          "wikidata": "Q1131807",
+          "lat": 40.415,
+          "lon": -3.68389,
+          "tags": [
+            "history",
+            "art",
+            "nature"
+          ],
+          "types": [
+            "Historic Garden (Spain)",
+            "cultural center",
+            "tourist destination",
+            "urban park"
+          ],
+          "popularity": 34,
+          "url": "https://en.wikipedia.org/wiki/Parque_del_Buen_Retiro",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/June%20Parc%20Retiro%20Madrid%20-%20Mythos%20Spain%20Photography%202014%20-%20panoramio%20%288%29.jpg"
+        },
+        {
+          "name": "Puerta del Sol",
+          "wikidata": "Q427163",
+          "lat": 40.41694,
+          "lon": -3.70361,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 34,
+          "url": "https://en.wikipedia.org/wiki/Puerta_del_Sol",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Puerta%20del%20Sol%20%28Madrid%29%2003.jpg"
+        },
+        {
+          "name": "National Museum of Archaeology",
+          "wikidata": "Q1352282",
+          "lat": 40.42365,
+          "lon": -3.68942,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "monument",
+            "archaeological museum"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/National_Museum_of_Archaeology_(Madrid)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museo%20Arqueol%C3%B3gico%20Nacional%20%2835039235760%29.jpg"
+        },
+        {
+          "name": "Teatro Real",
+          "wikidata": "Q211250",
+          "lat": 40.41824,
+          "lon": -3.71037,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "monument",
+            "opera house",
+            "theatre building"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Teatro_Real",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Teatro%20Real%20de%20Madrid%202025.jpg"
+        },
+        {
+          "name": "Temple of Debod",
+          "wikidata": "Q1140249",
+          "lat": 40.42405,
+          "lon": -3.71778,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "moved building",
+            "Egyptian temple",
+            "museum"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Temple_of_Debod",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Templo%20de%20Debod%20Madrid.JPG"
+        }
+      ]
+    },
+    {
+      "city_id": "malaga",
+      "iata": "AGP",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:47+00:00",
+      "items": [
+        {
+          "name": "Cathedral Basilica of the Virgin of Incarnation",
+          "wikidata": "Q1582758",
+          "lat": 36.72004,
+          "lon": -4.42012,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral",
+            "monument",
+            "minor basilica"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/M%C3%A1laga_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cathedral%20of%20M%C3%A1laga%2C%202016.jpg"
+        },
+        {
+          "name": "Alcazaba of Málaga",
+          "wikidata": "Q3127243",
+          "lat": 36.72118,
+          "lon": -4.41575,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "monument",
+            "fortress",
+            "alcazaba"
+          ],
+          "popularity": 24,
+          "url": "https://en.wikipedia.org/wiki/Alcazaba_of_M%C3%A1laga",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alcazaba%20de%20M%C3%A1laga%20overview.jpg"
+        },
+        {
+          "name": "Museo Picasso Málaga",
+          "wikidata": "Q1368396",
+          "lat": 36.72177,
+          "lon": -4.41847,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum",
+            "museum"
+          ],
+          "popularity": 18,
+          "url": "https://en.wikipedia.org/wiki/Museo_Picasso_M%C3%A1laga",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/MuseoPicassoMalaga.jpg"
+        },
+        {
+          "name": "Gibralfaro",
+          "wikidata": "Q3751086",
+          "lat": 36.72333,
+          "lon": -4.41083,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 17,
+          "url": "https://en.wikipedia.org/wiki/Gibralfaro",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gibralfaro.jpg"
+        },
+        {
+          "name": "Museum Jorge Rando",
+          "wikidata": "Q12184921",
+          "lat": 36.72679,
+          "lon": -4.42379,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum"
+          ],
+          "popularity": 14,
+          "url": "https://en.wikipedia.org/wiki/Museum_Jorge_Rando",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museumjorgerando.JPG"
+        },
+        {
+          "name": "Museo de Málaga",
+          "wikidata": "Q4276495",
+          "lat": 36.7199,
+          "lon": -4.41713,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum",
+            "museum"
+          ],
+          "popularity": 13,
+          "url": "https://en.wikipedia.org/wiki/Museo_de_M%C3%A1laga",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Palacio%20de%20la%20Aduana%2C%20M%C3%A1laga%2001.JPG"
+        },
+        {
+          "name": "Castle of Gibralfaro",
+          "wikidata": "Q1049197",
+          "lat": 36.72322,
+          "lon": -4.41164,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle"
+          ],
+          "popularity": 13,
+          "url": "https://www.wikidata.org/wiki/Q1049197",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/M%C3%A1laga%20Gibralfaro%2002.jpg"
+        },
+        {
+          "name": "Al-Andalus Mosque",
+          "wikidata": "Q11692328",
+          "lat": 36.7192,
+          "lon": -4.43833,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "mosque"
+          ],
+          "popularity": 12,
+          "url": "https://en.wikipedia.org/wiki/Al-Andalus_Mosque",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Minaret%20M%C3%A1laga.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "valencia",
+      "iata": "VLC",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:48+00:00",
+      "items": [
+        {
+          "name": "City of Arts and Sciences",
+          "wikidata": "Q239935",
+          "lat": 39.45453,
+          "lon": -0.35036,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "building complex",
+            "cultural center",
+            "tourist destination",
+            "museum"
+          ],
+          "popularity": 40,
+          "url": "https://en.wikipedia.org/wiki/City_of_Arts_and_Sciences",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20211115.Valencia.-048.jpg"
+        },
+        {
+          "name": "Valencia Cathedral",
+          "wikidata": "Q1466926",
+          "lat": 39.47561,
+          "lon": -0.37514,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral",
+            "minor basilica",
+            "Monument (Spain)"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Valencia_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Catedral%20de%20Valencia%2C%20Valencia%2C%20Espa%C3%B1a%2C%202014-06-30%2C%20DD%20160.JPG"
+        },
+        {
+          "name": "L'Oceanogràfic",
+          "wikidata": "Q2447851",
+          "lat": 39.45287,
+          "lon": -0.34805,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "public aquarium"
+          ],
+          "popularity": 16,
+          "url": "https://en.wikipedia.org/wiki/L%27Oceanogr%C3%A0fic",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/L%27Oceanografic%2C%20Valencia%2C%20Spain%201%20-%20Jan%2007.jpg"
+        },
+        {
+          "name": "Museu de Belles Arts de València",
+          "wikidata": "Q1748404",
+          "lat": 39.47917,
+          "lon": -0.37083,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum"
+          ],
+          "popularity": 15,
+          "url": "https://en.wikipedia.org/wiki/Museu_de_Belles_Arts_de_Val%C3%A8ncia",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museu%20belles%20arts%20val%C3%A8ncia2.jpg"
+        },
+        {
+          "name": "Torres dels Serrans",
+          "wikidata": "Q2455550",
+          "lat": 39.4793,
+          "lon": -0.37593,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "fortified tower"
+          ],
+          "popularity": 15,
+          "url": "https://en.wikipedia.org/wiki/Torres_de_Serranos",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Torres%20serrans%20abril.jpg"
+        },
+        {
+          "name": "Museu de les Ciències Príncipe Felipe",
+          "wikidata": "Q939288",
+          "lat": 39.4558,
+          "lon": -0.35155,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "science museum"
+          ],
+          "popularity": 14,
+          "url": "https://en.wikipedia.org/wiki/Museu_de_les_Ci%C3%A8ncies_Pr%C3%ADncipe_Felipe",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sciences%20museum%20of%20valencia.jpg"
+        },
+        {
+          "name": "Mercat Central",
+          "wikidata": "Q2197068",
+          "lat": 39.4735,
+          "lon": -0.37894,
+          "tags": [
+            "food"
+          ],
+          "types": [
+            "market hall"
+          ],
+          "popularity": 13,
+          "url": "https://en.wikipedia.org/wiki/Mercado_Central,_Valencia",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%D0%A4%D0%B0%D1%81%D0%B0%D0%B4%20%D1%86%D0%B5%D0%BD%D1%82%D1%80%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%B3%D0%BE%20%D1%80%D1%8B%D0%BD%D0%BA%D0%B0%20%D0%92%D0%B0%D0%BB%D0%B5%D0%BD%D1%81%D0%B8%D0%B8.jpg"
+        },
+        {
+          "name": "Assut de l'Or Bridge",
+          "wikidata": "Q2458493",
+          "lat": 39.45481,
+          "lon": -0.34964,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cable-stayed bridge"
+          ],
+          "popularity": 13,
+          "url": "https://en.wikipedia.org/wiki/Assut_de_l%27Or_Bridge",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ciutat%20de%20les%20Arts%20i%20les%20Ci%C3%A8ncies%2C%20Val%C3%A8ncia%2C%20Valencia%2C%20Spain%20-%20panoramio%20%285%29%20%28cropped%29.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "palma",
+      "iata": "PMI",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:48+00:00",
+      "items": [
+        {
+          "name": "Palma Cathedral",
+          "wikidata": "Q1298819",
+          "lat": 39.5675,
+          "lon": 2.64806,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral",
+            "minor basilica"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Palma_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Kathedrale%20von%20Palma%20II.jpg"
+        },
+        {
+          "name": "Bellver Castle",
+          "wikidata": "Q261707",
+          "lat": 39.56375,
+          "lon": 2.61934,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle"
+          ],
+          "popularity": 27,
+          "url": "https://en.wikipedia.org/wiki/Bellver_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Castillo%20de%20Bellver.jpg"
+        },
+        {
+          "name": "Bay of Palma",
+          "wikidata": "Q2118314",
+          "lat": 39.475,
+          "lon": 2.6333,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "bay"
+          ],
+          "popularity": 15,
+          "url": "https://en.wikipedia.org/wiki/Bay_of_Palma",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vista%20a%C3%A8ria%20de%20Ciutat.JPG"
+        },
+        {
+          "name": "Royal Palace of La Almudaina",
+          "wikidata": "Q3176377",
+          "lat": 39.5675,
+          "lon": 2.64722,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "royal palace",
+            "official residence",
+            "monument",
+            "castle",
+            "museum"
+          ],
+          "popularity": 15,
+          "url": "https://en.wikipedia.org/wiki/Royal_Palace_of_La_Almudaina",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Palma%20Mallorca%202008%2006.JPG"
+        },
+        {
+          "name": "Fundació Miró Mallorca",
+          "wikidata": "Q949576",
+          "lat": 39.555,
+          "lon": 2.60917,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum",
+            "museum"
+          ],
+          "popularity": 12,
+          "url": "https://en.wikipedia.org/wiki/Fundaci%C3%B3_Pilar_i_Joan_Mir%C3%B3_in_Mallorca",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Miro%27s%20Studio%20Sert%20-%20Palma%20de%20Mallorca.jpg"
+        },
+        {
+          "name": "Alfabia Mountains",
+          "wikidata": "Q4721848",
+          "lat": 39.75,
+          "lon": 2.71667,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain range",
+            "mountain"
+          ],
+          "popularity": 10,
+          "url": "https://en.wikipedia.org/wiki/Alfabia_Mountains",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alfabia.jpg"
+        },
+        {
+          "name": "Valldemossa Charterhouse",
+          "wikidata": "Q1494326",
+          "lat": 39.70889,
+          "lon": 2.62194,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "secularized monastery",
+            "historic grouping"
+          ],
+          "popularity": 10,
+          "url": "https://en.wikipedia.org/wiki/Valldemossa_Charterhouse",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cartuja1.JPG"
+        },
+        {
+          "name": "Puig de Randa",
+          "wikidata": "Q1502386",
+          "lat": 39.52417,
+          "lon": 2.92639,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 10,
+          "url": "https://en.wikipedia.org/wiki/Puig_de_Randa",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Randa01.JPG"
+        }
+      ]
+    },
+    {
+      "city_id": "tenerife",
+      "iata": "TFS",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:52+00:00",
+      "items": [
+        {
+          "name": "Teide",
+          "wikidata": "Q38954",
+          "lat": 28.27264,
+          "lon": -16.64361,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "volcano",
+            "active volcano",
+            "architectural landmark"
+          ],
+          "popularity": 105,
+          "url": "https://en.wikipedia.org/wiki/Teide",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Teide%20von%20Nordosten%20%28Zuschnitt%202%29.jpg"
+        },
+        {
+          "name": "Teide National Park",
+          "wikidata": "Q715124",
+          "lat": 28.27646,
+          "lon": -16.64267,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "Natura 2000 site",
+            "national park",
+            "protected area"
+          ],
+          "popularity": 61,
+          "url": "https://en.wikipedia.org/wiki/Teide_National_Park",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Roque%20Cinchado%20und%20Teide%20%28Zuschnitt%29.jpg"
+        },
+        {
+          "name": "Cathedral of La Laguna",
+          "wikidata": "Q34562",
+          "lat": 28.48889,
+          "lon": -16.31611,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "monument",
+            "Catholic cathedral"
+          ],
+          "popularity": 41,
+          "url": "https://en.wikipedia.org/wiki/Cathedral_of_La_Laguna",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/La%20Laguna%202022%20-%20main%20facade.jpg"
+        },
+        {
+          "name": "Pyramids of Güímar",
+          "wikidata": "Q619588",
+          "lat": 28.32083,
+          "lon": -16.41361,
+          "tags": [
+            "history",
+            "nature"
+          ],
+          "types": [
+            "archaeological site",
+            "park"
+          ],
+          "popularity": 34,
+          "url": "https://en.wikipedia.org/wiki/Pyramids_of_G%C3%BC%C3%ADmar",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/G%C3%BC%C3%ADmar%20BW%201.JPG"
+        },
+        {
+          "name": "Basilica of Candelaria",
+          "wikidata": "Q34485",
+          "lat": 28.35128,
+          "lon": -16.36978,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "monument",
+            "shrine of Our Lady",
+            "minor basilica"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Basilica_of_Candelaria",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Candelaria%20Basilica.jpg"
+        },
+        {
+          "name": "Loro Parque",
+          "wikidata": "Q1870391",
+          "lat": 28.40833,
+          "lon": -16.56417,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "bird park",
+            "zoo"
+          ],
+          "popularity": 25,
+          "url": "https://en.wikipedia.org/wiki/Loro_Parque",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tenerife-phil43.jpg"
+        },
+        {
+          "name": "Real Santuario del Cristo de La Laguna",
+          "wikidata": "Q63368",
+          "lat": 28.49361,
+          "lon": -16.3125,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic pilgrimage church"
+          ],
+          "popularity": 19,
+          "url": "https://en.wikipedia.org/wiki/Real_Santuario_del_Cristo_de_La_Laguna",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/La%20Laguna%20BW%201.JPG"
+        },
+        {
+          "name": "Pico viejo",
+          "wikidata": "Q2092383",
+          "lat": 28.26389,
+          "lon": -16.66472,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "volcano",
+            "mountain"
+          ],
+          "popularity": 19,
+          "url": "https://en.wikipedia.org/wiki/Pico_Viejo",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Teide%20-%20pico%20viejo.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "lisbon",
+      "iata": "LIS",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:55+00:00",
+      "items": [
+        {
+          "name": "Belém Tower",
+          "wikidata": "Q215003",
+          "lat": 38.69139,
+          "lon": -9.21583,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "architectural heritage monument",
+            "tourist attraction",
+            "fort",
+            "cultural heritage",
+            "fortified tower"
+          ],
+          "popularity": 57,
+          "url": "https://en.wikipedia.org/wiki/Bel%C3%A9m_Tower",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Belem%20Tower%20-%20April%202019%20%282%29.jpg"
+        },
+        {
+          "name": "Jerónimos Monastery",
+          "wikidata": "Q272781",
+          "lat": 38.69785,
+          "lon": -9.2056,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural heritage",
+            "monastery"
+          ],
+          "popularity": 53,
+          "url": "https://en.wikipedia.org/wiki/Jer%C3%B3nimos_Monastery",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Jer%C3%B3nimos%20April%202009-4.jpg"
+        },
+        {
+          "name": "Alfama",
+          "wikidata": "Q985517",
+          "lat": 38.71066,
+          "lon": -9.13238,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "bairro",
+            "cultural heritage"
+          ],
+          "popularity": 34,
+          "url": "https://en.wikipedia.org/wiki/Alfama",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/MiradouroSantaLuzia.JPG"
+        },
+        {
+          "name": "Padrão dos Descobrimentos",
+          "wikidata": "Q1133712",
+          "lat": 38.69368,
+          "lon": -9.20569,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "monument",
+            "cultural heritage"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/Monument_of_the_Discoveries",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lisbonne%20-%20Padr%C3%A3o%20dos%20Descobrimentos%20-%20Closeup.jpg"
+        },
+        {
+          "name": "Praça do Comércio",
+          "wikidata": "Q999002",
+          "lat": 38.7075,
+          "lon": -9.13639,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural heritage",
+            "square"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/Pra%C3%A7a_do_Com%C3%A9rcio",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Empty%20Pra%C3%A7a%20do%20Com%C3%A9rcio%20during%20the%20COVID-19%20lockdown%2C%20Lisbon%2C%20Portugal%20julesvernex2.jpg"
+        },
+        {
+          "name": "Lisbon Cathedral",
+          "wikidata": "Q432290",
+          "lat": 38.70985,
+          "lon": -9.13298,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral",
+            "cultural heritage"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/Lisbon_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lisboa%20May%202013-1.jpg"
+        },
+        {
+          "name": "Castle of Saint George",
+          "wikidata": "Q636780",
+          "lat": 38.71389,
+          "lon": -9.13333,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural heritage",
+            "castle"
+          ],
+          "popularity": 31,
+          "url": "https://en.wikipedia.org/wiki/S%C3%A3o_Jorge_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Castelo%20de%20S%C3%A3o%20Jorge%20%284166049903%29.jpg"
+        },
+        {
+          "name": "Lisbon Baixa",
+          "wikidata": "Q804032",
+          "lat": 38.71139,
+          "lon": -9.13774,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "bairro",
+            "urban ensemble",
+            "cultural heritage"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/Lisbon_Baixa",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lisbon%20main%20square%20%2836622604910%29.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "porto",
+      "iata": "OPO",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:55+00:00",
+      "items": [
+        {
+          "name": "Porto Cathedral",
+          "wikidata": "Q1441255",
+          "lat": 41.14282,
+          "lon": -8.6112,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural heritage",
+            "cathedral"
+          ],
+          "popularity": 23,
+          "url": "https://en.wikipedia.org/wiki/Porto_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Porto.Cathedral01.jpg"
+        },
+        {
+          "name": "Ponte de D. Maria Pia",
+          "wikidata": "Q1550899",
+          "lat": 41.13982,
+          "lon": -8.59702,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "industrial heritage site",
+            "truss arch bridge",
+            "railway bridge",
+            "iron bridge",
+            "cultural heritage"
+          ],
+          "popularity": 22,
+          "url": "https://en.wikipedia.org/wiki/Maria_Pia_Bridge",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ponte%20D.%20Maria%20Pia-Porto.JPG"
+        },
+        {
+          "name": "Livraria Lello",
+          "wikidata": "Q3408689",
+          "lat": 41.14681,
+          "lon": -8.61483,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "publishing house",
+            "book publisher",
+            "bookstore",
+            "cultural heritage"
+          ],
+          "popularity": 20,
+          "url": "https://en.wikipedia.org/wiki/Livraria_Lello",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Livraria%20Lello%2C%20Porto.jpg"
+        },
+        {
+          "name": "Church of São Francisco",
+          "wikidata": "Q1549939",
+          "lat": 41.141,
+          "lon": -8.616,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "convent",
+            "cultural heritage",
+            "church building"
+          ],
+          "popularity": 19,
+          "url": "https://en.wikipedia.org/wiki/Church_of_S%C3%A3o_Francisco_(Porto)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Porto%20-%20Igreja%20da%20Ordem%20de%20S%C3%A3o%20Francisco1536.jpg"
+        },
+        {
+          "name": "Church of Saint Ildefonso",
+          "wikidata": "Q2781524",
+          "lat": 41.14629,
+          "lon": -8.60648,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural heritage",
+            "church building"
+          ],
+          "popularity": 19,
+          "url": "https://en.wikipedia.org/wiki/Church_of_Saint_Ildefonso",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Iglesia%20de%20San%20Ildefonso%2C%20Oporto%2C%20Portugal%2C%202012-05-09%2C%20DD%2001.JPG"
+        },
+        {
+          "name": "Clérigos Church",
+          "wikidata": "Q18642",
+          "lat": 41.14587,
+          "lon": -8.61401,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "church building"
+          ],
+          "popularity": 17,
+          "url": "https://en.wikipedia.org/wiki/Cl%C3%A9rigos_Church",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Igreja%20dos%20Clerigos%20in%20Porto%20%281%29.jpg"
+        },
+        {
+          "name": "Igreja de Santa Clara",
+          "wikidata": "Q3819477",
+          "lat": 41.1425,
+          "lon": -8.60917,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural heritage",
+            "monastery",
+            "church building"
+          ],
+          "popularity": 12,
+          "url": "https://en.wikipedia.org/wiki/Igreja_de_Santa_Clara_(Porto)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Igreja%20Sta%20Clara%20%28Porto%29.jpg"
+        },
+        {
+          "name": "National Museum Soares dos Reis",
+          "wikidata": "Q1141468",
+          "lat": 41.14778,
+          "lon": -8.62167,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "art museum"
+          ],
+          "popularity": 11,
+          "url": "https://en.wikipedia.org/wiki/Soares_dos_Reis_National_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Carrancas%20Porto.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "funchal",
+      "iata": "FNC",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:53+00:00",
+      "items": [
+        {
+          "name": "Pico Ruivo",
+          "wikidata": "Q473169",
+          "lat": 32.75873,
+          "lon": -16.94226,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 31,
+          "url": "https://en.wikipedia.org/wiki/Pico_Ruivo",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pico%20Ruivo.jpg"
+        },
+        {
+          "name": "Pico do Areeiro",
+          "wikidata": "Q1192102",
+          "lat": 32.73556,
+          "lon": -16.92889,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 23,
+          "url": "https://en.wikipedia.org/wiki/Pico_do_Areeiro",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vista%20desde%20el%20pico%20de%20Arieiro%2C%20Madeira%2C%20Portugal%2C%202019-05-30%2C%20DD%20134-141%20PAN.jpg"
+        },
+        {
+          "name": "Laurisilva of Madeira",
+          "wikidata": "Q11257230",
+          "lat": 32.76667,
+          "lon": -17.0,
+          "tags": [
+            "history",
+            "nature"
+          ],
+          "types": [
+            "Laurel forest",
+            "natural heritage",
+            "cultural heritage"
+          ],
+          "popularity": 19,
+          "url": "https://en.wikipedia.org/wiki/Laurisilva_of_Madeira",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Laurazeen%20wood%20madeira%20hg.jpg"
+        },
+        {
+          "name": "Cabo Girão",
+          "wikidata": "Q856866",
+          "lat": 32.65649,
+          "lon": -17.00446,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "cape",
+            "Natura 2000 site",
+            "scenic viewpoint",
+            "site of community importance",
+            "cliff"
+          ],
+          "popularity": 18,
+          "url": "https://en.wikipedia.org/wiki/Cabo_Gir%C3%A3o",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Base%20of%20Cabo%20Girao%20from%20viewpoint%202013.JPG"
+        },
+        {
+          "name": "Cathedral of Funchal",
+          "wikidata": "Q1004331",
+          "lat": 32.64817,
+          "lon": -16.90825,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural heritage",
+            "cathedral"
+          ],
+          "popularity": 17,
+          "url": "https://en.wikipedia.org/wiki/Cathedral_of_Funchal",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Catedral%2C%20Funchal%2C%20Madeira%2C%20Portugal%2C%202019-05-29%2C%20DD%2034.jpg"
+        },
+        {
+          "name": "Ponta de São Lourenço",
+          "wikidata": "Q1296587",
+          "lat": 32.74551,
+          "lon": -16.69956,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "geosite of Madeira",
+            "partial reserve",
+            "protected area",
+            "peninsula"
+          ],
+          "popularity": 15,
+          "url": "https://en.wikipedia.org/wiki/Ponta_de_S%C3%A3o_Louren%C3%A7o",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Anflug%20auf%20Madeira.%2001.jpg"
+        },
+        {
+          "name": "Madeira Botanical Garden",
+          "wikidata": "Q894636",
+          "lat": 32.66222,
+          "lon": -16.89583,
+          "tags": [
+            "history",
+            "nature"
+          ],
+          "types": [
+            "cultural heritage",
+            "botanical garden"
+          ],
+          "popularity": 14,
+          "url": "https://en.wikipedia.org/wiki/Madeira_Botanical_Garden",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Funchal%2C%20Jardim%20Bot%C3%A2nico%20da%20Madeira%20%28Choreographed%20gardens%29%203.jpg"
+        },
+        {
+          "name": "CR7 Museum",
+          "wikidata": "Q16911681",
+          "lat": 32.64409,
+          "lon": -16.91385,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum"
+          ],
+          "popularity": 13,
+          "url": "https://en.wikipedia.org/wiki/Museu_CR7",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museu%20CR7%20Funchal%202016.JPG"
+        }
+      ]
+    },
+    {
+      "city_id": "paris",
+      "iata": "CDG",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:58+00:00",
+      "items": [
+        {
+          "name": "Eiffel Tower",
+          "wikidata": "Q243",
+          "lat": 48.8583,
+          "lon": 2.29448,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "architectural landmark",
+            "lattice tower",
+            "observation tower"
+          ],
+          "popularity": 191,
+          "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tour%20Eiffel%20Wikimedia%20Commons.jpg"
+        },
+        {
+          "name": "Louvre Museum",
+          "wikidata": "Q19675",
+          "lat": 48.86111,
+          "lon": 2.33583,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "archaeological museum",
+            "art museum"
+          ],
+          "popularity": 169,
+          "url": "https://en.wikipedia.org/wiki/Louvre",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cour%20Napol%C3%A9on%20at%20night%20-%20Louvre.jpg"
+        },
+        {
+          "name": "Notre-Dame de Paris",
+          "wikidata": "Q2981",
+          "lat": 48.853,
+          "lon": 2.3498,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral",
+            "minor basilica"
+          ],
+          "popularity": 125,
+          "url": "https://en.wikipedia.org/wiki/Notre-Dame_de_Paris",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Notre-Dame%20de%20Paris%202013-07-24.jpg"
+        },
+        {
+          "name": "Musée d'Orsay",
+          "wikidata": "Q23402",
+          "lat": 48.85997,
+          "lon": 2.32653,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "art museum"
+          ],
+          "popularity": 122,
+          "url": "https://en.wikipedia.org/wiki/Mus%C3%A9e_d%27Orsay",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gare%20d%27Orsay%20%2849570190081%29.jpg"
+        },
+        {
+          "name": "avenue des Champs-Élysées",
+          "wikidata": "Q550",
+          "lat": 48.86967,
+          "lon": 2.30786,
+          "tags": [
+            "nightlife"
+          ],
+          "types": [
+            "avenue",
+            "boulevard"
+          ],
+          "popularity": 94,
+          "url": "https://en.wikipedia.org/wiki/Champs-%C3%89lys%C3%A9es",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Avenue%20des%20Champs-%C3%89lys%C3%A9es%2C%20Paris%203%20October%202010.jpg"
+        },
+        {
+          "name": "Bastille",
+          "wikidata": "Q1865480",
+          "lat": 48.85333,
+          "lon": 2.36917,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "destroyed building or structure",
+            "prison",
+            "castle"
+          ],
+          "popularity": 86,
+          "url": "https://en.wikipedia.org/wiki/Bastille",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bastille%20Exterior%201790%20or%201791.jpg"
+        },
+        {
+          "name": "Arc de Triomphe",
+          "wikidata": "Q64436",
+          "lat": 48.87378,
+          "lon": 2.29504,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "triumphal arch"
+          ],
+          "popularity": 85,
+          "url": "https://en.wikipedia.org/wiki/Arc_de_Triomphe",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Arc%20de%20Triomphe%20-%20Ao%C3%BBt%202026.jpg"
+        },
+        {
+          "name": "Montmartre",
+          "wikidata": "Q186115",
+          "lat": 48.88694,
+          "lon": 2.34111,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "hill",
+            "district",
+            "neighborhood"
+          ],
+          "popularity": 65,
+          "url": "https://en.wikipedia.org/wiki/Montmartre",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/View%20from%20Notre-Dame%20de%20Paris%2C%2024%20June%202014%20004.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "nice",
+      "iata": "NCE",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:40:57+00:00",
+      "items": [
+        {
+          "name": "Prince's Palace of Monaco",
+          "wikidata": "Q1164788",
+          "lat": 43.73142,
+          "lon": 7.42028,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "palace"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/Prince%27s_Palace_of_Monaco",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Palais%20Princier%20de%20Monaco.jpg"
+        },
+        {
+          "name": "Tropaeum Alpium",
+          "wikidata": "Q747588",
+          "lat": 43.74478,
+          "lon": 7.4018,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "ancient Roman structure",
+            "monument",
+            "tropaion",
+            "ruins"
+          ],
+          "popularity": 26,
+          "url": "https://en.wikipedia.org/wiki/Tropaeum_Alpium",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/La%20Turbie%20BW%201.JPG"
+        },
+        {
+          "name": "Cathedral of Our Lady Immaculate",
+          "wikidata": "Q667450",
+          "lat": 43.73021,
+          "lon": 7.42266,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cathedral"
+          ],
+          "popularity": 26,
+          "url": "https://en.wikipedia.org/wiki/Cathedral_of_Our_Lady_Immaculate",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Monaco%20BW%202011-06-07%2016-07-20.jpg"
+        },
+        {
+          "name": "Hotel Negresco",
+          "wikidata": "Q743147",
+          "lat": 43.69449,
+          "lon": 7.25838,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "palace hotel",
+            "hotel"
+          ],
+          "popularity": 20,
+          "url": "https://en.wikipedia.org/wiki/Hotel_Negresco",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Le%20Negresco.jpg"
+        },
+        {
+          "name": "Opéra de Monte-Carlo",
+          "wikidata": "Q1577048",
+          "lat": 43.73889,
+          "lon": 7.42833,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "performing arts center",
+            "opera house"
+          ],
+          "popularity": 20,
+          "url": "https://en.wikipedia.org/wiki/Op%C3%A9ra_de_Monte-Carlo",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Op%C3%A9ra%20de%20Monte-Carlo-Monaco.JPG"
+        },
+        {
+          "name": "Notre-Dame de Nice",
+          "wikidata": "Q2886962",
+          "lat": 43.70319,
+          "lon": 7.26579,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "national shrine",
+            "minor basilica"
+          ],
+          "popularity": 16,
+          "url": "https://en.wikipedia.org/wiki/Notre-Dame_de_Nice",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Notre%20Dame%20%28113432119%29.jpeg"
+        },
+        {
+          "name": "Chemin des Révoires",
+          "wikidata": "Q1069352",
+          "lat": 43.73278,
+          "lon": 7.4125,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "footpath",
+            "path",
+            "mountain"
+          ],
+          "popularity": 16,
+          "url": "https://en.wikipedia.org/wiki/Chemin_des_R%C3%A9voires",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/MonacoLibreDeDroits.jpg"
+        },
+        {
+          "name": "Nice Cathedral",
+          "wikidata": "Q1084011",
+          "lat": 43.69722,
+          "lon": 7.27583,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral",
+            "minor basilica"
+          ],
+          "popularity": 16,
+          "url": "https://en.wikipedia.org/wiki/Nice_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cathedrale%20Sainte-Reparate%20Nice.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "amsterdam",
+      "iata": "AMS",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:01+00:00",
+      "items": [
+        {
+          "name": "Van Gogh Museum",
+          "wikidata": "Q224124",
+          "lat": 52.35833,
+          "lon": 4.88111,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "cultural institution",
+            "museum",
+            "art museum"
+          ],
+          "popularity": 60,
+          "url": "https://en.wikipedia.org/wiki/Van_Gogh_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Van%20Gogh%20Museum.jpg"
+        },
+        {
+          "name": "Defence Line of Amsterdam",
+          "wikidata": "Q855003",
+          "lat": 52.37444,
+          "lon": 4.89306,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "fortification",
+            "Nationaal Landschap",
+            "waterline"
+          ],
+          "popularity": 39,
+          "url": "https://en.wikipedia.org/wiki/Stelling_van_Amsterdam",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fort%20bij%20Spijkerboor%20bovenzijde%20geschutskoepel.JPG"
+        },
+        {
+          "name": "Concertgebouw",
+          "wikidata": "Q849957",
+          "lat": 52.35631,
+          "lon": 4.87908,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "concert hall",
+            "theatre building"
+          ],
+          "popularity": 38,
+          "url": "https://en.wikipedia.org/wiki/Concertgebouw,_Amsterdam",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Concertgebouw%20in%20Amsterdam%20April%202015.jpg"
+        },
+        {
+          "name": "Stedelijk Museum Amsterdam",
+          "wikidata": "Q924335",
+          "lat": 52.35801,
+          "lon": 4.87976,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum"
+          ],
+          "popularity": 38,
+          "url": "https://en.wikipedia.org/wiki/Stedelijk_Museum_Amsterdam",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/De%20nieuwe%20vleugel%20van%20het%20Stedelijk%20Museum%20Amsterdam.jpg"
+        },
+        {
+          "name": "Amsterdam Stock Exchange",
+          "wikidata": "Q478720",
+          "lat": 52.3742,
+          "lon": 4.8957,
+          "tags": [
+            "food"
+          ],
+          "types": [
+            "regulated market",
+            "stock exchange"
+          ],
+          "popularity": 35,
+          "url": "https://en.wikipedia.org/wiki/Euronext_Amsterdam",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20220525.Amsterdam.-028.jpg"
+        },
+        {
+          "name": "Dam Square",
+          "wikidata": "Q839050",
+          "lat": 52.37306,
+          "lon": 4.89278,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Dam_Square",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Amsterdam%20-%20Dak%20van%20de%20Stad%20%2814%29.jpg"
+        },
+        {
+          "name": "Rembrandt House Museum",
+          "wikidata": "Q277316",
+          "lat": 52.36944,
+          "lon": 4.90139,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "history museum",
+            "historic house museum",
+            "art museum"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/Rembrandt_House_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rembrandshuis.jpg"
+        },
+        {
+          "name": "Westerkerk",
+          "wikidata": "Q1130722",
+          "lat": 52.3745,
+          "lon": 4.8839,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "church building"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/Westerkerk",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Westerkerk%20interieur%202021.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "berlin",
+      "iata": "BER",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:05+00:00",
+      "items": [
+        {
+          "name": "Pergamon Museum",
+          "wikidata": "Q157298",
+          "lat": 52.521,
+          "lon": 13.396,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum",
+            "museum"
+          ],
+          "popularity": 61,
+          "url": "https://en.wikipedia.org/wiki/Pergamon_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pergamonmuseum%20Front.jpg"
+        },
+        {
+          "name": "Fernsehturm Berlin",
+          "wikidata": "Q151356",
+          "lat": 52.52083,
+          "lon": 13.40944,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "observation tower",
+            "historic site",
+            "television tower"
+          ],
+          "popularity": 58,
+          "url": "https://en.wikipedia.org/wiki/Fernsehturm_Berlin",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tv-turm%20-%20panoramio.jpg"
+        },
+        {
+          "name": "Berlin Cathedral",
+          "wikidata": "Q154563",
+          "lat": 52.51917,
+          "lon": 13.40111,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Lutheran cathedral",
+            "court church",
+            "Lutheran church"
+          ],
+          "popularity": 51,
+          "url": "https://en.wikipedia.org/wiki/Berlin_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Berliner%20Dom%20von%20Humboldt-Box.jpg"
+        },
+        {
+          "name": "Potsdamer Platz",
+          "wikidata": "Q152252",
+          "lat": 52.50894,
+          "lon": 13.37633,
+          "tags": [],
+          "types": [
+            "architectural ensemble",
+            "square"
+          ],
+          "popularity": 50,
+          "url": "https://en.wikipedia.org/wiki/Potsdamer_Platz",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/PotsdamerPlatz%20Vogelperspektive%202004%201.jpg"
+        },
+        {
+          "name": "Unter den Linden",
+          "wikidata": "Q160899",
+          "lat": 52.51658,
+          "lon": 13.381,
+          "tags": [
+            "nightlife"
+          ],
+          "types": [
+            "boulevard"
+          ],
+          "popularity": 50,
+          "url": "https://en.wikipedia.org/wiki/Unter_den_Linden",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Unter%20den%20Linden%20von%20oben.jpg"
+        },
+        {
+          "name": "Alexanderplatz",
+          "wikidata": "Q152783",
+          "lat": 52.52167,
+          "lon": 13.41361,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 49,
+          "url": "https://en.wikipedia.org/wiki/Alexanderplatz",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Berlin%20-%20Alexanderplatz1.jpg"
+        },
+        {
+          "name": "Charlottenburg Palace",
+          "wikidata": "Q154996",
+          "lat": 52.52111,
+          "lon": 13.29583,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "summer residence",
+            "château",
+            "museum"
+          ],
+          "popularity": 49,
+          "url": "https://en.wikipedia.org/wiki/Schloss_Charlottenburg",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Schloss%20Charlottenburg%202025.jpg"
+        },
+        {
+          "name": "Neues Museum",
+          "wikidata": "Q157316",
+          "lat": 52.5202,
+          "lon": 13.3976,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum building",
+            "museum"
+          ],
+          "popularity": 47,
+          "url": "https://en.wikipedia.org/wiki/Neues_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Neues%20Museum%20-%20Joy%20of%20Museums.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "munich",
+      "iata": "MUC",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:01+00:00",
+      "items": [
+        {
+          "name": "Deutsches Museum",
+          "wikidata": "Q131617",
+          "lat": 48.13,
+          "lon": 11.58333,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "technology museum",
+            "science museum"
+          ],
+          "popularity": 55,
+          "url": "https://en.wikipedia.org/wiki/Deutsches_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Deutsches%20Museum%20Portrait%204.jpg"
+        },
+        {
+          "name": "Alte Pinakothek",
+          "wikidata": "Q154568",
+          "lat": 48.14829,
+          "lon": 11.56999,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "art museum"
+          ],
+          "popularity": 47,
+          "url": "https://en.wikipedia.org/wiki/Alte_Pinakothek",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Alte%20Pinakothek.JPG"
+        },
+        {
+          "name": "Englischer Garten",
+          "wikidata": "Q260223",
+          "lat": 48.15278,
+          "lon": 11.59194,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "park"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/Englischer_Garten",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aerial%20image%20of%20Englischer%20Garten%20in%20Munich%20%28view%20from%20the%20southwest%29.jpg"
+        },
+        {
+          "name": "Glyptothek",
+          "wikidata": "Q162077",
+          "lat": 48.14657,
+          "lon": 11.56582,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "architectural heritage monument",
+            "glyptotheque",
+            "art museum"
+          ],
+          "popularity": 40,
+          "url": "https://en.wikipedia.org/wiki/Glyptothek",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Glyptothek%20M%C3%BCnchen%2C%20April%202023.jpg"
+        },
+        {
+          "name": "Neue Pinakothek",
+          "wikidata": "Q170152",
+          "lat": 48.14989,
+          "lon": 11.57111,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "pinacotheca",
+            "art museum",
+            "building"
+          ],
+          "popularity": 36,
+          "url": "https://en.wikipedia.org/wiki/Neue_Pinakothek",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ausstellungsraum%20Neue%20Pinakothek.JPG"
+        },
+        {
+          "name": "Munich Residence",
+          "wikidata": "Q686548",
+          "lat": 48.14105,
+          "lon": 11.57871,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "royal palace",
+            "château"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Munich_Residenz",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/BAVIERA.%20M%C3%9ANICH.%20Residenz%20%28fachada%20occidental%29.jpg"
+        },
+        {
+          "name": "BMW Museum",
+          "wikidata": "Q703212",
+          "lat": 48.17667,
+          "lon": 11.55917,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "corporate museum",
+            "automobile museum"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/BMW_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museo%20BMW%2C%20M%C3%BAnich%2C%20Alemania%202012-04-28%2C%20DD%2001.JPG"
+        },
+        {
+          "name": "Theatine Church",
+          "wikidata": "Q259799",
+          "lat": 48.14194,
+          "lon": 11.57639,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic church building"
+          ],
+          "popularity": 26,
+          "url": "https://en.wikipedia.org/wiki/Theatine_Church,_Munich",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Exterior%20of%20Theatinerkirche%2C%20Munich.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "vienna",
+      "iata": "VIE",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:08+00:00",
+      "items": [
+        {
+          "name": "Belvedere",
+          "wikidata": "Q211818",
+          "lat": 48.1934,
+          "lon": 16.38052,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "palace"
+          ],
+          "popularity": 61,
+          "url": "https://en.wikipedia.org/wiki/Belvedere,_Vienna",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Wien%20-%20Schloss%20Belvedere%2C%20oberes%20%282%29.JPG"
+        },
+        {
+          "name": "St. Stephen's Cathedral",
+          "wikidata": "Q5943",
+          "lat": 48.20843,
+          "lon": 16.37326,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral"
+          ],
+          "popularity": 60,
+          "url": "https://en.wikipedia.org/wiki/St._Stephen%27s_Cathedral,_Vienna",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Wien%20-%20Stephansdom%20%281%29.JPG"
+        },
+        {
+          "name": "Hofburg Palace",
+          "wikidata": "Q46242",
+          "lat": 48.20639,
+          "lon": 16.36528,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "tourist destination",
+            "official residence",
+            "château",
+            "museum",
+            "castle"
+          ],
+          "popularity": 55,
+          "url": "https://en.wikipedia.org/wiki/Hofburg",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Wien%20-%20Neue%20Hofburg.JPG"
+        },
+        {
+          "name": "Vienna State Opera house",
+          "wikidata": "Q209937",
+          "lat": 48.20333,
+          "lon": 16.36917,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "opera house"
+          ],
+          "popularity": 55,
+          "url": "https://en.wikipedia.org/wiki/Vienna_State_Opera",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Staatsoper%20Wien%20DSC%205273w.jpg"
+        },
+        {
+          "name": "Kunsthistorisches Museum",
+          "wikidata": "Q95569",
+          "lat": 48.20388,
+          "lon": 16.3616,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "cultural institution",
+            "art museum"
+          ],
+          "popularity": 52,
+          "url": "https://en.wikipedia.org/wiki/Kunsthistorisches_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Wien%20Kunsthistorisches%20Museum.jpg"
+        },
+        {
+          "name": "Albertina",
+          "wikidata": "Q371908",
+          "lat": 48.20472,
+          "lon": 16.36833,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum"
+          ],
+          "popularity": 47,
+          "url": "https://en.wikipedia.org/wiki/Albertina",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Wien%20-%20Albertina%20%28b%29.JPG"
+        },
+        {
+          "name": "Natural History Museum, Vienna",
+          "wikidata": "Q688704",
+          "lat": 48.20513,
+          "lon": 16.35993,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "academic publisher",
+            "collection",
+            "natural history museum"
+          ],
+          "popularity": 43,
+          "url": "https://en.wikipedia.org/wiki/Natural_History_Museum,_Vienna",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Naturhistorisches%20Museum%20Wien%202.jpg"
+        },
+        {
+          "name": "Karlskirche",
+          "wikidata": "Q408847",
+          "lat": 48.19828,
+          "lon": 16.37188,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "church building"
+          ],
+          "popularity": 41,
+          "url": "https://en.wikipedia.org/wiki/Karlskirche",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Wien%20-%20Karlskirche%20%281%29.JPG"
+        }
+      ]
+    },
+    {
+      "city_id": "innsbruck",
+      "iata": "INN",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:06+00:00",
+      "items": [
+        {
+          "name": "Ambras Castle",
+          "wikidata": "Q700764",
+          "lat": 47.25667,
+          "lon": 11.43472,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "château",
+            "military museum",
+            "art museum"
+          ],
+          "popularity": 35,
+          "url": "https://en.wikipedia.org/wiki/Ambras_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Schloss%20Ambras%20Park%20und%20Garten%2010.jpg"
+        },
+        {
+          "name": "Bergiselschanze",
+          "wikidata": "Q672833",
+          "lat": 47.24889,
+          "lon": 11.39917,
+          "tags": [
+            "nature",
+            "ski"
+          ],
+          "types": [
+            "ski jumping hill"
+          ],
+          "popularity": 23,
+          "url": "https://en.wikipedia.org/wiki/Bergisel_Ski_Jump",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bergisel-N.jpg"
+        },
+        {
+          "name": "Golden Roof",
+          "wikidata": "Q700208",
+          "lat": 47.2686,
+          "lon": 11.3933,
+          "tags": [
+            "art",
+            "nature"
+          ],
+          "types": [
+            "Ansitz",
+            "bay window",
+            "museum"
+          ],
+          "popularity": 21,
+          "url": "https://en.wikipedia.org/wiki/Goldenes_Dachl",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Goldenes%20Dachl%20%28Innsbruck%29.jpg"
+        },
+        {
+          "name": "Bergisel",
+          "wikidata": "Q683996",
+          "lat": 47.24667,
+          "lon": 11.39972,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 20,
+          "url": "https://en.wikipedia.org/wiki/Bergisel",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Bergisel-S.jpg"
+        },
+        {
+          "name": "Birkkarspitze",
+          "wikidata": "Q702352",
+          "lat": 47.41139,
+          "lon": 11.4375,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 20,
+          "url": "https://en.wikipedia.org/wiki/Birkkarspitze",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Birkkarspitze%20Gipfel%20HQ.jpg"
+        },
+        {
+          "name": "Hofburg, Innsbruck",
+          "wikidata": "Q356289",
+          "lat": 47.2689,
+          "lon": 11.3944,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "castle",
+            "museum",
+            "palace"
+          ],
+          "popularity": 19,
+          "url": "https://en.wikipedia.org/wiki/Hofburg,_Innsbruck",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Insbruk%20Hofburg%20%C4%8Delo%201.jpg"
+        },
+        {
+          "name": "Patscherkofel",
+          "wikidata": "Q695264",
+          "lat": 47.20861,
+          "lon": 11.46056,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 18,
+          "url": "https://en.wikipedia.org/wiki/Patscherkofel",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Patscherkofel%20vm01.jpg"
+        },
+        {
+          "name": "Stubaital",
+          "wikidata": "Q689532",
+          "lat": 47.1667,
+          "lon": 11.3167,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "valley"
+          ],
+          "popularity": 16,
+          "url": "https://en.wikipedia.org/wiki/Stubaital",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Stubaital%20from%20Elfer.JPG"
+        }
+      ]
+    },
+    {
+      "city_id": "prague",
+      "iata": "PRG",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:13+00:00",
+      "items": [
+        {
+          "name": "Prague Castle",
+          "wikidata": "Q193369",
+          "lat": 50.09,
+          "lon": 14.4,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "hillfort",
+            "castle"
+          ],
+          "popularity": 65,
+          "url": "https://en.wikipedia.org/wiki/Prague_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Castillo%20de%20Praga%2C%20Praga%2C%20Rep%C3%BAblica%20Checa%2C%202022-07-02%2C%20DD%20209.jpg"
+        },
+        {
+          "name": "St. Vitus Cathedral",
+          "wikidata": "Q5949",
+          "lat": 50.09083,
+          "lon": 14.40056,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral"
+          ],
+          "popularity": 60,
+          "url": "https://en.wikipedia.org/wiki/St._Vitus_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Praha%2C%20Katedr%C3%A1la%2C%20JV%2001.jpg"
+        },
+        {
+          "name": "Prague Astronomical Clock",
+          "wikidata": "Q729370",
+          "lat": 50.08699,
+          "lon": 14.4207,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "24-hour analog dial",
+            "bell tower",
+            "astronomical clock"
+          ],
+          "popularity": 46,
+          "url": "https://en.wikipedia.org/wiki/Prague_astronomical_clock",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Astronomical%20Clock%20%288341899828%29.jpg"
+        },
+        {
+          "name": "National Museum in Prague",
+          "wikidata": "Q188112",
+          "lat": 50.07984,
+          "lon": 14.43042,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "Czech research institution",
+            "publishing house",
+            "national museum",
+            "museum"
+          ],
+          "popularity": 41,
+          "url": "https://en.wikipedia.org/wiki/National_Museum_(Prague)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museo%20Nacional%2C%20Praga%2C%20Rep%C3%BAblica%20Checa%2C%202022-07-02%2C%20DD%20265-267%20HDR.jpg"
+        },
+        {
+          "name": "Wenceslas Square",
+          "wikidata": "Q847613",
+          "lat": 50.08231,
+          "lon": 14.42614,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 41,
+          "url": "https://en.wikipedia.org/wiki/Wenceslas_Square",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/V%C3%A1clavsk%C3%A9%20n%C3%A1m%C4%9Bst%C3%AD%20z%20kupole%20Muzea%203.jpg"
+        },
+        {
+          "name": "Vyšehrad",
+          "wikidata": "Q616334",
+          "lat": 50.06443,
+          "lon": 14.41764,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "hillfort",
+            "ruins",
+            "fortress"
+          ],
+          "popularity": 40,
+          "url": "https://en.wikipedia.org/wiki/Vy%C5%A1ehrad",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Praha%202%2C%20Pevnost%20Vy%C5%A1ehrad%2020170808%20014.jpg"
+        },
+        {
+          "name": "Old Town Square",
+          "wikidata": "Q421678",
+          "lat": 50.0875,
+          "lon": 14.42139,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 39,
+          "url": "https://en.wikipedia.org/wiki/Old_Town_Square",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Prague%2007-2016%20View%20from%20Old%20Town%20Hall%20Tower%20img3.jpg"
+        },
+        {
+          "name": "Church of Our Lady before Týn",
+          "wikidata": "Q1453427",
+          "lat": 50.08771,
+          "lon": 14.4227,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "church building"
+          ],
+          "popularity": 38,
+          "url": "https://en.wikipedia.org/wiki/Church_of_Our_Lady_before_T%C3%BDn",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Prague%2007-2016%20View%20from%20Old%20Town%20Hall%20Tower%20img2.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "budapest",
+      "iata": "BUD",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:13+00:00",
+      "items": [
+        {
+          "name": "Buda Castle",
+          "wikidata": "Q46313",
+          "lat": 47.49611,
+          "lon": 19.03972,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "palace",
+            "castle"
+          ],
+          "popularity": 47,
+          "url": "https://en.wikipedia.org/wiki/Buda_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20190502%20Zamek%20w%20Budapeszcie%200647%201862%20DxO.jpg"
+        },
+        {
+          "name": "Heroes' Square",
+          "wikidata": "Q299973",
+          "lat": 47.51528,
+          "lon": 19.07806,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 46,
+          "url": "https://en.wikipedia.org/wiki/Heroes%27_Square_(Budapest)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Heroes%20Square%20Budapest%202010%2001.jpg"
+        },
+        {
+          "name": "St. Stephen's Basilica",
+          "wikidata": "Q338665",
+          "lat": 47.50083,
+          "lon": 19.05389,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic church building",
+            "co-cathedral",
+            "minor basilica"
+          ],
+          "popularity": 42,
+          "url": "https://en.wikipedia.org/wiki/St._Stephen%27s_Basilica",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/HUN-2015-Budapest-St.%20Stephen%27s%20Basilica.jpg"
+        },
+        {
+          "name": "Hungarian State Opera House",
+          "wikidata": "Q36833",
+          "lat": 47.50278,
+          "lon": 19.05833,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "opera house"
+          ],
+          "popularity": 40,
+          "url": "https://en.wikipedia.org/wiki/Hungarian_State_Opera_House",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hungarian%20State%20Opera%20House%20in%20Budapest.jpg"
+        },
+        {
+          "name": "Museum of Fine Arts, Budapest",
+          "wikidata": "Q840886",
+          "lat": 47.51587,
+          "lon": 19.07678,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "art museum"
+          ],
+          "popularity": 37,
+          "url": "https://en.wikipedia.org/wiki/Museum_of_Fine_Arts_(Budapest)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Budapest%20Fine%20Arts%20Museum%20R01.jpg"
+        },
+        {
+          "name": "Dohány Street Synagogue",
+          "wikidata": "Q754397",
+          "lat": 47.4959,
+          "lon": 19.0607,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "synagogue"
+          ],
+          "popularity": 36,
+          "url": "https://en.wikipedia.org/wiki/Doh%C3%A1ny_Street_Synagogue",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Synagogue-Budapest.jpg"
+        },
+        {
+          "name": "Hungarian National Museum",
+          "wikidata": "Q914141",
+          "lat": 47.49111,
+          "lon": 19.06278,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum building",
+            "national museum"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Hungarian_National_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Magyar%20Nemzeti%20M%C3%BAzeum.jpg"
+        },
+        {
+          "name": "House of Terror Museum",
+          "wikidata": "Q372376",
+          "lat": 47.50683,
+          "lon": 19.06514,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum"
+          ],
+          "popularity": 31,
+          "url": "https://en.wikipedia.org/wiki/House_of_Terror",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Peace%20March%20for%20Hungary%20-%202013.10.23%20%2870%29.JPG"
+        }
+      ]
+    },
+    {
+      "city_id": "athens",
+      "iata": "ATH",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:10+00:00",
+      "items": [
+        {
+          "name": "Parthenon",
+          "wikidata": "Q10288",
+          "lat": 37.97153,
+          "lon": 23.7266,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "religious building ruin",
+            "Ancient Greek archaeological site",
+            "ancient Greek temple"
+          ],
+          "popularity": 137,
+          "url": "https://en.wikipedia.org/wiki/Parthenon",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Parthenon%20in%20Athens.jpg"
+        },
+        {
+          "name": "Acropolis of Athens",
+          "wikidata": "Q131013",
+          "lat": 37.97167,
+          "lon": 23.72611,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Ancient Greek archaeological site",
+            "acropolis"
+          ],
+          "popularity": 97,
+          "url": "https://en.wikipedia.org/wiki/Acropolis_of_Athens",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Attica%2006-13%20Athens%2050%20View%20from%20Philopappos%20-%20Acropolis%20Hill.jpg"
+        },
+        {
+          "name": "Areopagus",
+          "wikidata": "Q202487",
+          "lat": 37.97222,
+          "lon": 23.72361,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "rock formation",
+            "hill"
+          ],
+          "popularity": 56,
+          "url": "https://en.wikipedia.org/wiki/Areopagus",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Areopagus%20from%20the%20Acropolis.jpg"
+        },
+        {
+          "name": "Erechtheion",
+          "wikidata": "Q242741",
+          "lat": 37.97208,
+          "lon": 23.72653,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "archaeological site",
+            "ancient Greek temple",
+            "ruins"
+          ],
+          "popularity": 50,
+          "url": "https://en.wikipedia.org/wiki/Erechtheion",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Erechtheion%20Acropolis%20Athens.jpg"
+        },
+        {
+          "name": "Daphni Monastery",
+          "wikidata": "Q500444",
+          "lat": 38.01306,
+          "lon": 23.63583,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "monastery"
+          ],
+          "popularity": 45,
+          "url": "https://en.wikipedia.org/wiki/Daphni_Monastery",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dafni%20monastery.jpeg"
+        },
+        {
+          "name": "Temple of Athena Nike",
+          "wikidata": "Q384813",
+          "lat": 37.9715,
+          "lon": 23.7249,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "archaeological site",
+            "ancient Greek temple"
+          ],
+          "popularity": 43,
+          "url": "https://en.wikipedia.org/wiki/Temple_of_Athena_Nike",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Temple%20of%20Athena%20Nik%C3%A8%20from%20Propylaea%2C%20Acropolis%2C%20Athens%2C%20Greece.jpg"
+        },
+        {
+          "name": "National Archaeological Museum of Athens",
+          "wikidata": "Q637187",
+          "lat": 37.98917,
+          "lon": 23.73222,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "archaeological museum",
+            "national museum"
+          ],
+          "popularity": 41,
+          "url": "https://en.wikipedia.org/wiki/National_Archaeological_Museum,_Athens",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Arch%C3%A4ologisches%20Nationalmuseum%20Athen.jpg"
+        },
+        {
+          "name": "Temple of Hephaestus",
+          "wikidata": "Q756824",
+          "lat": 37.97562,
+          "lon": 23.72139,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "ancient Greek temple"
+          ],
+          "popularity": 38,
+          "url": "https://en.wikipedia.org/wiki/Temple_of_Hephaestus",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Greece-0176%20%282215880732%29.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "heraklion",
+      "iata": "HER",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:12+00:00",
+      "items": [
+        {
+          "name": "Knossos",
+          "wikidata": "Q173527",
+          "lat": 35.29796,
+          "lon": 25.16316,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "organized archaeological site",
+            "polis"
+          ],
+          "popularity": 71,
+          "url": "https://en.wikipedia.org/wiki/Knossos",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Knossos%20-%20North%20Portico%2002.jpg"
+        },
+        {
+          "name": "Dia",
+          "wikidata": "Q868952",
+          "lat": 35.44709,
+          "lon": 25.21878,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Dia_(island)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dia%20Island.jpg"
+        },
+        {
+          "name": "Heraklion Archaeological Museum",
+          "wikidata": "Q636972",
+          "lat": 35.33917,
+          "lon": 25.1375,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "archaeological museum"
+          ],
+          "popularity": 21,
+          "url": "https://en.wikipedia.org/wiki/Heraklion_Archaeological_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Building%20of%20the%20Archaeological%20Museum%20of%20Heraklion%2C%20061381.jpg"
+        },
+        {
+          "name": "Agios Minas Cathedral",
+          "wikidata": "Q2942217",
+          "lat": 35.3375,
+          "lon": 25.13083,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Eastern Orthodox cathedral"
+          ],
+          "popularity": 21,
+          "url": "https://en.wikipedia.org/wiki/Agios_Minas_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Catedral%20%28Heraclion%29.jpg"
+        },
+        {
+          "name": "Mount Juktas",
+          "wikidata": "Q3321879",
+          "lat": 35.23994,
+          "lon": 25.14414,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 14,
+          "url": "https://en.wikipedia.org/wiki/Mount_Juktas",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mt.%20Juktas-1.jpg"
+        },
+        {
+          "name": "Zominthos",
+          "wikidata": "Q219818",
+          "lat": 35.24869,
+          "lon": 24.88714,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "archaeological site",
+            "plateau"
+          ],
+          "popularity": 13,
+          "url": "https://en.wikipedia.org/wiki/Zominthos",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Zominthos%2014.jpg"
+        },
+        {
+          "name": "Lyctus",
+          "wikidata": "Q1001533",
+          "lat": 35.21288,
+          "lon": 25.37034,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Ancient Greek archaeological site",
+            "polis"
+          ],
+          "popularity": 13,
+          "url": "https://en.wikipedia.org/wiki/Lyktos",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Grecia%20omerica-it.svg"
+        },
+        {
+          "name": "Hagios Titos church",
+          "wikidata": "Q4426010",
+          "lat": 35.34012,
+          "lon": 25.13474,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Eastern Orthodox church building",
+            "mosque",
+            "cathedral"
+          ],
+          "popularity": 13,
+          "url": "https://en.wikipedia.org/wiki/Saint_Titus_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Outside%20church%20Hagios%20Titos%20Heraklion.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "split",
+      "iata": "SPU",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:12+00:00",
+      "items": [
+        {
+          "name": "Diocletian's Palace",
+          "wikidata": "Q322287",
+          "lat": 43.50806,
+          "lon": 16.43833,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Ancient Roman imperial palace",
+            "Roman villa"
+          ],
+          "popularity": 52,
+          "url": "https://en.wikipedia.org/wiki/Diocletian%27s_Palace",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Diocletian%27s%20Palace%20%28original%20appearance%29.jpg"
+        },
+        {
+          "name": "Šolta",
+          "wikidata": "Q392225",
+          "lat": 43.38111,
+          "lon": 16.29111,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 43,
+          "url": "https://en.wikipedia.org/wiki/%C5%A0olta",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/%C5%A0olta%20Stomorska%20Ne%C4%8Dujam%20Hrvatska%202012%20a.jpg"
+        },
+        {
+          "name": "Čiovo",
+          "wikidata": "Q341554",
+          "lat": 43.49889,
+          "lon": 16.30472,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/%C4%8Ciovo",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Chorwacja%2C%20widok%20na%20wysp%C4%99%20Ciovo%20z%20mostu%20pomi%C4%99dzy%20wysp%C4%85%20Ciovo%20i%20Trogirem.JPG"
+        },
+        {
+          "name": "Cathedral of Saint Domnius",
+          "wikidata": "Q1268475",
+          "lat": 43.50806,
+          "lon": 16.44028,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Catholic cathedral"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Cathedral_of_Saint_Domnius",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/SvDuje.jpg"
+        },
+        {
+          "name": "Klis Fortress",
+          "wikidata": "Q2712312",
+          "lat": 43.56,
+          "lon": 16.52389,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "fortress"
+          ],
+          "popularity": 25,
+          "url": "https://en.wikipedia.org/wiki/Fortress_of_Klis",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Klis%20Fortress%20-%20a%20view%20from%20south-west.jpg"
+        },
+        {
+          "name": "Kamerlengo Castle",
+          "wikidata": "Q3182749",
+          "lat": 43.51528,
+          "lon": 16.2475,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle"
+          ],
+          "popularity": 20,
+          "url": "https://en.wikipedia.org/wiki/Kamerlengo_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Trogir%20Kamerlengo%20z%20mo%C5%99e%201.jpg"
+        },
+        {
+          "name": "Trogir Cathedral",
+          "wikidata": "Q3434349",
+          "lat": 43.5171,
+          "lon": 16.2514,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cathedral"
+          ],
+          "popularity": 20,
+          "url": "https://en.wikipedia.org/wiki/Trogir_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Trogir%20katedr%C3%A1la%20sv.%20Vav%C5%99ince%20z%C3%A1v%C4%9Br%201.jpg"
+        },
+        {
+          "name": "Mosor",
+          "wikidata": "Q1811912",
+          "lat": 43.52717,
+          "lon": 16.63733,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain range"
+          ],
+          "popularity": 19,
+          "url": "https://en.wikipedia.org/wiki/Mosor",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hlavni%20hreben%20Mosoru%20k%20jihu%2C%20v%20pozadi%20zasnezene%20Biokovo.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "dubrovnik",
+      "iata": "DBV",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:16+00:00",
+      "items": [
+        {
+          "name": "Lokrum",
+          "wikidata": "Q277389",
+          "lat": 42.62722,
+          "lon": 18.11944,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/Lokrum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lokrum2.JPG"
+        },
+        {
+          "name": "Koločep",
+          "wikidata": "Q1323805",
+          "lat": 42.67861,
+          "lon": 18.00778,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/Kolo%C4%8Dep",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Island%20of%20Kolo%C4%8Dep.JPG"
+        },
+        {
+          "name": "Rector's Palace, Dubrovnik",
+          "wikidata": "Q2497590",
+          "lat": 42.64028,
+          "lon": 18.11083,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "building",
+            "museum"
+          ],
+          "popularity": 27,
+          "url": "https://en.wikipedia.org/wiki/Rector%27s_Palace,_Dubrovnik",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rector%27s%20palace.jpg"
+        },
+        {
+          "name": "Dubrovnik Cathedral",
+          "wikidata": "Q584428",
+          "lat": 42.6399,
+          "lon": 18.1104,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "church building",
+            "cathedral"
+          ],
+          "popularity": 26,
+          "url": "https://en.wikipedia.org/wiki/Dubrovnik_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cattedrale%20Dubrovnik.JPG"
+        },
+        {
+          "name": "Sponza Palace",
+          "wikidata": "Q2986276",
+          "lat": 42.64111,
+          "lon": 18.11056,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "palace"
+          ],
+          "popularity": 21,
+          "url": "https://en.wikipedia.org/wiki/Sponza_Palace",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dubrovnik%2C%20Sponza%27s%20palace%20IMG%208147.jpg"
+        },
+        {
+          "name": "Franciscan Church and Monastery",
+          "wikidata": "Q3509032",
+          "lat": 42.6418,
+          "lon": 18.1078,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "monastery",
+            "church building"
+          ],
+          "popularity": 21,
+          "url": "https://en.wikipedia.org/wiki/Franciscan_friary,_Dubrovnik",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dubrovnik%20%2857%29.JPG"
+        },
+        {
+          "name": "Lovrijenac",
+          "wikidata": "Q3396134",
+          "lat": 42.64073,
+          "lon": 18.10441,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "fortress"
+          ],
+          "popularity": 20,
+          "url": "https://en.wikipedia.org/wiki/Lovrijenac",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fort%20Lovrijenac%2CDubrovnik%2CCroatia.jpg"
+        },
+        {
+          "name": "St. Saviour Church",
+          "wikidata": "Q3434033",
+          "lat": 42.6417,
+          "lon": 18.1069,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "church building"
+          ],
+          "popularity": 19,
+          "url": "https://en.wikipedia.org/wiki/St._Saviour_Church,_Dubrovnik",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Saint%20Saviour%20Church%20%28Dubrovnik%29.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "valletta",
+      "iata": "MLA",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:15+00:00",
+      "items": [
+        {
+          "name": "Hypogeum of Ħal Saflieni",
+          "wikidata": "Q755514",
+          "lat": 35.86956,
+          "lon": 14.50688,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "archaeological site",
+            "hypogeum"
+          ],
+          "popularity": 47,
+          "url": "https://en.wikipedia.org/wiki/%C4%A6al_Saflieni_Hypogeum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Malta%20Hypogeum%20Modell.jpg"
+        },
+        {
+          "name": "St Paul's Island",
+          "wikidata": "Q755984",
+          "lat": 35.96694,
+          "lon": 14.40222,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 37,
+          "url": "https://en.wikipedia.org/wiki/St_Paul%27s_Island",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Malta%20-%20St.%20Paul%20Islands%20-%20Fly%20view.jpg"
+        },
+        {
+          "name": "St. John's Co-Cathedral",
+          "wikidata": "Q613619",
+          "lat": 35.89778,
+          "lon": 14.51278,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "church building",
+            "cathedral"
+          ],
+          "popularity": 35,
+          "url": "https://en.wikipedia.org/wiki/St_John%27s_Co-Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Concatedral%20de%20San%20Juan%2C%20La%20Valeta%2C%20isla%20de%20Malta%2C%20Malta%2C%202021-08-25%2C%20DD%20246-248%20HDR.jpg"
+        },
+        {
+          "name": "Mnajdra",
+          "wikidata": "Q584366",
+          "lat": 35.82667,
+          "lon": 14.43639,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "archaeological site"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Mnajdra",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/02005%20Mnajdra%20Temples%2C%20copper%20age%2C%202800%20BC.jpg"
+        },
+        {
+          "name": "Manoel Island",
+          "wikidata": "Q949457",
+          "lat": 35.9037,
+          "lon": 14.5021,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Manoel_Island",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Aerial%20view%20of%20Manoel%20Island.jpg"
+        },
+        {
+          "name": "Grand Harbour",
+          "wikidata": "Q220899",
+          "lat": 35.895,
+          "lon": 14.52056,
+          "tags": [],
+          "types": [
+            "physical location",
+            "natural harbor"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Grand_Harbour",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Grand%20harbour%202019-04-11%20%282%29.jpg"
+        },
+        {
+          "name": "Ħaġar Qim",
+          "wikidata": "Q343053",
+          "lat": 35.82778,
+          "lon": 14.44222,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "archaeological site",
+            "megalith"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/%C4%A6a%C4%A1ar_Qim",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Facade%20Hagar%20Qim.jpg"
+        },
+        {
+          "name": "Tarxien Temples",
+          "wikidata": "Q1064331",
+          "lat": 35.86917,
+          "lon": 14.51194,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "archaeological site"
+          ],
+          "popularity": 29,
+          "url": "https://en.wikipedia.org/wiki/Tarxien_Temples",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tarxien%20temple.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "copenhagen",
+      "iata": "CPH",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:17+00:00",
+      "items": [
+        {
+          "name": "Amager",
+          "wikidata": "Q210396",
+          "lat": 55.61667,
+          "lon": 12.61667,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "island"
+          ],
+          "popularity": 47,
+          "url": "https://en.wikipedia.org/wiki/Amager",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Amager%20by%20Sentinel-2%2C%202020-06-15.jpg"
+        },
+        {
+          "name": "Amalienborg",
+          "wikidata": "Q211053",
+          "lat": 55.68403,
+          "lon": 12.59333,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "royal palace",
+            "museum building"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/Amalienborg",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Amalienborg%20panorama%20juli%202013.jpg"
+        },
+        {
+          "name": "Christiansborg Palace",
+          "wikidata": "Q940733",
+          "lat": 55.67583,
+          "lon": 12.57889,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "building of public administration",
+            "palace"
+          ],
+          "popularity": 40,
+          "url": "https://en.wikipedia.org/wiki/Christiansborg_Palace",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Christiansborg%20Slot.jpg"
+        },
+        {
+          "name": "Tivoli Gardens",
+          "wikidata": "Q110289",
+          "lat": 55.67361,
+          "lon": 12.56833,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "pleasure garden",
+            "amusement park"
+          ],
+          "popularity": 40,
+          "url": "https://en.wikipedia.org/wiki/Tivoli_Gardens",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/CopenhagenTivoliEntrance.jpg"
+        },
+        {
+          "name": "Rosenborg Castle",
+          "wikidata": "Q206101",
+          "lat": 55.68566,
+          "lon": 12.57748,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "palace",
+            "museum"
+          ],
+          "popularity": 38,
+          "url": "https://en.wikipedia.org/wiki/Rosenborg_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Rosenborg%20Castle%20Copenhagen%201.jpg"
+        },
+        {
+          "name": "National Museum of Denmark",
+          "wikidata": "Q648166",
+          "lat": 55.67472,
+          "lon": 12.57472,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "museum of culture"
+          ],
+          "popularity": 34,
+          "url": "https://en.wikipedia.org/wiki/National_Museum_of_Denmark",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nationalmuseet%20kbh.jpg"
+        },
+        {
+          "name": "Statens Museum for Kunst",
+          "wikidata": "Q671384",
+          "lat": 55.68889,
+          "lon": 12.57861,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national gallery"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/National_Gallery_of_Denmark",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Statens%20Museum%20for%20Kunst%2C%20K%C3%B8benhavn.jpg"
+        },
+        {
+          "name": "Copenhagen Opera House",
+          "wikidata": "Q838297",
+          "lat": 55.68194,
+          "lon": 12.60056,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "opera house"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Copenhagen_Opera_House",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Copenhagen%20Opera%20House%202014%2004.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "stockholm",
+      "iata": "ARN",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:21+00:00",
+      "items": [
+        {
+          "name": "Stockholm Palace",
+          "wikidata": "Q750444",
+          "lat": 59.32667,
+          "lon": 18.07167,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "royal palace",
+            "cultural property",
+            "architectural ensemble",
+            "museum"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/Stockholm_Palace",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Stockholms%20slott%20%28Stockholm%20Palace%29%20%2824831039126%29.jpg"
+        },
+        {
+          "name": "Vasa Museum",
+          "wikidata": "Q901371",
+          "lat": 59.32807,
+          "lon": 18.09139,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "maritime museum"
+          ],
+          "popularity": 40,
+          "url": "https://en.wikipedia.org/wiki/Vasa_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vasa%20Museum%20building%20view%20from%20the%20sea%20%283%29.jpg"
+        },
+        {
+          "name": "Nobel Prize Museum",
+          "wikidata": "Q1968711",
+          "lat": 59.32522,
+          "lon": 18.07083,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum"
+          ],
+          "popularity": 36,
+          "url": "https://en.wikipedia.org/wiki/Nobel_Prize_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nobel%20Prize%20Museum%20Entrance%20Stockholm%2020240611.JPG"
+        },
+        {
+          "name": "Storkyrkan",
+          "wikidata": "Q1133075",
+          "lat": 59.32583,
+          "lon": 18.07056,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Lutheran cathedral",
+            "hall church",
+            "architectural ensemble"
+          ],
+          "popularity": 35,
+          "url": "https://en.wikipedia.org/wiki/Storkyrkan",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Storkyrkan%202025%2001.jpg"
+        },
+        {
+          "name": "Nordic Museum",
+          "wikidata": "Q1142142",
+          "lat": 59.32917,
+          "lon": 18.09333,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum building",
+            "museum of culture",
+            "ethnographic museum"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Nordic_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nordiska%20museet%20sett%20fr%C3%A5n%20Skansen%202005-07-29.jpg"
+        },
+        {
+          "name": "Riddarholm Church",
+          "wikidata": "Q657118",
+          "lat": 59.32472,
+          "lon": 18.06472,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "religious work of art",
+            "heritage site in Sweden",
+            "cultural property",
+            "church building"
+          ],
+          "popularity": 31,
+          "url": "https://en.wikipedia.org/wiki/Riddarholmen_Church",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Riddarholmskyrkan%20juni%202005.jpg"
+        },
+        {
+          "name": "Swedish History Museum",
+          "wikidata": "Q1726607",
+          "lat": 59.33472,
+          "lon": 18.09028,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "history museum"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/Swedish_History_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Statens%20historiska%20museum%202010.JPG"
+        },
+        {
+          "name": "Haga Palace",
+          "wikidata": "Q5574523",
+          "lat": 59.36361,
+          "lon": 18.03944,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "royal palace"
+          ],
+          "popularity": 26,
+          "url": "https://en.wikipedia.org/wiki/Haga_Palace",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Haga%20slott%20Solna%20juni%202006.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "oslo",
+      "iata": "OSL",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:20+00:00",
+      "items": [
+        {
+          "name": "Oslo Opera House",
+          "wikidata": "Q43280",
+          "lat": 59.90694,
+          "lon": 10.75361,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "concert hall",
+            "opera house"
+          ],
+          "popularity": 44,
+          "url": "https://en.wikipedia.org/wiki/Oslo_Opera_House",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Full%20Opera%20by%20night.jpg"
+        },
+        {
+          "name": "Munch Museum",
+          "wikidata": "Q844926",
+          "lat": 59.90575,
+          "lon": 10.75531,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art museum"
+          ],
+          "popularity": 38,
+          "url": "https://en.wikipedia.org/wiki/Munch_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/MUNCH%20Museum%20front%20%282020%29%204.jpg"
+        },
+        {
+          "name": "Akershus Fortress",
+          "wikidata": "Q644464",
+          "lat": 59.90661,
+          "lon": 10.73625,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "headquarters",
+            "fortification",
+            "fortress",
+            "museum",
+            "castle"
+          ],
+          "popularity": 37,
+          "url": "https://en.wikipedia.org/wiki/Akershus_Fortress",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/OSLO-NO-02%2005%20ubt.jpeg"
+        },
+        {
+          "name": "Oslo Cathedral",
+          "wikidata": "Q1063209",
+          "lat": 59.91232,
+          "lon": 10.74696,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural property",
+            "Lutheran cathedral"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Oslo_Cathedral",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/00%207720%20Oslo%20-%20Domkirche.jpg"
+        },
+        {
+          "name": "Royal Palace, Oslo",
+          "wikidata": "Q863932",
+          "lat": 59.91722,
+          "lon": 10.7275,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "cultural property",
+            "royal palace"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/Royal_Palace,_Oslo",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Slottet%20i%20Oslo%201.jpg"
+        },
+        {
+          "name": "National Theatre Oslo",
+          "wikidata": "Q565382",
+          "lat": 59.9143,
+          "lon": 10.73425,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "theatre building"
+          ],
+          "popularity": 29,
+          "url": "https://en.wikipedia.org/wiki/National_Theatre_(Oslo)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/NOR-2016-Oslo-National%20Theatre.jpg"
+        },
+        {
+          "name": "Vigeland installation",
+          "wikidata": "Q7460945",
+          "lat": 59.92767,
+          "lon": 10.69889,
+          "tags": [
+            "art",
+            "nature"
+          ],
+          "types": [
+            "sculpture garden"
+          ],
+          "popularity": 28,
+          "url": "https://en.wikipedia.org/wiki/Vigeland_Sculpture_Park",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sculptures%20near%20monolith%20in%20Vigeland%20Installation%20in%20Frogner%20Park%20in%20Oslo%20Norway.png"
+        },
+        {
+          "name": "Fram Museum",
+          "wikidata": "Q941250",
+          "lat": 59.90333,
+          "lon": 10.69944,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum"
+          ],
+          "popularity": 27,
+          "url": "https://en.wikipedia.org/wiki/Fram_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fram%20Museum%20in%20Oslo.JPG"
+        }
+      ]
+    },
+    {
+      "city_id": "reykjavik",
+      "iata": "KEF",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:19+00:00",
+      "items": [
+        {
+          "name": "Thingvellir National Park",
+          "wikidata": "Q107370",
+          "lat": 64.25806,
+          "lon": -21.125,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "escarpment",
+            "national park",
+            "graben"
+          ],
+          "popularity": 62,
+          "url": "https://en.wikipedia.org/wiki/%C3%9Eingvellir",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Thingvellir.jpg"
+        },
+        {
+          "name": "Hallgrímskirkja",
+          "wikidata": "Q271466",
+          "lat": 64.14194,
+          "lon": -21.92694,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "church building"
+          ],
+          "popularity": 43,
+          "url": "https://en.wikipedia.org/wiki/Hallgr%C3%ADmskirkja",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hallgrimskirkja%20mai%202026.jpg"
+        },
+        {
+          "name": "Þingvallavatn",
+          "wikidata": "Q335432",
+          "lat": 64.1875,
+          "lon": -21.135,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "lake"
+          ],
+          "popularity": 41,
+          "url": "https://en.wikipedia.org/wiki/%C3%9Eingvallavatn",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/2008-05-25%2013%2034%2017%20Iceland-%C3%9Eingvellir.jpg"
+        },
+        {
+          "name": "Icelandic Phallological Museum",
+          "wikidata": "Q177174",
+          "lat": 64.1485,
+          "lon": -21.93578,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "museum"
+          ],
+          "popularity": 41,
+          "url": "https://en.wikipedia.org/wiki/Icelandic_Phallological_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Icelandic%20Phallological%20Museum%20visitors.jpg"
+        },
+        {
+          "name": "Blue Lagoon",
+          "wikidata": "Q886946",
+          "lat": 63.8792,
+          "lon": -22.44552,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "thermal bath",
+            "outdoor swimming pool",
+            "hot spring",
+            "lake"
+          ],
+          "popularity": 41,
+          "url": "https://en.wikipedia.org/wiki/Blue_Lagoon_(geothermal_spa)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Blue%20Lagoon%202012-08-23%20%284%29.JPG"
+        },
+        {
+          "name": "Tjörnin",
+          "wikidata": "Q945753",
+          "lat": 64.14482,
+          "lon": -21.94222,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "lake"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Tj%C3%B6rnin",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tj%C3%B6rnin%2C%20Reykjavik.jpg"
+        },
+        {
+          "name": "Glymur",
+          "wikidata": "Q38577",
+          "lat": 64.39583,
+          "lon": -21.24111,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "waterfall"
+          ],
+          "popularity": 31,
+          "url": "https://en.wikipedia.org/wiki/Glymur",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Glymur%20pan%201-10-08.JPG"
+        },
+        {
+          "name": "Faxaflói",
+          "wikidata": "Q745575",
+          "lat": 64.4,
+          "lon": -23.0,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "bay"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Faxafl%C3%B3i",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Springtime%20in%20Iceland%20%28MODIS%202025-05-20%29%20%28Faxafl%C3%B3i%29.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "dublin",
+      "iata": "DUB",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:23+00:00",
+      "items": [
+        {
+          "name": "Dublin Castle",
+          "wikidata": "Q742767",
+          "lat": 53.34311,
+          "lon": -6.26739,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle"
+          ],
+          "popularity": 39,
+          "url": "https://en.wikipedia.org/wiki/Dublin_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dublin%20castle.JPG"
+        },
+        {
+          "name": "Spire of Dublin",
+          "wikidata": "Q1134365",
+          "lat": 53.34972,
+          "lon": -6.26028,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "monument",
+            "sculpture"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/Spire_of_Dublin",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Spire.jpg"
+        },
+        {
+          "name": "Leinster House",
+          "wikidata": "Q247595",
+          "lat": 53.34055,
+          "lon": -6.25402,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "parliament building",
+            "palace"
+          ],
+          "popularity": 31,
+          "url": "https://en.wikipedia.org/wiki/Leinster_House",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20130810%20dublin214.JPG"
+        },
+        {
+          "name": "Phoenix Park",
+          "wikidata": "Q377937",
+          "lat": 53.35579,
+          "lon": -6.32979,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "park"
+          ],
+          "popularity": 29,
+          "url": "https://en.wikipedia.org/wiki/Phoenix_Park",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Deer%20by%20papal%20cross.jpg"
+        },
+        {
+          "name": "Christ Church Cathedral, Dublin",
+          "wikidata": "Q1067803",
+          "lat": 53.34306,
+          "lon": -6.27139,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Anglican or Episcopal cathedral"
+          ],
+          "popularity": 29,
+          "url": "https://en.wikipedia.org/wiki/Christ_Church_Cathedral,_Dublin",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Christ%20Church%20Cathedral%20%28Dublin%29.jpg"
+        },
+        {
+          "name": "Saint Stephen's Green",
+          "wikidata": "Q1432605",
+          "lat": 53.33806,
+          "lon": -6.25917,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "urban park"
+          ],
+          "popularity": 27,
+          "url": "https://en.wikipedia.org/wiki/St_Stephen%27s_Green",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dublin%20Stephen%27s%20Green-44%20edit.jpg"
+        },
+        {
+          "name": "Kilmainham Gaol",
+          "wikidata": "Q1049842",
+          "lat": 53.34167,
+          "lon": -6.30944,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "defunct prison",
+            "prison museum"
+          ],
+          "popularity": 25,
+          "url": "https://en.wikipedia.org/wiki/Kilmainham_Gaol",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dublin-Kilmainham-Main-Entrance-1.jpg"
+        },
+        {
+          "name": "Irish Museum of Modern Art",
+          "wikidata": "Q1538285",
+          "lat": 53.3429,
+          "lon": -6.3,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "art gallery",
+            "art museum",
+            "creative residency",
+            "national museum"
+          ],
+          "popularity": 23,
+          "url": "https://en.wikipedia.org/wiki/Irish_Museum_of_Modern_Art",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/IMMA%20north%20facade%20wiki.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "larnaca",
+      "iata": "LCA",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:21+00:00",
+      "items": [
+        {
+          "name": "Khirokitia",
+          "wikidata": "Q385086",
+          "lat": 34.79673,
+          "lon": 33.34372,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "archaeological site"
+          ],
+          "popularity": 49,
+          "url": "https://en.wikipedia.org/wiki/Khirokitia",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Khirokitia2.jpg"
+        },
+        {
+          "name": "Hala Sultan Tekke",
+          "wikidata": "Q1570185",
+          "lat": 34.88528,
+          "lon": 33.61001,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Sufi lodge",
+            "külliye",
+            "mosque"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Hala_Sultan_Tekke",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Larnaca%2001-2017%20img30%20Salt%20Lake.jpg"
+        },
+        {
+          "name": "Larnaca Salt Lake",
+          "wikidata": "Q2915622",
+          "lat": 34.9,
+          "lon": 33.61667,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "group of lakes"
+          ],
+          "popularity": 29,
+          "url": "https://en.wikipedia.org/wiki/Larnaca_Salt_Lake",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Larnaca%2001-2017%20img29%20Salt%20Lake.jpg"
+        },
+        {
+          "name": "Church of Saint Lazarus, Larnaca",
+          "wikidata": "Q634112",
+          "lat": 34.91167,
+          "lon": 33.63472,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Eastern Orthodox church building"
+          ],
+          "popularity": 27,
+          "url": "https://en.wikipedia.org/wiki/Church_of_Saint_Lazarus,_Larnaca",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Agios%20Lazaros%2C%20Larnaca%20%283%29.jpg"
+        },
+        {
+          "name": "Larnaca Castle",
+          "wikidata": "Q580797",
+          "lat": 34.91052,
+          "lon": 33.63769,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "castle"
+          ],
+          "popularity": 22,
+          "url": "https://en.wikipedia.org/wiki/Larnaca_Castle",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cyprus%20-%20Larnacacastle%201.JPG"
+        },
+        {
+          "name": "Bekir Pasha Aqueduct",
+          "wikidata": "Q2102612",
+          "lat": 34.91188,
+          "lon": 33.59823,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "aqueduct"
+          ],
+          "popularity": 14,
+          "url": "https://en.wikipedia.org/wiki/Kamares_Aqueduct",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Larnaca%2001-2017%20img24%20Kamares%20Aqueduct.jpg"
+        },
+        {
+          "name": "Stavrovouni Monastery",
+          "wikidata": "Q2426066",
+          "lat": 34.88587,
+          "lon": 33.4355,
+          "tags": [
+            "history",
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "monastery",
+            "mountain"
+          ],
+          "popularity": 12,
+          "url": "https://en.wikipedia.org/wiki/Stavrovouni_Monastery",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Stravrovoini%20monastry.jpg"
+        },
+        {
+          "name": "Larnaca District Archaeological Museum",
+          "wikidata": "Q6489690",
+          "lat": 34.91918,
+          "lon": 33.63344,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "archaeological museum",
+            "museum"
+          ],
+          "popularity": 9,
+          "url": "https://en.wikipedia.org/wiki/Larnaca_District_Archaeological_Museum",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ausstellungssaal%20Arch%C3%A4ologisches%20Museum%20Larnaka.JPG"
+        }
+      ]
+    },
+    {
+      "city_id": "london",
+      "iata": "STN",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:30+00:00",
+      "items": [
+        {
+          "name": "Westminster Abbey",
+          "wikidata": "Q5933",
+          "lat": 51.4994,
+          "lon": -0.12737,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Anglican or Episcopal cathedral",
+            "Anglican church building",
+            "collegiate church",
+            "Royal Peculiar",
+            "abbey church"
+          ],
+          "popularity": 91,
+          "url": "https://en.wikipedia.org/wiki/Westminster_Abbey",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Westminster-Abbey.JPG"
+        },
+        {
+          "name": "Big Ben",
+          "wikidata": "Q41225",
+          "lat": 51.50067,
+          "lon": -0.12457,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "clock bell",
+            "bell",
+            "steeple",
+            "cultural icon",
+            "architectural element"
+          ],
+          "popularity": 88,
+          "url": "https://en.wikipedia.org/wiki/Big_Ben",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Elizabeth%20Tower%20and%20the%20north%20front%20of%20the%20Palace%20of%20Westminster%2C%20London.jpg"
+        },
+        {
+          "name": "Tower of London",
+          "wikidata": "Q62378",
+          "lat": 51.5082,
+          "lon": -0.0762,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "independent museum",
+            "archaeological site",
+            "museum",
+            "castle"
+          ],
+          "popularity": 88,
+          "url": "https://en.wikipedia.org/wiki/Tower_of_London",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tower%20of%20London%20viewed%20from%20the%20River%20Thames.jpg"
+        },
+        {
+          "name": "London Eye",
+          "wikidata": "Q160659",
+          "lat": 51.50333,
+          "lon": -0.11972,
+          "tags": [],
+          "types": [
+            "tourist attraction",
+            "Ferris wheel"
+          ],
+          "popularity": 78,
+          "url": "https://en.wikipedia.org/wiki/London_Eye",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/London%20Eye%20seen%20from%20the%20north%20bank%20of%20the%20Thames%2C%20London.jpg"
+        },
+        {
+          "name": "Trafalgar Square",
+          "wikidata": "Q129143",
+          "lat": 51.50806,
+          "lon": -0.12806,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 73,
+          "url": "https://en.wikipedia.org/wiki/Trafalgar_Square",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Trafalgar%20Square%2C%20London%202%20-%20Jun%202009.jpg"
+        },
+        {
+          "name": "National Gallery",
+          "wikidata": "Q180788",
+          "lat": 51.50889,
+          "lon": -0.12833,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "national museum"
+          ],
+          "popularity": 71,
+          "url": "https://en.wikipedia.org/wiki/National_Gallery",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Galer%C3%ADa%20Nacional%2C%20Londres%2C%20Inglaterra%2C%202014-08-07%2C%20DD%20036.JPG"
+        },
+        {
+          "name": "Madame Tussauds",
+          "wikidata": "Q186309",
+          "lat": 51.52279,
+          "lon": -0.15517,
+          "tags": [
+            "art"
+          ],
+          "types": [
+            "wax museum"
+          ],
+          "popularity": 69,
+          "url": "https://en.wikipedia.org/wiki/Madame_Tussauds",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/MadameTussaudMuseumLondon.JPG"
+        },
+        {
+          "name": "Hyde Park",
+          "wikidata": "Q123738",
+          "lat": 51.50861,
+          "lon": -0.16361,
+          "tags": [
+            "nature"
+          ],
+          "types": [
+            "park"
+          ],
+          "popularity": 63,
+          "url": "https://en.wikipedia.org/wiki/Hyde_Park,_London",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hyde%20Park%20July%202015-1.jpg"
+        }
+      ]
+    },
+    {
+      "city_id": "tirana",
+      "iata": "TIA",
+      "source": "wikidata",
+      "fetched_at": "2026-10-03T11:41:26+00:00",
+      "items": [
+        {
+          "name": "Mount Dajti",
+          "wikidata": "Q1157724",
+          "lat": 41.36583,
+          "lon": 19.92556,
+          "tags": [
+            "nature",
+            "hiking"
+          ],
+          "types": [
+            "mountain"
+          ],
+          "popularity": 33,
+          "url": "https://en.wikipedia.org/wiki/Dajti",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mali%20i%20Dajtit.jpg"
+        },
+        {
+          "name": "Roman amphitheatre of Durrës",
+          "wikidata": "Q779868",
+          "lat": 41.31219,
+          "lon": 19.44526,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "Roman amphitheatre",
+            "archaeological site"
+          ],
+          "popularity": 32,
+          "url": "https://en.wikipedia.org/wiki/Amphitheatre_of_Durr%C3%ABs",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Amfiteatr%20rzymski%20w%20Durr%C3%ABs%201.jpg"
+        },
+        {
+          "name": "Et'hem Bey Mosque",
+          "wikidata": "Q798610",
+          "lat": 41.32781,
+          "lon": 19.81936,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "historic site",
+            "mosque"
+          ],
+          "popularity": 31,
+          "url": "https://en.wikipedia.org/wiki/Et%27hem_Bey_Mosque",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ethem%20Bey%20mosque%2C%20Tirana%20%28by%20Pudelek%29.jpg"
+        },
+        {
+          "name": "Skanderbeg Square",
+          "wikidata": "Q609528",
+          "lat": 41.32791,
+          "lon": 19.81846,
+          "tags": [],
+          "types": [
+            "square"
+          ],
+          "popularity": 30,
+          "url": "https://en.wikipedia.org/wiki/Skanderbeg_Square",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tirana%20-%20Skanderbeg%20Square%20%28Sheshi%20Sk%C3%ABnderbej%29%20-%20by%20Pudelek.jpg"
+        },
+        {
+          "name": "Mother Albania",
+          "wikidata": "Q1639016",
+          "lat": 41.30849,
+          "lon": 19.84017,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "colossal statue",
+            "monument",
+            "statue"
+          ],
+          "popularity": 27,
+          "url": "https://en.wikipedia.org/wiki/Mother_Albania_(statue)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tirana%20%E2%80%93%20Mother%20Albania%202.jpg"
+        },
+        {
+          "name": "National Historical Museum",
+          "wikidata": "Q1581154",
+          "lat": 41.32931,
+          "lon": 19.81719,
+          "tags": [
+            "history",
+            "art"
+          ],
+          "types": [
+            "national museum",
+            "history museum",
+            "cultural property"
+          ],
+          "popularity": 23,
+          "url": "https://en.wikipedia.org/wiki/National_History_Museum_(Albania)",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Museo%20Nacional%20de%20Historia%2C%20Tirana%2C%20Albania%2C%202014-04-17%2C%20DD%2010.JPG"
+        },
+        {
+          "name": "Great Mosque of Tirana",
+          "wikidata": "Q18715177",
+          "lat": 41.3256,
+          "lon": 19.8242,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "mosque"
+          ],
+          "popularity": 23,
+          "url": "https://en.wikipedia.org/wiki/Namazgah_Mosque",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Great%20Mosque%20of%20Tirana%20%282020%29.jpg"
+        },
+        {
+          "name": "Pyramid of Tirana",
+          "wikidata": "Q177335",
+          "lat": 41.32302,
+          "lon": 19.82157,
+          "tags": [
+            "history"
+          ],
+          "types": [
+            "memorial",
+            "monument",
+            "pyramid"
+          ],
+          "popularity": 22,
+          "url": "https://en.wikipedia.org/wiki/Pyramid_of_Tirana",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pyramid%20of%20Tirana%20October%202023.jpg"
+        }
+      ]
+    }
+  ]
+}
