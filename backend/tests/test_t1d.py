@@ -170,10 +170,7 @@ def test_percent_only_numbers_need_a_percent_sign():
     from tripai.agents.explain import allowed_numbers, display_numbers, ungrounded_numbers_display
 
     rec = _recs()[0]
-    # the crowd label now states the percentage itself; strip it to test the display-only path
-    rec = rec.model_copy(update={"evidence": [
-        e.model_copy(update={"label": "Crowds"}) if e.kind == "crowds" else e for e in rec.evidence
-    ]})  # fmt: skip
+    # the crowd label states the percentage too; it must still count only before a '%'
     crowd = round(next(e.value for e in rec.evidence if e.kind == "crowds") * 100)
     allowed, pct = allowed_numbers(rec), display_numbers(rec)
     assert crowd in pct and crowd not in allowed

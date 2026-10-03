@@ -219,20 +219,20 @@ MESSAGES: dict[str, dict[str, str]] = {
         "pl": "lot do {to} podrożeje o {amount}",
     },
     "flip.if_weight.price": {
-        "en": "price matters more to you (weight {a} → {b})",
-        "pl": "cena będzie dla Ciebie ważniejsza (waga {a} → {b})",
+        "en": "price matters more to you (weight from {a} to {b})",
+        "pl": "cena będzie dla Ciebie ważniejsza (waga z {a} na {b})",
     },
     "flip.if_weight.weather": {
-        "en": "weather matters more to you (weight {a} → {b})",
-        "pl": "pogoda będzie dla Ciebie ważniejsza (waga {a} → {b})",
+        "en": "weather matters more to you (weight from {a} to {b})",
+        "pl": "pogoda będzie dla Ciebie ważniejsza (waga z {a} na {b})",
     },
     "flip.if_weight.crowds": {
-        "en": "avoiding crowds matters more to you (weight {a} → {b})",
-        "pl": "unikanie tłumów będzie dla Ciebie ważniejsze (waga {a} → {b})",
+        "en": "avoiding crowds matters more to you (weight from {a} to {b})",
+        "pl": "unikanie tłumów będzie dla Ciebie ważniejsze (waga z {a} na {b})",
     },
     "flip.if_weight.taste": {
-        "en": "matching your interests matters more to you (weight {a} → {b})",
-        "pl": "dopasowanie do Twoich zainteresowań będzie dla Ciebie ważniejsze (waga {a} → {b})",
+        "en": "matching your interests matters more to you (weight from {a} to {b})",
+        "pl": "dopasowanie do Twoich zainteresowań będzie dla Ciebie ważniejsze (waga z {a} na {b})",
     },
     "flip.or": {"en": ", or if ", "pl": " albo "},
     "flip.text": {"en": "If {conds}, {lo} wins.", "pl": "Jeśli {conds}, lepszą opcją {be} {lo}."},
@@ -298,12 +298,17 @@ MESSAGES: dict[str, dict[str, str]] = {
         "pl": "Tłum: {city}, {month} (0 = najspokojniejszy miesiąc, 1 = najbardziej zatłoczony)",
     },
     "crowd.proxy": {
-        "en": "; estimated from comparable regions ({source}), no Eurostat data for {geo}",
-        "pl": "; szacunek z podobnych regionów ({source}), brak danych Eurostatu dla {geo}",
+        "en": "; estimated from comparable regions (no Eurostat data for this region)",
+        "pl": "; szacunek na podstawie podobnych regionów (brak danych Eurostatu dla tego regionu)",
     },
     "crowd.country": {
         "en": "; country-level data for {country}",
-        "pl": "; dane dla całego kraju ({country})",
+        "pl": "; dane dla całego kraju: {country}",
+    },
+    "crowd.peak_month": {"en": "Peak-crowd month: ", "pl": "Najbardziej zatłoczony miesiąc: "},
+    "disp.crowd_rel": {
+        "en": "{pct}/100 (0 = quietest month)",
+        "pl": "{pct}/100 (0 = najspokojniejszy miesiąc)",
     },
     "disp.rain": {"en": "{pct}% of days", "pl": "{pct}% dni"},
     # ---- fit verdict
@@ -772,3 +777,17 @@ PLURAL_PL = {"Athens"}  # "Ateny" takes plural verbs
 
 def is_plural(name: str, lang: str | None = None) -> bool:
     return pick(lang) == "pl" and name in PLURAL_PL
+
+
+COUNTRIES_PL = {
+    "Albania": "Albania", "Austria": "Austria", "Croatia": "Chorwacja", "Cyprus": "Cypr",
+    "Czechia": "Czechy", "Denmark": "Dania", "France": "Francja", "Germany": "Niemcy",
+    "Greece": "Grecja", "Hungary": "Węgry", "Iceland": "Islandia", "Ireland": "Irlandia",
+    "Italy": "Włochy", "Malta": "Malta", "Netherlands": "Holandia", "Norway": "Norwegia",
+    "Portugal": "Portugalia", "Spain": "Hiszpania", "Sweden": "Szwecja",
+    "United Kingdom": "Wielka Brytania", "Poland": "Polska",
+}  # fmt: skip
+
+
+def country(name: str, lang: str | None = None) -> str:
+    return COUNTRIES_PL.get(name, name) if pick(lang) == "pl" else name

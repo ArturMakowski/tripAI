@@ -45,10 +45,10 @@ def test_weight_route_is_about_priorities_not_forecasts():
         ].flip
         assert f.factor == "weather"
         if lang == "en":
-            assert "weather matters more to you (weight 0.20 → " in f.text
+            assert "weather matters more to you (weight from 0.20 to " in f.text
             assert f.text.endswith("Catania wins.")
         else:
-            assert "pogoda będzie dla Ciebie ważniejsza (waga 0,20 → " in f.text
+            assert "pogoda będzie dla Ciebie ważniejsza (waga z 0,20 na " in f.text
             assert f.text.endswith("lepszą opcją będzie Katania.")
         assert not FORECAST.search(f.text), f.text
 
@@ -116,3 +116,58 @@ def test_plural_city_agreement():
     )
     recs = rank([_cand("Málaga", "AGP", 1000), _cand("Athens", "ATH", 1100)], P, lang="pl")
     assert recs[0].flip.text.endswith("lepszą opcją będą Ateny.")
+
+
+# ---------------------------------------------------------------- review fixes (#32)
+
+
+def test_live_crowd_row_has_one_number():
+    """Review #1: label %, value and display are the same real share of the peak month."""
+    from tripai.agents.explain import fmt_value
+    from tripai.seed import load
+
+    for key in [c.id for c in load.cities()]:
+        for lang in ("pl", "en"):
+            with i18n.using(lang):
+                ev = load.crowd_evidence(key, 8)
+                shown = fmt_value(ev)
+            assert ev.value == load.crowd_level(key, 8)
+            if ev.unit == "0-1":
+                pct = round(ev.value * 100)
+                assert f"{pct}%" in ev.label and shown.startswith(f"{pct}%"), (key, ev.label, shown)
+                assert pct == round(load.crowd(key).peak_ratio[7] * 100)
+            else:  # no peak-nights data: a relative scale, never "% of peak"
+                assert ev.unit == "0-1 rel" and "%" not in ev.label and "%" not in shown
+                assert shown.startswith(f"{round(ev.value * 100)}/100")
+
+
+def test_crowd_percent_is_not_a_free_number():
+    """Review #2: the crowd % in a label is accepted only as a percentage."""
+    from tripai.agents.explain import allowed_numbers, display_numbers, ungrounded_numbers_display
+
+    cands = asyncio.run(FixtureProvider().candidates("KRK", [W]))
+    r = rank(cands, P)[0]
+    pct = round(next(e.value for e in r.evidence if e.kind == "crowds") * 100)
+    allowed, pcts = allowed_numbers(r), display_numbers(r)
+    assert ungrounded_numbers_display(f"Crowds cost {pct} PLN extra", allowed, pcts) == [str(pct)]
+    assert ungrounded_numbers_display(f"tłum: {pct}% szczytu sezonu", allowed, pcts) == []
+
+
+def test_same_city_flip_names_which_flight():
+    """Review #3: two Rome trips -> 'the flight to Rome (7-11 Nov)'."""
+    w2 = FreeWindow(start=date(2027, 1, 14), end=date(2027, 1, 18))
+    a, b = _cand("Rome", "FCO", 1000), _cand("Rome", "FCO", 1100).model_copy(update={"window": w2})
+    r = rank([a, b], P, one_per_city=False, lang="en")
+    assert r[0].flip.text.startswith("If the flight to Rome (7-11 Nov) gets ")
+    assert r[0].flip.text.endswith("Rome (14-18 Jan) wins.")
+
+
+def test_polish_crowd_provenance():
+    """Review #4: Polish country names, no raw source codes."""
+    from tripai.seed import load
+
+    with i18n.using("pl"):
+        labels = [load.crowd_evidence(c.id, 1).label for c in load.cities()]
+    country = [x for x in labels if "dane dla całego kraju" in x]
+    assert country and not any(n in x for x in country for n in ("Iceland", "Italy", "Spain"))
+    assert all("eurostat:" not in x for x in labels)

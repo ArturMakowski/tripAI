@@ -957,7 +957,10 @@ class LiveProvider:
             )
             return 0.5, [ev], 0.0, "unavailable"
         n = sum(months.values())
-        crowd = round(sum(prof.score[m - 1] * k for (_, m), k in months.items()) / n, 2)
+        # the level we show in the evidence (share of peak nights where known) is what we score
+        crowd = round(
+            sum(load.crowd_level(d.city.id, m) * k for (_, m), k in months.items()) / n, 2
+        )
         seen = sorted(
             {m for _, m in months},
             key=lambda m: -sum(k for (_, mm), k in months.items() if mm == m),
@@ -1083,14 +1086,16 @@ class LiveProvider:
                 clim.avg_temp_max_c,
                 "°C",
             ),
-            crowd.model_copy(update={"kind": "peak", "label": "Peak-crowd month: " + crowd.label}),
+            crowd.model_copy(
+                update={"kind": "peak", "label": i18n.t("crowd.peak_month") + crowd.label}
+            ),
         ]
         quote = PeakQuote(
             month=ym[1],
             flight_cost_pln=fare,
             hotel_cost_pln=hotel,
             temp_c=clim.avg_temp_max_c,
-            crowd=crowd.value,
+            crowd=crowd.value,  # == load.crowd_level: the same scale as the candidate's crowd
         )
         return quote, ev
 

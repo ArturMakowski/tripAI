@@ -113,8 +113,10 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   price (that's how the price route is modelled) or the user's own priorities. It never forecasts weather or
   crowds. EN: "If the flight to Athens gets 177 PLN pricier, Lisbon wins."; PL: "Jeśli lot do Aten podrożeje
   o 177 zł, lepszą opcją będzie Lizbona." Polish city names are declined (`i18n.city`). Weights stay in brackets
-  for verification. Crowd evidence reads "Tłum: 28% szczytu sezonu" / "Crowds: 28% of peak season". `inputs_hash`
-  ignores (localised) evidence labels.
+  for verification. Crowd evidence reads "Tłum: 28% szczytu sezonu" / "Crowds: 28% of peak season". One number per
+  row: for live seed data the value is the share of the peak month's tourist nights (Eurostat), and that is
+  also what's scored (`seed.load.crowd_level`). Cities without that data show a relative "/100" scale, never
+  "% of peak". `inputs_hash` ignores (localised) evidence labels.
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache

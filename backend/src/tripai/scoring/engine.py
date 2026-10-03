@@ -199,7 +199,10 @@ def inputs_hash(
     weights: Weights,
     typical_spend_pln: float | None = None,
 ) -> str:
-    """sha256 over canonical JSON of everything the ranking depends on (incl. scoring version)."""
+    """sha256 over canonical JSON of everything the ranking depends on (incl. scoring version).
+    Evidence *labels* are excluded: they are localised presentation, so PL and EN receipts hash
+    the same. Their provenance wording (e.g. "estimated from comparable regions") is therefore
+    not hashed; `source` and the numbers are."""
     payload: dict = {
         "scoring_version": SCORING_VERSION,
         "profile": profile.model_dump(mode="json"),
@@ -401,8 +404,9 @@ def _flip(
     conds = []
     factor = weight_from = weight_to = None
     if price_inc is not None:
-        conds.append(i18n.t("flip.if_price", to=i18n.city(hi_c.city, case="gen"),
-                            amount=i18n.fmt_pln(price_inc)))  # fmt: skip
+        # same city on other dates: say which trip's flight ("the flight to Rome (14-18 Jan)")
+        to = i18n.city(hi_c.city, case="gen") + (f" ({fmt_window(hi_c)})" if same_city else "")
+        conds.append(i18n.t("flip.if_price", to=to, amount=i18n.fmt_pln(price_inc)))
     if best is not None:
         _, factor, weight_to = best
         weight_from = getattr(w, factor)
