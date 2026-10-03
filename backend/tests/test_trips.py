@@ -292,3 +292,88 @@ def test_supabase_trips_and_pick_patch():
     assert json.loads(patch.content) == {"target_pln": 950.0}  # only the patched column
     assert patch.url.params["recommendation_id"] == "eq.FCO-20270114-20270118"
     assert p.target_pln == 950.0 and p.first_pln == 1200
+
+
+# ---------------------------------------------------------------------------- review fixes (PR #34)
+
+
+def _ended_pick(uid: str, rid: str = "BCN-20260812-20260817") -> SavedPick:
+    return SavedPick(user_id=uid, recommendation_id=rid, city="Barcelona", iata="BCN",
+                     start="2026-08-12", end="2026-08-17", baseline_pln=900,
+                     baseline_source="s", baseline_fetched_at=now_utc())  # fmt: skip
+
+
+def test_ended_picks_release_watch_slots(monkeypatch):
+    """#1: a trip that has ended no longer holds one of the TRIPAI_MAX_PICKS slots."""
+    monkeypatch.setenv("TRIPAI_MAX_PICKS", "1")
+    c, notify, _ = make()
+    r = recs(c)
+    uid = c.get("/session").json()["user_id"]
+    notify.save_pick(_ended_pick(uid))  # Aug 2026: before today
+    assert c.post("/picks", json={"recommendation_id": r[0]["id"]}).status_code == 200
+    it = c.post("/trips", json={"recommendation_id": r[0]["id"]}).json()
+    assert it["watched"] is True
+    assert c.post("/picks", json={"recommendation_id": r[1]["id"]}).status_code == 409  # 1 live
+
+
+def test_scan_skips_ended_picks_before_the_cap(monkeypatch):
+    monkeypatch.setenv("TRIPAI_MAX_PICKS", "1")
+    c, notify, _ = make()
+    rid = recs(c)[0]["id"]
+    uid = c.get("/session").json()["user_id"]
+    c.post("/picks", json={"recommendation_id": rid})
+    ended = _ended_pick(uid).model_copy(update={"saved_at": now_utc()})  # newest: sorts first
+    notify.save_pick(ended)
+    out = scan(c)
+    priced = {d["recommendation_id"] for d in out["run"]["decisions"] if d["kind"] == "price_drop"}
+    assert rid in priced and ended.recommendation_id not in priced
+
+
+def test_stop_watching():
+    c, _, _ = make()
+    r = recs(c)
+    a, s = r[0]["id"], r[1]["id"]
+    c.post("/trips", json={"recommendation_id": a})
+    c.put(f"/trips/{a}/target", json={"target_pln": 500})
+    c.post("/picks", json={"recommendation_id": s})
+    it = c.delete(f"/trips/{a}/watch").json()  # approved: stays, unwatched, no target
+    assert it["kind"] == "approved" and it["watched"] is False and it["target_pln"] is None
+    assert c.delete(f"/trips/{s}/watch").json() is None  # saved only: leaves the list
+    assert [i["id"] for i in trips(c)["planned"]] == [a]
+    assert c.get("/picks").json() == []
+    assert c.delete("/trips/nope/watch").status_code == 404
+
+
+def test_supabase_pick_writes_before_migration_0006():
+    """#3: without the 0006 columns the watch and its baseline are still persisted."""
+    sent: list[httpx.Request] = []
+    new_cols = {"saved_pln", "saved_price_status", "travelers", "target_pln", "last_pln",
+                "last_price_status", "last_checked_at"}  # fmt: skip
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        sent.append(req)
+        body = json.loads(req.content) if req.content else None
+        row = body[0] if isinstance(body, list) else body
+        if row and new_cols & set(row):
+            return httpx.Response(400, json={"code": "PGRST204",
+                                             "message": "Could not find the 'saved_pln' column"})  # fmt: skip
+        if req.method == "PATCH":
+            return httpx.Response(200, json=[])
+        return httpx.Response(201)
+
+    store = SupabaseNotifyStore("https://x.supabase.co", "k",
+                                client=httpx.Client(transport=httpx.MockTransport(handler)))  # fmt: skip
+    pick = _ended_pick("u1").model_copy(update={"saved_pln": 900.0, "target_pln": 800.0})
+    store.save_pick(pick)
+    first, retry = sent
+    assert first.method == retry.method == "POST"
+    legacy = json.loads(retry.content)[0]
+    assert "saved_pln" not in legacy and legacy["baseline_pln"] == 900
+    sent.clear()
+    assert store.patch_pick("u1", pick.recommendation_id, {"target_pln": 700.0}).target_pln == 700
+    assert len(sent) == 1  # only 0006 columns: nothing to retry, memory keeps the target
+    sent.clear()
+    store.patch_pick("u1", pick.recommendation_id,
+                     {"baseline_pln": 850.0, "last_pln": 850.0,
+                      "last_checked_at": now_utc().isoformat()})  # fmt: skip
+    assert [json.loads(r.content) for r in sent][1] == {"baseline_pln": 850.0}

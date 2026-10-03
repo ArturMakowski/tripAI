@@ -13,6 +13,7 @@ export const DEFAULT_MAX_WATCHED = 5;
 /** What the price line under a planned trip says. Estimates are never compared with a saved price. */
 export type PriceLine =
   | { kind: "down" | "up"; amount: number }
+  | { kind: "exactNow"; amount: number } // exact-date price now, but the saved one was an estimate: no comparison
   | { kind: "same" }
   | { kind: "estimate"; amount: number }
   | { kind: "none" } // checked, but no price for these dates now
@@ -21,7 +22,8 @@ export type PriceLine =
 export function priceLine(t: TripItem): PriceLine {
   if (!t.checked_at) return { kind: "unchecked" };
   if (t.current_pln == null) return { kind: "none" };
-  if (t.price_status !== "exact" || t.change_pln == null) return { kind: "estimate", amount: t.current_pln };
+  if (t.price_status !== "exact") return { kind: "estimate", amount: t.current_pln };
+  if (t.change_pln == null) return { kind: "exactNow", amount: t.current_pln };
   const d = Math.round(t.change_pln);
   if (d === 0) return { kind: "same" };
   return { kind: d < 0 ? "down" : "up", amount: Math.abs(d) };
@@ -29,7 +31,21 @@ export function priceLine(t: TripItem): PriceLine {
 
 /** The price shown big on the card: the latest exact-date check, else what it cost when saved. */
 export function headlinePrice(t: TripItem): number {
-  return t.current_pln != null && t.price_status === "exact" ? t.current_pln : t.saved_pln;
+  return headline(t).amount;
+}
+
+/**
+ * Headline price + whether it is an estimate. Price honesty (docs/BUDGET.md): an estimated saved price
+ * (other dates / city average) is never shown as a plain number; the card renders it muted, "od ~X zł".
+ */
+export function headline(t: TripItem): { amount: number; estimate: boolean } {
+  if (t.current_pln != null && t.price_status === "exact") return { amount: t.current_pln, estimate: false };
+  return { amount: t.saved_pln, estimate: t.saved_price_status !== "exact" };
+}
+
+/** Drop a trip from the list (stop watching a saved-only trip). */
+export function withoutItem(list: TripsResponse, id: string): TripsResponse {
+  return { ...list, planned: list.planned.filter((x) => x.id !== id), past: list.past.filter((x) => x.id !== id) };
 }
 
 /** True when the latest exact-date price is at or under the user's target (the scan alerts then). */
@@ -56,6 +72,8 @@ export function surveyTrip(params: { get(k: string): string | null }): { id: str
   return { id: PAST_TRIP.id, city: PAST_TRIP.city, iata: PAST_TRIP.id.slice(0, 3) };
 }
 
+const asStatus = (s: string | undefined): TripItem["saved_price_status"] => (s === "partial" || s === "estimate" ? s : "exact");
+
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 
 /** Fixture view: approved cards from the store (no price checks), plus the demo past trip. */
@@ -79,7 +97,7 @@ export function localTrips(
       end: r.window.end,
       travelers: r.travelers ?? 1,
       saved_pln: r.total_cost_pln,
-      saved_price_status: r.price_status ?? "exact",
+      saved_price_status: asStatus(r.price_status),
       saved_at: new Date().toISOString(),
       watched: false,
       current_pln: null,

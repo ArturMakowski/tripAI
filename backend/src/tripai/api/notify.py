@@ -21,7 +21,7 @@ from tripai.api.lang import use_lang
 from tripai.api.session import session_user
 from tripai.api.spend import forget as forget_spend
 from tripai.api.state import Store
-from tripai.api.trips import pick_from, trips_router
+from tripai.api.trips import pick_from, today_pl, trips_router
 from tripai.models import TasteProfile, Weights
 from tripai.notify.models import (
     Notification,
@@ -32,6 +32,7 @@ from tripai.notify.models import (
     ScanResult,
     ScanRun,
     now_utc,
+    watching,
 )
 from tripai.notify.push import VapidConfig, WebPusher
 from tripai.notify.store import MemoryNotifyStore, NotifyStore
@@ -272,7 +273,7 @@ def _router(deps: ScanDeps, limiter: ScanRateLimiter) -> APIRouter:
         mine = await asyncio.to_thread(notify.picks, uid)
         cap = deps.limits.max_picks
         old = next((p for p in mine if p.recommendation_id == rec.id), None)
-        if len(mine) >= cap and old is None:
+        if len(watching(mine, today_pl())) >= cap and old is None:
             raise HTTPException(409, f"you can watch at most {cap} trips; unwatch one first")
         pick = pick_from(uid, rec)
         if old is not None:  # re-save: fresh baseline, but keep "My trips" history and target

@@ -113,6 +113,12 @@ class SavedPick(BaseModel):
         return self.saved_pln if self.saved_pln is not None else self.baseline_pln
 
 
+def watching(picks: list[SavedPick], today: date) -> list[SavedPick]:
+    """Picks that still hold a watch slot: a trip that has ended has nothing left to buy, so it
+    neither counts against TRIPAI_MAX_PICKS nor gets re-priced (T13 review #1)."""
+    return [p for p in picks if p.end >= today]
+
+
 class PlannedTrip(BaseModel):
     """A trip the user approved on the confirm page (supabase `trips`, columns from 0006).
     Nothing is booked: it is the user's plan, shown under "My trips" and rated after it ends."""

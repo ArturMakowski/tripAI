@@ -34,6 +34,7 @@ from tripai.notify.models import (
     ScanRun,
     new_id,
     now_utc,
+    watching,
 )
 from tripai.notify.push import WebPusher
 from tripai.notify.rules import (
@@ -215,7 +216,9 @@ class Scan:
         n = self.deps.notify
         now = now_utc()
         last = n.last_scan_run(user_id)
-        picks = sorted(n.picks(user_id), key=lambda p: p.saved_at, reverse=True)
+        # ended trips release their slot, so they can't crowd live watches out of the cap
+        live = watching(n.picks(user_id), now.astimezone(TZ).date())
+        picks = sorted(live, key=lambda p: p.saved_at, reverse=True)
         return {
             "run_id": new_id(),
             "now": now.isoformat(),
@@ -417,7 +420,7 @@ def build_drafts(
     )
     for b, raw in zip(bridges, lw["best"], strict=True):
         add(draft_long_weekend(b, RankedRecommendation.model_validate(raw) if raw else None))
-    picks = {p["recommendation_id"]: SavedPick.model_validate(p) for p in ctx["picks"]}
+    picks = {p["recommendation_id"]: p for p in ctx["picks"]}
     for rec_id, raw in priced["recs"].items():
         if raw is None:
             decisions.append(
@@ -426,8 +429,8 @@ def build_drafts(
             )  # fmt: skip
             continue
         rec, pick = RankedRecommendation.model_validate(raw), picks[rec_id]
-        if pick.target_pln is not None:
-            target = draft_target_price(rec, pick.target_pln)  # exact-date prices only
+        if pick.get("target_pln") is not None:
+            target = draft_target_price(rec, pick["target_pln"])  # exact-date prices only
             add(target)
             if target[0] is not None:  # one alert per trip per scan: the user's own wins
                 decisions.append(
@@ -443,7 +446,7 @@ def build_drafts(
                          reason=f"no exact-date price for this pick ({rec.price_status})")
             )  # fmt: skip
             continue
-        add(draft_price_drop(rec, pick.baseline_pln))
+        add(draft_price_drop(rec, pick["baseline_pln"]))
     return drafts, decisions
 
 

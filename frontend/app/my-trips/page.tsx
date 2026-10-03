@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { api, HttpError, type DataMode } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { useHydrated, useTrip } from "@/lib/store";
-import { headlinePrice, loadTrips, localTrips, parseTarget, priceLine, surveyHref, targetReached, withItem } from "@/lib/trips";
+import { headline, headlinePrice, loadTrips, localTrips, parseTarget, priceLine, surveyHref, targetReached, withItem, withoutItem } from "@/lib/trips";
 import type { TripItem, TripsResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +25,8 @@ function PriceChip({ t: trip }: { t: TripItem }) {
         ? m.up(fmt.pln(line.amount))
         : line.kind === "same"
           ? m.same
+          : line.kind === "exactNow"
+            ? m.exactNow(fmt.pln(line.amount))
           : line.kind === "estimate"
             ? m.estimate(fmt.pln(line.amount))
             : line.kind === "none"
@@ -48,10 +50,12 @@ function PriceChip({ t: trip }: { t: TripItem }) {
 function TargetEditor({
   trip,
   onSave,
+  onStop,
   onClose,
 }: {
   trip: TripItem;
   onSave: (pln: number | null) => Promise<string | null>;
+  onStop: () => Promise<string | null>;
   onClose: () => void;
 }) {
   const { t } = useT();
@@ -110,6 +114,20 @@ function TargetEditor({
         <button type="button" onClick={onClose} className="text-muted-foreground hover:text-ink">
           {m.targetCancel}
         </button>
+        {trip.watched && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              setError(await onStop());
+              setBusy(false);
+            }}
+            className="ml-auto text-muted-foreground hover:text-clay"
+          >
+            {m.stopWatching}
+          </button>
+        )}
       </div>
       {error && (
         <p role="alert" className="mt-1.5 text-xs text-clay">
@@ -120,11 +138,20 @@ function TargetEditor({
   );
 }
 
-function PlannedCard({ trip, onTarget }: { trip: TripItem; onTarget: (trip: TripItem, pln: number | null) => Promise<string | null> }) {
+function PlannedCard({
+  trip,
+  onTarget,
+  onStop,
+}: {
+  trip: TripItem;
+  onTarget: (trip: TripItem, pln: number | null) => Promise<string | null>;
+  onStop: (trip: TripItem) => Promise<string | null>;
+}) {
   const { t, fmt } = useT();
   const m = t.myTrips;
   const [editing, setEditing] = useState(false);
   const hit = targetReached(trip);
+  const price = headline(trip);
   const KindIcon = trip.kind === "approved" ? CircleCheck : Bookmark;
   return (
     <motion.li layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-line bg-card p-3 shadow-soft">
@@ -136,10 +163,19 @@ function PlannedCard({ trip, onTarget }: { trip: TripItem; onTarget: (trip: Trip
               <span className="truncate">{trip.city}</span>
               <KindIcon className="size-3.5 shrink-0 text-pine" aria-label={trip.kind === "approved" ? m.approved : m.saved} />
             </p>
-            <p className="tabular shrink-0 font-display text-lg text-ink">
-              {fmt.pln(headlinePrice(trip))}
-              {trip.travelers > 1 && <span className="text-xs text-muted-foreground">{m.perPerson}</span>}
-            </p>
+            {price.estimate ? (
+              // price honesty: an estimate is never a plain headline number
+              <p className="tabular shrink-0 text-right text-sm leading-tight text-muted-foreground" title={m.estimate(fmt.pln(price.amount))}>
+                {m.estimateShort(fmt.pln(price.amount))}
+                {trip.travelers > 1 && <span className="text-xs">{m.perPerson}</span>}
+                <span className="block text-[11px]">{m.otherDates}</span>
+              </p>
+            ) : (
+              <p className="tabular shrink-0 font-display text-lg text-ink">
+                {fmt.pln(price.amount)}
+                {trip.travelers > 1 && <span className="text-xs text-muted-foreground">{m.perPerson}</span>}
+              </p>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             {fmt.range(trip)} · {m.party(trip.travelers)}
@@ -166,6 +202,11 @@ function PlannedCard({ trip, onTarget }: { trip: TripItem; onTarget: (trip: Trip
           <TargetEditor
             trip={trip}
             onClose={() => setEditing(false)}
+            onStop={async () => {
+              const err = await onStop(trip);
+              if (!err) setEditing(false);
+              return err;
+            }}
             onSave={async (pln) => {
               const err = await onTarget(trip, pln);
               if (!err) setEditing(false);
@@ -217,6 +258,7 @@ export default function MyTripsPage() {
       if (!alive) return;
       setData(r.data);
       setMode(r.mode);
+      useTrip.getState().setMode("trips", r.mode); // fixture fallback lights the header's "Demo data" badge
     });
     return () => {
       alive = false;
@@ -235,6 +277,16 @@ export default function MyTripsPage() {
       return null;
     } catch (err) {
       return err instanceof HttpError && err.status === 409 ? m.targetFull(data?.max_watched ?? 5) : m.targetError;
+    }
+  }
+
+  async function stopWatching(trip: TripItem): Promise<string | null> {
+    try {
+      const item = await api.stopWatching(trip.id);
+      setData((d) => d && (item ? withItem(d, item) : withoutItem(d, trip.id)));
+      return null;
+    } catch {
+      return m.stopError;
     }
   }
 
@@ -283,7 +335,7 @@ export default function MyTripsPage() {
         {data.planned.length ? (
           <ul className="space-y-2.5">
             {data.planned.map((trip) => (
-              <PlannedCard key={trip.id} trip={trip} onTarget={setTarget} />
+              <PlannedCard key={trip.id} trip={trip} onTarget={setTarget} onStop={stopWatching} />
             ))}
           </ul>
         ) : (

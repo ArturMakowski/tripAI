@@ -22,7 +22,7 @@ export interface FeedbackDiff {
 /** Onboarding: the Travel DNA deck first ("swipe"), then dates + party + airports ("trip"), then the result. */
 export type DeckStep = "trip" | "swipe" | "result";
 
-export type Dataset = "interview" | "windows" | "recs" | "feedback";
+export type Dataset = "interview" | "windows" | "recs" | "feedback" | "trips";
 
 /** Cached data older than this is refetched (prices and calendars move). */
 export const RECS_TTL_MS = 30 * 60_000;

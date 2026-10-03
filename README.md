@@ -533,6 +533,10 @@ route handler `frontend/app/api/[...path]/route.ts` (`frontend/lib/proxy.ts`) fo
 | `POST /trips` `{recommendation_id}` | Persist an approval from the confirm page (nothing is booked). Also watches the trip's price (a `saved_pick`) when a watch slot is free (`TRIPAI_MAX_PICKS`). Re-approving keeps the first approval's price and time |
 | `GET /trips?today=` | `{planned, past, max_watched}`. Planned = approved trips + watched picks (one row per trip); past = approved trips whose end date has passed (rate them via the survey). A watched pick that ended without being approved is dropped |
 | `PUT /trips/{id}/target` `{target_pln}` | Set the user's target price (per person, all-in), or clear it with `null`. Watches an approved trip first if it wasn't watched (409 at the cap) |
+| `DELETE /trips/{id}/watch` | "Przestań obserwować / Stop watching": frees the watch slot and drops the target. An approved trip stays in the list, unwatched; a trip that was only saved leaves it (`null`) |
+
+**Watch slots:** a trip that has ended releases its slot, so `TRIPAI_MAX_PICKS` counts only picks whose trip hasn't ended yet. This applies to
+`POST /picks`, approvals, targets and the scan's own pick budget.
 
 Each row carries the saved price, the scan's **latest check** (`current_pln`, `price_status`, `checked_at`) and
 `change_pln` (current − saved). `change_pln` is only set when both are exact-date prices: an estimate is shown, never compared.
@@ -551,5 +555,8 @@ Each row carries the saved price, the scan's **latest check** (`current_pln`, `p
 **Storage:** `supabase/migrations/0006_my_trips.sql` adds the approval columns to `trips` (unique on
 `(user_id, recommendation_id)`; the `profiles` FK is dropped because a session can approve before its profile row exists),
 plus `saved_pln`, `target_pln` and `last_*` columns on `saved_picks`, and the `target_price` notification kind. RLS stays on with
-no anon policy. **The president applies it before deploy.** Until then, Supabase writes for these columns fail (they're logged) and
-memory serves.
+no anon policy. **The president applies it before deploy.** Until then, the backend keeps working:
+- `saved_picks` writes that hit PostgREST's "no such column" answer (400 `PGRST204`) are retried with the 0003 columns only, so the watch and its
+  `price_drop` baseline still persist.
+- Target and last-check values stay in memory and are merged back into the Supabase rows this process reads.
+- `trips` writes are logged and served from memory.

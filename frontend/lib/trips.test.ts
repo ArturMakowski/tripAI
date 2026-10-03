@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { en } from "./i18n/en";
 import { pl } from "./i18n/pl";
 import { PAST_TRIP } from "./mock/fixtures";
-import { headlinePrice, localTrips, parseTarget, priceLine, surveyHref, surveyTrip, targetReached, withItem } from "./trips";
+import { headline, headlinePrice, localTrips, parseTarget, priceLine, surveyHref, surveyTrip, targetReached, withItem, withoutItem } from "./trips";
 import type { TripItem } from "./types";
 
 const base: TripItem = {
@@ -61,6 +61,23 @@ describe("price line", () => {
   });
 });
 
+describe("estimated saved price (review #2)", () => {
+  const est: TripItem = { ...base, saved_price_status: "estimate", saved_pln: 650 };
+
+  it("is never a plain headline number", () => {
+    expect(headline(est)).toEqual({ amount: 650, estimate: true });
+    expect(headline(checked({ ...est, current_pln: 700, price_status: "estimate" }))).toEqual({ amount: 650, estimate: true });
+    expect(headline(base)).toEqual({ amount: 1200, estimate: false });
+  });
+
+  it("an exact check later becomes the headline, without a 'since saved' comparison", () => {
+    const now = checked({ ...est, checked_at: "2026-10-04T05:00:00Z", current_pln: 1100, price_status: "exact", change_pln: null });
+    expect(headline(now)).toEqual({ amount: 1100, estimate: false });
+    expect(priceLine(now)).toEqual({ kind: "exactNow", amount: 1100 });
+    expect(pl.myTrips.estimateShort("650 zł")).toBe("od ~650 zł");
+  });
+});
+
 describe("target price", () => {
   it("reached only on an exact-date price at or under the target", () => {
     const t = checked({ current_pln: 1000, price_status: "exact", change_pln: -200, target_pln: 1000 });
@@ -81,6 +98,7 @@ describe("target price", () => {
   it("replaces one item in place", () => {
     const list = { planned: [base], past: [], max_watched: 5 };
     expect(withItem(list, { ...base, target_pln: 900 }).planned[0].target_pln).toBe(900);
+    expect(withoutItem(list, base.id).planned).toEqual([]);
   });
 });
 

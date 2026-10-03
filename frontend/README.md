@@ -319,12 +319,15 @@ no contract changes.
   - A chip shows the change: "↓ 120 zł od zapisania" (pine) or "↑ …" (clay). An estimate shows muted as "od ~X zł (inne daty)"
     and is never compared. There are also states for "jeszcze nie sprawdzono" and "brak ceny na te daty", each with how long ago it was checked.
   - The **target chip** ("Ustaw swoją cenę" / "Powiadom przy 900 zł" / "Twoja cena jest!") opens an inline editor
-    (`PUT /trips/{id}/target`). At the watch cap it says so.
+    (`PUT /trips/{id}/target`). At the watch cap it says so. The editor also has "Przestań obserwować / Stop watching"
+    (`DELETE /trips/{id}/watch`), which frees the slot. A saved-only trip then leaves the list.
+  - Price honesty: an estimated saved price is never a plain headline number. It renders muted as "od ~X zł" + "inne daty" until an
+    exact-date check replaces it ("teraz X zł na Twoje daty", with no "since saved" comparison).
 - **Past.** City, dates and "Oceń wyjazd", which opens `/survey?trip=<id>&city=<city>`, prefilled with that trip. A stored survey result
   only shows for the trip it rated.
 - **Empty state.** One line and one CTA ("Znajdź wyjazd" → `/trips`).
 - **Approve.** The confirm page still approves locally and also calls `POST /trips` (best-effort), so the plan is saved on the server and its price is watched.
 - **Fixture mode** (`NEXT_PUBLIC_MOCK=1` or the backend is down): the list is built from the locally approved cards, plus the demo
-  past trip, with no price checks. Targets are kept in the store (`tripTargets`).
+  past trip, with no price checks. Targets are kept in the store (`tripTargets`), and the header badge switches to "Demo data" (dataset `trips`).
 - **Code.** Logic is in `lib/trips.ts`, pinned by `lib/trips.test.ts`; copy is in the i18n namespace `myTrips`; the inbox shows the new
   `target_price` kind.

@@ -236,6 +236,8 @@ export const api = {
   approveTrip: (recommendationId: string) => http<TripItem>("/trips", post({ recommendation_id: recommendationId })),
   setTripTarget: (id: string, targetPln: number | null) =>
     http<TripItem>(`/trips/${encodeURIComponent(id)}/target`, { method: "PUT", body: JSON.stringify({ target_pln: targetPln }) }),
+  /** "Stop watching": frees the watch slot. An approved trip comes back unwatched; a saved-only trip -> null (gone). */
+  stopWatching: (id: string) => http<TripItem | null>(`/trips/${encodeURIComponent(id)}/watch`, { method: "DELETE" }),
 
   feedback: (req: FeedbackRequest) =>
     withFallback<FeedbackResponse>(

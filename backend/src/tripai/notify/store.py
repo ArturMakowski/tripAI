@@ -163,6 +163,24 @@ def _rank_active(seen: dict[str, datetime], limit: int) -> list[str]:
     return [u for u, _ in sorted(seen.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)][:limit]
 
 
+# saved_picks columns from 0003; 0006 (T13) adds the rest. Until 0006 is applied PostgREST answers
+# 400 PGRST204 ("could not find the column") for a row that names them, so writes retry with these.
+PICK_COLUMNS_0003 = frozenset({"user_id", "recommendation_id", "city", "iata", "start", "end",
+                               "baseline_pln", "baseline_source", "baseline_fetched_at",
+                               "saved_at"})  # fmt: skip
+
+
+def _missing_column(exc: Exception) -> bool:
+    """PostgREST's answer to a column the schema doesn't have yet (migration not applied)."""
+    if not isinstance(exc, httpx.HTTPStatusError) or exc.response.status_code != 400:
+        return False
+    try:
+        body = exc.response.json()
+    except ValueError:
+        return False
+    return body.get("code") == "PGRST204" or "column" in str(body.get("message", "")).lower()
+
+
 PAGE = 1000  # PostgREST max-rows default: page explicitly so nothing is silently truncated
 
 
@@ -408,7 +426,33 @@ class SupabaseNotifyStore(MemoryNotifyStore):
 
     def save_pick(self, pick: SavedPick) -> None:
         super().save_pick(pick)
-        self._upsert("saved_picks", _row(pick), "user_id,recommendation_id")
+        row = _row(pick)
+        self._pick_write(
+            "upsert saved_picks",
+            row,
+            lambda r: self._req(
+                "POST",
+                "saved_picks",
+                params={"on_conflict": "user_id,recommendation_id"},
+                json=[r],
+                prefer="resolution=merge-duplicates,return=minimal",
+            ),
+        )
+
+    def _pick_write(self, what: str, row: dict, send) -> Any:
+        """Write a saved_picks row; before migration 0006 retry with the 0003 columns only, so the
+        watch (and the price_drop baseline) is still persisted. None = failed or nothing to send."""
+        try:
+            return send(row)
+        except (httpx.HTTPError, ValueError) as exc:
+            if not _missing_column(exc):
+                log.warning("supabase notify store %s failed: %s", what, exc)
+                return None
+        legacy = {k: v for k, v in row.items() if k in PICK_COLUMNS_0003}
+        if not legacy.keys() - {"user_id", "recommendation_id"}:
+            return None  # only 0006 columns (target, last check): memory keeps them
+        log.info("saved_picks has no 0006 columns yet (migration pending): writing 0003 columns")
+        return self._try(what, send, legacy)
 
     def remove_pick(self, user_id: str, recommendation_id: str) -> bool:
         had = super().remove_pick(user_id, recommendation_id)
@@ -424,6 +468,11 @@ class SupabaseNotifyStore(MemoryNotifyStore):
             return super().picks(user_id)
         out = []
         for r in rows:
+            mem = self.saved.get((user_id, r.get("recommendation_id")))
+            if (
+                mem is not None and "target_pln" not in r
+            ):  # pre-0006 row: this process's 0006 fields
+                r = {**mem.model_dump(mode="json", exclude=PICK_COLUMNS_0003), **r}
             try:
                 out.append(SavedPick.model_validate(r))
             except ValueError as exc:
@@ -435,14 +484,16 @@ class SupabaseNotifyStore(MemoryNotifyStore):
         body = SavedPick.model_validate(  # validated + JSON-able, only the patched columns
             {**(mine or self._stub_pick(user_id, recommendation_id)).model_dump(), **fields}
         ).model_dump(mode="json", include=set(fields))
-        rows = self._try(
+        rows = self._pick_write(
             "patch saved_picks",
-            self._req,
-            "PATCH",
-            "saved_picks",
-            params={"user_id": f"eq.{user_id}", "recommendation_id": f"eq.{recommendation_id}"},
-            json=body,
-            prefer="return=representation",
+            body,
+            lambda b: self._req(
+                "PATCH",
+                "saved_picks",
+                params={"user_id": f"eq.{user_id}", "recommendation_id": f"eq.{recommendation_id}"},
+                json=b,
+                prefer="return=representation",
+            ),
         )
         if rows is None:  # Supabase down: memory decides
             return mine

@@ -14,11 +14,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from tripai.api.session import session_user
-from tripai.notify.models import PlannedTrip, SavedPick, now_utc
+from tripai.notify.models import PlannedTrip, SavedPick, now_utc, watching
 from tripai.scoring.types import RankedRecommendation
 from tripai.scoring.windows import TZ
 
 User = Annotated[str, Depends(session_user)]
+
+
+def today_pl() -> date:
+    return datetime.now(TZ).date()
 
 
 def pick_from(uid: str, rec: RankedRecommendation) -> SavedPick:
@@ -128,7 +132,7 @@ def trips_router(deps) -> APIRouter:
     notify = deps.notify
 
     def _today(today: date | None) -> date:
-        return today or datetime.now(TZ).date()
+        return today or today_pl()
 
     def _find(uid: str, rid: str) -> tuple[PlannedTrip | None, SavedPick | None]:
         trip = next((t for t in notify.planned_trips(uid) if t.recommendation_id == rid), None)
@@ -137,7 +141,8 @@ def trips_router(deps) -> APIRouter:
 
     def _can_watch(uid: str, rid: str) -> bool:
         mine = notify.picks(uid)
-        return len(mine) < deps.limits.max_picks or rid in {p.recommendation_id for p in mine}
+        live = watching(mine, today_pl())  # ended trips don't hold a slot
+        return len(live) < deps.limits.max_picks or rid in {p.recommendation_id for p in mine}
 
     @r.get("/trips")
     def get_trips(uid: User, today: Annotated[date | None, Query()] = None) -> TripsResponse:
@@ -195,5 +200,16 @@ def trips_router(deps) -> APIRouter:
         fields = {"target_pln": req.target_pln}
         new = await asyncio.to_thread(notify.patch_pick, uid, recommendation_id, fields)
         return item(trip, new or pick.model_copy(update=fields))
+
+    @r.delete("/trips/{recommendation_id}/watch")
+    def delete_watch(recommendation_id: str, uid: User) -> TripItem | None:
+        """ "Stop watching": frees the watch slot and drops the target. An approved trip stays in
+        My trips (unwatched); a trip that was only saved leaves the list (returns null)."""
+        trip, pick = _find(uid, recommendation_id)
+        if trip is None and pick is None:
+            raise HTTPException(404, "not one of your trips")
+        if pick is not None:
+            notify.remove_pick(uid, recommendation_id)
+        return item(trip, None) if trip else None
 
     return r
