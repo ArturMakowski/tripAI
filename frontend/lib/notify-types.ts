@@ -4,7 +4,7 @@
  */
 import type { Evidence, RankedRecommendation, ScoreBreakdown } from "./types";
 
-export type NotificationKind = "new_top" | "price_drop" | "long_weekend";
+export type NotificationKind = "new_top" | "price_drop" | "long_weekend" | "target_price";
 
 export interface FitPoint {
   text: string;

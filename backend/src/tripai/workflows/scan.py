@@ -42,6 +42,7 @@ from tripai.notify.rules import (
     draft_long_weekend,
     draft_new_top,
     draft_price_drop,
+    draft_target_price,
     soon_long_weekends,
     to_notification,
 )
@@ -328,10 +329,13 @@ class Scan:
                 skipped[n.id] = "already notified"
         return {"ids": saved, "skipped": skipped}
 
-    def update_pick_baselines(self, user_id: str, updates: list[dict]) -> dict:
-        for raw in updates:
-            self.deps.notify.save_pick(SavedPick.model_validate(raw))
-        return {"updated": len(updates)}
+    def update_pick_baselines(self, user_id: str, patches: dict[str, dict]) -> dict:
+        """Per watched pick: the latest price check (T13 "My trips") and, after an alert, the new
+        'last price we told you'. A partial update, so a target the user set mid-scan survives."""
+        n = 0
+        for rec_id, fields in patches.items():
+            n += self.deps.notify.patch_pick(user_id, rec_id, fields) is not None
+        return {"updated": n}
 
     async def interrupt_gate(self, user_id: str, notification_id: str, profile: dict) -> dict:
         """Ask Jev whether this notification is worth interrupting the user for; record p on it.
@@ -413,7 +417,7 @@ def build_drafts(
     )
     for b, raw in zip(bridges, lw["best"], strict=True):
         add(draft_long_weekend(b, RankedRecommendation.model_validate(raw) if raw else None))
-    picks = {p["recommendation_id"]: p for p in ctx["picks"]}
+    picks = {p["recommendation_id"]: SavedPick.model_validate(p) for p in ctx["picks"]}
     for rec_id, raw in priced["recs"].items():
         if raw is None:
             decisions.append(
@@ -421,7 +425,16 @@ def build_drafts(
                          reason="no current price for this pick")
             )  # fmt: skip
             continue
-        rec = RankedRecommendation.model_validate(raw)
+        rec, pick = RankedRecommendation.model_validate(raw), picks[rec_id]
+        if pick.target_pln is not None:
+            target = draft_target_price(rec, pick.target_pln)  # exact-date prices only
+            add(target)
+            if target[0] is not None:  # one alert per trip per scan: the user's own wins
+                decisions.append(
+                    Decision(kind="price_drop", recommendation_id=rec_id, notify=False,
+                             reason="covered by the target price alert")
+                )  # fmt: skip
+                continue
         if rec.price_status != "exact":
             # price honesty: an other-dates fare / city-average hotel is not "the price fell" -
             # no alert, and the baseline ("last real price we told them") stays untouched
@@ -430,13 +443,13 @@ def build_drafts(
                          reason=f"no exact-date price for this pick ({rec.price_status})")
             )  # fmt: skip
             continue
-        add(draft_price_drop(rec, picks[rec_id]["baseline_pln"]))
+        add(draft_price_drop(rec, pick.baseline_pln))
     return drafts, decisions
 
 
 def finalize(
     ctx: dict, drafts: list[Draft], sent_keys: list[str]
-) -> tuple[list[Notification], list[Decision], list[SavedPick]]:
+) -> tuple[list[Notification], list[Decision], dict[str, dict]]:
     """Pure: user-control filters, then notifications with ids derived from (run, dedupe key)
     so a DBOS replay produces the same ids. Also the new 'last price we told you' per pick."""
     now = datetime.fromisoformat(ctx["now"])
@@ -450,21 +463,30 @@ def finalize(
         n = to_notification(d, profile.user_id, profile.interests, ctx["run_id"])
         nid = hashlib.sha256(f"{ctx['run_id']}|{d.dedupe_key}".encode()).hexdigest()[:32]
         notes.append(n.model_copy(update={"id": nid, "created_at": now}))
-    picks = {p["recommendation_id"]: SavedPick.model_validate(p) for p in ctx["picks"]}
-    updates = []
+    picks = {p["recommendation_id"] for p in ctx["picks"]}
+    updates: dict[str, dict] = {}
     for d in kept:
-        if d.kind == "price_drop" and d.rec.id in picks:
+        if d.kind in ("price_drop", "target_price") and d.rec.id in picks:
             flight = next((e for e in d.rec.evidence if e.kind == "flight"), None)
-            updates.append(
-                picks[d.rec.id].model_copy(
-                    update={
-                        "baseline_pln": d.rec.total_cost_pln,
-                        "baseline_source": flight.source if flight else "tripai.scoring",
-                        "baseline_fetched_at": flight.fetched_at if flight else now,
-                    }
-                )
-            )
+            updates[d.rec.id] = {
+                "baseline_pln": d.rec.total_cost_pln,
+                "baseline_source": flight.source if flight else "tripai.scoring",
+                "baseline_fetched_at": (flight.fetched_at if flight else now).isoformat(),
+            }
     return notes, dropped, updates
+
+
+def price_checks(ctx: dict, priced: dict) -> dict[str, dict]:
+    """Pure: the latest check per re-priced pick, for "My trips". No price now = no price shown
+    (never the previous number with a fresh timestamp)."""
+    out = {}
+    for rec_id, raw in priced["recs"].items():
+        out[rec_id] = {
+            "last_pln": raw["total_cost_pln"] if raw else None,
+            "last_price_status": raw.get("price_status", "exact") if raw else None,
+            "last_checked_at": ctx["now"],
+        }
+    return out
 
 
 async def scan_body(
@@ -513,8 +535,10 @@ async def _scan_with(s, ctx, deps, user_id, today_iso, run_step, mode, trigger, 
                             win["windows"])  # fmt: skip
     lw = await run_step("rank_long_weekends", s.rank_long_weekends, ctx["profile"],
                         ctx["weights"], _dump(soon))  # fmt: skip
+    # trips that already started are not re-priced (nothing to buy; saves paid calls)
+    upcoming = [p for p in ctx["picks"] if date.fromisoformat(p["start"]) > today]
     priced = await run_step("price_picks", s.price_picks, ctx["profile"], ctx["weights"],
-                            ctx["picks"])  # fmt: skip
+                            upcoming)  # fmt: skip
 
     drafts, decisions = build_drafts(ctx, ranked, lw, priced, soon)
     sent = await run_step("sent_keys", s.sent_keys, user_id, [d.dedupe_key for d in drafts])
@@ -539,15 +563,14 @@ async def _scan_with(s, ctx, deps, user_id, today_iso, run_step, mode, trigger, 
         ]
         decisions.append(Decision(kind=late.kind, recommendation_id=late.recommendation_id,
                                   notify=False, reason=reason))  # fmt: skip
-    sent_ids = set(saved["ids"])
-    pick_updates = [
-        u
-        for u in pick_updates
-        if any(by_id[i].recommendation_id == u.recommendation_id for i in sent_ids)
-    ]
-    if pick_updates:
+    sent_recs = {by_id[i].recommendation_id for i in saved["ids"]}
+    patches = price_checks(ctx, priced)
+    for rec_id, fields in pick_updates.items():
+        if rec_id in sent_recs:
+            patches[rec_id] = {**patches.get(rec_id, {}), **fields}
+    if patches:
         await run_step("update_pick_baselines", s.update_pick_baselines, user_id,
-                       _dump(pick_updates))  # fmt: skip
+                       patches)  # fmt: skip
     pushed = {}
     for nid in saved["ids"]:
         g = await run_step("interrupt_gate", s.interrupt_gate, user_id, nid, ctx["profile"])

@@ -22,7 +22,8 @@ npm run test:bundle  # build with canary secrets, assert none reach .next/static
 | `/trips` | Proactive push card, recommendation cards (photo, where + when, all-in PLN, score ring, contribution bar), and the **price ↔ comfort ↔ experience** slider that re-ranks with layout animation |
 | `/trips/[id]` | **"Why this, why now" receipt**: weighted factor bars, cost lines with source and timestamp, deltas vs July / next-best window / runner-up, every evidence item, "what would flip it" and the inputs hash |
 | `/trips/[id]/confirm` | Explicit approval ("nothing is booked yet"), then hand-off links (Google Flights, Booking.com) and a tentative `.ics` |
-| `/survey` | Post-trip survey (Barcelona, Aug 2026) → weight diff bars and profile diff → animated re-rank → "new top pick" (`POST /feedback`) |
+| `/my-trips` | **My trips / Moje podróże**: planned trips (approved + saved) with the latest price check and an editable target price; past trips → "Oceń wyjazd" |
+| `/survey` | Post-trip survey (`?trip=&city=` from My trips, else the demo Barcelona trip) → weight diff bars and profile diff → animated re-rank → "new top pick" (`POST /feedback`) |
 
 Demo script: interview → windows → trips → drag the slider to **Price** (Athens takes #1) → open the receipt → plan it → survey
 → "Fill demo answers" → crowd weight goes up → Rome goes back to #1.
@@ -309,3 +310,21 @@ private-network URL) and `TRIPAI_INTERNAL_KEY` (same value as the backend's). Ne
 `lib/types.ts` mirrors `models.py` plus the API-level types from `scoring/types.py` (`RankedRecommendation`, `Counterfactual`,
 `FlipHint`), `scoring/windows.py` (`BridgeWindow`, `Holiday`), `scoring/feedback.py` (`Change`) and `api/schemas.py`. The UI needs
 no contract changes.
+
+## My trips (`/my-trips`, T13)
+- **Nav.** "Podróże / My trips" replaces Feedback in the bottom nav, which keeps 4 items. The survey is reached from Past →
+  "Oceń wyjazd", and the nav item stays highlighted on `/survey`.
+- **Planned.** One card per trip: photo, city, dates, party, and the price per person. The price is the latest exact-date check,
+  else the price when saved.
+  - A chip shows the change: "↓ 120 zł od zapisania" (pine) or "↑ …" (clay). An estimate shows muted as "od ~X zł (inne daty)"
+    and is never compared. There are also states for "jeszcze nie sprawdzono" and "brak ceny na te daty", each with how long ago it was checked.
+  - The **target chip** ("Ustaw swoją cenę" / "Powiadom przy 900 zł" / "Twoja cena jest!") opens an inline editor
+    (`PUT /trips/{id}/target`). At the watch cap it says so.
+- **Past.** City, dates and "Oceń wyjazd", which opens `/survey?trip=<id>&city=<city>`, prefilled with that trip. A stored survey result
+  only shows for the trip it rated.
+- **Empty state.** One line and one CTA ("Znajdź wyjazd" → `/trips`).
+- **Approve.** The confirm page still approves locally and also calls `POST /trips` (best-effort), so the plan is saved on the server and its price is watched.
+- **Fixture mode** (`NEXT_PUBLIC_MOCK=1` or the backend is down): the list is built from the locally approved cards, plus the demo
+  past trip, with no price checks. Targets are kept in the store (`tripTargets`).
+- **Code.** Logic is in `lib/trips.ts`, pinned by `lib/trips.test.ts`; copy is in the i18n namespace `myTrips`; the inbox shows the new
+  `target_price` kind.

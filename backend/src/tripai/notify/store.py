@@ -20,6 +20,7 @@ from pydantic import BaseModel
 from tripai.notify.models import (
     Notification,
     NotificationPrefs,
+    PlannedTrip,
     PushSubscription,
     SavedPick,
     ScanRun,
@@ -46,6 +47,13 @@ class NotifyStore(Protocol):
     def save_pick(self, pick: SavedPick) -> None: ...
     def remove_pick(self, user_id: str, recommendation_id: str) -> bool: ...
     def picks(self, user_id: str) -> list[SavedPick]: ...
+    # partial update (scan price checks, baselines, the user's target) so concurrent writers
+    # never clobber each other's fields with a stale full row; None = no such pick
+    def patch_pick(
+        self, user_id: str, recommendation_id: str, fields: dict
+    ) -> SavedPick | None: ...
+    def save_trip(self, trip: PlannedTrip) -> None: ...  # T13: approved plans
+    def planned_trips(self, user_id: str) -> list[PlannedTrip]: ...
     def active_user_ids(self, since: datetime, limit: int) -> list[str]: ...
 
 
@@ -56,6 +64,7 @@ class MemoryNotifyStore:
         self.items: dict[str, Notification] = {}
         self.runs: list[ScanRun] = []
         self.saved: dict[tuple[str, str], SavedPick] = {}
+        self.trips: dict[tuple[str, str], PlannedTrip] = {}
 
     def get_prefs(self, user_id: str) -> NotificationPrefs:
         return self.prefs.get(user_id) or NotificationPrefs(user_id=user_id)
@@ -109,6 +118,20 @@ class MemoryNotifyStore:
 
     def picks(self, user_id: str) -> list[SavedPick]:
         return [p for (u, _), p in self.saved.items() if u == user_id]
+
+    def patch_pick(self, user_id: str, recommendation_id: str, fields: dict) -> SavedPick | None:
+        cur = self.saved.get((user_id, recommendation_id))
+        if cur is None:
+            return None
+        new = SavedPick.model_validate({**cur.model_dump(), **fields})
+        self.saved[(user_id, recommendation_id)] = new
+        return new
+
+    def save_trip(self, trip: PlannedTrip) -> None:
+        self.trips[(trip.user_id, trip.recommendation_id)] = trip
+
+    def planned_trips(self, user_id: str) -> list[PlannedTrip]:
+        return [t for (u, _), t in self.trips.items() if u == user_id]
 
     def active_user_ids(self, since: datetime, limit: int) -> list[str]:
         """Users the daily scan visits, most recently active first, at most `limit`: push opt-ins
@@ -405,6 +428,55 @@ class SupabaseNotifyStore(MemoryNotifyStore):
                 out.append(SavedPick.model_validate(r))
             except ValueError as exc:
                 log.warning("bad saved_picks row: %s", exc)
+        return out
+
+    def patch_pick(self, user_id: str, recommendation_id: str, fields: dict) -> SavedPick | None:
+        mine = super().patch_pick(user_id, recommendation_id, fields)
+        body = SavedPick.model_validate(  # validated + JSON-able, only the patched columns
+            {**(mine or self._stub_pick(user_id, recommendation_id)).model_dump(), **fields}
+        ).model_dump(mode="json", include=set(fields))
+        rows = self._try(
+            "patch saved_picks",
+            self._req,
+            "PATCH",
+            "saved_picks",
+            params={"user_id": f"eq.{user_id}", "recommendation_id": f"eq.{recommendation_id}"},
+            json=body,
+            prefer="return=representation",
+        )
+        if rows is None:  # Supabase down: memory decides
+            return mine
+        if not rows:
+            return None
+        try:
+            return SavedPick.model_validate(rows[0])
+        except ValueError as exc:
+            log.warning("bad saved_picks row: %s", exc)
+            return mine
+
+    @staticmethod
+    def _stub_pick(user_id: str, recommendation_id: str) -> SavedPick:
+        """Only to validate/serialise patch fields when memory has no copy (another replica)."""
+        return SavedPick(user_id=user_id, recommendation_id=recommendation_id, city="", iata="",
+                         start="2000-01-01", end="2000-01-01", baseline_pln=0,
+                         baseline_source="", baseline_fetched_at=now_utc())  # fmt: skip
+
+    # ---------------------------------------------------------------- planned trips (T13)
+
+    def save_trip(self, trip: PlannedTrip) -> None:
+        super().save_trip(trip)
+        self._upsert("trips", _row(trip), "user_id,recommendation_id")
+
+    def planned_trips(self, user_id: str) -> list[PlannedTrip]:
+        rows = self._select("trips", {"user_id": f"eq.{user_id}", "approved_at": "not.is.null"})
+        if rows is None:
+            return super().planned_trips(user_id)
+        out = []
+        for r in rows:
+            try:
+                out.append(PlannedTrip.model_validate(r))
+            except ValueError as exc:
+                log.warning("bad trips row: %s", exc)
         return out
 
     def active_user_ids(self, since: datetime, limit: int) -> list[str]:

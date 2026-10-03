@@ -169,6 +169,8 @@ export interface Recommendation {
   hotel?: HotelDetails | null; // which hotel, where, transfers, distance to centre
 }
 
+export type PriceStatus = "exact" | "partial" | "estimate";
+
 // --- scoring/types.py -------------------------------------------------------------
 
 export interface Counterfactual {
@@ -323,4 +325,32 @@ export interface DnaResponse {
   profile: TasteProfile;
   weights: Weights;
   reasons: DnaReason[];
+}
+
+// --- api/trips.py (T13 "My trips") ------------------------------------------------
+
+export interface TripItem {
+  id: string; // recommendation id
+  kind: "approved" | "saved";
+  city: string;
+  country: string;
+  iata: string;
+  start: string;
+  end: string;
+  travelers: number;
+  saved_pln: number; // per person all-in when approved / saved
+  saved_price_status: PriceStatus;
+  saved_at: string;
+  watched: boolean; // re-priced by the daily scan
+  current_pln: number | null; // latest scan check; null = not checked yet / no price now
+  price_status: PriceStatus | null;
+  checked_at: string | null;
+  change_pln: number | null; // current - saved, only when both are exact-date prices
+  target_pln: number | null;
+}
+
+export interface TripsResponse {
+  planned: TripItem[];
+  past: TripItem[];
+  max_watched: number;
 }

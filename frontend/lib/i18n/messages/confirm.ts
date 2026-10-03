@@ -19,7 +19,7 @@ export const en = {
   bookHere: "Book at these links. Check the final price there before you pay.",
   holdDates: "Hold the dates in my calendar (tentative)",
   affiliate: "Affiliate links may earn TripAI a commission. That never changes the ranking.",
-  backFromTrip: "Back from a trip? Tell us how it went →",
+  backFromTrip: "See it in My trips · we watch the price →",
   icsSummary: (city: string) => `${city} trip (TripAI, tentative)`,
   icsDescription: (amount: string) => `Estimated ${amount} all-in. Not booked yet.`,
 } as const;
@@ -41,7 +41,7 @@ export const pl: Shape<typeof en> = {
   bookHere: "Zarezerwuj przez te linki. Przed zapłatą sprawdź tam ostateczną cenę.",
   holdDates: "Zablokuj daty w moim kalendarzu (wstępnie)",
   affiliate: "Linki partnerskie mogą przynieść TripAI prowizję. Nigdy nie wpływa to na ranking.",
-  backFromTrip: "Już po wyjeździe? Opowiedz, jak było →",
+  backFromTrip: "Zobacz w Moich podróżach · pilnujemy ceny →",
   icsSummary: (city) => `Wyjazd: ${city} (TripAI, wstępnie)`,
   icsDescription: (amount) => `Szacunkowo ${amount} łącznie. Jeszcze niezarezerwowane.`,
 };

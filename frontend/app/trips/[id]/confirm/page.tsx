@@ -17,6 +17,7 @@ import { InfoTip } from "@/components/declutter";
 import { MoneyLines, priceText, TripPrice } from "@/components/money";
 import { handoffLinks, originOf } from "@/lib/handoff";
 import { useRecommendations } from "@/lib/use-recommendations";
+import { api, FORCE_MOCK } from "@/lib/api";
 
 function icsFor(rec: Recommendation, t: Messages, fmt: Fmt) {
   const c = t.confirm;
@@ -115,7 +116,11 @@ export default function ConfirmPage() {
                   {c.understand}
                 </label>
               </div>
-              <Button size="lg" className="mt-5 h-12 w-full rounded-2xl text-base" disabled={!ok} onClick={() => approve(rec.id)}>
+              <Button size="lg" className="mt-5 h-12 w-full rounded-2xl text-base" disabled={!ok} onClick={() => {
+                  approve(rec.id);
+                  // persist the plan server-side (My trips + price watch); local approval stands if the backend is down
+                  if (!FORCE_MOCK) api.approveTrip(rec.id).catch((err) => console.warn("[tripai] approve not saved:", err));
+                }}>
                 <ShieldCheck data-icon="inline-start" /> {c.approve}
               </Button>
               <Link href="/trips" className="mt-2 block py-2 text-center text-sm text-muted-foreground hover:text-ink">
@@ -164,7 +169,7 @@ export default function ConfirmPage() {
               <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
                 {c.affiliate}
               </p>
-              <Link href="/survey" className="mt-4 block text-center text-sm font-medium text-pine hover:underline">
+              <Link href="/my-trips" className="mt-4 block text-center text-sm font-medium text-pine hover:underline">
                 {c.backFromTrip}
               </Link>
             </motion.div>

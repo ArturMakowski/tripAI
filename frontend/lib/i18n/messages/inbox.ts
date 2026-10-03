@@ -5,7 +5,7 @@ export const en = {
   title: "Inbox",
   bellAria: (unread: number) => (unread ? `Inbox, ${unread} unread` : "Inbox"),
   settingsAria: "Notification settings",
-  kinds: { new_top: "New #1", price_drop: "Price drop", long_weekend: "Długi weekend" },
+  kinds: { new_top: "New #1", price_drop: "Price drop", long_weekend: "Długi weekend", target_price: "Your price" },
   unread: "unread",
   pushWorthy: "Push-worthy",
   inboxOnly: "Inbox only",
@@ -80,7 +80,7 @@ export const pl: Shape<typeof en> = {
         })}`
       : "Skrzynka",
   settingsAria: "Ustawienia powiadomień",
-  kinds: { new_top: "Nowy #1", price_drop: "Spadek ceny", long_weekend: "Długi weekend" },
+  kinds: { new_top: "Nowy #1", price_drop: "Spadek ceny", long_weekend: "Długi weekend", target_price: "Twoja cena" },
   unread: "nieprzeczytane",
   pushWorthy: "Warte powiadomienia",
   inboxOnly: "Tylko w skrzynce",

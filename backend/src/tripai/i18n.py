@@ -518,6 +518,20 @@ MESSAGES: dict[str, dict[str, str]] = {
         "pl": "Teraz {now}/os., przy zapisaniu było {was} ({n} os.: loty {n} × {flight} + "
         "hotel {hotel}).",
     },
+    "n.target.title": {
+        "en": "Your price: {city} {dates}",
+        "pl": "Twoja cena: {city} {dates}",
+    },
+    "n.target.body": {
+        "en": "Now {now}, your target {target} (flight {flight} + hotel {hotel}).",
+        "pl": "Teraz {now}, Twój cel {target} (lot {flight} + hotel {hotel}).",
+    },
+    "n.target.body.party": {
+        "en": "Now {now} per person ({group} for {n}), your target {target} per person "
+        "(flights {n} × {flight} + hotel {hotel}).",
+        "pl": "Teraz {now}/os. ({group} razem dla {n} os.), Twój cel {target}/os. "
+        "(loty {n} × {flight} + hotel {hotel}).",
+    },
     "n.lw.title": {"en": "Długi weekend: {city}, {dates}", "pl": "Długi weekend: {city}, {dates}"},
     "lux.budget": {"en": "budget", "pl": "budżetowy"},
     "lux.standard": {"en": "standard", "pl": "standardowy"},

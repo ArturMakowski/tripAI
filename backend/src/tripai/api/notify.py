@@ -21,6 +21,7 @@ from tripai.api.lang import use_lang
 from tripai.api.session import session_user
 from tripai.api.spend import forget as forget_spend
 from tripai.api.state import Store
+from tripai.api.trips import pick_from, trips_router
 from tripai.models import TasteProfile, Weights
 from tripai.notify.models import (
     Notification,
@@ -122,6 +123,7 @@ def install_notifications(
     app.state.notify = deps.notify
     app.state.scan_limiter = ScanRateLimiter(deps.limits)
     app.include_router(_router(deps, app.state.scan_limiter))
+    app.include_router(trips_router(deps))  # T13 "My trips"
     return deps
 
 
@@ -269,20 +271,14 @@ def _router(deps: ScanDeps, limiter: ScanRateLimiter) -> APIRouter:
             raise HTTPException(404, "unknown recommendation id (fetch recommendations first)")
         mine = await asyncio.to_thread(notify.picks, uid)
         cap = deps.limits.max_picks
-        if len(mine) >= cap and rec.id not in {p.recommendation_id for p in mine}:
+        old = next((p for p in mine if p.recommendation_id == rec.id), None)
+        if len(mine) >= cap and old is None:
             raise HTTPException(409, f"you can watch at most {cap} trips; unwatch one first")
-        flight = next((e for e in rec.evidence if e.kind == "flight"), None)
-        pick = SavedPick(
-            user_id=uid,
-            recommendation_id=rec.id,
-            city=rec.city,
-            iata=rec.iata,
-            start=rec.window.start,
-            end=rec.window.end,
-            baseline_pln=rec.total_cost_pln,
-            baseline_source=flight.source if flight else "tripai.scoring",
-            baseline_fetched_at=flight.fetched_at if flight else now_utc(),
-        )
+        pick = pick_from(uid, rec)
+        if old is not None:  # re-save: fresh baseline, but keep "My trips" history and target
+            keep = {"saved_pln", "saved_price_status", "saved_at", "target_pln", "last_pln",
+                    "last_price_status", "last_checked_at"}  # fmt: skip
+            pick = pick.model_copy(update=old.model_dump(include=keep))
         await asyncio.to_thread(notify.save_pick, pick)
         return pick
 

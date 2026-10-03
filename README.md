@@ -257,6 +257,7 @@ When does it ping? (all numbers in title/body are copied from the ranked card an
 | `new_top` | this scan's #1 differs from the last scan's #1 (first scan counts) and score ≥ 0.6 |
 | `price_drop` | a watched pick (`POST /picks`) is ≥ 15% cheaper than the last price we told the user |
 | `long_weekend` | a radar window starts within 21 days and its best trip scores ≥ 0.8 |
+| `target_price` | a watched pick's exact-date price is ≤ the user's own target (T13, see "My trips") |
 
 Fit verdict (docs/FIT_VERDICT.md): the scan asks T1c's `tripai.agents.fit.fit` (LLM, or its deterministic rules
 fallback) for a verdict on each notification candidate: the #1, the best trip per soon long weekend, and each watched
@@ -513,3 +514,42 @@ route handler `frontend/app/api/[...path]/route.ts` (`frontend/lib/proxy.ts`) fo
   notifications all read one money model.
 - **Tests:** `tests/test_party_money.py` checks it as properties for 1–12 travellers (children, odd sizes, explicit rooms), on both
   providers, plus the Palma regression.
+
+**Party pricing.** `TasteProfile.adults`, `children` and `rooms` (default: ceil(people / 2)).
+- **Per-person card:** flights are per person, hotels per room. `flight_cost_pln + hotel_cost_pln = total_cost_pln` is **per person**: the
+  flight plus this person's share of the rooms.
+- **Group fields:** `travelers`, `party_total_pln` (= per person × travellers) and `per_person_pln`.
+- **Hotel details:** `hotel.price_pln_total` is the group's price for the property (rooms × room price). Hotel evidence rows say
+  "price for 1 room". The card's `hotel_cost_pln` is the per-person share, and the `party` row ties the three together.
+- **Evidence:** a `party` row shows the sum, e.g. "2 os., pokoje: 1: loty 2 × … + hotel 1 × … = … razem".
+- **Both providers:** the `FixtureProvider` sample data applies the same per-person hotel share.
+
+## My trips (T13): approved plans, price checks, target price
+
+`backend/src/tripai/api/trips.py`, mounted next to the T5b routes. Everything acts for the session user.
+
+| Endpoint | What |
+|---|---|
+| `POST /trips` `{recommendation_id}` | Persist an approval from the confirm page (nothing is booked). Also watches the trip's price (a `saved_pick`) when a watch slot is free (`TRIPAI_MAX_PICKS`). Re-approving keeps the first approval's price and time |
+| `GET /trips?today=` | `{planned, past, max_watched}`. Planned = approved trips + watched picks (one row per trip); past = approved trips whose end date has passed (rate them via the survey). A watched pick that ended without being approved is dropped |
+| `PUT /trips/{id}/target` `{target_pln}` | Set the user's target price (per person, all-in), or clear it with `null`. Watches an approved trip first if it wasn't watched (409 at the cap) |
+
+Each row carries the saved price, the scan's **latest check** (`current_pln`, `price_status`, `checked_at`) and
+`change_pln` (current − saved). `change_pln` is only set when both are exact-date prices: an estimate is shown, never compared.
+
+**Scan changes** (`workflows/scan.py`, `notify/rules.py`):
+- Every re-priced pick gets its latest check recorded. If there is no price now, the check says so: the old number is
+  never shown with a fresh timestamp. Writes are partial updates (`NotifyStore.patch_pick`), so a target set during a
+  scan isn't overwritten by a stale row.
+- `target_price` fires once per (trip, target), when `price_status == "exact"` and the price is at or under the target.
+  A new target re-arms it. It has no fit/score gate (the user chose the trip and the number), but snooze, muted cities, the
+  weekly cap and the Jev push gate still apply. When it fires, `price_drop` is skipped for that trip in that scan.
+  Text is in PL/EN (`n.target.*`): "Twoja cena: Málaga 1-3 sty / Teraz 837 zł, Twój cel 900 zł (lot 361 + hotel 476)."
+- Price honesty (T5d) holds here too: an estimate/partial price never triggers `target_price` and never sets a baseline.
+- Trips that have already started are no longer re-priced (that saves paid calls).
+
+**Storage:** `supabase/migrations/0006_my_trips.sql` adds the approval columns to `trips` (unique on
+`(user_id, recommendation_id)`; the `profiles` FK is dropped because a session can approve before its profile row exists),
+plus `saved_pln`, `target_pln` and `last_*` columns on `saved_picks`, and the `target_price` notification kind. RLS stays on with
+no anon policy. **The president applies it before deploy.** Until then, Supabase writes for these columns fail (they're logged) and
+memory serves.

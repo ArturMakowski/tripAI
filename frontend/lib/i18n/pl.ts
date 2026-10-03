@@ -16,6 +16,7 @@ import * as tutorial from "./messages/tutorial";
 import * as money from "./messages/money";
 import * as stars from "./messages/stars";
 import * as tripDetails from "./messages/tripDetails";
+import * as myTrips from "./messages/myTrips";
 import type { Messages } from "./en";
 
 export const pl: Messages = {
@@ -36,4 +37,5 @@ export const pl: Messages = {
   money: money.pl,
   stars: stars.pl,
   tripDetails: tripDetails.pl,
+  myTrips: myTrips.pl,
 };
