@@ -1,6 +1,7 @@
 """FastAPI app, API v0 (see docs/ARCHITECTURE.md)."""
 
 import asyncio
+import inspect
 import logging
 from datetime import date, datetime, timedelta
 from typing import Annotated
@@ -30,6 +31,8 @@ from tripai.api.schemas import (
 )
 from tripai.api.session import HEADER as SESSION_HEADER
 from tripai.api.session import session_user
+from tripai.api.spend import forget as forget_spend
+from tripai.api.spend import spend_history
 from tripai.api.state import MemoryStore, Store
 from tripai.models import FreeWindow, TasteProfile, Weights
 from tripai.notify.push import WebPusher
@@ -154,24 +157,6 @@ def create_app(
         _check_range(start, end)
         return long_weekends(start, end, max_leave=max_leave)
 
-    async def _spend_history(uid: str) -> list[float]:
-        """What this user spent on trips they showed interest in: watched picks' prices and
-        the totals of trips they swiped like/love on (docs/BUDGET.md typical spend)."""
-        spent: list[float] = []
-        notify = getattr(app.state, "notify", None)
-        if notify is not None:
-            try:
-                picks = await asyncio.to_thread(notify.picks, uid)  # may hit Supabase
-                spent += [p.baseline_pln for p in picks]
-            except Exception as exc:  # noqa: BLE001 - history is a nicety, never a failure
-                log.warning("spend history (picks) failed for %s: %s", uid, exc)
-        for rec_id, r in (await store.get_reactions(uid)).items():
-            if r.reaction in ("like", "love") and (
-                rec := await store.get_recommendation(uid, rec_id)
-            ):
-                spent.append(rec.total_cost_pln)
-        return spent
-
     @app.post("/recommendations")
     async def post_recommendations(
         req: RecommendationsRequest, uid: User, phase: Phase = "full"
@@ -196,6 +181,12 @@ def create_app(
         trips = trip_windows(windows, profile.trip_length_days)
         origin = profile.origin_airports[0] if profile.origin_airports else "KRK"
         extra = {"fast": True} if fast and getattr(provider, "supports_fast", False) else {}
+        # one price reference for everything: refinement targets, ranking, badges (BUDGET.md)
+        typical = typical_spend(
+            profile, await spend_history(store, getattr(app.state, "notify", None), uid)
+        )
+        if "typical_spend_pln" in inspect.signature(provider.candidates).parameters:
+            extra["typical_spend_pln"] = typical.pln
         candidates = await provider.candidates(
             origin, trips, profile.luxury, profile=profile, weights=weights, **extra
         )
@@ -207,11 +198,11 @@ def create_app(
         hidden = {k for k, r in (await store.get_reactions(uid)).items() if r.hidden}
         if hidden:
             candidates = [c for c in candidates if candidate_id(c) not in hidden]
-        typical = typical_spend(profile, await _spend_history(uid))
         ranked = rank_within_budget(
             candidates, profile, weights, limit=req.limit, typical_spend_pln=typical.pln
         )
-        chip = i18n.t("value.typical_chip", amount=i18n.fmt_pln(typical.pln))
+        chip_key = "value.typical_chip" if typical.source == "history" else "value.typical_chip_dna"
+        chip = i18n.t(chip_key, amount=i18n.fmt_pln(typical.pln))
         recs = [
             ApiRecommendation(
                 **r.model_dump(),
@@ -320,6 +311,7 @@ def create_app(
         """T6 swipe -> small deterministic nudge of interests (and maybe one weight), with reasons.
         personalize=False: recorded, nothing changes, `note` says so."""
         use_lang(req.lang)
+        forget_spend(uid)  # a like/love changes the typical-spend history
         rec = await store.get_recommendation(uid, req.recommendation_id)
         if rec is None:
             raise HTTPException(404, "unknown recommendation id (fetch recommendations first)")

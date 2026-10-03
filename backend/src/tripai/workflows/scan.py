@@ -22,6 +22,7 @@ from datetime import date, datetime, timedelta
 from typing import Any
 
 from tripai import i18n
+from tripai.api.spend import spend_history
 from tripai.api.state import Store
 from tripai.models import FitVerdict, FreeWindow, TasteProfile, Weights
 from tripai.notify.models import (
@@ -56,6 +57,7 @@ from tripai.scoring import (
 )
 from tripai.scoring.budget_fit import rank_within_budget
 from tripai.scoring.types import Candidate, RankedRecommendation
+from tripai.scoring.value import typical_spend
 from tripai.scoring.windows import TZ
 
 log = logging.getLogger(__name__)
@@ -79,12 +81,17 @@ def _env_int(name: str, default: int) -> int:
 
 
 def _fitting(
-    cands: Sequence[Candidate], p: TasteProfile, w: Weights, limit: int
+    cands: Sequence[Candidate],
+    p: TasteProfile,
+    w: Weights,
+    limit: int,
+    typical: float | None = None,
 ) -> list[RankedRecommendation]:
     """Proactive picks obey the hard budget and never include over-budget fallbacks: a card may
     show "closest options, over budget", a push saying "go here" must not. (Watched picks are
     re-priced with plain `rank()`: the user chose that trip; the alert is about its price.)"""
-    return [r for r, _ in rank_within_budget(cands, p, w, limit=limit, fallback=False)]
+    ranked = rank_within_budget(cands, p, w, limit=limit, fallback=False, typical_spend_pln=typical)
+    return [r for r, _ in ranked]
 
 
 @dataclass(frozen=True)
@@ -160,13 +167,19 @@ def _merge_windows(windows: list[FreeWindow]) -> list[FreeWindow]:
 
 
 async def _candidates(
-    deps: ScanDeps, profile: TasteProfile, weights: Weights, windows: list[FreeWindow]
+    deps: ScanDeps,
+    profile: TasteProfile,
+    weights: Weights,
+    windows: list[FreeWindow],
+    typical: float | None = None,
 ) -> list[Candidate]:
     if not windows:
         return []
     origin = profile.origin_airports[0] if profile.origin_airports else "KRK"
     params = inspect.signature(deps.provider.candidates).parameters
     extra = {"profile": profile, "weights": weights} if "profile" in params else {}
+    if "typical_spend_pln" in params:
+        extra["typical_spend_pln"] = typical
     return await deps.provider.candidates(origin, windows, profile.luxury, **extra)
 
 
@@ -176,6 +189,7 @@ class Scan:
     def __init__(self, deps: ScanDeps, lang: str = "en") -> None:
         self.deps = deps
         self.lang = lang  # user-facing texts (bridge labels, receipts, fit) follow prefs.lang
+        self.typical: float | None = None  # price reference (typical spend), from load_context
 
     # 1 ------------------------------------------------------------------ context
     async def load_context(self, user_id: str) -> dict:
@@ -185,10 +199,13 @@ class Scan:
         # personalize=False (Travel DNA y2): still notify, but rank on neutral default weights
         stored = await d.store.get_weights(user_id) if profile.personalize else None
         weights = stored or Weights()
+        # same price reference as the cards (docs/BUDGET.md), recorded with the step for replay
+        typical = typical_spend(profile, await spend_history(d.store, d.notify, user_id))
         return {
             **await asyncio.to_thread(self._notify_context, user_id),
             "profile": profile.model_dump(mode="json"),
             "weights": weights.model_dump(mode="json"),
+            "typical_spend_pln": typical.pln,
         }
 
     def _notify_context(self, user_id: str) -> dict:
@@ -237,8 +254,8 @@ class Scan:
     async def _rank_trips(self, profile: dict, weights: dict, windows: list[dict]) -> dict:
         p, w = TasteProfile.model_validate(profile), Weights.model_validate(weights)
         trips = trip_windows([FreeWindow.model_validate(x) for x in windows], p.trip_length_days)
-        cands = await _candidates(self.deps, p, w, trips)
-        recs = _fitting(cands, p, w, TOP_N)
+        cands = await _candidates(self.deps, p, w, trips, self.typical)
+        recs = _fitting(cands, p, w, TOP_N, self.typical)
         if recs:
             await self.deps.store.save_recommendations(p.user_id, recs)
         out = _dump(recs)
@@ -257,7 +274,9 @@ class Scan:
         for b in bridges:
             bw = BridgeWindow.model_validate(b)
             trips = trip_windows([bw.window], p.trip_length_days)
-            recs = _fitting(await _candidates(self.deps, p, w, trips), p, w, 1)
+            recs = _fitting(
+                await _candidates(self.deps, p, w, trips, self.typical), p, w, 1, self.typical
+            )
             if recs:
                 await self.deps.store.save_recommendations(p.user_id, recs)
             best.append(await self._with_fit(recs[0], p) if recs else None)
@@ -274,8 +293,12 @@ class Scan:
         for raw in picks:
             pick = SavedPick.model_validate(raw)
             win = FreeWindow(start=pick.start, end=pick.end)
-            cands = [c for c in await _candidates(self.deps, p, w, [win]) if c.iata == pick.iata]
-            recs = rank(cands, p, w, limit=1)
+            cands = [
+                c
+                for c in await _candidates(self.deps, p, w, [win], self.typical)
+                if c.iata == pick.iata
+            ]
+            recs = rank(cands, p, w, limit=1, typical_spend_pln=self.typical)
             out[pick.recommendation_id] = await self._with_fit(recs[0], p) if recs else None
         return {"recs": out}
 
@@ -453,6 +476,7 @@ async def _scan(deps, user_id, today_iso, run_step, mode, trigger, workflow_id) 
     ctx = await run_step("load_context", s.load_context, user_id)
     # notification texts are written in the user's saved language (POST /scan/run stores it)
     s.lang = NotificationPrefs.model_validate(ctx["prefs"]).lang
+    s.typical = ctx.get("typical_spend_pln")
     with i18n.using(i18n.pick(s.lang)):
         return await _scan_with(s, ctx, deps, user_id, today_iso, run_step, mode, trigger,
                                 workflow_id)  # fmt: skip

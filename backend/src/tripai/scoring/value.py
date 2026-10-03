@@ -33,6 +33,7 @@ GOOD_FIT = {"good_fit", "great_fit"}
 GOOD_TOTAL = 0.65  # score band for "good" when no fit verdict (fit.label_from_score)
 TOP_N = 5
 MIN_DEG = 2.0  # a smaller temperature gap isn't worth mentioning
+MIN_SCORE_GAP = 0.05  # a 1-point taste/weather lead can't justify a splurge
 
 
 class TypicalSpend(BaseModel):
@@ -57,25 +58,47 @@ def _non_price(r: RankedRecommendation, w: Weights) -> float:
     ) / total
 
 
+def value_amount(r: RankedRecommendation) -> float:
+    """The money basis every value text uses: the trip total (flight per person + hotel per room),
+    labelled "(flight + room)" so it never reads as per person. TODO(t5d party pricing): once
+    `party_total_pln` / `per_person_pln` are filled, switch both this and typical spend to the
+    same party figure and its label, in one place."""
+    return r.total_cost_pln
+
+
 def _fit_ok(r: RankedRecommendation) -> bool:
+    """AI fit label when the card has one (full phase, top `fit_top`), else the score band:
+    a fast-phase great_value can change in full, which replaces it."""
     if r.fit is not None:
         return r.fit.label in GOOD_FIT
     return r.score.total >= GOOD_TOTAL
 
 
 def _splurge_parts(r: RankedRecommendation, alt: RankedRecommendation) -> list[str]:
-    """What the extra money buys, only where this card is better and the numbers exist."""
+    """What the extra money buys, only where this card is clearly better and the numbers exist."""
     parts = []
-    if r.score.weather > alt.score.weather and r.temp_c is not None and alt.temp_c is not None:
-        d = round(r.temp_c - alt.temp_c, 1)
+    if r.score.weather > alt.score.weather:
+        d = (
+            round(r.temp_c - alt.temp_c, 1)
+            if r.temp_c is not None and alt.temp_c is not None
+            else 0
+        )
         if abs(d) >= MIN_DEG:
             key = "value.warmer" if d > 0 else "value.cooler"
             parts.append(i18n.t(key, deg=i18n.fmt_dec(abs(d))))
+        elif r.score.weather - alt.score.weather >= MIN_SCORE_GAP:  # e.g. less rain, more sun
+            parts.append(
+                i18n.t(
+                    "value.better_weather",
+                    a=round(100 * r.score.weather),
+                    b=round(100 * alt.score.weather),
+                )
+            )
     if r.crowd is not None and alt.crowd is not None and r.crowd < alt.crowd and alt.crowd > 0:
         fewer = round(100 * (1 - r.crowd / alt.crowd))
         if fewer >= 10:
             parts.append(i18n.t("value.fewer_crowds", pct=fewer))
-    if r.score.taste > alt.score.taste:
+    if r.score.taste - alt.score.taste >= MIN_SCORE_GAP:
         parts.append(
             i18n.t(
                 "value.better_taste",
@@ -110,12 +133,12 @@ def annotate_value(
         for r in exact:
             if r.score.price >= cut and _fit_ok(r):
                 r.value_badge = "great_value"
-                if r.total_cost_pln < typical.pln:
+                if value_amount(r) < typical.pln:
                     r.value_reason = i18n.t(
                         "value.great_under",
                         city=r.city,
-                        total=i18n.fmt_pln(r.total_cost_pln),
-                        under=i18n.fmt_pln(typical.pln - r.total_cost_pln),
+                        total=i18n.fmt_pln(value_amount(r)),
+                        under=i18n.fmt_pln(typical.pln - value_amount(r)),
                         typical=i18n.fmt_pln(typical.pln),
                         price=round(100 * r.score.price),
                     )
@@ -123,18 +146,18 @@ def annotate_value(
                     r.value_reason = i18n.t(
                         "value.great",
                         city=r.city,
-                        total=i18n.fmt_pln(r.total_cost_pln),
+                        total=i18n.fmt_pln(value_amount(r)),
                         price=round(100 * r.score.price),
                         fit=round(100 * r.score.total),
                     )
                 continue
-            if r.total_cost_pln <= typical.pln:
+            if value_amount(r) <= typical.pln:
                 continue  # within what this user usually spends: not a splurge
             others = [o for o in top if o.id != r.id]
-            alt = min(others, key=lambda o: (o.total_cost_pln, o.id)) if others else None
+            alt = min(others, key=lambda o: (value_amount(o), o.id)) if others else None
             if (
                 alt is not None
-                and r.total_cost_pln >= (1 + SPLURGE_MIN_PREMIUM) * alt.total_cost_pln
+                and value_amount(r) >= (1 + SPLURGE_MIN_PREMIUM) * value_amount(alt)
                 and _non_price(r, w) - _non_price(alt, w) >= SPLURGE_MIN_EDGE
                 and (parts := _splurge_parts(r, alt))
             ):
@@ -142,7 +165,7 @@ def annotate_value(
                 r.value_reason = i18n.t(
                     "value.splurge",
                     city=r.city,
-                    amount=i18n.fmt_pln(r.total_cost_pln - alt.total_cost_pln),
+                    amount=i18n.fmt_pln(value_amount(r) - value_amount(alt)),
                     alt=alt.city,
                     parts=", ".join(parts),
                 )

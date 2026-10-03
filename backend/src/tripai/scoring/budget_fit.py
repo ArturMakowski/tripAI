@@ -18,7 +18,6 @@ from tripai import i18n
 from tripai.models import TasteProfile, Weights
 from tripai.scoring.engine import (
     candidate_id,
-    effective_budget,
     inputs_hash,
     interest_filter,
     rank,
@@ -81,15 +80,17 @@ def rank_within_budget(
 ) -> list[tuple[RankedRecommendation, BudgetStatus | None]]:
     """Ranked recommendations with their budget status (None when the profile has no budget).
     The price factor's reference is the user's typical spend (docs/BUDGET.md); with a hard
-    limit it is capped at the limit, so the #16 behaviour is unchanged."""
+    limit it is the limit itself, exactly as in #16 (a trip well inside the user's own limit is
+    not "expensive" just because their history is frugal)."""
     budget = profile.budget_pln
     if not budget:
         recs = rank(candidates, profile, weights, limit=limit, typical_spend_pln=typical_spend_pln)
         return [(r, None) for r in recs]
-    ref = min(typical_spend_pln or effective_budget(profile), budget)
+    ref = float(budget)
     # same dedup + hash as rank() over the full input, so receipts stay comparable
     unique = list({candidate_id(c): c for c in reversed(candidates)}.values())
-    digest = inputs_hash(unique, profile, weights or Weights(), ref)
+    # the limit is in the profile already; the hash carries the real typical spend
+    digest = inputs_hash(unique, profile, weights or Weights(), typical_spend_pln)
     kept, receipt = interest_filter(unique, profile)
     cap = budget * (1 + TOLERANCE)
     fits = [c for c in kept if c.total_cost_pln <= cap]

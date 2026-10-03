@@ -57,12 +57,24 @@ def test_typical_spend_drives_price_factor_and_hash():
 
 
 def test_hard_limit_keeps_budget_as_price_reference():
-    p = PROFILES[2]  # luxury (typical 7000) with a 1200 limit
-    cands = _cands("luxury")
-    a = rank_within_budget(cands, p, None)
-    b = rank_within_budget(cands, p, None, typical_spend_pln=9000)
-    assert [r.id for r, _ in a] == [r.id for r, _ in b]  # min(typical, limit) = the limit
-    assert [s.status for _, s in a] == [s.status for _, s in b]
+    """#16 unchanged: with a limit set, the limit is the price reference, whatever the
+    typical spend (review #2: limit above and below typical)."""
+    from tripai.scoring.engine import price_score
+
+    for luxury, limit in (("luxury", 1200), ("standard", 5000)):
+        p = TasteProfile(user_id="h", luxury=luxury, budget_pln=limit, interests={"art": 1.0})
+        cands = _cands(luxury)
+        a = rank_within_budget(cands, p, None)
+        b = rank_within_budget(cands, p, None, typical_spend_pln=900)
+        c = rank_within_budget(cands, p, None, typical_spend_pln=9000)
+        ids = [r.id for r, _ in a]
+        assert ids == [r.id for r, _ in b] == [r.id for r, _ in c]
+        for r, _ in a:
+            cand = next(x for x in cands if f"{x.iata}-{x.window.start:%Y%m%d}" in r.id)
+            want = price_score(cand.total_cost_pln, limit, cand.seasonal_median_cost_pln)
+            assert r.score.price == round(want, 4)
+    # the reviewer's case: 3000 PLN inside a 5000 limit is not scored against typical 2500
+    assert price_score(3000, 5000, 3000) > price_score(3000, 2500, 3000)
 
 
 # ---------------------------------------------------------------- value badges
@@ -208,3 +220,82 @@ def test_history_from_likes_sets_typical_spend():
     with i18n.using("en"):
         assert again[0]["typical_spend_label"] == i18n.t("value.typical_chip",
                                                          amount=i18n.fmt_pln(want))  # fmt: skip
+
+
+# ---------------------------------------------------------------- review fixes (#27)
+
+
+class _CapturingProvider(FixtureProvider):
+    def __init__(self):
+        super().__init__()
+        self.seen: list[float | None] = []
+
+    async def candidates(self, origin, windows, luxury="standard", *, profile=None,
+                         weights=None, typical_spend_pln=None):  # fmt: skip
+        self.seen.append(typical_spend_pln)
+        return await super().candidates(origin, windows, luxury)
+
+
+def _like_three(c, body) -> float:
+    recs = c.post("/recommendations", json=body).json()
+    for r in recs[:3]:
+        c.post("/reactions", json={"recommendation_id": r["id"], "reaction": "like"})
+    return sorted(r["total_cost_pln"] for r in recs[:3])[1]
+
+
+def test_provider_and_scan_get_the_same_typical_spend(monkeypatch):
+    """Review #1: refinement targets (provider) and proactive scan use the cards' reference."""
+    monkeypatch.setenv("TRIPAI_SCAN_MIN_INTERVAL_S", "0")
+    monkeypatch.setenv("TRIPAI_SCAN_PER_MIN", "1000")
+    prov = _CapturingProvider()
+    app = create_app(provider=prov)
+    c = TestClient(app)
+    body = {"profile": PROFILES[0].model_dump(mode="json"), "today": "2026-10-03", "limit": 10}
+    want = _like_three(c, body)
+    again = c.post("/recommendations", json=body).json()
+    assert again[0]["typical_spend_pln"] == want and prov.seen[-1] == want
+    from tripai.workflows.scan import Scan
+
+    uid = c.get("/session").json()["user_id"]
+    ctx = asyncio.run(Scan(app.state.scan_deps).load_context(uid))
+    assert ctx["typical_spend_pln"] == want
+    prov.seen.clear()
+    r = c.post("/scan/run", json={"today": "2026-10-20"})
+    assert r.status_code == 200 and prov.seen and set(prov.seen) == {want}
+
+
+def test_small_gaps_are_not_named_as_gains():
+    """Review #4: a 1-pt taste lead never justifies a splurge."""
+    from tripai.scoring.value import _splurge_parts
+
+    base = rank(_cands(), PROFILES[0], limit=2)
+    a, b = base[0], base[1]
+    a2 = a.model_copy(update={"score": a.score.model_copy(update={"taste": 0.61, "weather": 0.5}),
+                              "temp_c": 20.0, "crowd": 0.5})  # fmt: skip
+    b2 = b.model_copy(update={"score": b.score.model_copy(update={"taste": 0.60, "weather": 0.5}),
+                              "temp_c": 19.5, "crowd": 0.5})  # fmt: skip
+    assert _splurge_parts(a2, b2) == []
+    a3 = a2.model_copy(update={"score": a2.score.model_copy(update={"weather": 0.8})})
+    with i18n.using("en"):
+        assert _splurge_parts(a3, b2) == ["better weather (80 vs 50 pts)"]
+
+
+def test_value_texts_say_their_money_basis():
+    """Review #3: amounts are trip totals (flight + room), and say so."""
+    for lang, label in (("en", "(flight + room)"), ("pl", "(lot + pokój)")):
+        recs = rank(_cands(), PROFILES[0], limit=8, lang=lang)
+        annotate_value(recs, PROFILES[0], None, typical_spend(PROFILES[0]), lang=lang)
+        reasons = [r.value_reason for r in recs if r.value_reason]
+        assert reasons and all(label in x for x in reasons)
+
+
+def test_chip_is_honest_without_history():
+    """Review #7: no history -> 'typical for your travel style', not 'you usually spend'."""
+    c = TestClient(create_app())
+    body = {"profile": PROFILES[0].model_dump(mode="json"), "today": "2026-10-03", "limit": 5}
+    first = c.post("/recommendations", json=body).json()[0]
+    assert first["typical_spend_source"] == "dna"
+    assert first["typical_spend_label"].startswith("Typical for your travel style: ~2500 PLN")
+    _like_three(c, body)
+    again = c.post("/recommendations", json=body).json()[0]
+    assert again["typical_spend_label"].startswith("You usually spend ~")

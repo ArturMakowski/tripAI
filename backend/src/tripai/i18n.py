@@ -406,8 +406,8 @@ MESSAGES: dict[str, dict[str, str]] = {
     },
     # ---- value badges (docs/BUDGET.md)
     "value.splurge": {
-        "en": "Worth the splurge: {city}: {amount} more than {alt} for {parts}",
-        "pl": "Warto dopłacić: {city}: o {amount} drożej niż {alt}, ale {parts}",
+        "en": "Worth the splurge: {city}: {amount} more than {alt} (flight + room) for {parts}",
+        "pl": "Warto dopłacić: {city}: o {amount} drożej niż {alt} (lot + pokój), ale {parts}",
     },
     "value.warmer": {"en": "{deg} °C warmer", "pl": "cieplej o {deg} °C"},
     "value.cooler": {"en": "{deg} °C cooler", "pl": "chłodniej o {deg} °C"},
@@ -417,19 +417,28 @@ MESSAGES: dict[str, dict[str, str]] = {
         "pl": "lepiej pasuje do Twoich zainteresowań ({a} vs {b} pkt)",
     },
     "value.great_under": {
-        "en": "Great value: {city}: {total}, {under} under your usual ~{typical} (price score "
-        "{price}/100)",
-        "pl": "Świetna cena: {city}: {total}, o {under} mniej niż zwykle wydajesz (~{typical}; "
-        "ocena ceny {price}/100)",
+        "en": "Great value: {city}: {total} (flight + room), {under} under your usual ~{typical} "
+        "(price score {price}/100)",
+        "pl": "Świetna cena: {city}: {total} (lot + pokój), o {under} mniej niż zwykle wydajesz "
+        "(~{typical}; ocena ceny {price}/100)",
     },
     "value.great": {
-        "en": "Great value: {city}: {total}, price score {price}/100 with an overall score of "
-        "{fit}/100",
-        "pl": "Świetna cena: {city}: {total}, ocena ceny {price}/100 przy ogólnym wyniku {fit}/100",
+        "en": "Great value: {city}: {total} (flight + room), price score {price}/100 with an "
+        "overall score of {fit}/100",
+        "pl": "Świetna cena: {city}: {total} (lot + pokój), ocena ceny {price}/100 przy ogólnym "
+        "wyniku {fit}/100",
     },
     "value.typical_chip": {
-        "en": "You usually spend ~{amount}",
-        "pl": "Zwykle wydajesz ok. {amount}",
+        "en": "You usually spend ~{amount} (flight + room)",
+        "pl": "Zwykle wydajesz ok. {amount} (lot + pokój)",
+    },
+    "value.typical_chip_dna": {
+        "en": "Typical for your travel style: ~{amount} (flight + room)",
+        "pl": "Typowo dla Twojego stylu podróży: ok. {amount} (lot + pokój)",
+    },
+    "value.better_weather": {
+        "en": "better weather ({a} vs {b} pts)",
+        "pl": "lepsza pogoda ({a} vs {b} pkt)",
     },
     # ---- notifications
     "n.cost": {

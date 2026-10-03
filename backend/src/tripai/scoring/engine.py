@@ -16,7 +16,7 @@ from tripai.scoring.types import (
     RankedRecommendation,
 )
 
-SCORING_VERSION = "2026.10.03-1"
+SCORING_VERSION = "2026.10.04-1"  # typical-spend price reference, shown totals, hash
 FACTORS = ("price", "weather", "crowds", "taste")
 
 # Typical total trip spend (flight + hotel room) per DNA luxury level, PLN: the price factor's

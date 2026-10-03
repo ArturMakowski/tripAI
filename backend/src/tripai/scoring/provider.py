@@ -36,6 +36,7 @@ class TripDataProvider(Protocol):
         *,
         profile: TasteProfile | None = None,  # lets a provider spend its live-call budget on
         weights: Weights | None = None,  # the options this user is likely to see
+        typical_spend_pln: float | None = None,  # the price reference those are ranked with
     ) -> list[Candidate]: ...
 
 
@@ -208,6 +209,7 @@ class FixtureProvider:
         *,
         profile: TasteProfile | None = None,
         weights: Weights | None = None,
+        typical_spend_pln: float | None = None,
     ) -> list[Candidate]:
         return [self._candidate(c, origin, w, luxury) for c in self._cities for w in windows]
 
