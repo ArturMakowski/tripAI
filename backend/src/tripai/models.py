@@ -61,6 +61,25 @@ class ScoreBreakdown(BaseModel):
     total: float
 
 
+class FitPoint(BaseModel):
+    text: str
+    dna: list[str] = Field(default_factory=list)  # Travel DNA card ids, e.g. ["q6", "q11"]
+    evidence: list[int] = Field(default_factory=list)  # indexes into Recommendation.evidence
+
+
+class FitVerdict(BaseModel):
+    """AI second opinion: is this offer good for this user's DNA? See docs/FIT_VERDICT.md."""
+
+    label: str  # "great_fit" | "good_fit" | "mixed" | "poor_fit"
+    confidence: float
+    summary: str
+    matches: list[FitPoint] = Field(default_factory=list)
+    concerns: list[FitPoint] = Field(default_factory=list)
+    model: str  # pydantic-ai model string, or "rules" for the deterministic fallback
+    inputs_hash: str = ""
+    created_at: datetime | None = None
+
+
 class Recommendation(BaseModel):
     id: str
     city: str
@@ -74,3 +93,4 @@ class Recommendation(BaseModel):
     evidence: list[Evidence]
     highlights: list[str] = Field(default_factory=list)  # matching attractions
     why: str = ""  # LLM-written, grounded only in evidence
+    fit: FitVerdict | None = None  # AI fit verdict vs Travel DNA (docs/FIT_VERDICT.md)
