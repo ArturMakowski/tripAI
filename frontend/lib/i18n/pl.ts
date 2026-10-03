@@ -10,6 +10,7 @@ import * as receipt from "./messages/receipt";
 import * as confirm from "./messages/confirm";
 import * as credits from "./messages/credits";
 import * as survey from "./messages/survey";
+import * as swipeOffers from "./messages/swipeOffers";
 import * as inbox from "./messages/inbox";
 import type { Messages } from "./en";
 
@@ -25,5 +26,6 @@ export const pl: Messages = {
   confirm: confirm.pl,
   credits: credits.pl,
   survey: survey.pl,
+  swipeOffers: swipeOffers.pl,
   inbox: inbox.pl,
 };

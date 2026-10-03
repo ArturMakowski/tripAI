@@ -9,19 +9,19 @@ import { CityPhoto } from "@/components/rec-card";
 import { ScoreRing } from "@/components/score-ring";
 import type { Lang } from "@/lib/dna";
 import { formatPLN, formatRange } from "@/lib/format";
-import { SWIPE_COPY, tagLabel, type OfferGesture } from "@/lib/reactions";
+import { swipeCopy, tagLabel, type OfferGesture } from "@/lib/reactions";
 import type { RankedRecommendation } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const KEYS: Record<string, OfferGesture> = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up" };
 
 function gestureLabel(g: OfferGesture, lang: Lang): string {
-  const t = SWIPE_COPY[lang];
+  const t = swipeCopy(lang);
   return { right: t.like, left: t.dislike, up: t.love }[g];
 }
 
 function OfferFace({ rec, lang, index, total }: { rec: RankedRecommendation; lang: Lang; index: number; total: number }) {
-  const t = SWIPE_COPY[lang];
+  const t = swipeCopy(lang);
   return (
     <CityPhoto rec={rec} className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
@@ -138,7 +138,7 @@ export function OfferDeck({
   busy?: boolean;
 }) {
   const card = cards[position];
-  const t = SWIPE_COPY[lang];
+  const t = swipeCopy(lang);
   const [dir, setDir] = useState<{ g: OfferGesture | null; undo: boolean }>({ g: null, undo: false });
 
   const swipe = useCallback(

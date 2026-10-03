@@ -11,6 +11,7 @@ import * as receipt from "./messages/receipt";
 import * as confirm from "./messages/confirm";
 import * as credits from "./messages/credits";
 import * as survey from "./messages/survey";
+import * as swipeOffers from "./messages/swipeOffers";
 import * as inbox from "./messages/inbox";
 
 export const en = {
@@ -25,6 +26,7 @@ export const en = {
   confirm: confirm.en,
   credits: credits.en,
   survey: survey.en,
+  swipeOffers: swipeOffers.en,
   inbox: inbox.en,
 };
 

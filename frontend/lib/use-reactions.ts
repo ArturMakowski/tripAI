@@ -8,7 +8,7 @@
  */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { API_URL, FORCE_MOCK, HttpError, SESSION_HEADER, readSession, rememberSession } from "./api";
+import { API_URL, FORCE_MOCK, HttpError, SESSION_HEADER, readSession, rememberSession, getApiLang } from "./api";
 import { DEMO_PROFILE } from "./mock/fixtures";
 import { applyReaction, undoReaction, type Reaction, type ReactionResponse, type ReactionUndo } from "./reactions";
 import { normalise } from "./scoring";
@@ -123,7 +123,7 @@ export function snapshotFromDiff(res: ReactionResponse, weightsBefore: Weights):
  */
 export async function react(rec: RankedRecommendation, reaction: Reaction): Promise<SwipeEntry> {
   const { profile, weights } = currentBase();
-  const lang = useTrip.getState().deck.lang;
+  const lang = getApiLang(); // the app-wide UI language (lib/i18n via LangSync)
   const local = () => {
     const { undo, ...res } = applyReaction(profile, weights, rec, reaction, lang);
     return { res, undo };
@@ -167,7 +167,7 @@ export async function react(rec: RankedRecommendation, reaction: Reaction): Prom
  */
 export async function unreact(entry: SwipeEntry): Promise<ReactionResponse> {
   const { profile, weights } = currentBase();
-  const lang = useTrip.getState().deck.lang;
+  const lang = getApiLang(); // the app-wide UI language (lib/i18n via LangSync)
   const local = (): ReactionResponse =>
     entry.undo
       ? undoReaction(profile, weights, entry.rec, entry.undo, lang)

@@ -6,23 +6,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { OfferDeck } from "@/components/offer-deck";
 import { CityPhoto } from "@/components/rec-card";
 import { formatPLN, formatRange } from "@/lib/format";
-import { GESTURE_REACTION, SWIPE_COPY, toastText, type OfferGesture } from "@/lib/reactions";
-import { useTrip } from "@/lib/store";
+import { useLang } from "@/lib/i18n";
+import { GESTURE_REACTION, swipeCopy, toastText, type OfferGesture } from "@/lib/reactions";
 import type { RankedRecommendation } from "@/lib/types";
 import { commitLearning, currentBase, hiddenIds, react, unreact, useSwipe, type SwipeEntry } from "@/lib/use-reactions";
 import { cn } from "@/lib/utils";
 
 const REACTION_GESTURE: Record<SwipeEntry["reaction"], OfferGesture> = { like: "right", dislike: "left", love: "up" };
 
-/** Lang follows the Travel DNA deck's PL/EN toggle (PL first). */
-function useLang() {
-  return useTrip((s) => s.deck.lang);
-}
 
 /** "Swipe" / "List" switch on /trips. Leaving the deck commits what it learned (one re-rank). */
 export function TripsViewToggle({ className }: { className?: string }) {
   const lang = useLang();
-  const t = SWIPE_COPY[lang];
+  const t = swipeCopy(lang);
   const view = useSwipe((s) => s.view);
   const setView = useSwipe((s) => s.setView);
   const options = [
@@ -86,7 +82,7 @@ function LearnToast({ text, onDone }: { text: string | null; onDone: () => void 
  */
 export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]; refining: boolean }) {
   const lang = useLang();
-  const t = SWIPE_COPY[lang];
+  const t = swipeCopy(lang);
   const log = useSwipe((s) => s.log);
   const setView = useSwipe((s) => s.setView);
   // Snapshot the deck when it opens: later refetches must not reshuffle cards under your thumb.
@@ -124,7 +120,7 @@ export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]
           // not saved (or unknown): never pretend it was. The card goes back to the end of the deck.
           console.warn("[tripai] swipe not saved:", err);
           setCards((c) => (c ? [...c, rec] : c));
-          setToast(SWIPE_COPY[lang].swipeFailed(rec.city));
+          setToast(swipeCopy(lang).swipeFailed(rec.city));
         })
         .finally(() => setSaving((n) => n - 1));
     },
@@ -202,7 +198,7 @@ export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]
 /** List mode: the trips you swiped "Nie dla mnie", one tap away (never hidden silently). */
 export function HiddenTrips() {
   const lang = useLang();
-  const t = SWIPE_COPY[lang];
+  const t = swipeCopy(lang);
   const log = useSwipe((s) => s.log);
   const hidden = log.filter((e) => e.reaction === "dislike");
   const [open, setOpen] = useState(false);
