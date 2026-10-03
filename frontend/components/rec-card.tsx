@@ -9,22 +9,75 @@ import { ScoreRing } from "@/components/score-ring";
 import { dayCount, formatPLN, formatRange } from "@/lib/format";
 import { FitBadge } from "@/components/fit-badge";
 import { disagreement } from "@/lib/fit";
-import { cityPhoto } from "@/lib/photos";
+import { cityPhoto, cityPhotoCredit, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation, Weights } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const FALLBACK_BG = "linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 60%, var(--clay) 140%)";
-
-export function CityPhoto({ rec, className, children }: { rec: Recommendation; className?: string; children?: React.ReactNode }) {
-  const photo = cityPhoto(rec.iata);
+/** Illustrated stand-in for a city without a bundled photo: dusk sky, sun, hills and the city name. Never blank. */
+export function CityIllustration({ city, className, label = true }: { city: string; className?: string; label?: boolean }) {
+  const hue = fallbackHue(city);
   return (
-    <div className={cn("relative overflow-hidden", className)} style={{ background: FALLBACK_BG }}>
-      {photo && (
+    <div
+      aria-hidden
+      className={cn("absolute inset-0 overflow-hidden", className)}
+      style={{
+        background: `radial-gradient(circle at 72% 38%, oklch(0.97 0.05 85 / 0.95) 0 7%, oklch(0.9 0.08 70 / 0.35) 12%, transparent 28%),
+          linear-gradient(180deg, oklch(0.45 0.08 ${hue}) 0%, oklch(0.68 0.1 ${hue + 30}) 60%, oklch(0.84 0.08 ${hue + 50}) 100%)`,
+      }}
+    >
+      <svg viewBox="0 0 400 200" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-3/5 w-full">
+        <path d="M0 120 C60 80 110 95 160 105 S260 70 320 90 S380 100 400 95 V200 H0Z" fill={`oklch(0.42 0.06 ${hue + 150} / 0.55)`} />
+        <path d="M0 150 C70 120 130 140 200 135 S320 115 400 130 V200 H0Z" fill={`oklch(0.3 0.05 ${hue + 160} / 0.8)`} />
+      </svg>
+      {label && (
+        <span className="absolute inset-x-4 top-1/4 truncate text-center font-display text-[clamp(1.5rem,9cqw,4rem)] leading-none font-medium text-white/25 italic">
+          {city}
+        </span>
+      )}
+    </div>
+  );
+}
+
+export function CityPhoto({
+  rec,
+  className,
+  children,
+  credit,
+}: {
+  rec: Recommendation;
+  className?: string;
+  children?: React.ReactNode;
+  /** Show the photo's author and license (with a link to the source), e.g. on the receipt hero. */
+  credit?: boolean;
+}) {
+  const photo = cityPhoto(rec.iata);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const showPhoto = photo !== null && failedSrc !== photo;
+  const info = showPhoto && credit ? cityPhotoCredit(rec.iata) : null;
+  return (
+    <div className={cn("@container relative overflow-hidden", className)}>
+      <CityIllustration city={rec.city} />
+      {showPhoto && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={photo} alt={`${rec.city}, ${rec.country}`} className="absolute inset-0 size-full object-cover" />
+        <img
+          src={photo}
+          alt={`${rec.city}, ${rec.country}`}
+          onError={() => setFailedSrc(photo)}
+          className="absolute inset-0 size-full object-cover"
+        />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/0" />
       {children}
+      {info && (
+        <a
+          href={info.source}
+          target="_blank"
+          rel="noreferrer"
+          className="absolute top-16 right-4 max-w-[60%] truncate rounded-full bg-black/25 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-sm hover:text-white"
+        >
+          Photo: {info.author} · {info.license}
+        </a>
+      )}
     </div>
   );
 }

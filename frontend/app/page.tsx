@@ -10,7 +10,7 @@ import { DEMO_PROFILE } from "@/lib/mock/fixtures";
 import { useHydrated, useTrip } from "@/lib/store";
 
 const PHOTOS = [
-  { src: "/cities/lisbon.jpg", alt: "Tram in Lisbon", className: "left-0 top-8 -rotate-6 w-[42%]" },
+  { src: "/cities/lisbon.jpg", alt: "Alfama rooftops in Lisbon", className: "left-0 top-8 -rotate-6 w-[42%]" },
   { src: "/cities/rome.jpg", alt: "Colosseum in Rome", className: "left-[29%] top-0 z-10 w-[44%]" },
   { src: "/cities/athens.jpg", alt: "Acropolis in Athens", className: "right-0 top-10 rotate-6 w-[40%]" },
 ];

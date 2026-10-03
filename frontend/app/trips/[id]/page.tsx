@@ -158,7 +158,7 @@ export default function ReceiptPage() {
 
   return (
     <>
-      <CityPhoto rec={rec} className="h-80 shrink-0">
+      <CityPhoto rec={rec} className="h-80 shrink-0" credit>
         <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
           <button
             onClick={() => router.push("/trips")}

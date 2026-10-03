@@ -4,6 +4,8 @@
  * gesture -> answer mapping; the profile itself comes from POST /profile/dna.
  */
 
+import { cityPhotoCredit } from "@/lib/photos";
+
 export type Lang = "pl" | "en";
 export type CardId = `q${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12}` | "y1" | "y2";
 export type Gesture = "left" | "down" | "right" | "up";
@@ -25,11 +27,8 @@ export interface DnaCard {
 }
 
 const WM = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
-const UNSPLASH = (id: string): Credit => ({
-  author: "Unsplash contributor",
-  license: "Unsplash License",
-  source: `https://images.unsplash.com/${id}`,
-});
+/** Cards that reuse a bundled city photo carry that photo's credit (public/cities/CREDITS.md). */
+const CITY = (iata: string): Credit => cityPhotoCredit(iata)!;
 
 export const DNA_DECK: DnaCard[] = [
   {
@@ -134,7 +133,7 @@ export const DNA_DECK: DnaCard[] = [
     text: { pl: "Chętnie wracam do miejsc, które już znam.", en: "I happily return to places I know." },
     short: { pl: "powrotach do znanych miejsc", en: "returning to places you know" },
     image: "/cities/rome.jpg",
-    credit: UNSPLASH("photo-1552832230-c0197dd311b5"),
+    credit: CITY("FCO"),
   },
   {
     id: "y1",
@@ -142,7 +141,7 @@ export const DNA_DECK: DnaCard[] = [
     text: { pl: "Czy chcesz odkrywać nowe miejsca każdego dnia?", en: "Do you want to discover new places every day?" },
     short: { pl: "codziennym odkrywaniu", en: "discovering something new daily" },
     image: "/cities/lisbon.jpg",
-    credit: UNSPLASH("photo-1585208798174-6cedd86e019a"),
+    credit: CITY("LIS"),
   },
   {
     id: "y2",
@@ -153,7 +152,7 @@ export const DNA_DECK: DnaCard[] = [
     },
     short: { pl: "dopasowywaniu rekomendacji", en: "tailored recommendations" },
     image: "/cities/porto.jpg",
-    credit: UNSPLASH("photo-1555881400-74d7acaacd8b"),
+    credit: CITY("OPO"),
   },
 ];
 

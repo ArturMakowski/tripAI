@@ -5,6 +5,7 @@ import { LayoutGroup, motion } from "motion/react";
 import { ArrowDown, ArrowRight, ArrowUp, Bell, Minus, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FACTOR_COLOR, FACTOR_ICON } from "@/components/factor-bars";
+import { CityIllustration } from "@/components/rec-card";
 import { AppShell, PageTitle } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -184,7 +185,9 @@ function Rerank({ diff }: { diff: FeedbackDiff }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={photo} alt="" className="size-11 rounded-xl object-cover" />
               ) : (
-                <span className="size-11 rounded-xl bg-pine-soft" />
+                <span className="relative size-11 shrink-0 overflow-hidden rounded-xl">
+                  <CityIllustration city={r.city} label={false} />
+                </span>
               )}
               <div className="min-w-0 flex-1">
                 <p className="font-display text-lg leading-tight text-ink">{r.city}</p>
