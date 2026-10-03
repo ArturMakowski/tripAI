@@ -13,6 +13,7 @@ def _isolated_env(monkeypatch, tmp_path):
         "SUPABASE_URL",
         "SUPABASE_KEY",
         "SERPAPI_API_KEY",
+        "SERPER_API_KEY",
         "TRAVELPAYOUTS_TOKEN",
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",

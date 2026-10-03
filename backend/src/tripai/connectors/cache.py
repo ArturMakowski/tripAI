@@ -32,6 +32,8 @@ TTL_BY_SOURCE: dict[str, timedelta] = {
     "open-meteo:forecast": timedelta(hours=3),
     "open-meteo:archive": timedelta(days=30),
     "gcal:freebusy": timedelta(minutes=5),
+    "serper:images": timedelta(days=30),
+    "serper:places": timedelta(days=7),
 }
 
 

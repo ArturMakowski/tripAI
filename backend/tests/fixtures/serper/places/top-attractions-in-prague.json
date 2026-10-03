@@ -1,0 +1,145 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Prague, Czechia"
+  }
+ },
+ "fetched_at": "2026-10-03T11:52:49.417464+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Prague, Czechia",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Prague Astronomical Clock",
+    "address": "Prague 1, Czechia",
+    "latitude": 50.08702,
+    "longitude": 14.420707,
+    "rating": 4.7,
+    "ratingCount": 104000,
+    "category": "Tourist attraction",
+    "website": "https://prague.eu/cs/objevujte/staromestska-radnice-s-orlojem",
+    "cid": "17400577118091478678"
+   },
+   {
+    "position": 2,
+    "title": "Prague Castle",
+    "address": "Prague 1, Czechia",
+    "latitude": 50.091095,
+    "longitude": 14.401616,
+    "rating": 4.7,
+    "ratingCount": 203000,
+    "category": "Castle",
+    "website": "https://www.hrad.cz/",
+    "cid": "3084750827522499999"
+   },
+   {
+    "position": 3,
+    "title": "St. Vitus Cathedral",
+    "address": "Prague 1, Czechia",
+    "latitude": 50.090893,
+    "longitude": 14.400512,
+    "rating": 4.8,
+    "ratingCount": 96000,
+    "category": "Cathedral",
+    "website": "https://www.katedralasvatehovita.cz/cs",
+    "cid": "7614804465276258722"
+   },
+   {
+    "position": 4,
+    "title": "Old Town Bridge Tower",
+    "address": "Prague 1, Czechia",
+    "latitude": 50.08623,
+    "longitude": 14.413614,
+    "rating": 4.8,
+    "ratingCount": 17000,
+    "category": "Historical landmark",
+    "website": "https://www.prague.eu/cs/objekt/mista/197/staromestska-mostecka-vez",
+    "cid": "1154735959967059300"
+   },
+   {
+    "position": 5,
+    "title": "Old Town Square",
+    "address": "Prague 1, Czechia",
+    "latitude": 50.08757,
+    "longitude": 14.421187,
+    "rating": 4.8,
+    "ratingCount": 122000,
+    "category": "Plaza",
+    "website": "https://prague.eu/cs/objevujte/staromestske-namesti",
+    "cid": "10948008834901111492"
+   },
+   {
+    "position": 6,
+    "title": "Charles Bridge",
+    "address": "Prague 1, Czechia",
+    "latitude": 50.086475,
+    "longitude": 14.411437,
+    "rating": 4.8,
+    "ratingCount": 201000,
+    "category": "Bridge",
+    "website": "https://prague.eu/cs/objevujte/karluv-most-2",
+    "cid": "8439911971986583846"
+   },
+   {
+    "position": 7,
+    "title": "Vyšehrad",
+    "address": "Prague 2, Czechia",
+    "latitude": 50.064194,
+    "longitude": 14.418898,
+    "rating": 4.8,
+    "ratingCount": 54000,
+    "category": "Fortress",
+    "website": "https://www.praha-vysehrad.cz/cs",
+    "cid": "5521218960694126694"
+   },
+   {
+    "position": 8,
+    "title": "Obelisk at Prague Castle",
+    "latitude": 50.090252,
+    "longitude": 14.400062,
+    "rating": 4.5,
+    "ratingCount": 354,
+    "category": "Tourist attraction",
+    "website": "https://www.hrad.cz/",
+    "cid": "16167489987803431520"
+   },
+   {
+    "position": 9,
+    "title": "Prague Metronome",
+    "address": "Prague 7, Czechia",
+    "latitude": 50.094746,
+    "longitude": 14.41594,
+    "rating": 4.3,
+    "ratingCount": 7000,
+    "category": "Tourist attraction",
+    "website": "https://www.prague.eu/en/object/places/3003/metronomePra%C5%BEsk%C3%BD%20metronom",
+    "cid": "833067753310980760"
+   },
+   {
+    "position": 10,
+    "title": "The Powder Tower",
+    "address": "Old Town, Prague 1, Czechia",
+    "latitude": 50.087273,
+    "longitude": 14.427789,
+    "rating": 4.6,
+    "ratingCount": 50000,
+    "category": "Historical landmark",
+    "website": "https://www.prague.eu/cs/objekt/mista/102/prasna-brana?back=1",
+    "cid": "10613216719000703910"
+   }
+  ],
+  "credits": 1
+ }
+}

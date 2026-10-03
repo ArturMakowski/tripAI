@@ -23,6 +23,7 @@ from tripai.connectors.demo_routes import BY_IATA, DESTINATIONS, ORIGIN, Place
 from tripai.connectors.gcal_freebusy import GCalFreeBusy, token_path
 from tripai.connectors.open_meteo import OpenMeteo
 from tripai.connectors.serpapi import SerpApiExplore, SerpApiFlights, SerpApiHotels
+from tripai.connectors.serper import Serper
 from tripai.connectors.travelpayouts import Travelpayouts
 
 SOURCES = [
@@ -47,6 +48,7 @@ async def probe(args: argparse.Namespace) -> int:
     out, back = date.fromisoformat(args.outbound), date.fromisoformat(args.inbound)
     month = out.strftime("%Y-%m")
     serp_key, tp_token = config.env("SERPAPI_API_KEY"), config.env("TRAVELPAYOUTS_TOKEN")
+    serper_key = config.env("SERPER_API_KEY")
     failures = 0
 
     async with httpx.AsyncClient(timeout=60) as client:
@@ -128,6 +130,22 @@ async def probe(args: argparse.Namespace) -> int:
                 await step(
                     f"serpapi hotels {p.city}", bool(serp_key), "SERPAPI_API_KEY not set", hotels
                 )
+
+            if "serper" in only:
+
+                async def serper(p: Place = p) -> None:
+                    imgs = await Serper(**kw).city_images(p.city, country=p.country)
+                    best = imgs.best()
+                    _ok(
+                        f"serper images {p.city}",
+                        imgs,
+                        f"{len(imgs.images)} images, best {best.width if best else '-'}px",
+                    )
+                    pl = await Serper(**kw).places(p.city, country=p.country)
+                    top = ", ".join(x.title for x in pl.top(3))
+                    _ok(f"serper places {p.city}", pl, f"{len(pl.places)} places: {top}")
+
+                await step(f"serper {p.city}", bool(serper_key), "SERPER_API_KEY not set", serper)
 
             if "open_meteo" in only:
 

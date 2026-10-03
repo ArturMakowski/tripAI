@@ -22,6 +22,7 @@ from tripai.connectors.serpapi import (
     SerpApiFlights,
     SerpApiHotels,
 )
+from tripai.connectors.serper import ImageResults, PlaceResults, Serper
 from tripai.connectors.travelpayouts import FareQuote, FlightCalendar, Travelpayouts
 
 __all__ = [
@@ -37,13 +38,16 @@ __all__ = [
     "GCalFreeBusy",
     "HotelOffer",
     "HotelSearchResult",
+    "ImageResults",
     "LayeredCache",
     "MissingCredentials",
     "NullCache",
     "OpenMeteo",
+    "PlaceResults",
     "SerpApiExplore",
     "SerpApiFlights",
     "SerpApiHotels",
+    "Serper",
     "SourcedResult",
     "SupabaseCache",
     "Travelpayouts",

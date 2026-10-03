@@ -10,14 +10,14 @@ from tripai.connectors.base import ConnectorError
 
 async def test_probe_skips_sources_without_credentials(capsys):
     args = argparse.Namespace(
-        only="serpapi_explore,serpapi_flights,serpapi_hotels,travelpayouts,gcal",
+        only="serpapi_explore,serpapi_flights,serpapi_hotels,travelpayouts,serper,gcal",
         routes="FCO",
         outbound="2027-01-14",
         inbound="2027-01-19",
     )
     assert await probe.probe(args) == 0
     out = capsys.readouterr().out
-    assert out.count("skipped") == 5
+    assert out.count("skipped") == 6
 
 
 async def test_fli_missing_is_connector_error(monkeypatch):

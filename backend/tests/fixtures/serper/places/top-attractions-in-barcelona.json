@@ -1,0 +1,109 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Barcelona, Spain"
+  }
+ },
+ "fetched_at": "2026-10-03T11:52:41.645158+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Barcelona, Spain",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Park Güell",
+    "address": "Barcelona, Spain",
+    "latitude": 41.414494,
+    "longitude": 2.1526945,
+    "rating": 4.4,
+    "ratingCount": 243000,
+    "category": "Tourist attraction",
+    "website": "https://parkguell.barcelona/",
+    "cid": "9915250311879642712"
+   },
+   {
+    "position": 2,
+    "title": "La Pedrera - Casa Milà",
+    "address": "Pg. de Gràcia, 92",
+    "latitude": 41.395214,
+    "longitude": 2.1619024,
+    "rating": 4.6,
+    "ratingCount": 114000,
+    "category": "Tourist attraction",
+    "website": "https://www.lapedrera.com/es?utm_source=google&utm_medium=organic&utm_campaign=myb",
+    "cid": "14168222595362004586"
+   },
+   {
+    "position": 3,
+    "title": "Casa Batlló",
+    "address": "Pg. de Gràcia, 43",
+    "latitude": 41.3917,
+    "longitude": 2.164918,
+    "rating": 4.7,
+    "ratingCount": 221000,
+    "category": "Tourist attraction",
+    "website": "https://www.casabatllo.es/",
+    "cid": "4670927909449256463"
+   },
+   {
+    "position": 4,
+    "title": "Basilica of the Sagrada Familia",
+    "address": "Carrer de Mallorca, 401",
+    "latitude": 41.40363,
+    "longitude": 2.1743557,
+    "rating": 4.8,
+    "ratingCount": 335000,
+    "category": "Tourist attraction",
+    "website": "https://sagradafamilia.org/home",
+    "cid": "11229913421514525008"
+   },
+   {
+    "position": 5,
+    "title": "Montjuïc Castle",
+    "address": "Ctra. de Montjuïc, 66",
+    "latitude": 41.36296,
+    "longitude": 2.1650636,
+    "rating": 4.4,
+    "ratingCount": 62000,
+    "category": "Tourist attraction",
+    "website": "http://www.barcelona.cat/castelldemontjuic/",
+    "cid": "905045992266003156"
+   },
+   {
+    "position": 6,
+    "title": "Plaça de Catalunya",
+    "latitude": 41.387016,
+    "longitude": 2.170047,
+    "rating": 4.5,
+    "ratingCount": 223000,
+    "category": "Plaza",
+    "website": "https://www.meet.barcelona/ca/visita-la-i-estima-la/punts-dinteres-de-la-ciutat/la-placa-de-catalunya-99400356287",
+    "cid": "2228369972992726603"
+   },
+   {
+    "position": 7,
+    "title": "Sagrada Familia Guided Tour & Barcelona Old Town",
+    "address": "Pl. de Catalunya, 9",
+    "latitude": 41.386467,
+    "longitude": 2.168079,
+    "rating": 4.4,
+    "ratingCount": 2000,
+    "category": "Tourist attraction",
+    "website": "https://citytourinbarcelona.com/",
+    "cid": "16822893979844777408"
+   }
+  ],
+  "credits": 1
+ }
+}

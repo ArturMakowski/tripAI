@@ -1,0 +1,136 @@
+{
+ "source": "serper:places",
+ "params": {
+  "_body": {
+   "gl": "pl",
+   "hl": "en",
+   "q": "top attractions in Valletta, Malta"
+  }
+ },
+ "fetched_at": "2026-10-03T11:52:57.232531+00:00",
+ "recorded": true,
+ "payload": {
+  "searchParameters": {
+   "q": "top attractions in Valletta, Malta",
+   "gl": "pl",
+   "hl": "en",
+   "type": "places",
+   "num": 10,
+   "page": 1,
+   "engine": "google"
+  },
+  "places": [
+   {
+    "position": 1,
+    "title": "Upper Barrakka",
+    "latitude": 35.89518,
+    "longitude": 14.511944,
+    "rating": 4.7,
+    "ratingCount": 41000,
+    "category": "Park",
+    "cid": "16202525723886090935"
+   },
+   {
+    "position": 2,
+    "title": "Lower Barrakka",
+    "latitude": 35.89748,
+    "longitude": 14.517607,
+    "rating": 4.7,
+    "ratingCount": 15000,
+    "category": "Park",
+    "cid": "13999360025399658720"
+   },
+   {
+    "position": 3,
+    "title": "St. John's Co-Cathedral",
+    "latitude": 35.89759,
+    "longitude": 14.512495,
+    "rating": 4.8,
+    "ratingCount": 27000,
+    "category": "Cathedral",
+    "website": "https://www.stjohnscocathedral.com/",
+    "cid": "7466730624907139279"
+   },
+   {
+    "position": 4,
+    "title": "Tritons’ Fountain",
+    "latitude": 35.895634,
+    "longitude": 14.508289,
+    "rating": 4.7,
+    "ratingCount": 29000,
+    "category": "Fountain",
+    "cid": "9486064826506292598"
+   },
+   {
+    "position": 5,
+    "title": "Fort St Elmo and the National War Museum",
+    "latitude": 35.901073,
+    "longitude": 14.518847,
+    "rating": 4.5,
+    "ratingCount": 9000,
+    "category": "War museum",
+    "website": "https://heritagemalta.mt/explore/fort-st-elmo-national-war-museum/",
+    "cid": "378399583568968204"
+   },
+   {
+    "position": 6,
+    "title": "Grand Master's Palace",
+    "latitude": 35.898476,
+    "longitude": 14.5138645,
+    "rating": 4.5,
+    "ratingCount": 3000,
+    "category": "Historical landmark",
+    "website": "https://heritagemalta.mt/explore/grand-masters-palace/",
+    "cid": "6083999354625613503"
+   },
+   {
+    "position": 7,
+    "title": "Casa Rocca Piccola",
+    "address": "74 Republic St",
+    "latitude": 35.89989,
+    "longitude": 14.515288,
+    "rating": 4.6,
+    "ratingCount": 3000,
+    "category": "Historical place museum",
+    "website": "http://www.casaroccapiccola.com/",
+    "cid": "16792931130958741355"
+   },
+   {
+    "position": 8,
+    "title": "National Museum of Archaeology | Valletta",
+    "address": "Auberge de Provence, Republic St",
+    "latitude": 35.897446,
+    "longitude": 14.51113,
+    "rating": 4.4,
+    "ratingCount": 4000,
+    "category": "Archaeological museum",
+    "website": "https://heritagemalta.mt/explore/national-museum-of-archaeology/",
+    "cid": "11969215430114868332"
+   },
+   {
+    "position": 9,
+    "title": "Saluting Battery",
+    "latitude": 35.89463,
+    "longitude": 14.512522,
+    "rating": 4.7,
+    "ratingCount": 2000,
+    "category": "Historical landmark",
+    "website": "https://www.salutingbattery.com/",
+    "cid": "956811139775955581"
+   },
+   {
+    "position": 10,
+    "title": "The Lascaris War Rooms",
+    "address": "Lascaris Ditch, Valletta Ditch",
+    "latitude": 35.894936,
+    "longitude": 14.51264,
+    "rating": 4.6,
+    "ratingCount": 1000,
+    "category": "Museum",
+    "website": "http://www.lascariswarrooms.com/",
+    "cid": "16205580196250075561"
+   }
+  ],
+  "credits": 1
+ }
+}
