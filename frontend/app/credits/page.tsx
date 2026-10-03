@@ -2,20 +2,23 @@
 
 import { AppShell, PageTitle } from "@/components/shell";
 import { DNA_DECK } from "@/lib/dna";
+import { useT, type Lang } from "@/lib/i18n";
 import { allCityPhotos, type PhotoCredit } from "@/lib/photos";
 
 type Row = { key: string; title: string; src: string; credit: Pick<PhotoCredit, "author" | "license" | "source"> & { licenseUrl?: string } };
 
 const CITY_ROWS: Row[] = allCityPhotos().map((p) => ({ key: p.src, title: p.city, src: p.src, credit: p }));
 // Travel DNA cards with their own photos; the ones that reuse a city photo are already listed above.
-const DECK_ROWS: Row[] = DNA_DECK.filter((c) => c.image.startsWith("/swipe/")).map((c) => ({
-  key: c.id,
-  title: c.short.en.charAt(0).toUpperCase() + c.short.en.slice(1),
-  src: c.image,
-  credit: c.credit,
-}));
+const deckRows = (lang: Lang): Row[] =>
+  DNA_DECK.filter((c) => c.image.startsWith("/swipe/")).map((c) => ({
+    key: c.id,
+    title: c.short[lang].charAt(0).toUpperCase() + c.short[lang].slice(1),
+    src: c.image,
+    credit: c.credit,
+  }));
 
 function CreditList({ rows }: { rows: Row[] }) {
+  const { t } = useT();
   return (
     <ul className="divide-y divide-line">
       {rows.map(({ key, title, src, credit }) => (
@@ -35,7 +38,7 @@ function CreditList({ rows }: { rows: Row[] }) {
               )}{" "}
               ·{" "}
               <a href={credit.source} target="_blank" rel="noreferrer" className="text-pine underline decoration-pine/30 underline-offset-2 hover:decoration-pine">
-                source
+                {t.credits.source}
               </a>
             </p>
           </div>
@@ -46,16 +49,16 @@ function CreditList({ rows }: { rows: Row[] }) {
 }
 
 export default function Credits() {
+  const { t, lang } = useT();
   return (
-    <AppShell back title="Back" nav={false}>
-      <PageTitle eyebrow="Attribution" title="Photo credits">
-        Every photo in TripAI is used under a free license (CC0, public domain, CC BY or CC BY-SA). Photos are resized and
-        compressed; nothing else is changed. Tap “source” for the original and its full license terms.
+    <AppShell back title={t.common.back} nav={false}>
+      <PageTitle eyebrow={t.credits.eyebrow} title={t.credits.title}>
+        {t.credits.intro}
       </PageTitle>
-      <h2 className="mt-2 mb-1 text-xs font-semibold tracking-[0.14em] text-clay uppercase">Destinations</h2>
+      <h2 className="mt-2 mb-1 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.credits.destinations}</h2>
       <CreditList rows={CITY_ROWS} />
-      <h2 className="mt-8 mb-1 text-xs font-semibold tracking-[0.14em] text-clay uppercase">Travel DNA cards</h2>
-      <CreditList rows={DECK_ROWS} />
+      <h2 className="mt-8 mb-1 text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.credits.dnaCards}</h2>
+      <CreditList rows={deckRows(lang)} />
     </AppShell>
   );
 }

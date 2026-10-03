@@ -25,7 +25,8 @@ import { cn } from "@/lib/utils";
 import { FLEX_OPTIONS, todayISO, useDates, useUsableRanges } from "@/lib/windows-store";
 import { useWindows } from "@/lib/windows";
 import { CalendarLegend, DateRangeCalendar, formatDates } from "./date-range-calendar";
-import { DATE_PICKER_STRINGS, type DatePickerStrings } from "./strings";
+import { useT } from "@/lib/i18n";
+import type { DatePickerStrings } from "./strings";
 
 /** True once the dates store has rehydrated from localStorage (avoids SSR mismatches). */
 export function useDatesHydrated() {
@@ -45,9 +46,9 @@ export function useClientToday(): string | null {
   return useSyncExternalStore(noSubscribe, todayISO, () => null);
 }
 
-/** EN for now, like the rest of the app; the i18n pass switches DATE_PICKER_STRINGS by the user's language. */
+/** The calendar's copy in the app-wide language (lib/i18n, namespace "calendar"). */
 export function useDatePickerStrings(): DatePickerStrings {
-  return DATE_PICKER_STRINGS.en;
+  return useT().t.calendar;
 }
 
 function Chip({

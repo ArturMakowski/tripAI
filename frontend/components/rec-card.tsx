@@ -85,7 +85,8 @@ export function CityPhoto({
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showPhoto = photo !== null && failedSrc !== photo;
   const info = showPhoto && credit ? cityPhotoCredit(rec.iata) : null;
-  const creditText = info && `Photo: ${info.author} · ${info.license}`;
+  const { t } = useT();
+  const creditText = info && t.credits.photoBy(info.author, info.license);
   return (
     <div className={cn("@container relative overflow-hidden", className)}>
       <CityIllustration city={rec.city} label={!thumb} />
