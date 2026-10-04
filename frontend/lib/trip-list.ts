@@ -4,7 +4,7 @@
  */
 import type { Lang } from "./i18n/types";
 import { withReceipts } from "./mock/api";
-import { CLIENT_PREVIEW_MODEL, withFit } from "./mock/fit";
+import { withFit } from "./mock/fit";
 import { rerank } from "./scoring";
 import type { RankedRecommendation, TasteProfile, Weights } from "./types";
 import { withValueBadges } from "./value";
@@ -17,8 +17,11 @@ export function rankedView(
 ): RankedRecommendation[] {
   // Fixture verdicts are always derived from this ranking (drop any stored one so it can't go stale).
   const r = fixture ? withReceipts(rerank(recs, weights), weights, lang).map((x) => ({ ...x, fit: undefined })) : rerank(recs, weights);
-  // Backend verdicts win; until the fit agent ships, a rule-based preview is computed here and labelled as such.
-  const fitted = withFit(r, profile, fixture ? "rules" : CLIENT_PREVIEW_MODEL, lang);
+  // Live: only the backend judges fit. A missing verdict (the fast phase, or the AI budget spent) means
+  // "not judged yet": no badge, ranked by score in the main list; it is never guessed on the device
+  // (a client preview from fast-phase estimate prices labelled most trips poor_fit and emptied the list).
+  // Fixture mode has no backend, so its rule-based verdicts stand in for it.
+  const fitted = fixture ? withFit(r, profile, "rules", lang) : r;
   // Value badges compare against the current top 5, so in fixture mode they follow the ranking like fit does.
   return fixture ? withValueBadges(fitted.map((x) => ({ ...x, value_badge: undefined, value_reason: undefined })), lang) : fitted;
 }
