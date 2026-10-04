@@ -114,7 +114,7 @@ export const en = {
 
 export const pl: Shape<typeof en> = {
   eyebrow: "DNA Podróżnika",
-  title: "Przesuń, żeby nas poznać.",
+  title: "Przesuwaj, żebyśmy Cię poznali.",
   hint: "W prawo to ja · w górę bardzo ja · w dół zależy · w lewo nie ja",
   hintYesNo: "W prawo tak · w lewo nie",
   undo: "Cofnij",
