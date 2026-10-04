@@ -69,7 +69,7 @@ export const en = {
     scorer: "TripAI",
 
   },
-  handoff: { flights: "Flights on Google Flights", hotels: "Hotels on Booking.com" },
+  handoff: { flights: "Flights on Google Flights", hotels: "Hotels on Booking.com", checkPrices: "Check prices for these dates" },
   places: {
     eat: "Where to eat",
     do: "What to do",
@@ -139,7 +139,7 @@ export const pl: Shape<typeof en> = {
     scorer: "TripAI",
 
   },
-  handoff: { flights: "Loty w Google Flights", hotels: "Hotele w Booking.com" },
+  handoff: { flights: "Loty w Google Flights", hotels: "Hotele w Booking.com", checkPrices: "Sprawdź ceny na te daty" },
   places: {
     eat: "Gdzie zjeść",
     do: "Co robić",
