@@ -28,6 +28,8 @@ export const en = {
   undone: (city: string) => `Undone: ${city}`,
   undoFailed: (city: string) => `Couldn't undo ${city}. Your reaction still stands, try again`,
   swipeFailed: (city: string) => `Couldn't save your reaction to ${city}. The trip is back in your list`,
+  /** a like / love that wasn't saved: the row never left, nothing was learned */
+  reactFailed: (city: string) => `Couldn't save your reaction to ${city}. Nothing was learned, try again`,
   showRanking: "Show the new ranking",
   hiddenTitle: "Hidden",
   show: "show",
@@ -87,6 +89,7 @@ export const pl: Shape<typeof en> = {
   undone: (city: string) => `Cofnięte: ${city}`,
   undoFailed: (city: string) => `Nie udało się cofnąć: ${city}. Reakcja nadal obowiązuje, spróbuj ponownie`,
   swipeFailed: (city: string) => `Nie udało się zapisać reakcji na ${city}. Wyjazd wrócił na listę`,
+  reactFailed: (city: string) => `Nie udało się zapisać reakcji na ${city}. Nic nie zapamiętaliśmy, spróbuj jeszcze raz`,
   showRanking: "Pokaż nowy ranking",
   hiddenTitle: "Ukryte",
   show: "pokaż",

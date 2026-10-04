@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { buildRecommendations } from "./mock/fixtures";
-import { SWIPE_COMMIT_PX, SWIPE_COMMIT_VELOCITY, swipeIntent, useSwipeSession } from "./swipe-session";
+import { lockedSwipeIntent, shownRows, SWIPE_COMMIT_PX, SWIPE_COMMIT_VELOCITY, swipeIntent, useSwipeSession } from "./swipe-session";
 import type { SwipeEntry } from "./use-reactions";
 
 const recs = buildRecommendations();
@@ -53,5 +53,27 @@ describe("the swipe session survives a ranking update", () => {
     s().clearToast(first);
     expect(s().toast?.text).toBe("Undone: Rome");
     expect(s().toast?.undoable).toBe(false);
+  });
+});
+
+describe("a drag that started vertical never commits (review #56, mouse/pen)", () => {
+  it("only an x-locked drag can like or hide", () => {
+    expect(lockedSwipeIntent("y", 110, 0)).toBeNull(); // 30px up, then 110px right: the row never moved
+    expect(lockedSwipeIntent("y", -200, -900)).toBeNull();
+    expect(lockedSwipeIntent(null, 200, 0)).toBeNull();
+    expect(lockedSwipeIntent("x", 110, 0)).toBe("like");
+    expect(lockedSwipeIntent("x", -110, 0)).toBe("dislike");
+  });
+});
+
+describe("rows drawn on /trips follow 'hiding' (review #56 blocker)", () => {
+  const rows = recs.slice(0, 4);
+  it("a 'Not for me' in flight is not drawn; a failed one (unhide) is drawn again in place, ranks untouched", () => {
+    s().hide(rows[1].id);
+    const during = shownRows(rows, s().hiding);
+    expect(during.map((r) => r.id)).toEqual([rows[0].id, rows[2].id, rows[3].id]);
+    expect(during.map((r) => r.rank)).toEqual([rows[0].rank, rows[2].rank, rows[3].rank]);
+    s().unhide(rows[1].id); // the POST failed
+    expect(shownRows(rows, s().hiding)).toEqual(rows);
   });
 });

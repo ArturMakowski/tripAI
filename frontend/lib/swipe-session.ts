@@ -58,3 +58,16 @@ export function swipeIntent(offsetX: number, velocityX: number): "like" | "disli
   if (offsetX <= -SWIPE_COMMIT_PX || (offsetX < -24 && velocityX <= -SWIPE_COMMIT_VELOCITY)) return "dislike";
   return null;
 }
+
+/**
+ * swipeIntent for a drag that motion locked to an axis: only a horizontal-locked drag commits. A drag
+ * that started vertical (mouse or pen) never moved the row, so it never likes or hides anything.
+ */
+export function lockedSwipeIntent(axis: "x" | "y" | null, offsetX: number, velocityX: number) {
+  return axis === "x" ? swipeIntent(offsetX, velocityX) : null;
+}
+
+/** The rows drawn on /trips: a row being hidden ("Not for me" in flight) is not drawn; order and ranks stay. */
+export function shownRows<T extends { id: string }>(rows: readonly T[], hiding: readonly string[]): T[] {
+  return rows.filter((r) => !hiding.includes(r.id));
+}

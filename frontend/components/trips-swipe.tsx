@@ -17,7 +17,7 @@ import { CityPhoto } from "@/components/rec-card";
 import { PriceInline } from "@/components/money";
 import { useLang, useT } from "@/lib/i18n";
 import { swipeCopy, toastText } from "@/lib/reactions";
-import { swipeIntent, TOAST_MS, useSwipeSession } from "@/lib/swipe-session";
+import { lockedSwipeIntent, TOAST_MS, useSwipeSession } from "@/lib/swipe-session";
 import type { RankedRecommendation } from "@/lib/types";
 import { commitLearning, currentBase, hiddenIds, react, unreact, useSwipe } from "@/lib/use-reactions";
 import { cn } from "@/lib/utils";
@@ -50,7 +50,7 @@ export function useRowSwipes() {
         .catch((err) => {
           // not saved (or unknown): never pretend it was; a swiped-away row comes back
           console.warn("[tripai] reaction not saved:", err);
-          showToast(t.swipeFailed(rec.city));
+          showToast(reaction === "dislike" ? t.swipeFailed(rec.city) : t.reactFailed(rec.city));
         })
         .finally(() => {
           unhide(rec.id);
@@ -82,6 +82,16 @@ export function useRowSwipes() {
 }
 
 /** Backspace undoes the last swipe on /trips (not while typing). */
+/**
+ * Keyboard "Not for me" removes the focused row: keep the user's place by focusing the next row's
+ * trip link (or the previous one when it was the last), before the row collapses.
+ */
+export function focusNeighbourRow(from: Element | null) {
+  const li = from?.closest("li");
+  const next = (li?.nextElementSibling ?? li?.previousElementSibling) as HTMLElement | null | undefined;
+  next?.querySelector<HTMLElement>('a[href^="/trips/"]')?.focus();
+}
+
 export function useUndoShortcut(undo: () => void) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -118,10 +128,18 @@ export function SwipeRow({
   const likeOpacity = useTransform(x, [12, 96], [0, 1]);
   const nopeOpacity = useTransform(x, [-96, -12], [1, 0]);
   const dragged = useRef(false);
-  const [leaving, setLeaving] = useState(false);
+  // the axis motion locked this drag to: a drag that started vertical (mouse/pen; touch scrolls
+  // via pan-y instead) moves nothing and must never commit, whatever the pointer does afterwards
+  const axis = useRef<"x" | "y" | null>(null);
+  const [slidOut, setLeaving] = useState(false);
+  // a "Not for me" that failed puts the row back (unhide): it must be visible again, not stuck slid out,
+  // so the slide-out only holds while the row is actually being hidden
+  const isHiding = useSwipeSession((s) => s.hiding.includes(rec.id));
+  const leaving = slidOut && isHiding;
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
-    const intent = swipeIntent(info.offset.x, info.velocity.x);
+    const intent = lockedSwipeIntent(axis.current, info.offset.x, info.velocity.x);
+    axis.current = null;
     if (intent === "dislike") {
       setLeaving(true); // slides out; the list then collapses the row
       onReact(rec, "dislike");
@@ -141,9 +159,11 @@ export function SwipeRow({
         if (e.altKey || e.metaKey || e.ctrlKey) return;
         if (e.key === "ArrowRight") {
           e.preventDefault();
-          onReact(rec, "like");
+          if (!e.repeat) onReact(rec, "like"); // holding the key is one reaction, not one per repeat
         } else if (e.key === "ArrowLeft") {
           e.preventDefault();
+          if (e.repeat) return;
+          focusNeighbourRow(e.currentTarget);
           setLeaving(true);
           onReact(rec, "dislike");
         }
@@ -169,7 +189,9 @@ export function SwipeRow({
         dragConstraints={{ left: 0, right: 0 }}
         animate={leaving ? { x: -480, opacity: 0 } : undefined}
         transition={leaving ? { duration: 0.22, ease: "easeIn" } : undefined}
+        // (motion calls onDragStart after the direction lock, so the axis is reset in onDragEnd, not here)
         onDragStart={() => (dragged.current = true)}
+        onDirectionLock={(a) => (axis.current = a)}
         onDragEnd={onDragEnd}
         onClickCapture={(e) => {
           if (dragged.current) {
@@ -190,10 +212,11 @@ export function RowActions({ rec, onReact }: { rec: RankedRecommendation; onReac
   const lang = useLang();
   const t = swipeCopy(lang);
   const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
   const loved = useSwipe((s) => s.log.some((e) => e.rec.id === rec.id && e.reaction === "love"));
   const btn = "relative z-[2] grid size-9 shrink-0 place-items-center rounded-full border border-line bg-card text-ink-soft hover:border-pine/40";
   return (
-    <span className="relative z-[2] flex items-center gap-1.5">
+    <span ref={root} className="relative z-[2] flex items-center gap-1.5">
       <button type="button" aria-label={t.love} aria-pressed={loved} onClick={() => onReact(rec, "love")} className={cn(btn, loved && "border-clay/40 text-clay")}>
         <Heart className={cn("size-4", loved && "fill-current")} aria-hidden />
       </button>
@@ -216,6 +239,7 @@ export function RowActions({ rec, onReact }: { rec: RankedRecommendation; onReac
             type="button"
             onClick={() => {
               setOpen(false);
+              focusNeighbourRow(root.current);
               onReact(rec, "dislike");
             }}
             className="flex items-center gap-1 rounded-xl bg-clay-soft px-3 py-2 text-sm font-semibold whitespace-nowrap text-ink"

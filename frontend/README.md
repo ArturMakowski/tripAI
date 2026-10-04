@@ -215,6 +215,7 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
   collapses out of the list, the rest close the gap). A swipe commits past 96 px or on a fast flick (`swipeIntent` in
   `lib/swipe-session.ts`); a shorter drag springs back. Only clearly horizontal drags count (`touch-action: pan-y` + direction
   lock), so vertical scrolling is never hijacked, and a tap still opens the trip.
+  With a mouse or pen, a drag that motion locked to the vertical axis never commits, wherever the pointer ends (`lockedSwipeIntent`).
 - **Buttons and keys.** The heart on each card is "Super!" (strong like; vertical swipe would fight the scroll). "⋯" opens
   "Chcę tam" / "Nie dla mnie" as real buttons. On a focused row → and ← do the same; Backspace undoes. A screen-reader hint
   explains the gestures.
@@ -228,7 +229,8 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
   `/recommendations` call, not one per swipe, so rows don't jump while you swipe.
 - **Hidden trips.** Under "Ukryte · pokaż" below the list, each with "Przywróć".
 - **Failures are never hidden.**
-  - A swipe the server didn't confirm (5xx, timeout) is not learned locally. The row comes back with a toast.
+  - A swipe the server didn't confirm (5xx, timeout) is not learned locally. A "Not for me" row is drawn again in place
+    (the rows drawn follow `hiding` via `shownRows`; ranks are untouched) and the toast says it's back; a failed like says nothing was learned.
   - Undo is disabled while a swipe is still saving.
   - A failed undo keeps the swipe and says so.
   - Only a 404 (the server never stored the card or reaction, e.g. after a session reset) is handled in the browser.

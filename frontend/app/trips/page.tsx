@@ -25,7 +25,7 @@ import {
   useRowSwipes,
   useUndoShortcut,
 } from "@/components/trips-swipe";
-import { useSwipeSession } from "@/lib/swipe-session";
+import { shownRows, useSwipeSession } from "@/lib/swipe-session";
 import { commitLearning } from "@/lib/use-reactions";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
 import { PickedDatesEmpty, PickedDatesHeader, useClientToday } from "@/components/date-picker/free-dates-planner";
@@ -137,6 +137,9 @@ function Trips() {
   const today = useClientToday();
   const ranks = listedTrips(matching, hidden, today);
   const fitting = withinFirst ? withinBudgetFirst(ranks, budget) : ranks;
+  // the rows drawn: a "Not for me" collapses at once, before the backend answers (and comes back if it
+  // fails). Ranks and the selector above stay untouched, so home #1 = /trips #1 still holds.
+  const rows = shownRows(fitting, hiding);
   // Never let an over-budget trip sit at #1 without saying so (cheapest/fit counts come from every trip).
   const banner = budgetBanner(fitting, budget, list);
   const notMyStyle = list.filter((r) => r.fit?.label === "poor_fit");
@@ -334,11 +337,11 @@ function Trips() {
 
       {/* page-level: a ranking update never drops "Learned: …" / "Undone" (#49) */}
       <SwipeToast onUndo={undo} canUndo={canUndo} />
-      <p className="sr-only">{sw.hint}</p>
+      <p id="swipe-hint" hidden>{sw.hint}</p>
       <LayoutGroup>
-        <ul className="mt-4 space-y-4" aria-busy={loading || refining}>
+        <ul className="mt-4 space-y-4" aria-busy={loading || refining} aria-describedby="swipe-hint">
           <AnimatePresence initial={false}>
-            {fitting.map((rec, i) => (
+            {rows.map((rec, i) => (
               <motion.li
                 key={rec.id}
                 layout

@@ -7,7 +7,7 @@ import { gesturesFor, type DnaCard, type Gesture, type Lang } from "@/lib/dna";
 import { messagesFor } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-/** Swipe physics shared with the offer deck (components/offer-deck.tsx). */
+/** Swipe physics and stamps for the Travel DNA deck. */
 export const FLY: Record<Gesture, { x: number; y: number; rotate: number }> = {
   right: { x: 560, y: 40, rotate: 22 },
   left: { x: -560, y: 40, rotate: -22 },
