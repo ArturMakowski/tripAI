@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>TripAI – HackYeah 2026 pitch</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=block">
+<link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="deck.css">
 </head>
 <body>
@@ -14,7 +13,6 @@
   <p class="script clay" data-t="hook.kicker"></p>
   <h1><span data-t="hook.t1"></span><br><em data-t="hook.t2"></em></h1>
   <p class="lede" data-t="hook.lede"></p>
-  <p class="script clay who" data-t="hook.who"></p>
   <p class="foot">[Team name] · [Members]</p>
 </section>
 
@@ -27,96 +25,72 @@
       <p class="persona-facts" data-t="ola.facts"></p>
       <p class="script clay quote" data-t="ola.quote"></p>
     </div>
-    <div class="card today">
-      <p class="card-h" data-t="ola.todayh"></p>
-      <p data-t="ola.p1"></p>
-      <p data-t="ola.p2"></p>
+    <div class="pains">
+      <div class="card"><p class="card-h" data-t="ola.p1h"></p><p data-t="ola.p1"></p></div>
+      <div class="card"><p class="card-h" data-t="ola.p2h"></p><p data-t="ola.p2"></p></div>
     </div>
   </div>
   <p class="stat" data-t="ola.stat"></p>
-  <p class="gap" data-t="ola.gap"></p>
   <p class="foot" data-t="ola.src"></p>
 </section>
 
-<!-- 3 FREE DAYS IN, A CHECKABLE TRIP OUT -->
+<!-- 3 FLOW -->
 <section class="slide s-flow">
   <h2 data-t="flow.title"></h2>
   <div class="story">
     <figure><div class="phone"><img data-shot="dna" alt=""></div><figcaption><b data-t="flow.c1"></b><span data-t="flow.t1"></span></figcaption></figure>
-    <figure><div class="phone"><img data-shot="confirm" alt=""></div><figcaption><b data-t="flow.c2"></b><span data-t="flow.t2"></span></figcaption></figure>
+    <figure><div class="phone"><img data-shot="persona" alt=""></div><figcaption><b data-t="flow.c2"></b><span data-t="flow.t2"></span></figcaption></figure>
     <figure><div class="phone"><img data-shot="cards" alt=""></div><figcaption><b data-t="flow.c3"></b><span data-t="flow.t3"></span></figcaption></figure>
-    <figure><div class="phone"><img data-shot="receipt-why" alt=""></div><figcaption><b data-t="flow.c4"></b><span data-t="flow.t4"></span></figcaption></figure>
+    <figure><div class="phone"><img data-shot="receipt-fit" alt=""></div><figcaption><b data-t="flow.c4"></b><span data-t="flow.t4"></span></figcaption></figure>
   </div>
 </section>
 
-<!-- 4 EVERY NUMBER HAS A RECEIPT -->
+<!-- 4 RECEIPT -->
 <section class="slide s-receipt">
   <h2 data-t="rec.title"></h2>
   <div class="rec-body">
     <ul class="bullets">
       <li data-t="rec.b1"></li>
-
+      <li data-t="rec.b2"></li>
+      <li data-t="rec.b3"></li>
     </ul>
-  <div class="trio">
     <figure class="zoomfig"><div class="zoom"><div class="crop" data-crop="receipt-sources:receiptCard"></div></div><figcaption data-t="rec.zoom"></figcaption></figure>
   </div>
-  </div>
 </section>
 
-<!-- 5 TECH DECISIONS -->
-<section class="slide s-tech">
-  <h2 data-t="tech.title"></h2>
-  <div class="tech-grid">
-    <div class="cascade">
-      <p class="col-h" data-t="tech.flowh"></p>
-      <ol class="steps">
-        <li><b data-t="tech.s2h"></b><span data-t="tech.s2"></span></li>
-        <li class="acc"><b data-t="tech.s3h"></b><span data-t="tech.s3"></span></li>
-        <li class="dash"><b data-t="tech.s4h"></b><span data-t="tech.s4"></span></li>
-      </ol>
-    </div>
-    <div class="eval">
-      <p class="col-h" data-t="tech.evalh"></p>
-      <div class="bars">
-        <div class="bar-row win"><span data-t="tech.e1"></span><div class="track"><i style="width:80%"></i></div><b>16/20</b></div>
-        <div class="bar-row"><span data-t="tech.e2"></span><div class="track"><i style="width:70%"></i></div><b>14/20</b></div>
-        <div class="bar-row"><span data-t="tech.e3"></span><div class="track"><i style="width:70%"></i></div><b>14/20</b></div>
-        <div class="bar-row"><span data-t="tech.e4"></span><div class="track"><i style="width:50%"></i></div><b>10/20</b></div>
-      </div>
-      <p class="caveat" data-t="tech.caveat"></p>
-      <p class="note" data-t="tech.evalnote"></p>
-    </div>
+<!-- 5 HOW IT WORKS -->
+<section class="slide s-how">
+  <h2 data-t="how.title"></h2>
+  <div class="steps3">
+    <div class="step"><span class="n">1</span><p class="card-h" data-t="how.s1h"></p><p data-t="how.s1"></p></div>
+    <div class="arrow"></div>
+    <div class="step"><span class="n">2</span><p class="card-h" data-t="how.s2h"></p><p data-t="how.s2"></p></div>
+    <div class="arrow"></div>
+    <div class="step acc"><span class="n">3</span><p class="card-h" data-t="how.s3h"></p><p data-t="how.s3"></p></div>
   </div>
+  <p class="how-line" data-t="how.line"></p>
 </section>
 
-<!-- 6 WHY US / COMPETITORS -->
+<!-- 6 HOW WE DIFFER -->
 <section class="slide s-comp">
-  <p class="script clay small" data-t="comp.kicker"></p>
   <h2 data-t="comp.title"></h2>
-  <div class="comp-body">
   <div class="diffs">
-    <div class="card"><p class="card-h" data-t="comp.d1h"></p><p data-t="comp.d1" data-scan="comp.d1n"></p></div>
-    <div class="card"><p class="card-h" data-t="comp.d4h"></p><p data-t="comp.d4"></p></div>
-    <div class="card"><p class="card-h" data-t="comp.d5h"></p><p data-t="comp.d5"></p></div>
+    <div class="card"><p class="card-h" data-t="comp.d1h"></p><p data-t="comp.d1"></p></div>
+    <div class="card"><p class="card-h" data-t="comp.d2h"></p><p data-t="comp.d2"></p></div>
+    <div class="card"><p class="card-h" data-t="comp.d3h"></p><p data-t="comp.d3"></p></div>
   </div>
-  </div>
-
-  <p class="others" data-t="comp.others"></p>
+  <p class="foot" data-t="comp.others"></p>
 </section>
 
 <!-- 7 TEAM -->
 <section class="slide s-team">
   <h2 data-t="team.title"></h2>
-  <div class="team-grid">
-    <div>
-      <p class="team-name">[Team name] <span class="team-members">· [Members, roles]</span></p>
-      <p class="why" data-t="team.why"></p>
-      <p class="tested" data-t="team.tested"></p>
-    </div>
-    <div class="stats">
-      <div><span class="big" data-v="tests"></span><span data-t="team.s2"></span></div>
-      <div><span class="big" data-v="first"></span><span data-t="team.s3"></span></div>
-    </div>
+  <p class="team-name">[Team name] <span class="team-members">· [Members]</span></p>
+  <p class="tested" data-t="team.tested"></p>
+  <div class="stats">
+    <div><span class="big" data-v="tests"></span><span data-t="team.s1"></span></div>
+    <div><span class="big" data-v="first"></span><span data-t="team.s2"></span></div>
+    <div><span class="big">3</span><span data-t="team.s3"></span></div>
   </div>
   <p class="foot" data-t="team.ai"></p>
 </section>
@@ -124,14 +98,12 @@
 <!-- 8 BUSINESS + CLOSE -->
 <section class="slide s-biz dark">
   <h2 data-t="biz.title"></h2>
-  <div class="money">
-    <div><b data-t="biz.m1h"></b><span data-t="biz.m1"></span></div>
-    <div><b data-t="biz.m2h"></b><span data-t="biz.m2"></span></div>
-    <div><b data-t="biz.m3h"></b><span data-t="biz.m3"></span></div>
+  <div class="biz-grid">
+    <div class="card"><p class="card-h" data-t="biz.h1"></p><p data-t="biz.p1"></p></div>
+    <div class="card"><p class="card-h" data-t="biz.h2"></p><p data-t="biz.p2"></p></div>
   </div>
-  <p class="answer" id="answer"></p>
   <p class="script peach cta" data-t="biz.cta"></p>
-  <div class="try"><p class="foot"><span data-t="biz.try"></span> <span id="url"></span><br><span class="small" data-t="biz.foot"></span></p><div class="qr" id="qr"></div></div>
+  <div class="try"><p class="foot"><span data-t="biz.try"></span> <span id="url"></span></p><div class="qr" id="qr"></div></div>
 </section>
 
 <script src="i18n.js"></script>
@@ -151,14 +123,7 @@
   document.querySelectorAll('[data-v]').forEach((el) => (el.textContent = NUM[el.dataset.v]));
   document.querySelectorAll('[data-shot]').forEach((el) => (el.src = `shots/${lang}-${el.dataset.shot}.png`));
 
-  // Ola's #1 and the scan size, as the app showed them at capture time (shots/meta.json)
   const META = (window.SHOT_META || {})[lang] || {};
-  const ans = document.getElementById('answer');
-  // city + dates only: the deck never features a price
-  if (META.top) ans.innerHTML = T['biz.answer'].replace('{top}', META.top.split(', ').slice(0, 2).join(', ')); else ans.remove();
-  document.querySelectorAll('[data-scan]').forEach((el) => {
-    if (META.scan) el.innerHTML = T[el.dataset.scan].replace('{w}', META.scan.windows).replace('{c}', META.scan.candidates);
-  });
 
   // Zoomed crops of the real screenshots (rects recorded by shots.mjs, CSS px of a 390x844 viewport)
   document.querySelectorAll('[data-crop]').forEach((el) => {

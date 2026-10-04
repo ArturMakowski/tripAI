@@ -2,7 +2,7 @@
 
 An 8-slide, 16:9 pitch for HackYeah 2026, in English and Polish, from one HTML source. Story, copy, tone and visual style
 follow the team's 5-slide baseline (hook · Meet Ola · Free days in, a checkable trip out · Every number has a receipt ·
-We earn on bookings, never on ranking). Three slides are added from the earlier 10-slide draft: tech decisions, why us, team.
+We earn on bookings, never on ranking). Three slides are added: how it works, how we differ, team.
 Persona and dates are shared with the pitch video (T8): Ola, 29, Kraków, free 7–11 Nov, budget 1,800 PLN.
 
 | Output | What |
@@ -10,7 +10,6 @@ Persona and dates are shared with the pitch video (T8): Ola, 29, Kraków, free 7
 | `out/tripai-pitch-en.pdf`, `out/tripai-pitch-pl.pdf` | the decks (1920×1080 pages). The repo is public, so the committed copy shows `[app URL / QR]` |
 | `out/preview/{en,pl}-NN.png` | a PNG of every slide |
 | `out/private/…` (gitignored) | the same decks with the real app URL + QR, for presenting |
-| `out/critique-{en,pl}.md` | the last fresh-critic scores (clarity, story, honesty) |
 
 ## Rebuild
 
@@ -36,6 +35,8 @@ unset TRIPAI_APP_URL E2E_PROD_URL && npm run build   # the committed copy: place
     (paid) lookups. One inbox scan shows Jev's real push decision; its `p` comes from the scan response.
   - A step whose element is gone after a UI change is skipped with a warning and the script exits 1.
 - `build.mjs`: fails on missing copy keys or broken images, warns when something overflows a slide.
+- `fonts/` + `fonts.css`: static Inter, Playfair Display and Caveat (OFL, from Fontsource). Variable web fonts end up as Type 3
+  glyphs in Chrome's PDFs, which render with artifacts in many viewers; static files embed as real TrueType.
 
 ## Where the numbers come from
 | Number | Source |
@@ -43,7 +44,6 @@ unset TRIPAI_APP_URL E2E_PROD_URL && npm run build   # the committed copy: place
 | 48 PRs merged | `gh pr list --state merged` (4 Oct 2026) |
 | 937 automated tests | `cd backend && uv run pytest` → 599 passed; `cd frontend && npx vitest run` → 338 passed |
 | ~2 s to first results | fast phase measured on the live app: 1.3–2.6 s (full ranking ~5 s cold) |
-| 16/20 · 14/20 · 14/20 · 10/20, 0.5 s / 6.5 s / ~3 s, 15% escalated | PR #13 / docs/FIT_VERDICT.md, live eval 3 Oct 2026 (20 team-labelled trips) |
 | 89% / 12% | Booking.com, Global AI Sentiment Report (2025), 37,000+ consumers, 33 markets |
 | ~36 PLN per booking | **assumption**: 2% of a 1,800 PLN trip (labelled on the slide) |
 | ~19 PLN/month Premium | **hypothesis** (labelled on the slide) |
