@@ -24,7 +24,19 @@ offered a trip with nothing bookable, "cheap" that is only cheap because the wea
 - **Never hides options silently:** `poor_fit` cards are collapsed under "Not your style (show anyway)".
 - **Notifications (T5b):** only notify for `good_fit`/`great_fit`; the concern list travels with the notification.
 - **Personalize = No (y2):** verdict still shown, but computed against neutral DNA and labelled so.
-- **Cost:** only the top N (default 5) per request; cached by (inputs_hash, profile hash).
+- **Cost:** only the top N (default 5) per request.
+  - **Cache:** cached by a stable key: trip (city, dates, tags, highlights, weather, crowd) × style profile (DNA,
+    interests, dislikes, temperature, luxury; no user id, budget or prices) × language × engine/prompts.
+  - **Prefetch:** the fast phase prefetches the top verdicts.
+  - **Speculation:** GPT starts speculatively only when Jev takes > 1 s.
+- **Style, not price:** the verdict judges the person's style (weather, crowds, taste). Price vs budget is shown by the
+  budget status and value badge, never as "not your style". q9 (price-driven) adds a named "expensive" concern
+  that never downgrades the label.
+- **A named minus:** `mixed` / `poor_fit` always lists ≥ 1 concrete concern. If the engine's concerns don't survive
+  grounding, the rules' grounded concerns are used; if the rules have none either, the rules verdict is shown.
+- **Sticky label:** the first label shown for a profile + trip stays on reload. This covers a rules fallback at the
+  deadline and an engine failing in time. A later AI verdict replaces it only if it agrees on the label, so a
+  disagreeing AI verdict isn't shown until the cache TTL (6 h) expires (product decision: stability over freshness).
 
 ## Verifiability (for the jury)
 `backend/tests/fit_eval/`: ~20 hand-labelled (DNA profile × offer) cases → `uv run python -m tripai.agents.fit_eval`

@@ -120,6 +120,7 @@ def _ev_value(rec: RankedRecommendation, kind: str) -> float | None:
 
 
 STYLE_FACTORS = ("weather", "crowds", "taste")
+PRICE_KINDS = {"flight", "hotel", "price_baseline", "peak"}
 
 
 def style_score(rec: RankedRecommendation) -> float:
@@ -148,9 +149,11 @@ def fit_payload(rec: RankedRecommendation, profile: TasteProfile) -> str:
             # badge), so it can never turn into a "not your style" verdict
             "style_scores_0_to_1": {f: getattr(rec.score, f) for f in STYLE_FACTORS},
         },
+        # price rows stay out (the verdict judges style); indexes are the card's real ones
         "evidence": [
             {"index": i, "kind": e.kind, "label": e.label, "value": e.value, "unit": e.unit}
             for i, e in enumerate(rec.evidence)
+            if e.kind not in PRICE_KINDS
         ],
     }
     return json.dumps(payload, ensure_ascii=False, default=str)
@@ -319,8 +322,7 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
                                  evidence=ev_price + ev_weather))  # fmt: skip
 
     if a["q9"] >= 4:
-        if rec.score.price < 0.4:
-            hard_at.add(len(concerns))
+        if rec.score.price < 0.4:  # a plain concern: price never downgrades the style label
             concerns.append(FitPoint(text=i18n.t("fit.r.expensive"), dna=["q9"],
                                      evidence=ev_price))  # fmt: skip
         elif rec.score.price >= 0.7:
@@ -647,14 +649,14 @@ async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool, sp
             }
         )
     name = f"{d.model}\u2192{_llm_name(model)} (escalated, jev p={p:.2f}; confidence self-rated)"
+    if draft.label == "mixed" and not draft.concerns:
+        # unsure and naming no minus: borrow the rules' grounded concerns, else show the rules
+        rules = rules_verdict(rec, profile)
+        if not rules.concerns:
+            return _finish(rules, "rules", rec, profile), _add(d.cost_usd, llm_cost), d, True, False
+        draft = draft.model_copy(update={"concerns": rules.concerns})
     return (
-        _finish(
-            draft,
-            name,
-            rec,
-            profile,
-            unsure=draft.label == "mixed" and draft.summary.startswith(i18n.t("fit.unsure_prefix")),
-        ),
+        _finish(draft, name, rec, profile),
         _add(d.cost_usd, llm_cost),
         d,
         True,
@@ -804,14 +806,29 @@ CACHE_SIZE = 1024
 
 
 def needs_a_minus(draft: FitDraft) -> FitDraft:
-    """A "mixed" / "not your style" verdict must name at least one concrete minus; with none,
-    what's left are matches, so it is a good fit (template wording, so the text agrees)."""
+    """Rules engine only (it computed every concern it could): a "mixed" / "not your style"
+    verdict with no minus at all is a good fit (template wording, so the text agrees)."""
     if draft.label in ("mixed", "poor_fit") and not draft.concerns:
         return draft.model_copy(update={
             "label": "good_fit",
             "summary": template_summary("good_fit", draft.matches, draft.concerns),
         })  # fmt: skip
     return draft
+
+
+def with_a_minus(
+    draft: FitDraft, rec: RankedRecommendation, profile: TasteProfile
+) -> tuple[FitDraft, bool]:
+    """An engine's mixed / poor_fit verdict whose concerns didn't survive grounding: name the
+    deterministic minus (the rules' grounded concerns) under the engine's label. With no minus
+    on the deterministic side either, show the rules verdict. Never promoted on its own.
+    -> (draft, True when the result is the rules' own verdict)."""
+    if draft.label not in ("mixed", "poor_fit") or draft.concerns:
+        return draft, False
+    rules = rules_verdict(rec, profile)
+    if rules.concerns:
+        return draft.model_copy(update={"concerns": rules.concerns}), False
+    return rules, True
 
 
 def _finish(
@@ -821,8 +838,10 @@ def _finish(
     profile: TasteProfile,
     unsure: bool = False,
 ):
-    if not unsure:
-        draft = needs_a_minus(draft)
+    if model != "rules":
+        draft, from_rules = with_a_minus(draft, rec, profile)
+        if from_rules:
+            model = "rules"  # the engine named no minus and neither do the rules: rules' verdict
     summary = draft.summary
     neutral = i18n.t("fit.neutral_prefix")
     if not profile.personalize and not summary.startswith(neutral):
@@ -883,7 +902,14 @@ async def _compute(key, rec, profile, model, engine, jev, lg) -> FitVerdict:
     run = await fit_run(rec, profile, model, engine=engine, jev=jev, lang=lg,
                         deadline_s=llm_cache.background_limit_s())  # fmt: skip
     if run.engine != engine or run.degraded:
-        return run.verdict  # a fallback isn't cached under the primary key: retry next time
+        # a fallback (engine failed in time) was shown: pin it as provisional like a late one,
+        # so the label can't flip on reload; an agreeing AI verdict may replace it later
+        if _CACHE.get(key) is None:
+            entry = _entry(run.verdict, rec) | {"provisional": True}
+            _remember(key, entry)
+            if engine != "rules":
+                await llm_cache.put(llm_cache.FIT, key, entry)
+        return run.verdict
     shown = _CACHE.get(key)
     if shown is None and engine != "rules":
         shown = await llm_cache.get(llm_cache.FIT, key)
@@ -930,7 +956,7 @@ async def fit(
         entry = _entry(v, rec) | {"provisional": True}
         _remember(key, entry)
         if engine != "rules":
-            _keep(asyncio.ensure_future(llm_cache.put(llm_cache.FIT, key, entry)))
+            llm_cache.put_later(llm_cache.FIT, key, entry)
         return v
 
     return await llm_cache.within(
@@ -965,14 +991,6 @@ def prefetch_fit(
             return await _compute(key, rec, profile, model, engine, jev, lg)
 
     llm_cache.prefetch(key, run)
-
-
-_pending_puts: set[asyncio.Task] = set()
-
-
-def _keep(task: asyncio.Task) -> None:
-    _pending_puts.add(task)
-    task.add_done_callback(_pending_puts.discard)
 
 
 def _remember(key: str, entry: dict) -> None:

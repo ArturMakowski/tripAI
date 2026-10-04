@@ -154,3 +154,17 @@ async def test_cached_ai_verdict_is_keyed_per_profile_not_per_price(candidates):
     other_style = ola.model_copy(update={"traits": {"q5": 1.0, "q11": 1.0}})
     await fit(rec, other_style, model=m, engine="llm")
     assert len(calls) == 2
+
+
+def test_price_driven_ola_label_ignores_price_too():
+    """#53 review 3: even with q9=5 (price drives choice) a 3x price never moves the label;
+    the 'expensive' concern is named but isn't a downgrade."""
+    ola = TasteProfile(user_id="ola", budget_pln=1800, dislikes=["crowds"],
+                       traits={"q5": 4.0, "q8": 4.0, "q9": 5.0, "q11": 5.0})  # fmt: skip
+    cands = asyncio.run(EstimateProvider().candidates("KRK", [NOV]))
+    for r in rank(cands, ola, limit=10):
+        total = round(r.score.total - 0.4 * r.score.price, 4)
+        pricey = r.model_copy(update={"total_cost_pln": r.total_cost_pln * 3,
+                                      "score": r.score.model_copy(update={"price": 0.0,
+                                                                          "total": total})})  # fmt: skip
+        assert rules_verdict(pricey, ola).label == rules_verdict(r, ola).label, r.city

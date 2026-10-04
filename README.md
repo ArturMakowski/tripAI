@@ -132,14 +132,20 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   SerpApi daily budget is spent, the meter refuses metered calls at once (no Supabase re-read). Refinement still runs
   on cached exact-date results, recorded fixtures, Travelpayouts fares, window weather and photos, so the demo plan
   (warm the cache, then cap 0) serves cached exact prices.
-- **Fit verdicts judge style, not price:** the rules label comes from the weather/crowds/taste scores, and Jev/GPT
-  get no price, total or price comparisons. Price vs budget is the budget status / value badge's job, so a trip
-  over budget is never "Not your style". A `mixed`/`poor_fit` verdict must name at least one concrete minus, otherwise
-  it's `good_fit`. Verdicts are cached under a stable key: trip (city, dates, tags, highlights, weather, crowd) x
-  style profile (DNA, interests, dislikes, temperature, luxury; no user id, budget or prices) x language x
-  engine/prompts. Cited evidence is re-pointed and re-checked on reuse. The first label shown for a profile + trip
-  sticks: a late AI verdict replaces a shown rules verdict only when it agrees. The fast phase prefetches the top
-  verdicts in the background. Regression tests: `tests/test_persona_ola.py` (demo persona).
+- **Fit verdicts judge style, not price:** the rules label comes from the weather/crowds/taste scores. Jev/GPT
+  get no price score, total, price comparisons or price evidence rows. Price never changes the label: a
+  price-driven DNA (q9 4–5) gets a plain "expensive" concern that is named but never downgrades. Price vs budget
+  is shown by the budget status / value badge. A `mixed`/`poor_fit` verdict always names a concrete minus: if the
+  engine's own concerns didn't survive grounding, the rules' grounded concerns are used; if the rules name none
+  either, the rules verdict is shown (an engine's label is never promoted on its own).
+  - **Caching:** a stable key (trip facts x style profile x language x engine/prompts; no user id, budget or
+    prices), with cited evidence re-pointed and re-checked on reuse.
+  - **Sticky labels:** the first label shown for a profile + trip sticks, whether it was a rules fallback at the
+    deadline or an engine failing in time. A late AI verdict replaces it only when it agrees on the label, until
+    the cache TTL.
+  - **Prefetch:** the fast phase prefetches the top verdicts.
+
+  Tests: `tests/test_persona_ola.py` (demo persona).
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache

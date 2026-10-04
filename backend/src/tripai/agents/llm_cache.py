@@ -189,12 +189,23 @@ def _settle(key: str, task: asyncio.Task) -> None:
         log.info("background LLM call ended without an answer: %r", task.exception())
 
 
+_puts: set[asyncio.Task] = set()
+
+
+def put_later(source: str, key: str, payload: Any) -> None:
+    """`put` without waiting (from sync code); `drain()` waits for it."""
+    task = asyncio.ensure_future(put(source, key, payload))
+    _puts.add(task)
+    task.add_done_callback(_puts.discard)
+
+
 async def drain(timeout: float | None = None) -> None:
     """Wait for running LLM calls (tests; shutdown). With `timeout`, cancel what's left after it."""
     try:
         async with asyncio.timeout(timeout):
-            while _inflight:
-                await asyncio.gather(*list(_inflight.values()), return_exceptions=True)
+            while _inflight or _puts:
+                await asyncio.gather(*list(_inflight.values()), *list(_puts),
+                                     return_exceptions=True)  # fmt: skip
     except TimeoutError:
         for t in list(_inflight.values()):
             t.cancel()

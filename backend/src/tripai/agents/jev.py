@@ -234,7 +234,7 @@ FIT_CHECKS: dict[str, tuple[Literal["match", "concern"], list[str], list[str]]] 
     "active_match": ("match", ["q7"], []),
     "novelty_match": ("match", ["q1", "y1"], ["attraction"]),
 }
-HARD_CONCERNS = {"crowd_conflict", "relax_conflict", "budget_conflict"}
+HARD_CONCERNS = {"crowd_conflict", "relax_conflict"}  # price never downgrades a style label
 
 
 # ---------------------------------------------------------------- chat interview -> DNA
