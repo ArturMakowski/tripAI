@@ -50,3 +50,9 @@
   default airport; all editable) → ranked trips. ~16 taps instead of ~19–24.
 - The persona result becomes a compact card on top of /trips (full view in Profile), not a stop.
 - No intro tutorial in the critical path; contextual coach marks only.
+
+## Round 4 (Maciej, 4 Oct)
+- Swipe cards blocked vertical scroll on /trips → fixed by t23: one ranked list, swipeable rows, no swipe mode.
+- "Wyszukaj" gate before offers: **declined** (time to value; the pre-filled confirm already is the search).
+- Moje podróże: delete (with undo), edit target price, edit dates/party (re-price + re-check), mark as booked → past
+  (rating feeds the survey).
