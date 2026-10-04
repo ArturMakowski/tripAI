@@ -212,7 +212,8 @@ async function still(name, targets = {}) {
     return out.map(({ r, edge }) => ({ ...r, edge }));
   });
   await page.screenshot({ path: path.join(OUT, `${name}.view.png`) });
-  const tag = await page.addStyleTag({ content: '[data-pitch-chrome]{visibility:hidden!important}' });
+  // hide the whole subtree: a child with visibility:visible would show through a hidden parent
+  const tag = await page.addStyleTag({ content: '[data-pitch-chrome],[data-pitch-chrome] *{visibility:hidden!important}' });
   const size = await page.evaluate(() => ({ w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight }));
   await page.screenshot({ path: path.join(OUT, `${name}.png`), fullPage: true });
   await tag.evaluate((el) => el.remove());

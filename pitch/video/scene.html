@@ -45,6 +45,8 @@ body { font-family: Inter, system-ui, sans-serif; color: var(--ink); -webkit-fon
 .s-hi { font: italic 700 86px/1.04 'Playfair Display', serif; letter-spacing: -.02em; color: var(--green); }
 .s-k { font: 700 76px/1.06 'Playfair Display', serif; letter-spacing: -.02em; color: var(--ink); }
 .s-ki { font: italic 700 76px/1.06 'Playfair Display', serif; letter-spacing: -.02em; color: var(--green); }
+.s-xl { font: 700 124px/1.02 'Playfair Display', serif; letter-spacing: -.025em; color: var(--ink); }
+.s-xli { font: italic 700 124px/1.02 'Playfair Display', serif; letter-spacing: -.025em; color: var(--green); }
 .s-m { font: 700 64px/1.08 'Playfair Display', serif; letter-spacing: -.015em; color: var(--ink); }
 .s-mi { font: italic 700 64px/1.08 'Playfair Display', serif; color: var(--green); }
 .s-hw { font: 700 58px/1.15 Caveat, cursive; color: var(--clay); }
@@ -64,9 +66,10 @@ body { font-family: Inter, system-ui, sans-serif; color: var(--ink); -webkit-fon
 
 /* poster */
 #poster { position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; justify-content: center; padding-left: 230px; }
-#poster .brand { display: flex; align-items: center; gap: 18px; font: 700 54px 'Playfair Display', serif; margin-bottom: 46px; }
-#poster .hl1 { font: 700 132px/1.02 'Playfair Display', serif; letter-spacing: -.025em; }
-#poster .hl2 { font: italic 700 132px/1.06 'Playfair Display', serif; letter-spacing: -.025em; color: var(--green); }
+#poster .brand { display: flex; align-items: center; gap: 22px; font: 700 74px 'Playfair Display', serif; margin-bottom: 52px; }
+#poster .brand svg { width: 82px; height: 82px; }
+#poster .hl1 { font: 700 112px/1.04 'Playfair Display', serif; letter-spacing: -.025em; }
+#poster .hl2 { font: italic 700 112px/1.08 'Playfair Display', serif; letter-spacing: -.025em; color: var(--green); }
 #poster .sub { font: 500 38px/1.4 Inter; color: var(--soft); margin-top: 34px; }
 #poster .hw { font: 700 62px Caveat, cursive; color: var(--clay); margin-top: 30px; }
 </style>
@@ -112,7 +115,7 @@ body { font-family: Inter, system-ui, sans-serif; color: var(--ink); -webkit-fon
 // ------------------------------------------------------------------------------------------ copy
 const COPY = {
   en: {
-    hook1: 'You have free days.', hook2: 'We tell you where and when.',
+    hook1: 'You have free days.', hook2: 'We tell you where and when.', hookHw: 'free 7–11 Nov?',
     olaName: 'Ola, 29, Kraków', olaFacts: 'Free 7–11 Nov, a long weekend.<br>Budget 1,800 PLN. Hates crowds.',
     olaQ: '“Where should I go, and is this even the right weekend?”',
     swipes: '14 swipes.', dna: 'Your Travel DNA.',
@@ -122,16 +125,16 @@ const COPY = {
     learn1: 'Swipe.', learn2: 'It learns your taste.',
     trip1: 'Flight, stay,', trip2: 'things to do.',
     rcpt1: 'Every number', rcpt2: 'has a receipt.',
-    src1: 'Weather, crowds, prices.', src2: 'All sourced.',
+    src1: 'Weather. Crowds. Sights.', src2: 'Each with its source.',
     card: ['Every number sourced.', 'A fixed formula ranks.', 'AI only explains.', 'You decide.'],
     watch1: 'We watch your free days.', watch2: 'A ping only when it’s worth it.',
     daily1: 'Saved trips,', daily2: 'prices re-checked daily.',
     book1: 'Nothing is booked', book2: 'until you tap.',
-    notifNow: 'now', notifTitle: 'Long weekend 7–11 Nov → Nice', notifBody: 'Quiet season, away from the crowds. Tap to see why.',
+    notifNow: 'now', notifTitle: 'Long weekend 7–11 Nov → {city}', notifBody: 'Quiet season, away from the crowds. Tap to see why.',
     posterSub: 'A trip planner that starts from your calendar.', posterHw: 'HackYeah 2026',
   },
   pl: {
-    hook1: 'Masz wolne dni.', hook2: 'Powiemy Ci, dokąd i kiedy.',
+    hook1: 'Masz wolne dni.', hook2: 'Powiemy Ci, dokąd i kiedy.', hookHw: 'wolne 7–11 listopada?',
     olaName: 'Ola, 29 lat, Kraków', olaFacts: 'Wolne 7–11 listopada, długi weekend.<br>Budżet 1800 zł. Nie znosi tłumów.',
     olaQ: '„Dokąd jechać i czy to w ogóle dobry weekend?”',
     swipes: '14 przesunięć.', dna: 'Twoje DNA podróżnika.',
@@ -141,12 +144,12 @@ const COPY = {
     learn1: 'Przesuwasz.', learn2: 'Uczy się Twojego gustu.',
     trip1: 'Lot, nocleg,', trip2: 'co robić na miejscu.',
     rcpt1: 'Każda liczba', rcpt2: 'ma swój paragon.',
-    src1: 'Pogoda, tłumy, ceny.', src2: 'Wszystko ze źródłem.',
+    src1: 'Pogoda. Tłumy. Atrakcje.', src2: 'Każde ze źródłem.',
     card: ['Każda liczba ze źródłem.', 'Ranking liczy stały wzór.', 'AI tylko wyjaśnia.', 'Decydujesz Ty.'],
     watch1: 'Pilnujemy Twoich wolnych dni.', watch2: 'Dajemy znać, gdy warto.',
     daily1: 'Zapisane wyjazdy,', daily2: 'ceny sprawdzane codziennie.',
     book1: 'Nic nie rezerwujemy', book2: 'bez Twojego kliknięcia.',
-    notifNow: 'teraz', notifTitle: 'Długi weekend 7–11 lis → Nicea', notifBody: 'Poza sezonem, z dala od tłumów. Zobacz dlaczego.',
+    notifNow: 'teraz', notifTitle: 'Długi weekend 7–11 lis → {city}', notifBody: 'Poza sezonem, z dala od tłumów. Zobacz dlaczego.',
     posterSub: 'Planer podróży, który zaczyna od Twojego kalendarza.', posterHw: 'HackYeah 2026',
   },
 };
@@ -220,7 +223,15 @@ function drawCaps(t) {
     el.style.display = on ? '' : 'none';
     if (!on) continue;
     let i = 0;
+    // hand-written lines write on left → right instead of rising
+    for (const hw of el.querySelectorAll('.s-hw')) {
+      const k = clamp((t - c.t0 - 0.75) / 1.0), out = easeInOut((t - c.t1) / 0.3);
+      hw.style.display = 'inline-block';
+      hw.style.clipPath = `inset(0 ${100 - k * 100}% 0 0)`;
+      hw.style.transform = `translateY(${-out * 115}%)`;
+    }
     for (const w of words) {
+      if (w.parentElement.classList.contains('s-hw')) continue;
       const lineDelay = 0.07 * i++;
       const inK = spring(t - c.t0 - lineDelay, POP);
       const outK = easeInOut((t - c.t1 - 0.02 * i) / 0.32);
@@ -238,19 +249,21 @@ function buildTimeline() {
   const ev = (clip, label) => META.clips[clip].events.find((e) => e.label === label);
   const boxes = (st) => META.stills[st].boxes;
   const PHX = 1380, PHY = 540;
+  // the opening plays the last two DNA drags (no prices on screen); the DNA beat plays the first three
+  const dnaDowns = META.clips.dna.events.filter((e) => e.type === 'down');
+  const dnaLate = Math.max(0.3, (dnaDowns[3]?.t ?? 5.8) - 0.15);
   // segments: what the phone screen shows. clip: { clip, from (local s), speed } | still: { still, scroll: [[t, y], ...] }
   const seg = [
-    { t0: 0, t1: 3, clip: 'offers', from: 10.9, speed: 1 },
-    { t0: 3, t1: 7, clip: 'dna', from: 0, speed: 0.12 },
-    { t0: 7, t1: 14, clip: 'dna', from: 0.35, speed: 1.3 },
+    { t0: 0, t1: 3, clip: 'dna', from: dnaLate, speed: 1 },
+    { t0: 3, t1: 7, still: 'welcome', scroll: [[3, 0]] },
+    { t0: 7, t1: 14, clip: 'dna', from: 0.35, speed: (dnaLate - 0.35) / 7 },
     { t0: 14, t1: 18, clip: 'dates', from: 0, speed: 0.64 },
     { t0: 18, t1: 21.5, clip: 'loading', from: 0.7, speed: 2.3 },
     { t0: 21.5, t1: 25, still: 'trips_list', scroll: [[21.5, 0], [21.9, 470]] },
     { t0: 25, t1: 30, clip: 'offers', from: 2.0, speed: 1.55 },
-    { t0: 30, t1: 34, still: 'trip', scroll: [[30, 0], [31.2, 210], [32.6, 600]] },
-    { t0: 34, t1: 36.5, clip: 'sources', from: 0.25, speed: 1 },
-    { t0: 36.5, t1: 41, clip: 'evidence', from: 0.4, speed: 1.08 },
-    { t0: 41, t1: 50.5, still: 'home', scroll: [[41, 0]] },
+    { t0: 30, t1: 33.5, still: 'trip', scroll: [[30, 0], [31.3, 150]] },
+    { t0: 33.5, t1: 46.6, clip: 'evidence', from: 0.4, speed: 0.65 },
+    { t0: 46.6, t1: 50.5, still: 'home', scroll: [[46.6, 0]] },
     { t0: 50.5, t1: 54, still: 'mytrips', scroll: [[50.5, 0]] },
     { t0: 54, t1: 59, clip: 'approve', from: 0.35, speed: 1 },
     { t0: 59, t1: 66, still: 'approved', scroll: [[59, 0]] },
@@ -264,25 +277,26 @@ function buildTimeline() {
   const tapDates = 14 + ev('dates', 'longWeekend').t / 0.64;
   const chip = ev('dates', 'longWeekend');
   const p0 = { x: PHX, y: PHY, s: 1 };
+  const evChip = META.clips.evidence.chip || { x: 37, y: 622, w: 124, h: 21 };
   const W = (x, y) => vpToWorld(p0, x, y);
   const rows = boxes('trips_list');
   const c1 = rows.card1 ? rows.card1.y - 470 : 60;
   const camera = [
     { t: 0, z: 1, fx: 1380, fy: 540 },
-    { t: 3, z: 1.06, ...xy(W(195, 422)), d: 3.8 },                 // gentle push while Ola is introduced
-    { t: 7, z: 1.18, ...xy(W(195, 470)), ease: 'spring', s: HEAVY }, // into the deck
-    { t: 12.6, z: 1.0, ...xy(W(195, 422)), d: 1.2 },
+    { t: 3, z: 1.04, ...xy(W(195, 422)), d: 3.8 },                 // gentle push while Ola is introduced
+    { t: 7, z: 1.0, fx: 1380, fy: 540, d: 0.5 },
+    { t: 7.6, z: 1.05, fx: 1380, fy: 540, d: 6 },                    // slow push on the deck, bezel stays in frame
+    { t: 13.6, z: 1.0, fx: 1380, fy: 540, d: 0.4 },
     { t: tapDates - 0.75, z: 2.0, ...xy(W(chip.x, chip.y + 40)), ease: 'spring', s: HEAVY },
     { t: tapDates + 1.0, z: 1.0, fx: 1380, fy: 540, d: 0.9 },
     { t: 22.6, z: 1.9, ...xy(W(130, c1 + 40)), ease: 'spring', s: HEAVY }, // the #1 card's "2d off → 5d"
     { t: 24.4, z: 1.0, fx: 1380, fy: 540, d: 0.6 },
     { t: 28.75, z: 1.6, ...xy(W(195, 716)), ease: 'spring', s: HEAVY },   // "Learned: you like …"
     { t: 29.9, z: 1.0, fx: 1380, fy: 540, d: 0.3 },
-    { t: 30.2, z: 1.08, ...xy(W(195, 422)), d: 3.6 },
-    { t: 34.9, z: 1.3, ...xy(W(195, (META.clips.sources.chip || { y: 323 }).y + 10)), ease: 'spring', s: HEAVY },    // the source chips (highlighted, not the prices)
-    { t: 36.4, z: 1.0, fx: 1380, fy: 540, d: 0.3 },
-    { t: 39.4, z: 1.6, ...xy(W(195, 560)), ease: 'spring', s: HEAVY },    // evidence rows
-    { t: 40.9, z: 1.0, fx: 1380, fy: 540, d: 0.3 },
+    { t: 30.2, z: 1.06, fx: 1380, fy: 540, d: 3.2 },
+    { t: 33.4, z: 1.0, fx: 1380, fy: 540, d: 0.2 },
+    { t: 38.0, z: 1.75, ...xy(W(evChip.x + evChip.w / 2 + 60, evChip.y + 10)), ease: 'spring', s: HEAVY }, // a weather source chip
+    { t: 40.8, z: 1.0, fx: 1380, fy: 540, d: 0.3 },
     { t: 47.6, z: 1.75, ...xy(W(195, 70)), ease: 'spring', s: HEAVY },    // the ping
     { t: 50.4, z: 1.0, fx: 1380, fy: 540, d: 0.4 },
     { t: 56.6, z: 1.45, ...xy(W(195, 470)), ease: 'spring', s: HEAVY },   // "Approved by you"
@@ -290,16 +304,16 @@ function buildTimeline() {
   ];
   function xy(p) { return { fx: p.x, fy: p.y }; }
   const caps = [
-    cap(0.12, 2.75, [['hook1', 'k'], ['hook2', 'ki']], 380),
-    cap(7.15, 10.3, [['swipes', 'h']], 450),
-    cap(10.5, 13.75, [['dna', 'hi']], 450),
+    cap(0.12, 2.75, [['hook1', 'k'], ['hook2', 'ki'], ['hookHw', 'hw']], 350),
+    cap(7.15, 10.3, [['swipes', 'xl']], 440),
+    cap(10.5, 13.75, [['dna', 'xli']], 440),
     cap(14.15, 17.7, [['free', 'h'], ['oneTap', 'hi']], 380),
     cap(18.15, 21.7, [['ranked1', 'h'], ['ranked2', 'hi']], 380),
     cap(22.1, 24.7, [['off1', 'h'], ['off2', 'hi']], 380),
     cap(25.15, 29.7, [['learn1', 'h'], ['learn2', 'hi']], 380),
-    cap(30.15, 33.7, [['trip1', 'h'], ['trip2', 'hi']], 380),
-    cap(34.1, 36.3, [['rcpt1', 'h'], ['rcpt2', 'hi']], 380),
-    cap(36.6, 40.7, [['src1', 'm'], ['src2', 'mi']], 410),
+    cap(30.15, 33.3, [['trip1', 'h'], ['trip2', 'hi']], 380),
+    cap(33.65, 37.7, [['rcpt1', 'h'], ['rcpt2', 'hi']], 380),
+    cap(38.1, 40.7, [['src1', 'm'], ['src2', 'mi']], 410),
     cap(47.15, 50.2, [['watch1', 'm'], ['watch2', 'mi']], 400),
     cap(50.6, 53.7, [['daily1', 'm'], ['daily2', 'mi']], 400),
     cap(54.15, 58.6, [['book1', 'h'], ['book2', 'hi']], 380),
@@ -311,7 +325,7 @@ function buildTimeline() {
   const hl = [
     { t0: 22.0, t1: 24.6, still: 'trips_list', box: rows.card1 && { x: rows.card1.x + 8, y: rows.card1.y + 8, w: 112, h: 40 } },
     { t0: 51.2, t1: 53.9, still: 'mytrips', box: boxes('mytrips').trip },
-    { t0: 35.0, t1: 36.4, clip: 'sources', box: META.clips.sources.chip || { x: 35, y: 323, w: 318, h: 19 }, fixed: true },
+    { t0: 37.9, t1: 40.7, clip: 'evidence', box: evChip, fixed: true },
   ];
   TL = { seg, phone, camera, caps, stillTaps, hl, flood: { in: 41.0, out: 46.6 }, ola: { t0: 3.05, t1: 6.75 },
     card: { t0: 41.35, step: 0.95, t1: 46.2 }, notif: { t0: 47.4 }, poster: { t0: 59.2 }, end: 65.5 };
@@ -501,6 +515,28 @@ function drawPoster(t, cam) {
   el.style.transformOrigin = '230px 540px';
 }
 
+// ------------------------------------------------------------------------------------------ sound events
+/** Every sound hit on the picture's timeline: taps and swipe releases from the recorded pointer, plus scene events. */
+function sfxEvents() {
+  const out = [];
+  for (const s of TL.seg) {
+    if (!s.clip) continue;
+    for (const e of META.clips[s.clip].events) {
+      const t = s.t0 + (e.t - s.from) / s.speed;
+      if (t < s.t0 || t >= s.t1) continue;
+      if (e.type === 'tap') out.push({ t, kind: e.label === 'approve' ? 'success' : 'tap' });
+      if (e.type === 'up') out.push({ t, kind: 'swipe' });
+    }
+  }
+  for (const tp of TL.stillTaps) out.push({ t: tp.t, kind: 'tap' });
+  out.push({ t: TL.flood.in, kind: 'whoosh' }, { t: TL.flood.out, kind: 'whoosh' });
+  out.push({ t: TL.notif.t0 + 0.05, kind: 'notif' });
+  for (const h of TL.hl) out.push({ t: h.t0, kind: 'pop' });
+  C.card.forEach((_, i) => out.push({ t: TL.card.t0 + i * TL.card.step, kind: 'pop' }));
+  out.push({ t: TL.poster.t0, kind: 'whoosh' });
+  return out.sort((a, b) => a.t - b.t).map((e) => ({ ...e, t: +e.t.toFixed(3) }));
+}
+
 // ------------------------------------------------------------------------------------------ seek
 async function seek(t) {
   const ph = drawPhone(t);
@@ -520,12 +556,14 @@ async function seek(t) {
 async function init() {
   META = await (await fetch(`${BASE}meta.json`)).json();
   document.documentElement.lang = LANG;
+  C.notifTitle = C.notifTitle.replace('{city}', META.flow.cities?.[0] ?? '');
   for (const el of document.querySelectorAll('[data-i]')) el.innerHTML = C[el.dataset.i];
   buildTimeline();
   buildCaps();
   await document.fonts.ready;
   await Promise.all(['Playfair Display', 'Caveat', 'Inter'].map((f) => document.fonts.load(`700 40px "${f}"`)));
   window.DURATION = TL.end;
+  window.SFX = sfxEvents();
   await seek(Number(P.get('t') || 0));
   window.READY = true;
 }

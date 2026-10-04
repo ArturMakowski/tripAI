@@ -20,7 +20,7 @@ const LANG = opt('lang', 'en');
 const SCALE = Number(opt('scale', 1));
 const FPS = Number(opt('fps', 30));
 const WORKERS = Number(opt('workers', Math.max(2, Math.min(6, os.cpus().length - 2))));
-const STILLS = { opening: 1.5, composition: 10.4, product: 35.9, transition: 41.15, end: 63.0 };
+const STILLS = { opening: 1.5, composition: 10.4, product: 39.2, transition: 41.15, end: 63.0 };
 
 const TYPES = { '.html': 'text/html', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.js': 'text/javascript' };
 const server = http.createServer((req, res) => {
@@ -45,7 +45,13 @@ async function shot(page, t, file) {
   await page.screenshot({ path: file, type: file.endsWith('.jpg') ? 'jpeg' : 'png', quality: file.endsWith('.jpg') ? 95 : undefined });
 }
 
-if (args.includes('--stills') || opt('at')) {
+if (args.includes('--sfx')) {
+  const page = await openPage();
+  const ev = await page.evaluate(() => ({ duration: window.DURATION, events: window.SFX }));
+  const f = path.join(HERE, 'audio', `sfx-${LANG}.json`);
+  fs.writeFileSync(f, JSON.stringify(ev, null, 1));
+  console.log(f, ev.events.length, 'events');
+} else if (args.includes('--stills') || opt('at')) {
   const dir = path.join(OUTDIR, 'stills');
   fs.mkdirSync(dir, { recursive: true });
   const page = await openPage();
