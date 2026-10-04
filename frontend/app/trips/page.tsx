@@ -15,10 +15,18 @@ import { PrioritySlider } from "@/components/priority-slider";
 import { RecCard } from "@/components/rec-card";
 import { Chip, InfoTip } from "@/components/declutter";
 import { TripLoader, type Stage } from "@/components/trip-loader";
-import { HiddenTrips, SwipeMode, SwipeToast, TripsViewToggle, useHiddenIds } from "@/components/trips-swipe";
-import { useDeckSession } from "@/lib/deck-session";
+import {
+  HiddenTrips,
+  PendingRanking,
+  RowActions,
+  SwipeRow,
+  SwipeToast,
+  useHiddenIds,
+  useRowSwipes,
+  useUndoShortcut,
+} from "@/components/trips-swipe";
+import { useSwipeSession } from "@/lib/swipe-session";
 import { commitLearning } from "@/lib/use-reactions";
-import { useSwipe } from "@/lib/use-reactions";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
 import { PickedDatesEmpty, PickedDatesHeader, useClientToday } from "@/components/date-picker/free-dates-planner";
 import { AppShell, PageTitle } from "@/components/shell";
@@ -81,6 +89,7 @@ function Trips() {
   const windowFilter = params.get("window");
   const { t, fmt, lang } = useT();
   const tt = t.trips;
+  const sw = t.swipeOffers;
   const { ranked, loading, refining, phased, mode, weights } = useRecommendations();
   const slider = useTrip((s) => s.slider);
   const setSlider = useTrip((s) => s.setSlider);
@@ -107,21 +116,21 @@ function Trips() {
   }, [windowFilter, loading, matching.length]);
   // T6: city+dates swiped "Nie dla mnie" are hidden (listed under "Hidden" below)
   const hidden = useHiddenIds();
-  const view = useSwipe((s) => s.view);
-  // The swipe session (deck snapshot, undo history, toast) ends when the user leaves the swipe view or
-  // /trips; leaving with the deck open still keeps what it learned (one re-rank).
-  const resetDeck = useDeckSession((s) => s.reset);
-  useEffect(() => {
-    if (view !== "swipe") resetDeck();
-  }, [view, resetDeck]);
+  // T23: one ranked list whose rows are swipeable (right = "Chcę tam", left = "Nie dla mnie" with undo,
+  // heart = "Super!"). A row swiped left collapses at once (`hiding`) and stays out once the log has it.
+  const hiding = useSwipeSession((s) => s.hiding);
+  const { swipe, undo, canUndo } = useRowSwipes();
+  useUndoShortcut(undo);
+  // Leaving /trips applies what the swipes taught us (one re-rank) and ends the swipe session.
+  const resetSwipes = useSwipeSession((s) => s.reset);
   useEffect(
     () => () => {
-      if (useSwipe.getState().view === "swipe") commitLearning();
-      resetDeck();
+      commitLearning();
+      resetSwipes();
     },
-    [resetDeck],
+    [resetSwipes],
   );
-  const list = matching.filter((r) => !hidden.has(r.id));
+  const list = matching.filter((r) => !hidden.has(r.id) && !hiding.includes(r.id));
   const budget = (profile ?? DEMO_PROFILE).budget_pln;
   const [withinFirst, setWithinFirst] = useState(false);
   // the same selector as the home "#1" (lib/trip-list.ts), so the two can't disagree
@@ -222,8 +231,7 @@ function Trips() {
       <PickedDatesHeader />
 
       <PrioritySlider value={slider} weights={weights} onChange={setSlider} />
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <TripsViewToggle />
+      <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
         <PartyPicker compact />
       </div>
 
@@ -279,7 +287,7 @@ function Trips() {
 
       <div className="mt-5 space-y-3 empty:hidden">
 
-        {banner && view === "list" && (
+        {banner && (
           <div role="note" className="flex gap-2.5 rounded-2xl border border-clay/30 bg-clay-soft px-3.5 py-2.5 text-sm leading-snug text-ink">
             <Wallet className="mt-0.5 size-4 shrink-0 text-clay" aria-hidden />
             {banner.kind === "none_fit" ? (
@@ -314,7 +322,7 @@ function Trips() {
             )}
           </div>
         )}
-        {withinFirst && !banner && view === "list" && (
+        {withinFirst && !banner && (
           <p className="flex items-center justify-between rounded-xl bg-paper-deep px-3 py-2 text-sm text-ink-soft">
             {tt.budget.withinFirst}
             <button onClick={() => setWithinFirst(false)} className="font-medium text-pine underline-offset-2 hover:underline">
@@ -324,26 +332,36 @@ function Trips() {
         )}
       </div>
 
-      {view === "swipe" && list.length > 0 && <SwipeMode ranked={list} refining={refining} />}
-      {/* outside the deck: a ranking update or a deck remount never drops "Learned: …" / "Undone" */}
-      {view === "swipe" && <SwipeToast />}
-      {/* list mode (inner block kept at its old indentation to keep this diff small) */}
-      {view === "list" && (
+      {/* page-level: a ranking update never drops "Learned: …" / "Undone" (#49) */}
+      <SwipeToast onUndo={undo} canUndo={canUndo} />
+      <p className="sr-only">{sw.hint}</p>
       <LayoutGroup>
         <ul className="mt-4 space-y-4" aria-busy={loading || refining}>
-          {fitting.map((rec, i) => (
-            <motion.li key={rec.id} layout transition={{ type: "spring", stiffness: 200, damping: 28 }}>
-              <RecCard
-                rec={rec}
-                featured={i === 0}
-                bridge={bridgeFor(rec.window, longWeekends)}
-                refining={refining}
-                overBudgetPln={overBudget(rec, budget)}
-                weights={weights}
-              />
-            </motion.li>
-          ))}
+          <AnimatePresence initial={false}>
+            {fitting.map((rec, i) => (
+              <motion.li
+                key={rec.id}
+                layout
+                transition={{ type: "spring", stiffness: 200, damping: 28 }}
+                // a row swiped "Nie dla mnie" collapses out; Undo brings it back in place
+                exit={{ opacity: 0, height: 0, marginTop: 0, transition: { duration: 0.22 } }}
+              >
+                <SwipeRow rec={rec} onReact={swipe} tour={i === 0 ? "swipe-row" : undefined}>
+                  <RecCard
+                    rec={rec}
+                    featured={i === 0}
+                    bridge={bridgeFor(rec.window, longWeekends)}
+                    refining={refining}
+                    overBudgetPln={overBudget(rec, budget)}
+                    weights={weights}
+                    actions={<RowActions rec={rec} onReact={swipe} />}
+                  />
+                </SwipeRow>
+              </motion.li>
+            ))}
+          </AnimatePresence>
         </ul>
+        <PendingRanking />
 
         {/* Never hidden silently: poor fits stay one tap away, with the reason on each card. */}
         {notMyStyle.length > 0 && (
@@ -384,8 +402,7 @@ function Trips() {
           </motion.div>
         )}
       </LayoutGroup>
-      )}
-      {view === "list" && <HiddenTrips />}
+      <HiddenTrips />
       {!loading && !list.length && (
         <PickedDatesEmpty>
           <p className="mt-6 text-center text-sm text-muted-foreground">{tt.empty}</p>

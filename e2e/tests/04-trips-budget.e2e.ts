@@ -15,10 +15,8 @@ test('Trips: cards show photo, price and (once judged) a fit badge; with a 1,000
   await expect(screen.getByText(/1[,\s ]?000\s*(PLN|zł)/).first()).toBeVisible();
 
   await screen.getByRole('link', /^(Trips|Podróże|Wyjazdy)$/).tap();
-  // /trips opens on the swipe view until a view is picked; this test reads the ranked list.
-  const listToggle = screen.getByRole('button', /^(List|Lista)$/);
-  await expect(listToggle).toBeVisible({ timeout: 60_000 }); // the view toggle renders once /trips has loaded
-  await listToggle.tap();
+  // T23: one ranked list (no List/Swipe toggle); wait for it to render.
+  await expect(browser.locator('main ul[aria-busy]').first()).toBeVisible({ timeout: 60_000 });
   await expect(screen.getByRole('link', /budget|budżet/i).first()).toContainText(/1[,\s ]?000/);
 
   const cards = browser.locator('main li:has(article a[href^="/trips/"])');

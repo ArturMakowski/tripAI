@@ -63,9 +63,9 @@ export const en = {
         title: "AI fit check",
         body: "Does it suit your DNA? The score does the numbers.",
       },
-      "swipe-toggle": {
-        title: "List or swipe",
-        body: "Swipe offers. Every swipe teaches it your taste.",
+      "swipe-row": {
+        title: "Swipe a trip",
+        body: "Right: want it. Left: not for you.",
       },
       source: {
         title: "Every number has a source",
@@ -147,9 +147,9 @@ export const pl: Shape<typeof en> = {
         title: "Ocena dopasowania AI",
         body: "Czy pasuje do Twojego DNA. Liczby liczy algorytm, nie AI.",
       },
-      "swipe-toggle": {
-        title: "Lista albo swipe",
-        body: "Przesuwaj oferty. Każdy ruch uczy Twój gust.",
+      "swipe-row": {
+        title: "Przesuń wyjazd",
+        body: "W prawo: chcę. W lewo: nie dla mnie.",
       },
       source: {
         title: "Każda liczba ma źródło",

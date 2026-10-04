@@ -5,10 +5,10 @@ export type IntroStepId = "dna" | "calendar" | "proof" | "decide";
 export const INTRO_STEPS: IntroStepId[] = ["dna", "calendar", "proof", "decide"];
 
 /** Coach-mark anchor ids; every one is an element carrying `data-tour="<id>"` (the first visible one wins). */
-export type AnchorId = "slider" | "fit" | "swipe-toggle" | "source" | "flip" | "calendar" | "scan";
+export type AnchorId = "slider" | "fit" | "swipe-row" | "source" | "flip" | "calendar" | "scan";
 
 export const TOURS: Record<TourKey, { anchor: AnchorId }[]> = {
-  trips: [{ anchor: "slider" }, { anchor: "fit" }, { anchor: "swipe-toggle" }],
+  trips: [{ anchor: "slider" }, { anchor: "fit" }, { anchor: "swipe-row" }],
   receipt: [{ anchor: "source" }, { anchor: "flip" }],
   windows: [{ anchor: "calendar" }],
   inbox: [{ anchor: "scan" }],

@@ -207,30 +207,33 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
   `/profile/dna`, `/feedback`, notifications), so AI text comes back in the chosen language. The backend side is a separate task. The
   in-browser mocks already answer in the chosen language.
 
-## Swipe on offers (`/trips`, T6)
-- **Deck session.** The deck snapshot, position, undo history and the "Learned: …" / "Undone" toast live in
-  `lib/deck-session.ts` (not persisted), so a ranking update (the full phase landing) or a deck remount never drops the
-  toast or the history; undo restores the same card. The toast has its own live region at page level (separate from the
-  ranking announcement) and stays 6 s unless a newer one replaces it. The deck is `aria-busy` until the ranking is final.
-- **Toggle.** "Lista / Karty" under the slider. **The swipe view ("Karty") opens by default** until the user picks a view;
-  after that the choice is remembered (`tripai-swipe-v1`, `viewChosen`). Swipe mode shows the ranked cards you haven't reacted to as a deck (photo, dates, all-in
-  PLN, score ring, tags, fit badge). It reuses the Travel DNA deck's swipe physics and stamps (`components/offer-deck.tsx`).
-- **Gestures.** → "Chcę tam" (like, and the trip is watched for price drops via T5b `POST /picks`), ← "Nie dla mnie" (hidden), ↑ "Super!"
-  (strong like). The same choices are available as buttons and arrow keys. Backspace or the button undoes (`DELETE /reactions/{id}`, and
-  the watch is dropped).
-- **Toast.** After each swipe a toast says what was learned, built from the backend `diff`: "Zapamiętane: lubisz Rzym: jedzenie, historia ·
-  obserwujemy cenę". With personalisation off, it says the profile stays as is.
-- **One re-rank.** Learning is buffered while the deck is open and committed when you go back to the list (or leave the page). That
-  triggers one `/recommendations` call with the new profile, not one per swipe.
-- **Hidden trips.** In list mode they sit under "Ukryte · pokaż", each with "Przywróć".
+## Swipe on offers (`/trips`, T6 → T23 swipeable list)
+- **One ranked list, swipeable rows (T23).** There is no "Lista / Karty" toggle and no full-screen deck any more: `/trips` is
+  one ranked list (`lib/trip-list.ts`, so home #1 = /trips #1) and each row swipes like a mail-app row (`components/trips-swipe.tsx`
+  `SwipeRow`). A green ✓ (right) or clay ✕ (left) shows behind the card while dragging.
+- **Gestures.** → "Chcę tam" (like, and the trip is watched for price drops via T5b `POST /picks`), ← "Nie dla mnie" (the row
+  collapses out of the list, the rest close the gap). A swipe commits past 96 px or on a fast flick (`swipeIntent` in
+  `lib/swipe-session.ts`); a shorter drag springs back. Only clearly horizontal drags count (`touch-action: pan-y` + direction
+  lock), so vertical scrolling is never hijacked, and a tap still opens the trip.
+- **Buttons and keys.** The heart on each card is "Super!" (strong like; vertical swipe would fight the scroll). "⋯" opens
+  "Chcę tam" / "Nie dla mnie" as real buttons. On a focused row → and ← do the same; Backspace undoes. A screen-reader hint
+  explains the gestures.
+- **Undo.** The toast ("Zapamiętane: … · ukryte z listy") has "Cofnij": `DELETE /reactions/{id}`, the watch is dropped and a hidden
+  row comes back in the same place.
+- **Session.** History, the toast and rows being hidden live in `lib/swipe-session.ts` (not persisted), so a ranking update never
+  drops the toast or the history. The toast has its own live region at page level and stays 6 s unless a newer one replaces it.
+- **Toast.** Built from the backend `diff`: "Zapamiętane: lubisz Rzym: jedzenie, historia · obserwujemy cenę". With
+  personalisation off, it says the profile stays as is.
+- **One re-rank.** Learning is buffered; "Pokaż nowy ranking" under the list (or leaving the page) commits it with one
+  `/recommendations` call, not one per swipe, so rows don't jump while you swipe.
+- **Hidden trips.** Under "Ukryte · pokaż" below the list, each with "Przywróć".
 - **Failures are never hidden.**
-  - A swipe the server didn't confirm (5xx, timeout) is not learned locally. The card goes back to the end of the deck with a toast.
+  - A swipe the server didn't confirm (5xx, timeout) is not learned locally. The row comes back with a toast.
   - Undo is disabled while a swipe is still saving.
   - A failed undo keeps the swipe and says so.
   - Only a 404 (the server never stored the card or reaction, e.g. after a session reset) is handled in the browser.
 - **Language.** Swipes send the Travel DNA language as `lang`, so the backend's reasons come back in Polish or English.
-- **Fixture mode.** `lib/reactions.ts` mirrors the backend rules, and `lib/reactions.test.ts` pins them to the backend test cases. Copy is
-  one PL + EN object (`SWIPE_COPY`), ready to move into `lib/i18n`. The language follows the Travel DNA toggle.
+- **Fixture mode.** `lib/reactions.ts` mirrors the backend rules, and `lib/reactions.test.ts` pins them to the backend test cases.
 
 ## First-run tutorial (T11)
 A new user should get what TripAI does in under 30 seconds.
@@ -244,7 +247,7 @@ A new user should get what TripAI does in under 30 seconds.
   *Powiedz nam, jak lubisz podróżować → Znajdziemy, kiedy masz wolne → Gdzie i kiedy, z dowodami → Ty decydujesz*.
   - Swipe, Next/Back, the dots or ←/→ move between steps. "Pomiń" and Esc close it.
   - The last step opens the Travel DNA deck. If you already have a profile, it just closes.
-- **Coach marks.** One-time spotlight tips the first time you open a screen: Trips (slider, fit badge, list/swipe toggle),
+- **Coach marks.** One-time spotlight tips the first time you open a screen: Trips (slider, fit badge, swipe a row),
   receipt (source tag, "what would flip it"), Free time (calendar), inbox ("Run the scan now", live backend only).
   - Each tip targets `[data-tour="…"]`. Anchors that don't render are skipped. If none render, the tour stays unseen.
   - "Hide tips", ✕ or Esc ends that screen's tour.

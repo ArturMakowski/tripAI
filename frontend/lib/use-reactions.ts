@@ -2,9 +2,9 @@
 
 /**
  * T6 swipe on offers: client for POST/DELETE /reactions (+ T5b /picks for "Chcę tam"), and the
- * swipe log. Learning is buffered while the deck is open (`pending`) and committed to the trip
- * store when you go back to the list, so the ranking refetches once (not after every swipe:
- * live /recommendations costs real API calls).
+ * swipe log. Rows on /trips are swiped in place; learning is buffered (`pending`) and committed to
+ * the trip store when the user asks for the new ranking or leaves /trips, so the ranking refetches
+ * once (not after every swipe: live /recommendations costs real API calls).
  */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -15,7 +15,6 @@ import { normalise } from "./scoring";
 import { useTrip } from "./store";
 import type { RankedRecommendation, TasteProfile, Weights } from "./types";
 
-export type TripsView = "list" | "swipe";
 export type WatchStatus = "ok" | "full" | "demo" | null;
 
 export interface SwipeEntry {
@@ -31,13 +30,9 @@ export interface SwipeEntry {
 }
 
 interface SwipeState {
-  /** Swipe ("Karty") until the user picks a view; then their choice is remembered. */
-  view: TripsView;
-  viewChosen: boolean;
   log: SwipeEntry[];
-  /** learned profile/weights not yet pushed into the trip store (deck open) */
+  /** learned profile/weights not yet pushed into the trip store (until "show the new ranking" or leaving /trips) */
   pending: { profile: TasteProfile; weights: Weights; weightsChanged: boolean } | null;
-  setView: (v: TripsView) => void;
   push: (e: SwipeEntry, learned: { profile: TasteProfile; weights: Weights }) => void;
   drop: (recId: string, learned: { profile: TasteProfile; weights: Weights }) => void;
   clearPending: () => void;
@@ -47,11 +42,8 @@ interface SwipeState {
 export const useSwipe = create<SwipeState>()(
   persist(
     (set) => ({
-      view: "swipe",
-      viewChosen: false,
       log: [],
       pending: null,
-      setView: (view) => set({ view, viewChosen: true }),
       push: (e, learned) =>
         set((s) => ({
           log: [...s.log.filter((x) => x.rec.id !== e.rec.id), e],
@@ -60,17 +52,17 @@ export const useSwipe = create<SwipeState>()(
       drop: (recId, learned) =>
         set((s) => ({ log: s.log.filter((x) => x.rec.id !== recId), pending: { ...learned, weightsChanged: true } })),
       clearPending: () => set({ pending: null }),
-      reset: () => set({ view: "swipe", viewChosen: false, log: [], pending: null }),
+      reset: () => set({ log: [], pending: null }),
     }),
     // the log keeps whole cards so "hidden" can show them; cap it so localStorage stays small
     {
       name: "tripai-swipe-v1",
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ ...s, log: capLog(s.log) }),
-      // Saved before views were "chosen" (the old default was the list): open swipe until a real pick.
+      partialize: (s) => ({ log: capLog(s.log), pending: s.pending }),
+      // state saved by the old list/deck toggle carries `view` / `viewChosen`: ignored
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<SwipeState>;
-        return { ...current, ...p, view: p.viewChosen ? (p.view ?? current.view) : "swipe", viewChosen: !!p.viewChosen };
+        return { ...current, log: p.log ?? current.log, pending: p.pending ?? current.pending };
       },
     },
   ),
@@ -101,7 +93,7 @@ async function http<T>(path: string, init: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** The profile/weights the next swipe builds on: the deck's pending learning, else the store's. */
+/** The profile/weights the next swipe builds on: the pending learning, else the store's. */
 export function currentBase(): { profile: TasteProfile; weights: Weights } {
   const p = useSwipe.getState().pending;
   if (p) return { profile: p.profile, weights: p.weights };

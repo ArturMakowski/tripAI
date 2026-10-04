@@ -1,62 +1,243 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, EyeOff, LayoutList, Layers, Sparkles } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { OfferDeck } from "@/components/offer-deck";
+/**
+ * Swipeable rows on /trips (one ranked list, no separate deck), like mail-app rows:
+ *  - swipe right = "Chcę tam" (like: POST /reactions, the learned toast, the price is watched),
+ *  - swipe left = "Nie dla mnie" (the row collapses out; the toast offers Undo, which brings it back
+ *    in place), a heart button = "Super!" (a vertical swipe would fight the page scroll),
+ *  - a coloured reveal behind the card while dragging, and a distance/speed threshold before it commits,
+ *  - only clearly horizontal drags count (touch-action: pan-y + direction lock); a tap opens the trip,
+ *  - keyboard: "⋯" opens the same actions as buttons; on a focused row → / ← act, Backspace undoes.
+ * Learning is buffered and committed once ("Show the new ranking", or leaving /trips).
+ */
+import { AnimatePresence, motion, useMotionValue, useTransform, type PanInfo } from "motion/react";
+import { Check, ChevronDown, EyeOff, Heart, MoreHorizontal, RefreshCw, Sparkles, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { CityPhoto } from "@/components/rec-card";
 import { PriceInline } from "@/components/money";
 import { useLang, useT } from "@/lib/i18n";
-import { GESTURE_REACTION, swipeCopy, toastText, type OfferGesture } from "@/lib/reactions";
+import { swipeCopy, toastText } from "@/lib/reactions";
+import { swipeIntent, TOAST_MS, useSwipeSession } from "@/lib/swipe-session";
 import type { RankedRecommendation } from "@/lib/types";
-import { TOAST_MS, useDeckSession } from "@/lib/deck-session";
-import { commitLearning, currentBase, hiddenIds, react, unreact, useSwipe, type SwipeEntry } from "@/lib/use-reactions";
+import { commitLearning, currentBase, hiddenIds, react, unreact, useSwipe } from "@/lib/use-reactions";
 import { cn } from "@/lib/utils";
 
-const REACTION_GESTURE: Record<SwipeEntry["reaction"], OfferGesture> = { like: "right", dislike: "left", love: "up" };
+export type RowReaction = "like" | "dislike" | "love";
 
-
-/** "Swipe" / "List" switch on /trips. Leaving the deck commits what it learned (one re-rank). */
-export function TripsViewToggle({ className }: { className?: string }) {
+/**
+ * The row actions, in order: each reaction builds on the previous one's profile, and undo waits for
+ * every pending swipe, so "last" is always the trip the user means.
+ */
+export function useRowSwipes() {
   const lang = useLang();
   const t = swipeCopy(lang);
-  const view = useSwipe((s) => s.view);
-  const setView = useSwipe((s) => s.setView);
-  const options = [
-    { v: "list" as const, label: t.list, icon: LayoutList },
-    { v: "swipe" as const, label: t.swipe, icon: Layers },
-  ];
+  const { remember, forget, hide, unhide, showToast } = useSwipeSession();
+  const inFlight = useRef<Promise<unknown>>(Promise.resolve());
+  const [saving, setSaving] = useState(0);
+  const [undoing, setUndoing] = useState(false);
+
+  const swipe = useCallback(
+    (rec: RankedRecommendation, reaction: RowReaction) => {
+      if (reaction === "dislike") hide(rec.id); // collapse now; the log takes over once the backend answers
+      setSaving((n) => n + 1);
+      inFlight.current = inFlight.current
+        .then(async () => {
+          const personalized = currentBase().profile.personalize !== false;
+          const entry = await react(rec, reaction);
+          remember(entry);
+          showToast(toastText(entry.res, lang, { personalized, watch: entry.watch }), true);
+        })
+        .catch((err) => {
+          // not saved (or unknown): never pretend it was; a swiped-away row comes back
+          console.warn("[tripai] reaction not saved:", err);
+          showToast(t.swipeFailed(rec.city));
+        })
+        .finally(() => {
+          unhide(rec.id);
+          setSaving((n) => n - 1);
+        });
+    },
+    [lang, t, hide, unhide, remember, showToast],
+  );
+
+  const undo = useCallback(() => {
+    const last = useSwipeSession.getState().history.at(-1);
+    if (!last || saving > 0 || undoing) return;
+    setUndoing(true);
+    inFlight.current = inFlight.current
+      .then(() => unreact(last))
+      .then(() => {
+        forget(last);
+        showToast(t.undone(last.rec.city));
+      })
+      .catch((err) => {
+        console.warn("[tripai] undo failed:", err);
+        showToast(t.undoFailed(last.rec.city)); // the reaction still stands, and we say so
+      })
+      .finally(() => setUndoing(false));
+  }, [saving, undoing, forget, showToast, t]);
+
+  const history = useSwipeSession((s) => s.history);
+  return { swipe, undo, canUndo: history.length > 0 && saving === 0 && !undoing };
+}
+
+/** Backspace undoes the last swipe on /trips (not while typing). */
+export function useUndoShortcut(undo: () => void) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Backspace" || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      e.preventDefault();
+      undo();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [undo]);
+}
+
+/**
+ * One swipeable row. Wraps a trip card: drag it right (like) or left (not for me); a coloured layer
+ * behind it shows what will happen. Vertical drags are left to the page scroll.
+ */
+export function SwipeRow({
+  rec,
+  onReact,
+  children,
+  tour,
+}: {
+  rec: RankedRecommendation;
+  onReact: (rec: RankedRecommendation, r: RowReaction) => void;
+  children: ReactNode;
+  /** coach-mark anchor (first row only) */
+  tour?: string;
+}) {
+  const lang = useLang();
+  const t = swipeCopy(lang);
+  const x = useMotionValue(0);
+  const likeOpacity = useTransform(x, [12, 96], [0, 1]);
+  const nopeOpacity = useTransform(x, [-96, -12], [1, 0]);
+  const dragged = useRef(false);
+  const [leaving, setLeaving] = useState(false);
+
+  const onDragEnd = (_: unknown, info: PanInfo) => {
+    const intent = swipeIntent(info.offset.x, info.velocity.x);
+    if (intent === "dislike") {
+      setLeaving(true); // slides out; the list then collapses the row
+      onReact(rec, "dislike");
+    } else if (intent === "like") onReact(rec, "like");
+    // a drag is never also a tap: swallow the click that follows the release
+    setTimeout(() => (dragged.current = false), 0);
+  };
+
   return (
-    <div data-tour="swipe-toggle" role="group" aria-label={t.viewLabel} className={cn("inline-flex rounded-full border border-line bg-card p-1 shadow-soft", className)}>
-      {options.map(({ v, label, icon: Icon }) => (
-        <button
-          key={v}
-          aria-pressed={view === v}
-          onClick={() => {
-            if (v === "list") commitLearning();
-            setView(v);
-          }}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
-            view === v ? "bg-ink text-paper" : "text-ink-soft hover:text-ink",
-          )}
-        >
-          <Icon className="size-4" aria-hidden />
-          {label}
-        </button>
-      ))}
+    <div
+      className="relative select-none"
+      data-tour={tour}
+      // no native image/link drag: it would steal the pointer from the row swipe
+      onDragStartCapture={(e) => e.preventDefault()}
+      onKeyDown={(e) => {
+        // on a focused row (its link or a button inside): → like, ← not for me
+        if (e.altKey || e.metaKey || e.ctrlKey) return;
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          onReact(rec, "like");
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          setLeaving(true);
+          onReact(rec, "dislike");
+        }
+      }}
+    >
+      {/* the reveal behind the card */}
+      <div aria-hidden className="absolute inset-0 flex items-center justify-between overflow-hidden rounded-[1.75rem] px-6">
+        <motion.span style={{ opacity: likeOpacity }} className="absolute inset-0 rounded-[1.75rem] bg-pine" />
+        <motion.span style={{ opacity: nopeOpacity }} className="absolute inset-0 rounded-[1.75rem] bg-clay" />
+        <motion.span style={{ opacity: likeOpacity }} className="relative flex items-center gap-2 font-semibold text-paper">
+          <Check className="size-6" /> {t.like}
+        </motion.span>
+        <motion.span style={{ opacity: nopeOpacity }} className="relative flex items-center gap-2 font-semibold text-paper">
+          {t.dislike} <X className="size-6" />
+        </motion.span>
+      </div>
+      <motion.div
+        style={{ x, touchAction: "pan-y" }}
+        drag="x"
+        dragDirectionLock
+        dragSnapToOrigin={!leaving}
+        dragElastic={0.6}
+        dragConstraints={{ left: 0, right: 0 }}
+        animate={leaving ? { x: -480, opacity: 0 } : undefined}
+        transition={leaving ? { duration: 0.22, ease: "easeIn" } : undefined}
+        onDragStart={() => (dragged.current = true)}
+        onDragEnd={onDragEnd}
+        onClickCapture={(e) => {
+          if (dragged.current) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+        className="relative"
+      >
+        {children}
+      </motion.div>
     </div>
   );
 }
 
+/** The heart ("Super!") and "⋯" with the two swipe actions as buttons (keyboard, screen readers, no-swipe users). */
+export function RowActions({ rec, onReact }: { rec: RankedRecommendation; onReact: (rec: RankedRecommendation, r: RowReaction) => void }) {
+  const lang = useLang();
+  const t = swipeCopy(lang);
+  const [open, setOpen] = useState(false);
+  const loved = useSwipe((s) => s.log.some((e) => e.rec.id === rec.id && e.reaction === "love"));
+  const btn = "relative z-[2] grid size-9 shrink-0 place-items-center rounded-full border border-line bg-card text-ink-soft hover:border-pine/40";
+  return (
+    <span className="relative z-[2] flex items-center gap-1.5">
+      <button type="button" aria-label={t.love} aria-pressed={loved} onClick={() => onReact(rec, "love")} className={cn(btn, loved && "border-clay/40 text-clay")}>
+        <Heart className={cn("size-4", loved && "fill-current")} aria-hidden />
+      </button>
+      <button type="button" aria-label={t.moreActions(rec.city)} aria-expanded={open} onClick={() => setOpen((o) => !o)} className={btn}>
+        <MoreHorizontal className="size-4" aria-hidden />
+      </button>
+      {open && (
+        <span role="group" aria-label={t.moreActions(rec.city)} className="absolute right-0 bottom-11 z-[3] flex gap-1.5 rounded-2xl border border-line bg-card p-1.5 shadow-lift">
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onReact(rec, "like");
+            }}
+            className="flex items-center gap-1 rounded-xl bg-pine-soft px-3 py-2 text-sm font-semibold whitespace-nowrap text-pine-deep"
+          >
+            <Check className="size-4" aria-hidden /> {t.like}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onReact(rec, "dislike");
+            }}
+            className="flex items-center gap-1 rounded-xl bg-clay-soft px-3 py-2 text-sm font-semibold whitespace-nowrap text-ink"
+          >
+            <X className="size-4" aria-hidden /> {t.dislike}
+          </button>
+        </span>
+      )}
+    </span>
+  );
+}
+
 /**
- * What a swipe taught us ("Learned: …", "Undone"), in its own live region, separate from the ranking
- * announcements. It reads the deck session, so a ranking update or a deck remount never drops it;
- * a newer toast replaces it, otherwise it stays TOAST_MS. Render it once per page (outside the deck).
+ * What a swipe taught us ("Learned: …", "Undone"), in its own polite live region, separate from the
+ * ranking announcements, with "Undo" for the last swipe. It reads the session store, so a ranking
+ * update never drops it; a newer toast replaces it, otherwise it stays TOAST_MS.
  */
-export function SwipeToast() {
-  const toast = useDeckSession((s) => s.toast);
-  const clearToast = useDeckSession((s) => s.clearToast);
+export function SwipeToast({ onUndo, canUndo }: { onUndo: () => void; canUndo: boolean }) {
+  const lang = useLang();
+  const t = swipeCopy(lang);
+  const toast = useSwipeSession((s) => s.toast);
+  const clearToast = useSwipeSession((s) => s.clearToast);
   useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => clearToast(toast.id), TOAST_MS);
@@ -66,136 +247,52 @@ export function SwipeToast() {
     <div className="pointer-events-none fixed inset-x-0 bottom-24 z-40 flex justify-center px-4" role="status" aria-live="polite">
       <AnimatePresence mode="popLayout">
         {toast && (
-          <motion.p
+          <motion.div
             key={toast.id}
             initial={{ y: 16, opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 8, opacity: 0 }}
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
-            className="flex max-w-[408px] items-start gap-2 rounded-2xl bg-ink px-3.5 py-2.5 text-sm leading-snug text-paper shadow-lift"
+            className="pointer-events-auto flex max-w-[408px] items-start gap-2 rounded-2xl bg-ink px-3.5 py-2.5 text-sm leading-snug text-paper shadow-lift"
           >
             <Sparkles className="mt-0.5 size-4 shrink-0 text-sun" aria-hidden />
-            {toast.text}
-          </motion.p>
+            <span className="min-w-0 flex-1">{toast.text}</span>
+            {toast.undoable && canUndo && (
+              <button
+                type="button"
+                onClick={onUndo}
+                aria-keyshortcuts="Backspace"
+                className="-my-1 shrink-0 rounded-lg px-2 py-1 font-semibold text-sun underline-offset-2 hover:underline"
+              >
+                {t.undo}
+              </button>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
 
-/**
- * Swipe mode: the ranked cards you haven't reacted to, as a deck. Each swipe goes to POST /reactions
- * (right/up also watch the price via T5b /picks); the learned profile is applied when you leave.
- */
-export function SwipeMode({ ranked, refining }: { ranked: RankedRecommendation[]; refining: boolean }) {
+/** "Show the new ranking": what the swipes taught us, applied in one refetch (not after every swipe). */
+export function PendingRanking() {
   const lang = useLang();
   const t = swipeCopy(lang);
+  const pending = useSwipe((s) => s.pending);
   const log = useSwipe((s) => s.log);
-  const setView = useSwipe((s) => s.setView);
-  // The deck lives in the session store (lib/deck-session.ts): the snapshot is taken once the ranking is
-  // final, and a later ranking update or a remount never reshuffles it or drops the toast/undo history.
-  const { cards, position, history, offer, advance, back, pushBack, remember, forget, showToast } = useDeckSession();
-  const [busy, setBusy] = useState(false); // an undo is running
-  const [saving, setSaving] = useState(0); // swipes not yet confirmed by the backend
-  const inFlight = useRef<Promise<unknown>>(Promise.resolve());
-
-  useEffect(() => {
-    offer(ranked, refining, new Set(useSwipe.getState().log.map((e) => e.rec.id)));
-  }, [offer, refining, ranked]);
-
-  const onSwipe = useCallback(
-    (rec: RankedRecommendation, g: OfferGesture) => {
-      advance();
-      setSaving((n) => n + 1);
-      // swipes are applied in order (each builds on the previous one's profile)
-      inFlight.current = inFlight.current
-        .then(async () => {
-          const personalized = currentBase().profile.personalize !== false;
-          const entry = await react(rec, GESTURE_REACTION[g]);
-          remember(entry);
-          showToast(toastText(entry.res, lang, { personalized, watch: entry.watch }));
-        })
-        .catch((err) => {
-          // not saved (or unknown): never pretend it was. The card goes back to the end of the deck.
-          console.warn("[tripai] swipe not saved:", err);
-          pushBack(rec);
-          showToast(swipeCopy(lang).swipeFailed(rec.city));
-        })
-        .finally(() => setSaving((n) => n - 1));
-    },
-    [lang, advance, remember, showToast, pushBack],
-  );
-
-  const onUndo = useCallback(() => {
-    const last = history.at(-1);
-    // Undo only once every swipe is confirmed: otherwise "last" may not be the card on screen.
-    if (!last || saving > 0) return;
-    setBusy(true);
-    inFlight.current = inFlight.current
-      .then(() => unreact(last))
-      .then(() => {
-        forget(last);
-        back();
-        showToast(t.undone(last.rec.city));
-      })
-      .catch((err) => {
-        console.warn("[tripai] undo failed:", err);
-        showToast(t.undoFailed(last.rec.city)); // the swipe still stands, and we say so
-      })
-      .finally(() => setBusy(false));
-  }, [history, saving, t, forget, back, showToast]);
-
-  const done = cards !== null && position >= cards.length;
-  const lastGesture = history.at(-1) ? REACTION_GESTURE[history.at(-1)!.reaction] : null;
-
+  if (!pending || !log.length) return null;
   return (
-    // aria-busy until the ranking is final and the deck snapshot is taken (e2e and screen readers wait on it)
-    <section className="mt-4" aria-label={t.swipe} aria-busy={refining || cards === null}>
-      {cards === null ? (
-        <p className="rounded-2xl bg-paper-deep px-4 py-3 text-sm text-ink-soft">{refining ? t.refining : t.empty}</p>
-      ) : done ? (
-        <div className="rounded-[2rem] border border-line bg-card p-6 text-center shadow-soft">
-          <p className="font-display text-2xl font-medium text-ink">{cards.length ? t.doneTitle : t.empty}</p>
-          {history.length > 0 && <p className="mt-2 text-sm text-ink-soft">{t.doneBody(history.length)}</p>}
-          <div className="mt-5 flex justify-center gap-2">
-            {history.length > 0 && (
-              <button onClick={onUndo} disabled={busy || saving > 0} className="rounded-full border border-line px-4 py-2 text-sm font-medium text-ink-soft hover:bg-paper-deep">
-                {t.undo}
-              </button>
-            )}
-            <button
-              onClick={() => {
-                commitLearning();
-                setView("list");
-              }}
-              className="rounded-full bg-pine px-4 py-2 text-sm font-semibold text-paper hover:bg-pine-deep"
-            >
-              {t.showRanking}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* the deck's buttons say what each direction does; the gesture help is for screen readers */}
-          <p className="sr-only">{t.hint}</p>
-          <OfferDeck
-            cards={cards}
-            position={position}
-            lang={lang}
-            onSwipe={onSwipe}
-            onUndo={onUndo}
-            canUndo={history.length > 0 && saving === 0}
-            undoGesture={lastGesture}
-            busy={busy}
-          />
-          {log.length > 0 && <p className="mt-4 text-center text-xs text-muted-foreground">{t.pendingNote}</p>}
-        </>
-      )}
-    </section>
+    <button
+      type="button"
+      onClick={() => commitLearning()}
+      className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-pine/30 bg-pine-soft px-4 py-2.5 text-sm font-semibold text-pine-deep"
+    >
+      <RefreshCw className="size-4" aria-hidden /> {t.showRanking}
+    </button>
   );
 }
 
-/** List mode: the trips you swiped "Nie dla mnie", one tap away (never hidden silently). */
+/** The trips you swiped "Nie dla mnie", one tap away (never hidden silently). */
 export function HiddenTrips() {
   const lang = useLang();
   const { fmt } = useT();
