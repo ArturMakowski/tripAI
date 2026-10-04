@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { addDays } from "./date-range";
 import { DEMO_PROFILE } from "./mock/fixtures";
-import { scoreLocally, withPriceStatus } from "./mock/api";
+import { fastEstimates, scoreLocally, withPriceStatus } from "./mock/api";
 import { DEFAULT_WEIGHTS, SLIDER_PRESETS } from "./scoring";
 import { listedTrips, rankedView, topTrip } from "./trip-list";
 import type { RankedRecommendation } from "./types";
@@ -50,5 +50,34 @@ describe("topTrip (home #1 = /trips #1)", () => {
   it("lists everything until today is known (prerender)", () => {
     const ranked = view(stored);
     expect(listedTrips(ranked, none, null).length).toBe(ranked.filter((r) => r.fit?.label !== "poor_fit").length);
+  });
+});
+
+describe("fast phase: fit not judged yet (fit = null) never means 'Not your style'", () => {
+  // live mode, phase=fast: estimate prices, no verdicts at all
+  const fast = fastEstimates(withPriceStatus(scoreLocally(DEMO_PROFILE, DEFAULT_WEIGHTS))).map((r) => ({ ...r, fit: null }));
+
+  it("keeps every unjudged trip in the main ranked list, by score, with no verdict made up", () => {
+    const ranked = view(fast, DEFAULT_WEIGHTS, false);
+    expect(ranked.every((r) => r.fit == null)).toBe(true); // no client-side guess (it labelled most trips poor_fit)
+    const listed = listedTrips(ranked, none, TODAY);
+    expect(listed.map((r) => r.id)).toEqual(ranked.filter((r) => r.window.start >= TODAY).map((r) => r.id));
+    expect(listed.length).toBeGreaterThan(0);
+    const scores = listed.map((r) => r.score.total);
+    expect(scores).toEqual([...scores].sort((a, b) => b - a));
+  });
+
+  it("only an actual poor_fit verdict moves a trip out of the main list", () => {
+    const ranked = view(fast, DEFAULT_WEIGHTS, false);
+    const judged = ranked.map((r, i) => (i === 0 ? { ...r, fit: { ...r, label: "poor_fit" } as never } : r));
+    const listed = listedTrips(judged, none, TODAY);
+    expect(listed.some((r) => r.id === judged[0].id)).toBe(false);
+    expect(listed.length).toBe(listedTrips(ranked, none, TODAY).length - 1);
+  });
+
+  it("home #1 = /trips #1 in the fast phase too", () => {
+    const ranked = view(fast, DEFAULT_WEIGHTS, false);
+    expect(topTrip(ranked, none, TODAY)?.id).toBe(listedTrips(ranked, none, TODAY)[0].id);
+    expect(topTrip(ranked, none, TODAY)).not.toBeNull();
   });
 });

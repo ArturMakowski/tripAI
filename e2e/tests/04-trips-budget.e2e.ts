@@ -2,7 +2,7 @@ import { test } from '@e2e-dev/web';
 import { expect } from 'e2e';
 import { guard, pln } from './support/tripai.ts';
 
-test('Trips: cards show photo, price and fit badge; with a 1,000 PLN budget no over-budget card sits above an in-budget one', async ({ app, agent, screen, browser }) => {
+test('Trips: cards show photo, price and (once judged) a fit badge; with a 1,000 PLN budget no over-budget card sits above an in-budget one', async ({ app, agent, screen, browser }) => {
   await guard(browser, app.baseUrl);
 
   // Demo profile: switch on the optional "Never show trips over…" limit (off by default since PR #31),
@@ -28,8 +28,13 @@ test('Trips: cards show photo, price and fit badge; with a 1,000 PLN budget no o
 
   for (const [i, text] of texts.entries()) {
     expect(pln(text), `card ${i + 1} shows a PLN price: ${text.slice(0, 80)}`).not.toBeNull();
-    expect(text, `card ${i + 1} shows a fit badge`).toMatch(/(great|good|poor) fit|mixed|świetn|dobr|słab|mieszan/i);
   }
+  // A fit badge appears only once the backend has judged the trip (fit = null in the fast phase means
+  // "not judged yet": no badge, still in the main list). Every badge shown must be a real verdict.
+  const badges = (await browser.evaluate(() =>
+    [...document.querySelectorAll('main li article [data-tour="fit"]')].map((b) => (b.textContent ?? '').trim()),
+  )) as string[];
+  for (const b of badges) expect(b, 'fit badge text').toMatch(/(great|good|poor) fit|mixed|not your style|świetn|dobr|słab|mieszan|częściowo|nie w twoim/i);
   // Every card photo actually loads. Photos below the fold are lazy, so bring each into view and decode it.
   const broken = await browser.evaluate(async () => {
     const bad: string[] = [];
@@ -53,5 +58,5 @@ test('Trips: cards show photo, price and fit badge; with a 1,000 PLN budget no o
   const inBudgetBelowOver = firstOver === -1 ? [] : over.slice(firstOver).map((o, k) => (!o ? firstOver + k + 1 : 0)).filter(Boolean);
   expect(inBudgetBelowOver, `in-budget cards ranked below an over-budget one (card #${firstOver + 1} is over)`).toEqual([]);
 
-  await agent.assert('each trip card shows a destination photo, a total price in PLN and a fit badge such as "Great fit"', { vision: true });
+  await agent.assert('each trip card shows a destination photo and a total price in PLN; a fit badge such as "Great fit" may be missing on trips that are not judged yet', { vision: true });
 });
