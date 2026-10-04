@@ -42,3 +42,11 @@
 - DNA card photos must illustrate each statement
 - Modlin = "Warszawa-Modlin (WMI)", grouped with Warszawa
 - Liked: swipe quiz, budget slider, airport picking, bank holidays
+
+## Time to value (tester feedback, decided 4 Oct)
+- Tester wanted recommendations right away; the "accept your profile" stop (DNA result + "Looks right, continue")
+  felt useless. The 14-card swipe deck stays as is: tinder-style with visible progress, "not exhausting".
+- First run = welcome → 14 swipes → one confirm tap (dates pre-filled with the next long weekend, 1 person,
+  default airport; all editable) → ranked trips. ~16 taps instead of ~19–24.
+- The persona result becomes a compact card on top of /trips (full view in Profile), not a stop.
+- No intro tutorial in the critical path; contextual coach marks only.
