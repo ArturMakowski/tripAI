@@ -27,7 +27,7 @@ Tests: `cd backend && uv run pytest && uv run ruff check .` · `cd frontend && n
 Private backend (T12): the browser only talks to the frontend (same-origin `/api/*`); see
 [Private backend](#private-backend-t12).
 
-Docs: [concept](docs/CONCEPT.md) · [architecture](docs/ARCHITECTURE.md) · [data sources](docs/DATA_SOURCES.md) · [competitors](docs/COMPETITORS.md) · [backlog](docs/BACKLOG.md)
+Docs: [how it works](docs/HOW_IT_WORKS.md) · [concept](docs/CONCEPT.md) · [architecture](docs/ARCHITECTURE.md) · [data sources](docs/DATA_SOURCES.md) · [competitors](docs/COMPETITORS.md) · [backlog](docs/BACKLOG.md)
 
 
 ## Backend core (T1): scoring, agents, API
