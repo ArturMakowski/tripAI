@@ -119,6 +119,16 @@ def _ev_value(rec: RankedRecommendation, kind: str) -> float | None:
     return None
 
 
+STYLE_FACTORS = ("weather", "crowds", "taste")
+PRICE_KINDS = {"flight", "hotel", "price_baseline", "peak"}
+
+
+def style_score(rec: RankedRecommendation) -> float:
+    """How well the trip matches the person (weather, crowds, taste), price left out: the fit
+    verdict answers "is this your kind of trip?"; whether it's affordable is the budget's job."""
+    return sum(getattr(rec.score, f) for f in STYLE_FACTORS) / len(STYLE_FACTORS)
+
+
 def fit_payload(rec: RankedRecommendation, profile: TasteProfile) -> str:
     p = effective_profile(profile)
     a = dna_answers(profile)
@@ -135,12 +145,15 @@ def fit_payload(rec: RankedRecommendation, profile: TasteProfile) -> str:
             "dates": f"{rec.window.start.isoformat()} to {rec.window.end.isoformat()}",
             "tags": rec.tags,
             "highlights": rec.highlights,
-            "score_0_to_1": rec.score.model_dump(),
-            "counterfactuals": [c.text for c in rec.counterfactuals],
+            # style factors only: price vs budget is judged separately (budget status, value
+            # badge), so it can never turn into a "not your style" verdict
+            "style_scores_0_to_1": {f: getattr(rec.score, f) for f in STYLE_FACTORS},
         },
+        # price rows stay out (the verdict judges style); indexes are the card's real ones
         "evidence": [
             {"index": i, "kind": e.kind, "label": e.label, "value": e.value, "unit": e.unit}
             for i, e in enumerate(rec.evidence)
+            if e.kind not in PRICE_KINDS
         ],
     }
     return json.dumps(payload, ensure_ascii=False, default=str)
@@ -221,7 +234,10 @@ Output:
   in `dna` and/or at least one evidence `index` in `evidence`. Only cite ids/indexes that exist.
 - Numbers: a point may only use numbers that appear in the evidence items it cites (or the
   1-5 answer of a DNA card it cites). Prefer words over numbers. Never invent prices or scores.
-- DNA answers: 1 = not me, 3 = depends, 5 = very me. Answers of 3 carry little signal."""
+- DNA answers: 1 = not me, 3 = depends, 5 = very me. Answers of 3 carry little signal.
+- Judge the person's style only. Price and budget are shown to the user separately: a trip that
+  is pricier than their budget is NOT a poor fit for that reason.
+- mixed or poor_fit needs at least one concrete concern; with no concern the label is good_fit."""
 
 fit_agent = Agent(
     None,
@@ -255,7 +271,8 @@ def label_from_score(total: float) -> str:
 
 
 def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
-    """Deterministic verdict: label from score bands, downgraded one step per hard concern."""
+    """Deterministic verdict: label from the style score bands (weather, crowds, taste; never
+    price), downgraded one step per hard concern."""
     p = effective_profile(profile)
     a = dna_answers(profile)
     tags = set(rec.tags)
@@ -305,8 +322,7 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
                                  evidence=ev_price + ev_weather))  # fmt: skip
 
     if a["q9"] >= 4:
-        if rec.score.price < 0.4:
-            hard_at.add(len(concerns))
+        if rec.score.price < 0.4:  # a plain concern: price never downgrades the style label
             concerns.append(FitPoint(text=i18n.t("fit.r.expensive"), dna=["q9"],
                                      evidence=ev_price))  # fmt: skip
         elif rec.score.price >= 0.7:
@@ -339,13 +355,13 @@ def rules_verdict(rec: RankedRecommendation, profile: TasteProfile) -> FitDraft:
     concerns = [c for _, c in kept]
     hard = sum(i in hard_at for i, _ in kept)
 
-    label = label_from_score(rec.score.total)
+    label = label_from_score(style_score(rec))
     idx = max(0, LABELS.index(label) - hard)
     label = LABELS[idx]
     summary = template_summary(label, matches, concerns)
     confidence = 0.5 if not (matches or concerns) else 0.6
-    return FitDraft(label=label, confidence=confidence, summary=summary,
-                    matches=matches, concerns=concerns)  # fmt: skip
+    return needs_a_minus(FitDraft(label=label, confidence=confidence, summary=summary,
+                                  matches=matches, concerns=concerns))  # fmt: skip
 
 
 # ---------------------------------------------------------------- jev engine
@@ -633,7 +649,19 @@ async def _run_cascade(rec, profile, model, jev, use_llm: bool, phrase: bool, sp
             }
         )
     name = f"{d.model}\u2192{_llm_name(model)} (escalated, jev p={p:.2f}; confidence self-rated)"
-    return _finish(draft, name, rec, profile), _add(d.cost_usd, llm_cost), d, True, False
+    if draft.label == "mixed" and not draft.concerns:
+        # unsure and naming no minus: borrow the rules' grounded concerns, else show the rules
+        rules = rules_verdict(rec, profile)
+        if not rules.concerns:
+            return _finish(rules, "rules", rec, profile), _add(d.cost_usd, llm_cost), d, True, False
+        draft = draft.model_copy(update={"concerns": rules.concerns})
+    return (
+        _finish(draft, name, rec, profile),
+        _add(d.cost_usd, llm_cost),
+        d,
+        True,
+        False,
+    )
 
 
 async def fit_run(
@@ -709,11 +737,111 @@ async def _fit_run(
             spec["task"].cancel()
 
 
-_CACHE: "OrderedDict[str, FitVerdict]" = OrderedDict()  # in-process layer over llm_cache
+_CACHE: "OrderedDict[str, dict]" = OrderedDict()  # in-process layer over llm_cache (entries)
+FIT_KEY_VERSION = "2"
+
+
+def trip_facts(rec: RankedRecommendation) -> list:
+    """What a fit verdict is about (not prices: those are the budget's job)."""
+    crowd = None if rec.crowd is None else round(rec.crowd, 2)
+    temp = None if rec.temp_c is None else round(rec.temp_c)
+    return [rec.id, sorted(rec.tags), list(rec.highlights), temp, crowd]
+
+
+def style_profile(profile: TasteProfile) -> dict:
+    """The parts of a profile a fit verdict depends on (no user id, budget, airports, party)."""
+    p = effective_profile(profile)
+    return {
+        "traits": {k: p.traits[k] for k in sorted(p.traits)},
+        "interests": {k: p.interests[k] for k in sorted(p.interests)},
+        "dislikes": sorted(p.dislikes),
+        "luxury": p.luxury.value,
+        "preferred_temp_c": list(p.preferred_temp_c),
+        "daily_discovery": p.daily_discovery,
+        "personalize": p.personalize,
+    }
+
+
+def _entry(verdict: FitVerdict, rec: RankedRecommendation) -> dict:
+    """Cache entry: the verdict + the *kind* of each cited evidence item, so a reuse on a card
+    whose evidence list differs (other phase, refreshed prices) can re-point the citations."""
+
+    def kinds(points: list[FitPoint]) -> list[list[str]]:
+        return [[rec.evidence[i].kind for i in pt.evidence if 0 <= i < len(rec.evidence)]
+                for pt in points]  # fmt: skip
+
+    return {"verdict": verdict.model_dump(mode="json"),
+            "kinds": {"matches": kinds(verdict.matches), "concerns": kinds(verdict.concerns)}}  # fmt: skip
+
+
+def _rebind(entry: dict, rec: RankedRecommendation, profile: TasteProfile) -> FitVerdict | None:
+    """The cached verdict with citations pointing at this card's evidence; None (a miss) if any
+    point can't be re-cited or re-grounded here."""
+    try:
+        v = FitVerdict.model_validate(entry["verdict"])
+        kinds = entry.get("kinds") or {}
+    except (ValueError, KeyError, TypeError):
+        return None
+    first = {}
+    for i, e in enumerate(rec.evidence):
+        first.setdefault(e.kind, i)
+    answers = dna_answers(profile)
+    out = {}
+    for side in ("matches", "concerns"):
+        points = []
+        for pt, ks in zip(getattr(v, side), kinds.get(side) or [[] for _ in getattr(v, side)]):
+            if any(k not in first for k in ks):
+                return None
+            moved = pt.model_copy(update={"evidence": [first[k] for k in ks]})
+            if point_problems(moved, rec, answers):
+                return None
+            points.append(moved)
+        out[side] = points
+    if ungrounded_numbers(_without_card_ids(v.summary), allowed_numbers(rec)):
+        return None
+    return v.model_copy(update=out)
+
+
 CACHE_SIZE = 1024
 
 
-def _finish(draft: FitDraft, model: str, rec: RankedRecommendation, profile: TasteProfile):
+def needs_a_minus(draft: FitDraft) -> FitDraft:
+    """Rules engine only (it computed every concern it could): a "mixed" / "not your style"
+    verdict with no minus at all is a good fit (template wording, so the text agrees)."""
+    if draft.label in ("mixed", "poor_fit") and not draft.concerns:
+        return draft.model_copy(update={
+            "label": "good_fit",
+            "summary": template_summary("good_fit", draft.matches, draft.concerns),
+        })  # fmt: skip
+    return draft
+
+
+def with_a_minus(
+    draft: FitDraft, rec: RankedRecommendation, profile: TasteProfile
+) -> tuple[FitDraft, bool]:
+    """An engine's mixed / poor_fit verdict whose concerns didn't survive grounding: name the
+    deterministic minus (the rules' grounded concerns) under the engine's label. With no minus
+    on the deterministic side either, show the rules verdict. Never promoted on its own.
+    -> (draft, True when the result is the rules' own verdict)."""
+    if draft.label not in ("mixed", "poor_fit") or draft.concerns:
+        return draft, False
+    rules = rules_verdict(rec, profile)
+    if rules.concerns:
+        return draft.model_copy(update={"concerns": rules.concerns}), False
+    return rules, True
+
+
+def _finish(
+    draft: FitDraft,
+    model: str,
+    rec: RankedRecommendation,
+    profile: TasteProfile,
+    unsure: bool = False,
+):
+    if model != "rules":
+        draft, from_rules = with_a_minus(draft, rec, profile)
+        if from_rules:
+            model = "rules"  # the engine named no minus and neither do the rules: rules' verdict
     summary = draft.summary
     neutral = i18n.t("fit.neutral_prefix")
     if not profile.personalize and not summary.startswith(neutral):
@@ -737,6 +865,69 @@ def _engine_key(engine: Engine, model: Model | str | None, jev: Model | None) ->
     return llm if engine == "llm" else "rules"
 
 
+def _resolve_engine(engine, model, jev) -> Engine:
+    if engine is None:
+        engine = "jev" if jev is not None else "llm" if model is not None else fit_engine()
+    if engine == "jev" and jev is None and not jev_enabled():
+        engine = "llm"
+    if engine == "llm" and model is None and not llm_enabled():
+        engine = "rules"
+    return engine
+
+
+def _fit_key(rec, profile, engine, model, jev, lg) -> str:
+    # Stable key: the trip (city, dates, tags, highlights, weather, crowd level) x the person's
+    # style profile x language x engine/prompts. Not prices, not the rest of the list, not the
+    # user id: the same profile + trip gets the same verdict on every reload (and in both phases).
+    return llm_cache.digest("fit", FIT_KEY_VERSION, _engine_key(engine, model, jev), lg,
+                            trip_facts(rec), style_profile(profile),
+                            INSTRUCTIONS, PHRASE_INSTRUCTIONS)  # fmt: skip
+
+
+async def _cached(key: str, engine: Engine, rec, profile) -> FitVerdict | None:
+    entry = _CACHE.get(key)
+    if entry is None and engine != "rules":
+        stored = await llm_cache.get(llm_cache.FIT, key)
+        if isinstance(stored, dict) and "verdict" in stored:
+            entry = stored
+            _remember(key, entry)
+    if entry is None:
+        return None
+    _CACHE.move_to_end(key)
+    hit = _rebind(entry, rec, profile)  # citations re-pointed at this card's evidence
+    return None if hit is None else hit.model_copy(update={"inputs_hash": rec.inputs_hash})
+
+
+async def _compute(key, rec, profile, model, engine, jev, lg) -> FitVerdict:
+    run = await fit_run(rec, profile, model, engine=engine, jev=jev, lang=lg,
+                        deadline_s=llm_cache.background_limit_s())  # fmt: skip
+    if run.engine != engine or run.degraded:
+        # a fallback (engine failed in time) was shown: pin it as provisional like a late one,
+        # so the label can't flip on reload; an agreeing AI verdict may replace it later
+        if _CACHE.get(key) is None:
+            entry = _entry(run.verdict, rec) | {"provisional": True}
+            _remember(key, entry)
+            if engine != "rules":
+                await llm_cache.put(llm_cache.FIT, key, entry)
+        return run.verdict
+    shown = _CACHE.get(key)
+    if shown is None and engine != "rules":
+        shown = await llm_cache.get(llm_cache.FIT, key)
+    if (
+        isinstance(shown, dict)
+        and shown.get("provisional")
+        and shown["verdict"].get("label") != run.verdict.label
+    ):
+        # the user already saw another label for this trip: it stays (same verdict on every
+        # reload); the AI verdict only replaces it when it agrees
+        return run.verdict
+    entry = _entry(run.verdict, rec)
+    _remember(key, entry)
+    if engine != "rules":
+        await llm_cache.put(llm_cache.FIT, key, entry)
+    return run.verdict
+
+
 async def fit(
     rec: RankedRecommendation,
     profile: TasteProfile,
@@ -747,56 +938,63 @@ async def fit(
     lang: str | None = None,
 ) -> FitVerdict:
     """Grounded fit verdict in `lang` (default: the request's). Cached in process and in
-    `api_cache` (llm_cache) by a digest of the engines' inputs; fallbacks are never cached."""
+    `api_cache` (llm_cache) under a stable key (trip x style profile x language x engine);
+    fallbacks are never cached."""
     lg = i18n.pick(lang)
-    if engine is None:
-        engine = "jev" if jev is not None else "llm" if model is not None else fit_engine()
-    if engine == "jev" and jev is None and not jev_enabled():
-        engine = "llm"
-    if engine == "llm" and model is None and not llm_enabled():
-        engine = "rules"
-    # key = everything the engines see (fit payload, language, engine/model names), so a repeat
-    # load or a language switch-back reuses the verdict, and any changed input is a miss
-    with i18n.using(lg):
-        key = llm_cache.digest("fit", _engine_key(engine, model, jev), lg, rec.id,
-                               fit_payload(rec, profile), profile_hash(profile),
-                               INSTRUCTIONS, PHRASE_INSTRUCTIONS)  # fmt: skip
-    hit = _CACHE.get(key)
-    if hit is None and engine != "rules":
-        stored = await llm_cache.get(llm_cache.FIT, key)
-        if stored is not None:
-            try:
-                hit = FitVerdict.model_validate(stored)
-            except ValueError:
-                hit = None
-            if hit is not None:
-                _remember(key, hit)
+    engine = _resolve_engine(engine, model, jev)
+    key = _fit_key(rec, profile, engine, model, jev, lg)
+    hit = await _cached(key, engine, rec, profile)
     if hit is not None:
-        _CACHE.move_to_end(key)
-        # same inputs, this request's receipt hash; callers may mutate their copy
-        return hit.model_copy(deep=True, update={"inputs_hash": rec.inputs_hash})
-
-    async def compute() -> FitVerdict:
-        run = await fit_run(rec, profile, model, engine=engine, jev=jev, lang=lg,
-                            deadline_s=llm_cache.background_limit_s())  # fmt: skip
-        if run.engine != engine or run.degraded:
-            return run.verdict  # a fallback isn't cached under the primary key: retry next time
-        _remember(key, run.verdict)
-        if engine != "rules":
-            await llm_cache.put(llm_cache.FIT, key, run.verdict.model_dump(mode="json"))
-        return run.verdict
+        return hit
 
     def late() -> FitVerdict:
-        # past llm_timeout_s: the rules verdict now; the engines finish in the background and
-        # cache their verdict for the next load
+        # past the deadline: the rules verdict now. It is remembered as this trip's (provisional)
+        # verdict, so a reload shows the same label; the engines finish in the background and
+        # replace it only if they agree on the label (docs: stable verdicts)
         with i18n.using(lg):
-            return _finish(rules_verdict(rec, profile), "rules", rec, profile)
+            v = _finish(rules_verdict(rec, profile), "rules", rec, profile)
+        entry = _entry(v, rec) | {"provisional": True}
+        _remember(key, entry)
+        if engine != "rules":
+            llm_cache.put_later(llm_cache.FIT, key, entry)
+        return v
 
-    return await llm_cache.within(key, compute, late)
+    return await llm_cache.within(
+        key, lambda: _compute(key, rec, profile, model, engine, jev, lg), late
+    )
 
 
-def _remember(key: str, verdict: FitVerdict) -> None:
-    _CACHE[key] = verdict.model_copy(deep=True)
+def prefetch_fit(
+    rec: RankedRecommendation,
+    profile: TasteProfile,
+    model: Model | str | None = None,
+    *,
+    engine: Engine | None = None,
+    jev: Model | None = None,
+    lang: str | None = None,
+) -> None:
+    """Start this card's AI verdict in the background (fast phase), so the full phase that
+    follows finds it ready or running: one verdict per profile + trip, no rules-then-AI flip."""
+    lg = i18n.pick(lang)
+    engine = _resolve_engine(engine, model, jev)
+    if engine == "rules":
+        return  # deterministic and instant: nothing to prefetch
+    key = _fit_key(rec, profile, engine, model, jev, lg)
+    if key in _CACHE:
+        return
+
+    async def run() -> FitVerdict:
+        hit = await _cached(key, engine, rec, profile)
+        if hit is not None:
+            return hit  # another instance already has it
+        with i18n.using(lg):
+            return await _compute(key, rec, profile, model, engine, jev, lg)
+
+    llm_cache.prefetch(key, run)
+
+
+def _remember(key: str, entry: dict) -> None:
+    _CACHE[key] = entry
     _CACHE.move_to_end(key)
     while len(_CACHE) > CACHE_SIZE:
         _CACHE.popitem(last=False)

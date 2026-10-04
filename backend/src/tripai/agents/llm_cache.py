@@ -90,6 +90,7 @@ DEFAULT_MAX_BACKGROUND = 16
 # instead of starting a duplicate; holding the task here also keeps it alive if the request
 # that started it goes away (client disconnect) and lets `drain()` see it
 _inflight: dict[str, asyncio.Task] = {}
+_prefetched: set[str] = set()  # keys whose running task was started ahead by a fast phase
 
 
 def background_limit_s() -> float:
@@ -145,7 +146,13 @@ async def within(key: str, factory, fallback):
     fallback, while it finishes in the background. At most `max_background()` such tasks run at
     once; past that a call is simply cut off at its deadline (no background run)."""
     task = _inflight.get(key)
-    if task is not None:  # started by an earlier request (e.g. the load before this reload)
+    if task is not None and key in _prefetched:
+        # started ahead for this very page (the fast phase): worth waiting for, within budget
+        try:
+            return await asyncio.wait_for(asyncio.shield(task), timeout=wait_s())
+        except TimeoutError:
+            return fallback()
+    if task is not None:  # left over from an earlier full request: don't wait on it again
         if task.done() and not task.cancelled() and task.exception() is None:
             return task.result()
         return fallback()
@@ -163,19 +170,42 @@ async def within(key: str, factory, fallback):
         return fallback()
 
 
+def prefetch(key: str, factory) -> None:
+    """Start `factory()` in the background now (no waiting) so a later `within(key, ...)` from
+    the same page finds it running; skipped when already running or at the background cap."""
+    if key in _inflight or len(_inflight) >= max_background():
+        return
+    task = asyncio.ensure_future(asyncio.wait_for(factory(), timeout=background_limit_s()))
+    _inflight[key] = task
+    _prefetched.add(key)
+    task.add_done_callback(lambda t, k=key: _settle(k, t))
+
+
 def _settle(key: str, task: asyncio.Task) -> None:
     if _inflight.get(key) is task:
         del _inflight[key]
+        _prefetched.discard(key)
     if not task.cancelled() and task.exception() is not None:
         log.info("background LLM call ended without an answer: %r", task.exception())
+
+
+_puts: set[asyncio.Task] = set()
+
+
+def put_later(source: str, key: str, payload: Any) -> None:
+    """`put` without waiting (from sync code); `drain()` waits for it."""
+    task = asyncio.ensure_future(put(source, key, payload))
+    _puts.add(task)
+    task.add_done_callback(_puts.discard)
 
 
 async def drain(timeout: float | None = None) -> None:
     """Wait for running LLM calls (tests; shutdown). With `timeout`, cancel what's left after it."""
     try:
         async with asyncio.timeout(timeout):
-            while _inflight:
-                await asyncio.gather(*list(_inflight.values()), return_exceptions=True)
+            while _inflight or _puts:
+                await asyncio.gather(*list(_inflight.values()), *list(_puts),
+                                     return_exceptions=True)  # fmt: skip
     except TimeoutError:
         for t in list(_inflight.values()):
             t.cancel()

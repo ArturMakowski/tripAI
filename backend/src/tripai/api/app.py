@@ -14,7 +14,7 @@ from tripai import i18n
 from tripai.agents import llm_cache
 from tripai.agents.dna_chat import DnaChatResult, chat_dna
 from tripai.agents.explain import explain, template_why
-from tripai.agents.fit import fit, fit_engine
+from tripai.agents.fit import fit, fit_engine, prefetch_fit
 from tripai.agents.interview import InterviewResult, interview
 from tripai.agents.jev import jev_enabled, jev_model_name
 from tripai.agents.llm import llm_enabled, model_name
@@ -276,6 +276,9 @@ def create_app(
 
         top = [] if fast else recs[: max(0, req.explain_top)]
         fit_recs = [] if fast else recs[: req.fit_top]
+        if fast:  # start the AI verdicts now; the full phase that follows finds them ready
+            for r in recs[: req.fit_top]:
+                prefetch_fit(r, profile)
         # explanations and fit verdicts are independent LLM calls: run them all concurrently
         results = await asyncio.gather(
             *(explain(r, profile.interests) for r in top),

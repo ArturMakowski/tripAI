@@ -11,6 +11,13 @@ import pytest
 from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
+
+def _concern(info) -> list:
+    """A concrete minus for a fit *decision* (FitDraft); none for a phrasing request."""
+    schema = json.dumps(info.output_tools[0].parameters_json_schema)
+    return [{"text": "Too busy then.", "dna": ["q11"]}] if '"label"' in schema else []
+
+
 from tripai.agents import llm_cache
 from tripai.agents.explain import explain, template_why
 from tripai.agents.fit import clear_cache, fit, fit_run, rules_verdict
@@ -86,7 +93,7 @@ def slow_gpt(delay: float, calls: list, text: str | None = None) -> FunctionMode
         if text is not None:
             return ModelResponse(parts=[TextPart(text)])
         draft = {"label": "poor_fit", "confidence": 0.8, "summary": "Too busy then.",
-                 "matches": [], "concerns": []}  # fmt: skip
+                 "matches": [], "concerns": _concern(info)}  # fmt: skip
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, json.dumps(draft))])
 
     return FunctionModel(fn, model_name="gpt-slow")
@@ -140,24 +147,49 @@ async def test_slow_sure_jev_cancels_the_speculative_llm(rec, profile):
     assert started and cancelled  # it ran in parallel with the slow Jev, then was cancelled
 
 
-async def test_slow_llm_never_blocks_the_page_and_fills_the_cache(rec, profile, mem, monkeypatch):
-    """GPT takes 1 s, the deadline is 0.3 s: rules verdict now, the real one on the next load."""
+async def test_slow_llm_never_blocks_the_page_and_keeps_the_shown_label(
+    rec, profile, mem, monkeypatch
+):
+    """GPT takes 1 s, the deadline is 0.3 s: rules verdict now. GPT disagrees on the label, so
+    a reload keeps the label the user saw (stable verdicts), with no new model call."""
     monkeypatch.setenv("TRIPAI_LLM_TIMEOUT_S", "0.3")
     jc, gc = [], []
-    jev, gpt = slow_jev(0.05, 0.3, jc), slow_gpt(1.0, gc)
+    jev, gpt = slow_jev(0.05, 0.3, jc), slow_gpt(1.0, gc)  # GPT says poor_fit
     t = time.perf_counter()
     v1 = await fit(rec, profile, model=gpt, jev=jev)
     took = time.perf_counter() - t
     assert took < 0.9, took
-    assert v1.model == "rules" and v1 == fit_rules(rec, profile)
-    await llm_cache.drain()  # the late GPT verdict lands in the cache
+    assert v1.model == "rules" and v1 == fit_rules(rec, profile) and v1.label != "poor_fit"
+    await llm_cache.drain()
     assert any(k[0] == llm_cache.FIT for k in mem.d)
     clear_cache()  # a fresh process: only the persistent layer remains
     t = time.perf_counter()
     v2 = await fit(rec, profile, model=gpt, jev=jev)
-    assert time.perf_counter() - t < 0.1
-    assert v2.label == "poor_fit" and "gpt-slow" in v2.model and len(gc) == 1  # no new LLM call
-    assert v2.inputs_hash == rec.inputs_hash
+    assert time.perf_counter() - t < 0.1 and len(gc) == 1  # no new LLM call
+    assert v2.label == v1.label and v2.model == "rules"
+
+
+async def test_late_ai_verdict_replaces_the_rules_one_when_it_agrees(
+    rec, profile, mem, monkeypatch
+):
+    monkeypatch.setenv("TRIPAI_LLM_TIMEOUT_S", "0.3")
+    want = fit_rules(rec, profile).label
+    gc = []
+
+    async def agreeing(messages, info):
+        gc.append(1)
+        await asyncio.sleep(0.8)
+        draft = {"label": want, "confidence": 0.8, "summary": "AI wording.",
+                 "matches": [], "concerns": [{"text": "Busy.", "dna": ["q11"]}]}  # fmt: skip
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, json.dumps(draft))])
+
+    gpt, jev = FunctionModel(agreeing, model_name="gpt-agree"), slow_jev(0.05, 0.3, [])
+    v1 = await fit(rec, profile, model=gpt, jev=jev)
+    assert v1.model == "rules"
+    await llm_cache.drain()
+    clear_cache()
+    v2 = await fit(rec, profile, model=gpt, jev=jev)
+    assert v2.label == v1.label == want and "gpt-agree" in v2.model and len(gc) == 1
 
 
 def fit_rules(rec, profile):
@@ -464,5 +496,6 @@ async def test_repeat_after_background_is_served_from_cache(candidates, profile,
     warm = await batch()
     assert time.perf_counter() - t < 0.15
     assert (len(jc), len(gc), len(ec)) == calls  # no new Jev/GPT calls
-    assert all("gpt-slow" in v.model for v in warm[:5])
+    # same verdict labels as the first load (stable), real texts for the explanations
+    assert [v.label for v in warm[:5]] == [v.label for v in cold[:5]]
     assert [w for w in warm[5:]] == [f"{r.city}: {round(r.total_cost_pln)} PLN." for r in recs[:3]]

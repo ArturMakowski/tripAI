@@ -190,7 +190,8 @@ async def test_eval_counts_agreement():
     cases = load_cases()
 
     def always_mixed(messages, info):
-        return _tool(info, _draft(label="mixed"))
+        concern = {"text": "Not ideal.", "dna": ["q5"]}
+        return _tool(info, _draft(label="mixed", concerns=[concern]))
 
     report = await evaluate(cases, model=FunctionModel(always_mixed))
     n_mixed = sum(c.label == "mixed" for c in cases)
@@ -247,8 +248,11 @@ def test_rules_drop_uncited_points(candidates):
     assert LABELS.index(without.label) >= LABELS.index(with_ev.label)
 
 
-def test_rules_poor_fit_summary_wording(candidates):
-    budget = TasteProfile(user_id="b", budget_pln=300, traits={"q9": 5})
-    v = rules_verdict(_rec(candidates, budget, 7), budget)
+def test_rules_poor_fit_summary_wording(candidates, crowd_avoider):
+    # a real style misfit (peak crowds for a crowd-avoider, poor weather/taste), not price
+    rec = _rec(candidates, crowd_avoider, 7, min_crowd=0.71)
+    rec = rec.model_copy(update={"score": rec.score.model_copy(
+        update={"weather": 0.3, "crowds": 0.1, "taste": 0.4})})  # fmt: skip
+    v = rules_verdict(rec, crowd_avoider)
     assert v.label == "poor_fit" and v.summary.startswith("Probably not your style")
     assert "style for you" not in v.summary

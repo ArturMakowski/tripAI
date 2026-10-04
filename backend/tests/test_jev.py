@@ -7,6 +7,13 @@ from fastapi.testclient import TestClient
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
+
+def _concern(info) -> list:
+    """A concrete minus for a fit *decision* (FitDraft); none for a phrasing request."""
+    schema = json.dumps(info.output_tools[0].parameters_json_schema)
+    return [{"text": "Too busy then.", "dna": ["q11"]}] if '"label"' in schema else []
+
+
 from tripai.agents.dna_chat import MAX_FOLLOW_UPS, chat_dna, follow_up_question, parse_reply
 from tripai.agents.fit import (
     UNSURE_PREFIX,
@@ -151,7 +158,7 @@ def llm_fit(label="poor_fit", confidence=0.8, calls: list | None = None) -> Func
         if calls is not None:
             calls.append(1)
         draft = {"label": label, "confidence": confidence, "summary": "Too busy then.",
-                 "matches": [], "concerns": []}  # fmt: skip
+                 "matches": [], "concerns": _concern(info)}  # fmt: skip
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, json.dumps(draft))])
 
     return FunctionModel(fn, model_name="gpt-test")
@@ -233,15 +240,15 @@ async def test_jev_failure_falls_back_to_llm_then_rules(candidates, crowd_avoide
 
     def llm(messages, info):
         draft = {"label": "mixed", "confidence": 0.7, "summary": "So-so.",
-                 "matches": [], "concerns": []}  # fmt: skip
+                 "matches": [], "concerns": [{"text": "Busy.", "dna": ["q11"]}]}  # fmt: skip
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, json.dumps(draft))])
 
     run = await fit_run(rec, crowd_avoider, model=FunctionModel(llm), engine="jev", jev=failing())
     assert run.engine == "llm" and run.verdict.label == "mixed"
-    # a fallback is not cached under the jev key
-    await fit(rec, crowd_avoider, jev=failing())
+    # a fallback that was shown is pinned: the next load keeps its label (no flip)
+    shown = await fit(rec, crowd_avoider, jev=failing())
     v = await fit(rec, crowd_avoider, jev=jev_fn(fit_answers("good_fit"), {"label": 0.8}))
-    assert v.model.startswith("typesafe:")
+    assert v.label == shown.label and v.model == "rules"
 
 
 async def test_llm_only_phrases_jev_decisions(candidates, crowd_avoider):
@@ -424,7 +431,18 @@ async def test_eval_compares_engines():
     cases = load_cases()
     jev = jev_fn(fit_answers("poor_fit"), {"label": 0.95})
     report = await evaluate(cases, use_llm=False, jev=jev)
-    assert report.cascade_exact == sum(c.label == "poor_fit" for c in cases)
+    # Jev says poor_fit (naming no concern): it stays poor_fit wherever the rules can name the
+    # minus; with no deterministic minus at all, the rules verdict is shown (never a bare
+    # "poor"/"mixed" and never promoted on Jev's word)
+    from tripai.agents.fit_eval import case_profile, case_recommendation
+
+    want = []
+    for case in cases:
+        prof = case_profile(case)
+        rv = rules_verdict(await case_recommendation(case, prof), prof)
+        want.append("poor_fit" if rv.concerns else rv.label)
+    assert [r.cascade for r in report.rows] == want
+    assert report.cascade_exact == sum(w == c.label for w, c in zip(want, cases))
     assert [e.engine for e in report.engines] == ["cascade", "jev_raw", "rules"]
     assert report.engines[0].escalated == 0
     out = format_report(report)
@@ -519,10 +537,58 @@ def test_escalate_below_bad_env_is_safe(monkeypatch):
     assert escalate_below() == 1.0
 
 
-async def test_failed_phrasing_is_not_cached(candidates, crowd_avoider):
+async def test_failed_phrasing_is_pinned_not_retried(candidates, crowd_avoider):
     rec = _rec(candidates, crowd_avoider, 7)
     jev_calls = []
     jev = jev_fn(fit_answers("poor_fit"), {"label": 0.9}, calls=jev_calls)
-    await fit(rec, crowd_avoider, model=failing(), jev=jev)
-    await fit(rec, crowd_avoider, model=failing(), jev=jev)
-    assert len(jev_calls) == 2  # retried: the template-worded verdict wasn't pinned in the cache
+    a = await fit(rec, crowd_avoider, model=failing(), jev=jev)
+    b = await fit(rec, crowd_avoider, model=failing(), jev=jev)
+    # the shown (template-worded) verdict is pinned: same label on reload, no second Jev call
+    assert len(jev_calls) == 1 and a.label == b.label
+
+
+# ---------------------------------------------------------------- #53 review: a named minus
+
+
+async def test_confident_poor_jev_without_surviving_concerns_is_never_promoted(candidates):
+    """Blocker 1: Jev says poor_fit (p=0.95) but no concern survives grounding."""
+    crowdy = TasteProfile(user_id="c", dislikes=["crowds"], traits={"q11": 5, "q8": 5})
+    rec = next(r for r in rank(candidates, crowdy, limit=50, one_per_city=False)
+               if r.window.start.month == 7 and (r.crowd or 0) > 0.7)  # fmt: skip
+    jev = jev_fn(fit_answers("poor_fit"), {"label": 0.95})  # no checks -> no Jev concerns
+    v = await fit(rec, crowdy, jev=jev)
+    rv = rules_verdict(rec, crowdy)
+    assert rv.concerns and v.label == "poor_fit"
+    assert [c.text for c in v.concerns] == [c.text for c in rv.concerns]
+    # no deterministic minus at all -> the rules verdict, not "good" on Jev's word
+    clear_cache()
+    neutral = TasteProfile(user_id="n")
+    rec_n = _rec(candidates, neutral, 11)
+    rv_n = rules_verdict(rec_n, neutral)
+    assert not rv_n.concerns
+    v_n = await fit(rec_n, neutral, jev=jev)
+    assert v_n.label == rv_n.label and v_n.summary == rv_n.summary and v_n.model == "rules"
+
+
+async def test_unsure_escalated_mixed_always_names_a_minus(candidates, crowd_avoider):
+    """Blocker 2: GPT unsure (self-confidence low) and naming no concern."""
+
+    def unsure_gpt(messages, info):
+        draft = {"label": "good_fit", "confidence": 0.2, "summary": "Hard to say.",
+                 "matches": [], "concerns": []}  # fmt: skip
+        return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, json.dumps(draft))])
+
+    jev = jev_fn(fit_answers("great_fit"), {"label": 0.3})  # unsure Jev -> escalate
+    rec = next(r for r in rank(candidates, crowd_avoider, limit=50, one_per_city=False)
+               if r.window.start.month == 7 and (r.crowd or 0) > 0.7)  # fmt: skip
+    run = await fit_run(rec, crowd_avoider, model=FunctionModel(unsure_gpt), jev=jev,
+                        engine="jev")  # fmt: skip
+    rv = rules_verdict(rec, crowd_avoider)
+    assert rv.concerns
+    assert run.verdict.label == "mixed" and run.verdict.concerns  # the rules' minus, named
+    assert run.verdict.summary.startswith(UNSURE_PREFIX)
+    neutral = TasteProfile(user_id="n")
+    rec_n = _rec(candidates, neutral, 11)
+    run_n = await fit_run(rec_n, neutral, model=FunctionModel(unsure_gpt), jev=jev, engine="jev")
+    assert run_n.verdict.model == "rules"
+    assert run_n.verdict.label == rules_verdict(rec_n, neutral).label
