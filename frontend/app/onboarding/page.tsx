@@ -4,14 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { MessageCircle } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DnaDeck } from "@/components/dna-deck";
 import { partySize } from "@/lib/money";
 import { AppShell } from "@/components/shell";
 import { TripConfirm } from "@/components/trip-confirm";
 import { api, USER_ID } from "@/lib/api";
 import { collectAnswers, DNA_DECK, STATEMENT_ANSWER, YESNO_ANSWER, type DnaCard, type Gesture } from "@/lib/dna";
-import { prefillDates, profileFromDna } from "@/lib/first-run";
+import { confirmPrefill, profileFromDna } from "@/lib/first-run";
+import type { DateRange } from "@/lib/date-range";
+import { useDatesHydrated } from "@/components/date-picker/free-dates-planner";
 import { useT } from "@/lib/i18n";
 import { useHydrated, useTrip, type DeckStep } from "@/lib/store";
 import { todayISO, useDates } from "@/lib/windows-store";
@@ -54,10 +56,25 @@ export default function SwipeOnboarding() {
   const hydrated = useHydrated();
   const { deck, setDeck, profile, setProfile, setWeights, setMode } = useTrip();
   const { swipes, airports } = deck;
-  // Saved state from older flows (budget/airport steps, the result stop before T19) lands on the confirm.
-  const step: DeckStep = deck.step === "swipe" ? "swipe" : "trip";
+  // Saved state from older flows (budget/airport steps, the result stop before T19) lands on the confirm once the
+  // deck is done, and back on the deck while it isn't (no wasted "Show trips" tap to get there).
+  const step: DeckStep = deck.step === "swipe" || swipes.length < DNA_DECK.length ? "swipe" : "trip";
   // the long-weekend radar loads while the user swipes, so the confirm can preselect the next one
-  useWindows();
+  const { longWeekends } = useWindows();
+  const datesHydrated = useDatesHydrated();
+  // the range this screen pre-filled itself (only that one is ever replaced; the user's own choice stands)
+  const auto = useRef<DateRange | null>(null);
+
+  // On the confirm: pre-fill the next long weekend unless the user has dates; also for state saved before T19
+  // (which skipped the last-swipe moment), and again if the radar lands later with a different next one.
+  useEffect(() => {
+    if (step !== "trip" || !datesHydrated) return;
+    const { ranges, pickQuick } = useDates.getState();
+    const next = confirmPrefill(ranges, longWeekends, todayISO(), auto.current);
+    if (!next) return;
+    pickQuick("long", next);
+    auto.current = next;
+  }, [step, datesHydrated, longWeekends]);
   const { t: all, lang } = useT();
   const t = all.onboarding;
   const advance = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,13 +89,9 @@ export default function SwipeOnboarding() {
     const next = [...swipes, { id: card.id, value }];
     setDeck({ swipes: next });
     if (next.length < DNA_DECK.length) return;
-    // Deck done: pre-fill the next long weekend unless the user already has dates (those are kept), then let
-    // the last card fly out before the confirm (undo within that moment cancels the jump).
-    const dates = prefillDates(useDates.getState().ranges, useTrip.getState().longWeekends, todayISO());
-    advance.current = setTimeout(() => {
-      if (dates) useDates.getState().pickQuick("long", dates);
-      setDeck({ step: "trip" });
-    }, 380);
+    // Deck done: let the last card fly out before the confirm (undo within that moment cancels the jump);
+    // the confirm pre-fills the dates as it opens.
+    advance.current = setTimeout(() => setDeck({ step: "trip" }), 380);
   }
 
   function undo() {

@@ -40,6 +40,8 @@ export function DnaProfile() {
       setDeck({ result: data });
       setProfile(profileFromDna(data, useTrip.getState().profile ?? profile));
       setWeights(data.weights);
+    } catch {
+      // the answer stays edited; the result and profile keep their last values until the next edit
     } finally {
       if (id === reqId.current) setBusy(false);
     }
