@@ -1,20 +1,20 @@
 /**
- * Swipe-on-offers (T6, /trips swipe mode) copy, ported from lib/reactions.ts SWIPE_COPY into the
+ * Swipe-on-offers (T6; since T23 swipeable rows in the /trips list) copy, ported from lib/reactions.ts SWIPE_COPY into the
  * app-wide i18n so it follows the global PL/EN setting. EN is the source of truth.
  */
 import type { Shape } from "../types";
 
 export const en = {
-  list: "List",
-  swipe: "Swipe",
-  viewLabel: "Offer view",
   like: "I want to go",
   dislike: "Not for me",
   love: "Love it!",
   undo: "Undo",
   /** the undo button's name; the shortcut itself is aria-keyshortcuts (PL: no English key name in the label) */
   undoAria: "Undo (Backspace)",
-  hint: "Swipe right, left or up. Arrow keys work too, Backspace undoes.",
+  /** screen-reader help for the swipeable list */
+  hint: "Swipe a trip right if you want to go, left if it's not for you. On a focused trip the arrow keys do the same; Backspace undoes.",
+  /** the "⋯" button on a row */
+  moreActions: (city: string) => `More actions for ${city}`,
   learnedLike: (city: string, tags: string) => `Learned: you like ${city}${tags ? `: ${tags}` : ""}`,
   learnedLove: (city: string, tags: string) => `Learned: you love ${city}${tags ? `: ${tags}` : ""}`,
   learnedDislike: (city: string, tags: string) => `Learned: ${city} isn't for you${tags ? `. Less: ${tags}` : ""}`,
@@ -27,20 +27,14 @@ export const en = {
   watchDemo: "price alerts need the live API",
   undone: (city: string) => `Undone: ${city}`,
   undoFailed: (city: string) => `Couldn't undo ${city}. Your reaction still stands, try again`,
-  swipeFailed: (city: string) => `Couldn't save your reaction to ${city}. The card is back at the end`,
-  doneTitle: "That's every offer",
-  doneBody: (n: number) => `${n} reactions. The ranking will update with your new profile.`,
+  swipeFailed: (city: string) => `Couldn't save your reaction to ${city}. The trip is back in your list`,
+  /** a like / love that wasn't saved: the row never left, nothing was learned */
+  reactFailed: (city: string) => `Couldn't save your reaction to ${city}. Nothing was learned, try again`,
   showRanking: "Show the new ranking",
-  pendingNote: "The ranking updates with your new profile when you go back to the list.",
-  refining: "One moment, refining prices. Swiping starts shortly.",
-  empty: "No new offers to rate.",
   hiddenTitle: "Hidden",
   show: "show",
   hide: "hide",
   restore: "Restore",
-  saved: "Saved",
-  total: "total",
-  of: "of",
   /** interest tag -> label in toasts ("off the beaten path") */
   tags: {
     food: "food",
@@ -75,15 +69,13 @@ export const en = {
 } as const;
 
 export const pl: Shape<typeof en> = {
-  list: "Lista",
-  swipe: "Karty",
-  viewLabel: "Widok ofert",
   like: "Chcę tam",
   dislike: "Nie dla mnie",
   love: "Super!",
   undo: "Cofnij",
   undoAria: "Cofnij",
-  hint: "Przesuń w prawo, w lewo lub w górę. Strzałki też działają, Backspace cofa.",
+  hint: "Przesuń wyjazd w prawo, jeśli chcesz tam jechać, w lewo, jeśli nie dla Ciebie. Na zaznaczonym wyjeździe działają strzałki; Backspace cofa.",
+  moreActions: (city: string) => `Więcej akcji: ${city}`,
   learnedLike: (city: string, tags: string) => `Zapamiętane: lubisz ${city}${tags ? `: ${tags}` : ""}`,
   learnedLove: (city: string, tags: string) => `Zapamiętane: uwielbiasz ${city}${tags ? `: ${tags}` : ""}`,
   learnedDislike: (city: string, tags: string) => `Zapamiętane: ${city} nie dla Ciebie${tags ? `. Mniej: ${tags}` : ""}`,
@@ -96,20 +88,13 @@ export const pl: Shape<typeof en> = {
   watchDemo: "alerty cenowe działają z live API",
   undone: (city: string) => `Cofnięte: ${city}`,
   undoFailed: (city: string) => `Nie udało się cofnąć: ${city}. Reakcja nadal obowiązuje, spróbuj ponownie`,
-  swipeFailed: (city: string) => `Nie udało się zapisać reakcji na ${city}. Karta wróciła na koniec`,
-  doneTitle: "To wszystkie oferty",
-  doneBody: (n: number) => `${n} reakcji. Ranking przeliczy się z Twoim nowym profilem.`,
+  swipeFailed: (city: string) => `Nie udało się zapisać reakcji na ${city}. Wyjazd wrócił na listę`,
+  reactFailed: (city: string) => `Nie udało się zapisać reakcji na ${city}. Nic nie zapamiętaliśmy, spróbuj jeszcze raz`,
   showRanking: "Pokaż nowy ranking",
-  pendingNote: "Ranking przeliczy się z nowym profilem, gdy wrócisz do listy.",
-  refining: "Chwila, dopracowujemy ceny. Swipe ruszy za moment.",
-  empty: "Brak nowych ofert do oceny.",
   hiddenTitle: "Ukryte",
   show: "pokaż",
   hide: "zwiń",
   restore: "Przywróć",
-  saved: "Zapisane",
-  total: "razem",
-  of: "z",
   tags: {
   food: "jedzenie",
   history: "historia",

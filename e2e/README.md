@@ -48,7 +48,7 @@ errors land here in production) and unhandled rejections. The framework has no c
 | `03-pick-dates` | Pick 1–3 Jan 2027 in the Free time calendar → Trips | pick the range | Trips header "For your dates: 1–3 Jan" |
 | `04-trips-budget` | Profile: switch on "Never show trips over…" (off by default) and set 1,000 PLN → trip cards | judge photo/price (vision) | every card: PLN price, photo decodes; any fit badge is a real verdict (none while unjudged); no in-budget card below an over-budget one |
 | `05-receipt` | Open the top trip's receipt | none (deterministic) | after "Sources / Źródła", each money line has a `Source · 3 Oct` chip with the time in its tooltip (demo data excepted); "Audit" shows the total out of 100 and no inputs hash |
-| `06-swipe-offers` | Wait for the final ranking (deck not `aria-busy`) → swipe mode → like → undo | like; undo | "Learned: … {city}" toast; "Undone" toast; the same card is back on top |
+| `06-swipe-offers` | Wait for the final ranking (list not `aria-busy`) → drag row 1 right → drag row 2 left → Undo in the toast | swipe right; swipe left; undo | "Learned: … {city}" toast and the list unchanged; the left-swiped row collapses out; "Undone" and the row is back in the same place |
 | `07-survey` | Post-trip survey → profile update | answer + submit | "Ranking weights" with `x% → y%` lines |
 | `08-inbox` `@live` | Run the proactive scan | none (taps "Run scan now") | scan finishes; "N new notifications" or "Nothing new worth a ping" |
 | `09-console` | Every route + a receipt, then `/` again as a returning user (demo profile + stored ranking) | none | no console/page/hydration errors; no "Application error"; the home "#1" card renders |

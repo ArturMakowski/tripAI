@@ -86,6 +86,7 @@ export function RecCard({
   refining,
   overBudgetPln,
   weights,
+  actions,
 }: {
   rec: RankedRecommendation;
   featured?: boolean;
@@ -96,6 +97,8 @@ export function RecCard({
   overBudgetPln?: number | null;
   /** the weights the ranking uses (slider), for the contribution bar */
   weights?: Weights;
+  /** row actions (heart, "⋯") on /trips; real buttons above the card's stretched link */
+  actions?: React.ReactNode;
 }) {
   const { t, fmt } = useT();
   const tc = t.trips.card;
@@ -118,6 +121,7 @@ export function RecCard({
       <Link
         href={`/trips/${rec.id}`}
         aria-label={`${rec.city}, ${fmt.range(rec.window)}, ${priceText(rec, t, fmt)}`}
+        draggable={false}
         className="absolute inset-0 z-[1] rounded-[1.75rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
       />
       <CityPhoto rec={rec} className={featured ? "h-60" : "h-40"}>
@@ -217,6 +221,7 @@ export function RecCard({
               rec.why
             )}
           </p>
+          {actions}
           <ChevronRight
             className="size-5 shrink-0 text-pine transition-transform group-hover:translate-x-0.5"
             aria-hidden

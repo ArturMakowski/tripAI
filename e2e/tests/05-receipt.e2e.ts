@@ -8,10 +8,8 @@ import { guard } from './support/tripai.ts';
 test('Receipt: every price row shows its source and fetch time, and the exact score math is one tap away', async ({ app, agent, screen, browser }) => {
   await guard(browser, app.baseUrl);
   await app.open('/trips');
-  // /trips opens on the swipe view until a view is picked; this test reads the ranked list.
-  const listToggle = screen.getByRole('button', /^(List|Lista)$/);
-  await expect(listToggle).toBeVisible({ timeout: 60_000 }); // the view toggle renders once /trips has loaded
-  await listToggle.tap();
+  // T23: one ranked list (no List/Swipe toggle); wait for it to render.
+  await expect(browser.locator('main ul[aria-busy]').first()).toBeVisible({ timeout: 60_000 });
   const top = browser.locator('main li article a[href^="/trips/"]').first();
   await expect(top).toBeVisible({ timeout: 60_000 });
   // Deterministic: open the top-ranked trip (the whole card is one link).

@@ -22,10 +22,6 @@ test('No console errors and no hydration errors on any route', { timeout: 300_00
 
   // The receipt of whatever trip is ranked first right now.
   await browser.goto('/trips');
-  // /trips opens on the swipe view until a view is picked; the receipt link is read from the list.
-  const listToggle = screen.getByRole('button', /^(List|Lista)$/);
-  await expect(listToggle).toBeVisible({ timeout: 60_000 }); // the view toggle renders once /trips has loaded
-  await listToggle.tap();
   const first = browser.locator('main li article a[href^="/trips/"]').first();
   await expect(first).toBeVisible({ timeout: 60_000 });
   const href = await first.getAttribute('href');
@@ -35,7 +31,7 @@ test('No console errors and no hydration errors on any route', { timeout: 300_00
   // rendered on the client only (it reads localStorage and today's date), so hydration errors would land here.
   await useDemoProfile(browser, screen);
   await browser.goto('/trips');
-  await expect(listToggle).toBeVisible({ timeout: 60_000 });
+  await expect(browser.locator('main ul[aria-busy]').first()).toBeVisible({ timeout: 60_000 });
   await expect(browser.locator('main ul[aria-busy="true"]')).toHaveCount(0, { timeout: 90_000 });
   await visit('/');
   await expect(browser.locator('[data-testid="home-top-pick"]')).toBeVisible({ timeout: 30_000 });

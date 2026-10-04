@@ -89,10 +89,8 @@ test(`Price invariant (${lang}): top 3 trips add up the same on card, receipt an
   await browser.goto('/trips');
   // The app-wide PL/EN switch in the header (stored, so it holds across the page loads below).
   await screen.getByRole('radio', lang).tap();
-  // /trips opens on the swipe view until a view is picked; this test reads the ranked list (the pick is remembered for the page loads below).
-  const listToggle = screen.getByRole('button', /^(List|Lista)$/);
-  await expect(listToggle).toBeVisible({ timeout: 60_000 }); // the view toggle renders once /trips has loaded
-  await listToggle.tap();
+  // T23: one ranked list (no List/Swipe toggle); wait for it to render.
+  await expect(browser.locator('main ul[aria-busy]').first()).toBeVisible({ timeout: 60_000 });
   const cards = browser.locator('main li:has(article a[href^="/trips/"])');
   await expect(cards.first()).toBeVisible({ timeout: 60_000 });
   // Wait for the final ranking (the list is aria-busy while loading or refining). Prices may still be
