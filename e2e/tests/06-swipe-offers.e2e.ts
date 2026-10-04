@@ -5,7 +5,10 @@ import { guard } from './support/tripai.ts';
 test('Swipe on offers: liking a card shows what was learned, and undo brings it back', async ({ app, agent, screen, browser }) => {
   await guard(browser, app.baseUrl);
   await app.open('/trips');
-  // The swipe view ("Karty") is the default on a first visit (no toggle tap needed).
+  // The swipe view ("Karty") is the default on a first visit (no toggle tap needed). Wait for the final
+  // ranking first (the deck is aria-busy while loading/refining, like the list in test 10), so the full
+  // phase can't land mid-swipe and the step is deterministic.
+  await expect(browser.locator('main section[aria-busy="false"]')).toHaveCount(1, { timeout: 90_000 });
   const deck = screen.getByRole('region', 'Swipe');
   const topCard = deck.getByRole('group').first();
   await expect(topCard).toBeVisible({ timeout: 60_000 });

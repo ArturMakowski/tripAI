@@ -1,6 +1,6 @@
 {
   "schemaVersion": "trace-1",
-  "createdAt": "2026-10-03T22:19:27.269Z",
+  "createdAt": "2026-10-04T04:06:54.944Z",
   "payload": {
     "actions": [
       {
@@ -22,7 +22,7 @@
       "targetId": "iphone14",
       "instructionDigest": "cf539e8b6b2cdd2ff0337ac161e632b2db7769251c0f36567e508d83df211f7b"
     },
-    "summary": "Tapped Undo. The deck returned to Nice (1 of 10), and the status confirms “Undone: Nice.”",
+    "summary": "Undid the last swipe. The deck returned from Naples (offer 2) to Nice (offer 1), and the screen confirmed “Undone: Nice.”",
     "startPath": "/trips",
     "endPath": "/trips",
     "endAnchors": [
@@ -38,12 +38,12 @@
       },
       {
         "name": "No live price for these exact dates yet: the flight is a fare seen for different dates and the stay is a city average, not a specific hotel. Estimates never count toward ranking, budget or value badges.",
-        "text": "~1,650 PLN · estimate",
+        "text": "~1,692 PLN · estimate",
         "testId": "trip-total"
       },
       {
         "role": "listitem",
-        "name": "nature"
+        "name": "nightlife"
       },
       {
         "text": "Undone: Nice"
@@ -57,6 +57,6 @@
         "name": "Undone: Nice"
       }
     ],
-    "endWaitMs": 12788
+    "endWaitMs": 12573
   }
 }

@@ -35,7 +35,13 @@ export default {
       name: 'iphone14',
       engine: web({ browser: 'chromium', ...IPHONE_14 }),
       // A stable identity keeps the committed replays valid for prod and local runs alike.
-      app: { url: BASE_URL, identity: 'tripai-web' },
+      // E2E_ENVIRONMENT=production lets a local build of a branch record/replay under the same cache key as the
+      // deployed app (the key includes the environment; localhost defaults to "test").
+      app: {
+        url: BASE_URL,
+        identity: 'tripai-web',
+        ...(process.env.E2E_ENVIRONMENT ? { environment: process.env.E2E_ENVIRONMENT as 'test' | 'staging' | 'production' } : {}),
+      },
     },
   ],
   agents: {

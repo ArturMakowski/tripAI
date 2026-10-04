@@ -195,6 +195,10 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
   in-browser mocks already answer in the chosen language.
 
 ## Swipe on offers (`/trips`, T6)
+- **Deck session.** The deck snapshot, position, undo history and the "Learned: …" / "Undone" toast live in
+  `lib/deck-session.ts` (not persisted), so a ranking update (the full phase landing) or a deck remount never drops the
+  toast or the history; undo restores the same card. The toast has its own live region at page level (separate from the
+  ranking announcement) and stays 6 s unless a newer one replaces it. The deck is `aria-busy` until the ranking is final.
 - **Toggle.** "Lista / Karty" under the slider. **The swipe view ("Karty") opens by default** until the user picks a view;
   after that the choice is remembered (`tripai-swipe-v1`, `viewChosen`). Swipe mode shows the ranked cards you haven't reacted to as a deck (photo, dates, all-in
   PLN, score ring, tags, fit badge). It reuses the Travel DNA deck's swipe physics and stamps (`components/offer-deck.tsx`).

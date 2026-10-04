@@ -1,6 +1,6 @@
 {
   "schemaVersion": "trace-1",
-  "createdAt": "2026-10-03T22:19:27.267Z",
+  "createdAt": "2026-10-04T04:06:54.943Z",
   "payload": {
     "actions": [
       {
@@ -22,23 +22,23 @@
       "targetId": "iphone14",
       "instructionDigest": "4e237887d0b8ab5e2c574bf1ed7c95b7526162b66b8465db057204922d60a90a"
     },
-    "summary": "Selected “I want to go” for the top offer, Nice (7–11 Nov, ~1,650 PLN estimate). The swipe deck advanced to the next offer, Barcelona (2 of 10).",
+    "summary": "Selected “I want to go” for the top offer, Nice. The swipe deck advanced to offer 2 of 10 (Naples), confirming the choice was recorded.",
     "startPath": "/trips",
     "endPath": "/trips",
     "endAnchors": [
       {
         "role": "image",
-        "name": "Barcelona, Spain"
+        "name": "Naples, Italy"
       },
       {
         "text": "2 of 10"
       },
       {
-        "text": "Barcelona"
+        "text": "Naples"
       },
       {
         "name": "No live price for these exact dates yet: the flight is a fare seen for different dates and the stay is a city average, not a specific hotel. Estimates never count toward ranking, budget or value badges.",
-        "text": "~2,175 PLN · estimate",
+        "text": "~1,812 PLN · estimate",
         "testId": "trip-total"
       },
       {
@@ -53,9 +53,9 @@
       },
       {
         "role": "image",
-        "name": "Score 76 of 100"
+        "name": "Score 75 of 100"
       }
     ],
-    "endWaitMs": 13300
+    "endWaitMs": 12822
   }
 }
