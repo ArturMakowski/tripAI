@@ -639,15 +639,18 @@ class LiveProvider:
         fast: bool = False,
         typical_spend_pln: float | None = None,
         fallback: bool = True,
+        only_iata: str | None = None,
     ) -> list[Candidate]:
         """`fast=True` (POST /recommendations?phase=fast): cached SerpApi only, no exact-date
         refinement, and a FAST_DEADLINE_S budget for the per-city fetches. `fallback=False`:
         nothing rather than labelled sample fixtures (a secondary origin must never mix sample
-        numbers into live results; tripai.scoring.origins)."""
+        numbers into live results; tripai.scoring.origins). `only_iata`: price just that city
+        (a watched or edited trip), whether or not it is on the taste shortlist."""
         try:
             out = await self._live(
                 origin, list(windows), luxury, profile, weights, fast, typical_spend_pln,
                 stats=fallback,  # a secondary city's cheap pass never overwrites the primary's
+                only_iata=only_iata,
             )  # fmt: skip
         except Exception:
             log.exception("live provider failed; falling back")
@@ -668,13 +671,17 @@ class LiveProvider:
         fast: bool = False,
         typical_spend_pln: float | None = None,
         stats: bool = True,
+        only_iata: str | None = None,
     ) -> list[Candidate]:
         if not windows:
             return []
         started = time.monotonic()
         origin = origin.upper()
         profile = profile or TasteProfile(user_id="_live")
-        cities = self._shortlist(origin, profile)
+        if only_iata:
+            cities = [c for c in self._seed_cities(origin) if c.iata == only_iata.upper()]
+        else:
+            cities = self._shortlist(origin, profile)
         nights = [max(1, (w.end - w.start).days) for w in windows]
         trip_days = (min(nights), min(max(nights), 30))
         async with httpx.AsyncClient(timeout=30) as client:

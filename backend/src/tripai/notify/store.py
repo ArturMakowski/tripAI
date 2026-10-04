@@ -54,6 +54,7 @@ class NotifyStore(Protocol):
     ) -> SavedPick | None: ...
     def save_trip(self, trip: PlannedTrip) -> None: ...  # T13: approved plans
     def planned_trips(self, user_id: str) -> list[PlannedTrip]: ...
+    def delete_trip(self, user_id: str, recommendation_id: str) -> bool: ...  # T24: dates edited
     def active_user_ids(self, since: datetime, limit: int) -> list[str]: ...
 
 
@@ -133,6 +134,9 @@ class MemoryNotifyStore:
     def planned_trips(self, user_id: str) -> list[PlannedTrip]:
         return [t for (u, _), t in self.trips.items() if u == user_id]
 
+    def delete_trip(self, user_id: str, recommendation_id: str) -> bool:
+        return self.trips.pop((user_id, recommendation_id), None) is not None
+
     def active_user_ids(self, since: datetime, limit: int) -> list[str]:
         """Users the daily scan visits, most recently active first, at most `limit`: push opt-ins
         (they asked for it) plus anyone who changed prefs, watched a pick or ran a scan by hand
@@ -168,6 +172,12 @@ def _rank_active(seen: dict[str, datetime], limit: int) -> list[str]:
 PICK_COLUMNS_0003 = frozenset({"user_id", "recommendation_id", "city", "iata", "start", "end",
                                "baseline_pln", "baseline_source", "baseline_fetched_at",
                                "saved_at"})  # fmt: skip
+# 0007 (T24: delete with undo, booked, edit dates/party) adds these to saved_picks / trips.
+COLUMNS_0007 = frozenset({"deleted_at", "booked_at", "pending", "fit_label", "fit_summary"})
+PICK_COLUMNS_0006 = frozenset(SavedPick.model_fields) - COLUMNS_0007
+TRIP_COLUMNS_0006 = frozenset(PlannedTrip.model_fields) - COLUMNS_0007
+PICK_LAYERS = (PICK_COLUMNS_0006, PICK_COLUMNS_0003)  # newest schema first
+TRIP_LAYERS = (TRIP_COLUMNS_0006,)
 
 
 def _missing_column(exc: Exception) -> bool:
@@ -440,19 +450,46 @@ class SupabaseNotifyStore(MemoryNotifyStore):
         )
 
     def _pick_write(self, what: str, row: dict, send) -> Any:
-        """Write a saved_picks row; before migration 0006 retry with the 0003 columns only, so the
-        watch (and the price_drop baseline) is still persisted. None = failed or nothing to send."""
+        return self._layered(what, row, send, PICK_LAYERS)
+
+    def _layered(self, what: str, row: dict, send, layers: tuple[frozenset, ...]) -> Any:
+        """Write a row; while a migration is pending (PostgREST: no such column) retry with the
+        columns of each older schema in turn (0006, then 0003 for saved_picks), so the watch,
+        its price_drop baseline and the approval still persist. Columns that can't be written
+        stay in this process's memory and are merged back on read. None = failed / nothing sent."""
         try:
             return send(row)
         except (httpx.HTTPError, ValueError) as exc:
             if not _missing_column(exc):
                 log.warning("supabase notify store %s failed: %s", what, exc)
                 return None
-        legacy = {k: v for k, v in row.items() if k in PICK_COLUMNS_0003}
-        if not legacy.keys() - {"user_id", "recommendation_id"}:
-            return None  # only 0006 columns (target, last check): memory keeps them
-        log.info("saved_picks has no 0006 columns yet (migration pending): writing 0003 columns")
-        return self._try(what, send, legacy)
+        tried = set(row)
+        for cols in layers:
+            legacy = {k: v for k, v in row.items() if k in cols}
+            if set(legacy) == tried:
+                continue  # this schema has every column we sent: the next older one
+            if not legacy.keys() - {"user_id", "recommendation_id"}:
+                return None  # only newer columns: memory keeps them
+            tried = set(legacy)
+            try:
+                out = send(legacy)
+            except (httpx.HTTPError, ValueError) as exc:
+                if _missing_column(exc):
+                    continue
+                log.warning("supabase notify store %s failed: %s", what, exc)
+                return None
+            log.info("%s: a migration is pending; wrote the older columns only", what)
+            return out
+        return None
+
+    def _with_memory(self, row: dict, mem: BaseModel | None, base_cols: frozenset) -> dict:
+        """A row from an older schema lacks the newer columns: fill them from this process."""
+        if mem is None:
+            return row
+        missing = {k for k in type(mem).model_fields if k not in row and k not in base_cols}
+        if not missing:
+            return row
+        return {**mem.model_dump(mode="json", include=missing), **row}
 
     def remove_pick(self, user_id: str, recommendation_id: str) -> bool:
         had = super().remove_pick(user_id, recommendation_id)
@@ -469,10 +506,7 @@ class SupabaseNotifyStore(MemoryNotifyStore):
         out = []
         for r in rows:
             mem = self.saved.get((user_id, r.get("recommendation_id")))
-            if (
-                mem is not None and "target_pln" not in r
-            ):  # pre-0006 row: this process's 0006 fields
-                r = {**mem.model_dump(mode="json", exclude=PICK_COLUMNS_0003), **r}
+            r = self._with_memory(r, mem, PICK_COLUMNS_0003)  # pre-0006/0007 rows
             try:
                 out.append(SavedPick.model_validate(r))
             except ValueError as exc:
@@ -516,7 +550,25 @@ class SupabaseNotifyStore(MemoryNotifyStore):
 
     def save_trip(self, trip: PlannedTrip) -> None:
         super().save_trip(trip)
-        self._upsert("trips", _row(trip), "user_id,recommendation_id")
+        self._layered(
+            "upsert trips",
+            _row(trip),
+            lambda r: self._req(
+                "POST",
+                "trips",
+                params={"on_conflict": "user_id,recommendation_id"},
+                json=[r],
+                prefer="resolution=merge-duplicates,return=minimal",
+            ),
+            TRIP_LAYERS,
+        )
+
+    def delete_trip(self, user_id: str, recommendation_id: str) -> bool:
+        had = super().delete_trip(user_id, recommendation_id)
+        self._delete(
+            "trips", {"user_id": f"eq.{user_id}", "recommendation_id": f"eq.{recommendation_id}"}
+        )
+        return had
 
     def planned_trips(self, user_id: str) -> list[PlannedTrip]:
         rows = self._select("trips", {"user_id": f"eq.{user_id}", "approved_at": "not.is.null"})
@@ -524,6 +576,8 @@ class SupabaseNotifyStore(MemoryNotifyStore):
             return super().planned_trips(user_id)
         out = []
         for r in rows:
+            mem = self.trips.get((user_id, r.get("recommendation_id")))
+            r = self._with_memory(r, mem, frozenset())  # pre-0007 rows
             try:
                 out.append(PlannedTrip.model_validate(r))
             except ValueError as exc:

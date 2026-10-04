@@ -7,7 +7,8 @@
 import { api, FORCE_MOCK, type Result } from "./api";
 import { PAST_TRIP } from "./mock/fixtures";
 import { moneyOf } from "./money";
-import type { RankedRecommendation, Recommendation, TripItem, TripsResponse } from "./types";
+import { addDays, diffDays, thisWeekend, type DateRange } from "./date-range";
+import type { RankedRecommendation, Recommendation, TripItem, TripPatch, TripsResponse } from "./types";
 
 export const DEFAULT_MAX_WATCHED = 5;
 
@@ -143,6 +144,8 @@ export function localTrips(
       checked_at: null,
       change_pln: null,
       target_pln: targets[r.id] ?? null,
+      status: "planned",
+      rateable: r.window.end < today,
     });
   }
   const [, a, b] = PAST_TRIP.id.split("-");
@@ -172,6 +175,8 @@ export function localTrips(
     checked_at: null,
     change_pln: null,
     target_pln: null,
+    status: "planned",
+    rateable: iso(b) < today,
   };
   const planned = items.filter((t) => t.end >= today).sort((x, y) => x.start.localeCompare(y.start));
   const past = [...items.filter((t) => t.end < today), ...(demoPast.end < today ? [demoPast] : [])].sort((x, y) => y.end.localeCompare(x.end));
@@ -193,4 +198,118 @@ export async function loadTrips(local: () => TripsResponse): Promise<Result<Trip
 export function withItem(list: TripsResponse, item: TripItem): TripsResponse {
   const swap = (xs: TripItem[]) => xs.map((x) => (x.id === item.id ? item : x));
   return { ...list, planned: swap(list.planned), past: swap(list.past) };
+}
+
+// ------------------------------------------------------------------ T24: manage a trip
+
+/** How long the "Usunięto · Cofnij" toast offers undo (the delete is soft on the server either way). */
+export const UNDO_MS = 6_000;
+export const MAX_TRIP_NIGHTS = 30; // backend api/trips.py
+export const MAX_PARTY = 12;
+
+/** Booked trips and trips that have ended live under "Past". */
+export const isPast = (t: TripItem) => t.status === "booked" || !!t.rateable;
+
+const byStart = (x: TripItem, y: TripItem) => x.start.localeCompare(y.start) || x.city.localeCompare(y.city);
+const byEndDesc = (x: TripItem, y: TripItem) => y.end.localeCompare(x.end) || x.city.localeCompare(y.city);
+
+/** Put an edited / booked / restored trip in its section, replacing `oldId` (new dates = a new id). */
+export function placeItem(list: TripsResponse, item: TripItem, oldId: string = item.id): TripsResponse {
+  const drop = (xs: TripItem[]) => xs.filter((x) => x.id !== oldId && x.id !== item.id);
+  const planned = drop(list.planned);
+  const past = drop(list.past);
+  if (isPast(item)) past.push(item);
+  else planned.push(item);
+  return { ...list, planned: planned.sort(byStart), past: past.sort(byEndDesc) };
+}
+
+export interface Removed {
+  item: TripItem;
+  section: "planned" | "past";
+  index: number;
+}
+
+/** Optimistic delete: the row leaves at once; `removed` puts it back exactly where it was on undo. */
+export function removeItem(list: TripsResponse, id: string): { list: TripsResponse; removed: Removed | null } {
+  for (const section of ["planned", "past"] as const) {
+    const index = list[section].findIndex((x) => x.id === id);
+    if (index >= 0) {
+      const xs = [...list[section]];
+      const [item] = xs.splice(index, 1);
+      return { list: { ...list, [section]: xs }, removed: { item, section, index } };
+    }
+  }
+  return { list, removed: null };
+}
+
+export function restoreItem(list: TripsResponse, r: Removed, item: TripItem = r.item): TripsResponse {
+  const xs = list[r.section].filter((x) => x.id !== item.id);
+  xs.splice(Math.min(r.index, xs.length), 0, item);
+  return { ...list, [r.section]: xs };
+}
+
+export interface EditDraft {
+  start: string;
+  end: string;
+  travelers: number;
+}
+
+export type EditError = "past" | "tooShort" | "tooLong" | "unchanged";
+
+const nights = (d: Pick<EditDraft, "start" | "end">) => diffDays(d.start, d.end);
+
+/** Same rules as PATCH /trips/{id}: starts today or later, 1–30 nights, 1–12 people, something changed. */
+export function editError(trip: Pick<TripItem, "start" | "end" | "travelers">, d: EditDraft, today: string): EditError | null {
+  if (d.start === trip.start && d.end === trip.end && d.travelers === trip.travelers) return "unchanged";
+  if (d.start < today) return "past";
+  if (nights(d) < 1) return "tooShort";
+  if (nights(d) > MAX_TRIP_NIGHTS) return "tooLong";
+  return null;
+}
+
+/** Only what changed (the backend re-prices only for a real change). */
+export function editPatch(trip: Pick<TripItem, "start" | "end" | "travelers">, d: EditDraft): TripPatch {
+  const out: TripPatch = {};
+  if (d.start !== trip.start) out.start = d.start;
+  if (d.end !== trip.end) out.end = d.end;
+  if (d.travelers !== trip.travelers) out.travelers = Math.max(1, Math.min(MAX_PARTY, d.travelers));
+  return out;
+}
+
+export const shiftRange = (r: Pick<EditDraft, "start" | "end">, days: number) => ({ start: addDays(r.start, days), end: addDays(r.end, days) });
+
+export type EditChipKey = "earlier" | "later" | "weekend" | "longWeekend";
+
+/**
+ * Quick chips in the edit sheet: the same trip a day earlier / later, this (or next) weekend, and the next
+ * long weekend. Chips that would start in the past or change nothing are left out.
+ */
+export function editChips(
+  trip: Pick<TripItem, "start" | "end">,
+  today: string,
+  suggestions: Pick<DateRange, "start" | "end">[],
+): { key: EditChipKey; range: { start: string; end: string } }[] {
+  const weekend = thisWeekend(today);
+  const long = suggestions.find((x) => x.start >= today);
+  const all: { key: EditChipKey; range: { start: string; end: string } }[] = [
+    { key: "earlier", range: shiftRange(trip, -1) },
+    { key: "later", range: shiftRange(trip, 1) },
+    { key: "weekend", range: { start: weekend.start, end: weekend.end } },
+    ...(long ? [{ key: "longWeekend" as const, range: { start: long.start, end: long.end } }] : []),
+  ];
+  return all.filter((c) => c.range.start >= today && nights(c.range) >= 1 && !(c.range.start === trip.start && c.range.end === trip.end));
+}
+
+export type TripAction = "edit" | "book" | "unbook" | "remove";
+
+/**
+ * The row menu for a trip. Editing and booking need the live service (they re-price / persist), so the
+ * demo view offers only delete. A booked trip can be un-booked until it ends; an ended trip can only go.
+ */
+export function tripActions(t: Pick<TripItem, "status" | "rateable">, live: boolean): TripAction[] {
+  const booked = t.status === "booked";
+  const out: TripAction[] = [];
+  if (live && !t.rateable) out.push(...(booked ? (["unbook"] as const) : (["edit", "book"] as const)));
+  out.push("remove");
+  return out;
 }

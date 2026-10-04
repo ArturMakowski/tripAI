@@ -22,6 +22,7 @@ import type {
   RecommendationsRequest,
   RecPhase,
   TripItem,
+  TripPatch,
   TripsResponse,
 } from "./types";
 
@@ -236,6 +237,14 @@ export const api = {
   approveTrip: (recommendationId: string) => http<TripItem>("/trips", post({ recommendation_id: recommendationId })),
   setTripTarget: (id: string, targetPln: number | null) =>
     http<TripItem>(`/trips/${encodeURIComponent(id)}/target`, { method: "PUT", body: JSON.stringify({ target_pln: targetPln }) }),
+  /** T24: book / un-book, or new dates/party (cache-only price, `pending` until refreshTrip). The id changes with the dates. */
+  patchTrip: (id: string, patch: TripPatch) =>
+    http<TripItem>(`/trips/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  /** The full re-price (exact dates, within the daily search cap) + the fit re-check for an edited trip. */
+  refreshTrip: (id: string) => http<TripItem>(`/trips/${encodeURIComponent(id)}/refresh`, { method: "POST" }, 60_000),
+  /** Soft delete (the scan stops watching it at once); restoreTrip undoes it. */
+  deleteTrip: (id: string) => http<{ id: string; deleted_at: string }>(`/trips/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  restoreTrip: (id: string) => http<TripItem>(`/trips/${encodeURIComponent(id)}/restore`, { method: "POST" }),
   /** "Stop watching": frees the watch slot. An approved trip comes back unwatched; a saved-only trip -> null (gone). */
   stopWatching: (id: string) => http<TripItem | null>(`/trips/${encodeURIComponent(id)}/watch`, { method: "DELETE" }),
 

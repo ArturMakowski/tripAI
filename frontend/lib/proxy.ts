@@ -39,6 +39,8 @@ const TIMEOUTS: [prefix: string, ms: number][] = [
 const DEFAULT_TIMEOUT = 30_000;
 
 export function timeoutFor(path: string): number {
+  // My trips: re-pricing an edited trip runs the full pipeline (exact-date checks + the fit verdict)
+  if (/^\/trips\/[^/]+\/refresh$/.test(path)) return 60_000;
   return TIMEOUTS.find(([p]) => path === p || path.startsWith(`${p}/`))?.[1] ?? DEFAULT_TIMEOUT;
 }
 
@@ -54,7 +56,7 @@ const problem = (status: number, detail: string) => Response.json({ detail }, { 
 export async function proxy(req: Request, env: Env = process.env, fetchImpl: typeof fetch = fetch): Promise<Response> {
   if (req.method === "OPTIONS") {
     // same-origin: no CORS preflight reaches us in practice; answer locally, never hit the backend
-    return new Response(null, { status: 204, headers: { allow: "GET, POST, PUT, DELETE, OPTIONS" } });
+    return new Response(null, { status: 204, headers: { allow: "GET, POST, PUT, PATCH, DELETE, OPTIONS" } });
   }
   const base = backendUrl(env);
   if (!base) return problem(503, "backend not configured");
