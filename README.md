@@ -121,8 +121,10 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   Past it, the page gets the rules verdict / `template_why`, while the model keeps going in the background
   (≤ `TRIPAI_LLM_BACKGROUND_S`, 20 s) and caches its answer for the next load. The LLM's own fit decision starts
   speculatively when Jev hasn't answered within `TRIPAI_SPECULATE_AFTER_S` (1 s); then an escalation costs ~max(Jev, LLM),
-  not the sum, and the call is cancelled if Jev turns out sure. A quick, sure Jev costs no LLM call. Late calls are
-  shared per key (a reload joins the running one), capped at `TRIPAI_LLM_MAX_BACKGROUND` (16), and drained on
+  not the sum, and the call is cancelled if Jev turns out sure. A quick, sure Jev costs no LLM call. A full-phase request has one wall-time
+  budget (`TRIPAI_FULL_TARGET_S`, 4.5 s from request start): the AI items get what's left after fetching prices.
+  A reload that finds an item still running for the earlier load gets the fallback at once (no second wait). Late
+  calls are shared per key, capped at `TRIPAI_LLM_MAX_BACKGROUND` (16), and drained on
   shutdown.
   Answers are cached in process and in `api_cache` (`tripai:fit`, `tripai:why`), keyed by a digest of exactly
   what the model sees: payload, language and model. A changed price is a miss, and a cached 'why' is re-checked

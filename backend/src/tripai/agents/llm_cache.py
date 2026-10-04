@@ -16,6 +16,7 @@ import hashlib
 import json
 import logging
 import os
+from contextvars import ContextVar
 from datetime import UTC, datetime
 from typing import Any
 
@@ -106,25 +107,58 @@ def max_background() -> int:
         return DEFAULT_MAX_BACKGROUND
 
 
+DEFAULT_FULL_TARGET_S = 4.5
+# loop-time by which this request's LLM-backed items must be answered (None: no request budget)
+_request_end: ContextVar[float | None] = ContextVar("tripai_llm_request_end", default=None)
+
+
+def full_target_s() -> float:
+    """Wall time a full-phase request should take in total (TRIPAI_FULL_TARGET_S, 4.5 s)."""
+    try:
+        return max(0.0, float(os.getenv("TRIPAI_FULL_TARGET_S") or DEFAULT_FULL_TARGET_S))
+    except ValueError:
+        return DEFAULT_FULL_TARGET_S
+
+
+def start_request_budget(started_at: float, total_s: float | None = None) -> None:
+    """Make every LLM-backed item of this request finish by `started_at + total_s` (loop time).
+    Items gathered after this call inherit it (contextvars are copied into tasks)."""
+    _request_end.set(started_at + (full_target_s() if total_s is None else total_s))
+
+
+def wait_s() -> float:
+    """How long an item may wait now: the per-item deadline, cut to what is left of the
+    request budget (time already spent elsewhere, e.g. fetching prices, counts)."""
+    t = llm_timeout_s()
+    end = _request_end.get()
+    if end is not None:
+        t = min(t, max(0.0, end - asyncio.get_running_loop().time()))
+    return t
+
+
 async def within(key: str, factory, fallback):
-    """The LLM answer for `key` within `llm_timeout_s()`, else `fallback()` now.
+    """The LLM answer for `key` within `wait_s()`, else `fallback()` now.
 
     `factory()` makes the coroutine (it caches its own result). It runs as a task that may keep
-    going for up to `background_limit_s()` to fill the cache for the next load; concurrent
-    callers with the same key share it. At most `max_background()` such tasks run at once;
-    past that a call simply times out (no background run)."""
+    going for up to `background_limit_s()` to fill the cache for the next load. A key already
+    running for an earlier request is not waited for again: its answer (if done) or the
+    fallback, while it finishes in the background. At most `max_background()` such tasks run at
+    once; past that a call is simply cut off at its deadline (no background run)."""
     task = _inflight.get(key)
-    if task is None:
-        if len(_inflight) >= max_background():
-            try:
-                return await asyncio.wait_for(factory(), timeout=llm_timeout_s())
-            except TimeoutError:
-                return fallback()
-        task = asyncio.ensure_future(asyncio.wait_for(factory(), timeout=background_limit_s()))
-        _inflight[key] = task
-        task.add_done_callback(lambda t, k=key: _settle(k, t))
+    if task is not None:  # started by an earlier request (e.g. the load before this reload)
+        if task.done() and not task.cancelled() and task.exception() is None:
+            return task.result()
+        return fallback()
+    if len(_inflight) >= max_background():
+        try:
+            return await asyncio.wait_for(factory(), timeout=wait_s())
+        except TimeoutError:
+            return fallback()
+    task = asyncio.ensure_future(asyncio.wait_for(factory(), timeout=background_limit_s()))
+    _inflight[key] = task
+    task.add_done_callback(lambda t, k=key: _settle(k, t))
     try:
-        return await asyncio.wait_for(asyncio.shield(task), timeout=llm_timeout_s())
+        return await asyncio.wait_for(asyncio.shield(task), timeout=wait_s())
     except TimeoutError:
         return fallback()
 
