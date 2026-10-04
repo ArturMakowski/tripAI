@@ -227,7 +227,8 @@ export function OfferDeck({
             onClick={undo}
             disabled={!canUndo || busy}
             className="grid size-11 place-items-center rounded-full border border-line bg-card text-ink-soft shadow-soft transition hover:bg-paper-deep disabled:opacity-35"
-            aria-label={`${t.undo} (Backspace)`}
+            aria-label={t.undoAria}
+            aria-keyshortcuts="Backspace"
           >
             <RotateCcw className="size-4" />
           </button>

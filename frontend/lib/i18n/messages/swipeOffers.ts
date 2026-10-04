@@ -12,6 +12,8 @@ export const en = {
   dislike: "Not for me",
   love: "Love it!",
   undo: "Undo",
+  /** the undo button's name; the shortcut itself is aria-keyshortcuts (PL: no English key name in the label) */
+  undoAria: "Undo (Backspace)",
   hint: "Swipe right, left or up. Arrow keys work too, Backspace undoes.",
   learnedLike: (city: string, tags: string) => `Learned: you like ${city}${tags ? `: ${tags}` : ""}`,
   learnedLove: (city: string, tags: string) => `Learned: you love ${city}${tags ? `: ${tags}` : ""}`,
@@ -80,6 +82,7 @@ export const pl: Shape<typeof en> = {
   dislike: "Nie dla mnie",
   love: "Super!",
   undo: "Cofnij",
+  undoAria: "Cofnij",
   hint: "Przesuń w prawo, w lewo lub w górę. Strzałki też działają, Backspace cofa.",
   learnedLike: (city: string, tags: string) => `Zapamiętane: lubisz ${city}${tags ? `: ${tags}` : ""}`,
   learnedLove: (city: string, tags: string) => `Zapamiętane: uwielbiasz ${city}${tags ? `: ${tags}` : ""}`,

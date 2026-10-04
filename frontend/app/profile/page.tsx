@@ -5,6 +5,7 @@ import { ArrowRight, Languages, Lock } from "lucide-react";
 import { InfoTip } from "@/components/declutter";
 import { LangSwitch } from "@/components/lang-switch";
 import { ProfileChips } from "@/components/profile-chips";
+import { DnaProfile } from "@/components/dna-profile";
 import { AppShell, PageTitle } from "@/components/shell";
 import { HowItWorksButton } from "@/components/tutorial/how-it-works";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,9 @@ export default function ProfilePage() {
           </span>
         </InfoTip>
       </PageTitle>
+
+      {/* T19: the full Travel DNA result (with editing) lives here; /trips shows it as a compact card */}
+      <DnaProfile />
 
       <ProfileChips
         profile={p}
