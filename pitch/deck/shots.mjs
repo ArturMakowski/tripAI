@@ -27,12 +27,8 @@ const RX = {
   personaCard: /^(Why this\?|Skąd to\?)$/,
   nextLongWeekend: /Next long weekend|Najbliższy długi weekend/,
   lwList: /^(Long weekends this month|Długie weekendy w tym miesiącu)$/,
-  like: /^(I want to go|Chcę tam)/,
-  learned: /^(Learned|Nauczyliśmy|Zapamiętane)/,
   whyNow: /^(Why now|Dlaczego teraz)$/,
   list: /^(List|Lista)$/,
-  swipe: /^(Swipe|Karty)$/,
-  swipeHint: /Swipe right, left|Przesuń w prawo/,
   sources: /^(Sources|Źródła)$/,
   fits: /Why it fits you|Dlaczego pasuje/,
   returnFlight: /^(Return flight|Lot w obie strony)$/,
@@ -89,6 +85,11 @@ for (const lang of langs) {
     await p.evaluate((y) => window.scrollTo(0, y), y);
   };
   const scrollTo = (text, offset = 90) => scrollToEl(p.getByText(text).first(), offset);
+  // switch /trips to the list view if a List/Swipe toggle exists (removed in t23)
+  const showList = async () => {
+    const t = p.getByText(RX.list).first();
+    if (await t.isVisible().catch(() => false)) { await t.click(); await p.waitForTimeout(2500); }
+  };
   // viewport rect of the smallest ancestor of `loc` at least `minH` px tall
   const boxOf = (loc, minH) =>
     loc.evaluate((n, minH) => {
@@ -126,6 +127,7 @@ for (const lang of langs) {
         throw e;
       });
       await p.waitForTimeout(6000);
+      await showList();
       await p.evaluate(() => window.scrollTo(0, 0));
       await shot('persona');
     });
@@ -173,22 +175,8 @@ for (const lang of langs) {
   // 2. Ranked where + when (wait for the full phase: fit verdicts + explanations)
   await p.goto(APP + '/trips');
   await p.waitForTimeout(35000);
-  await step('swipe', async () => {
-    await p.getByText(RX.swipe).first().click();
-    await p.waitForTimeout(2000);
-    await scrollTo(RX.swipeHint, 60);
-    await shot('swipe');
-    // Ola's #1 as the app labels it ("Nice, 7–11 Nov, ~1,692 PLN · estimate"): the deck's closing line quotes it verbatim
-    m.top = await p.locator('[aria-roledescription="swipe card"]').first().getAttribute('aria-label');
-  });
-  // one like: the toast says what it learned (a /reactions call; the reaction is this session's only)
-  await step('swipe-learned', async () => {
-    await p.getByRole('button', { name: RX.like }).first().click();
-    await p.waitForTimeout(1800);
-    await shot('swipe-learned');
-  });
-  await p.getByText(RX.list).first().click();
-  await p.waitForTimeout(2500);
+  // the ranked list (before t23 there is a List/Swipe toggle; after it, the list is the only view)
+  await showList();
   const card = p.locator('a[href^="/trips/"]').first();
   const href = (await card.getAttribute('href')).split('/').slice(0, 3).join('/');
   await step('cards', async () => {
