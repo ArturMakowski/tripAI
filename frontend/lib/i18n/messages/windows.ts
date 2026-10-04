@@ -41,6 +41,6 @@ export const pl: Shape<typeof en> = {
     `Do tego ${n} ${plural("pl", n, { one: "zwykły wolny weekend", few: "zwykłe wolne weekendy", many: "zwykłych wolnych weekendów", other: "zwykłego wolnego weekendu" })}.`,
   showAllTrips: "Pokaż wyjazdy",
   legendTitle: "Legenda",
-  dayTitle: { off: "Weź ten dzień wolnego", weekend: "weekend", free: "wolne" },
+  dayTitle: { off: "Weź ten dzień wolnego", weekend: "dzień weekendu", free: "wolne" },
   legend: { holiday: "Święto", weekend: "Weekend", off: "Dzień urlopu do wzięcia", free: "Wolne w kalendarzu" },
 };
