@@ -36,7 +36,7 @@ unset TRIPAI_APP_URL E2E_PROD_URL && npm run build   # the committed copy: place
     (paid) lookups. One inbox scan shows Jev's real push decision; its `p` comes from the scan response.
   - A step whose element is gone after a UI change is skipped with a warning and the script exits 1.
 - `build.mjs`: fails on missing copy keys or broken images, warns when something overflows a slide.
-- `fonts/` + `fonts.css`: static Inter (OFL, from Fontsource); one typeface, no handwriting font. Variable web fonts end up as Type 3
+- `fonts/` + `fonts.css`: the app's own Fraunces + Geist, static (OFL, from Fontsource). Variable web fonts end up as Type 3
   glyphs in Chrome's PDFs, which render with artifacts in many viewers; static files embed as real TrueType.
 
 ## Where the numbers come from
