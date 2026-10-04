@@ -56,6 +56,9 @@ The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12
   The same choices are available as buttons and arrow keys. Backspace undoes the last swipe.
 - **Motion.** Cards tilt with the drag, show direction stamps, fly out with spring physics, and fly back in on undo.
   Progress dots track the deck. Progress survives a reload.
+  The stack keeps each photo mounted from the moment it enters until its card is swiped away (the current card's photo
+  sits under the draggable top card, which has no background of its own), and the next photos are preloaded. So a swipe
+  never shows a black frame while a photo loads.
 - **Result.** Answers are POSTed to `/profile/dna`. **The UI never derives the profile itself.** Until T1b ships the route, `lib/mock/dna.ts`
   implements the spec formulas verbatim and `lib/dna.test.ts` pins them. The result (in Profile) renders the returned `reasons`
   ("na podstawie: „Bardzo ja!” przy …" / "because you swiped “So me!” on …").

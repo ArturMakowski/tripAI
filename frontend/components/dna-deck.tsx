@@ -18,6 +18,17 @@ export const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
 export const THRESHOLD = 95;
 export const VELOCITY = 650;
 
+const preloaded = new Set<string>();
+/** Fetch and decode a photo ahead of time (once per page load). */
+export function preload(src: string) {
+  if (typeof window === "undefined" || preloaded.has(src)) return;
+  preloaded.add(src);
+  const img = new Image();
+  img.decoding = "async";
+  img.src = src;
+  img.decode?.().catch(() => {});
+}
+
 /** What each gesture means on this card, for stamps, buttons and aria labels. */
 export function gestureLabel(card: DnaCard, g: Gesture, lang: Lang): string {
   const t = messagesFor(lang).onboarding;
@@ -101,7 +112,9 @@ function TopCard({
 
   return (
     <motion.div
-      className="absolute inset-0 cursor-grab touch-none overflow-hidden rounded-[2rem] bg-ink shadow-lift active:cursor-grabbing"
+      // no background of its own: until this card's photo paints, the same photo in the stack layer below shows
+      // through (a bg-ink here flashed black after every swipe, round 4 video)
+      className="absolute inset-0 cursor-grab touch-none overflow-hidden rounded-[2rem] shadow-lift active:cursor-grabbing"
       style={{ x, y, rotate }}
       drag={yesno ? "x" : true}
       dragSnapToOrigin
@@ -186,24 +199,32 @@ export function DnaDeck({
     return () => window.removeEventListener("keydown", onKey);
   }, [swipe, undo]);
 
-  const behind = cards.slice(position + 1, position + 3);
+  // The stack under the draggable top card: the current card's photo plus the next two, keyed by card, so each
+  // photo stays mounted (and painted) from the moment it enters the stack until its card is swiped away.
+  const stack = cards.slice(position, position + 3);
   const gestures = card ? gesturesFor(card) : [];
+
+  // Warm the photos a little further ahead too, so the card entering the stack is decoded before it shows.
+  useEffect(() => {
+    for (const c of cards.slice(position + 1, position + 4)) preload(c.image);
+  }, [cards, position]);
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="relative mx-auto h-[min(62dvh,560px)] min-h-[400px] w-full">
-        {behind
+        {stack
           .map((c, i) => (
             <motion.div
               key={c.id}
               className="absolute inset-0 overflow-hidden rounded-[2rem] bg-ink shadow-soft"
               initial={false}
-              animate={{ scale: 1 - (i + 1) * 0.045, y: (i + 1) * 14, opacity: i === 0 ? 1 : 0.7 }}
+              // i = 0 sits exactly under the top card (hidden while undo flies that card back in from the side)
+              animate={{ scale: 1 - i * 0.045, y: i * 14, opacity: i === 0 ? (dir.undo ? 0 : 1) : i === 1 ? 1 : 0.7 }}
               transition={SPRING}
               aria-hidden
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.image} alt="" className="size-full object-cover opacity-80" />
+              <img src={c.image} alt="" className={cn("size-full object-cover transition-opacity", i > 0 && "opacity-80")} />
             </motion.div>
           ))
           .reverse()}

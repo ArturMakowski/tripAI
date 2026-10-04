@@ -146,7 +146,7 @@ export default function SwipeOnboarding() {
         {step === "swipe" && (
           <motion.section key="swipe" {...slide} className="flex flex-col pt-1 pb-6">
             <Dots total={DNA_DECK.length} done={position} />
-            <h1 className="mt-4 text-center font-display text-[1.6rem] leading-tight text-ink">{t.title}</h1>
+            <h1 className="mt-4 text-center font-display text-[1.6rem] leading-tight text-balance text-ink">{t.title}</h1>
             <p className="mt-1 mb-4 text-center text-xs text-muted-foreground">
               {DNA_DECK[position]?.kind === "yesno" ? t.hintYesNo : t.hint}
             </p>

@@ -111,6 +111,12 @@
   body {
     @apply bg-paper-deep text-foreground;
   }
+  /* headings never end on a one-word line ("know / you.", round 4 video); PL and EN alike */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
   ::selection {
     background: var(--clay-soft);
   }
