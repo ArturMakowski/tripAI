@@ -14,6 +14,9 @@ npm run e2e:local    # against http://localhost:3000 (frontend from ../frontend)
 npm run e2e:replay   # strict replay, except @live: fails (REPLAY_STALE) instead of paying for a model call when a recording went stale
 npm run e2e:replay:live  # the same incl. @live (runs the real inbox scan: SerpApi; only with budget to spare)
 npx e2e run tests/05-receipt.e2e.ts --headed   # one file, watch it
+# a branch before it is deployed: run its frontend locally against the live API (its /api proxy can chain
+# through the deployed frontend's /api) and record/replay under the deployed app's cache key:
+E2E_BASE_URL=http://localhost:3000 E2E_ENVIRONMENT=production npm run e2e:replay
 ```
 
 - **Model:** OpenAI `gpt-6-luna`, pinned in `e2e.config.ts` (no framework default). The key is `OPENAI_API_KEY` from the environment. If that is
@@ -45,7 +48,7 @@ errors land here in production) and unhandled rejections. The framework has no c
 | `03-pick-dates` | Pick 1–3 Jan 2027 in the Free time calendar → Trips | pick the range | Trips header "For your dates: 1–3 Jan" |
 | `04-trips-budget` | Profile: switch on "Never show trips over…" (off by default) and set 1,000 PLN → trip cards | judge photo/price/badge (vision) | every card: PLN price, fit badge, photo decodes; no in-budget card below an over-budget one |
 | `05-receipt` | Open the top trip's receipt | none (deterministic) | after "Sources / Źródła", each money line has a `Source · 3 Oct` chip with the time in its tooltip (demo data excepted); "Audit" shows the total out of 100 and no inputs hash |
-| `06-swipe-offers` | Swipe mode → like → undo | like; undo | "Learned: … {city}" toast; "Undone" toast; the same card is back on top |
+| `06-swipe-offers` | Wait for the final ranking (deck not `aria-busy`) → swipe mode → like → undo | like; undo | "Learned: … {city}" toast; "Undone" toast; the same card is back on top |
 | `07-survey` | Post-trip survey → profile update | answer + submit | "Ranking weights" with `x% → y%` lines |
 | `08-inbox` `@live` | Run the proactive scan | none (taps "Run scan now") | scan finishes; "N new notifications" or "Nothing new worth a ping" |
 | `09-console` | Every route + a receipt, then `/` again as a returning user (demo profile + stored ranking) | none | no console/page/hydration errors; no "Application error"; the home "#1" card renders |

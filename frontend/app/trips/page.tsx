@@ -15,7 +15,9 @@ import { PrioritySlider } from "@/components/priority-slider";
 import { RecCard } from "@/components/rec-card";
 import { Chip, InfoTip } from "@/components/declutter";
 import { TripLoader, type Stage } from "@/components/trip-loader";
-import { HiddenTrips, SwipeMode, TripsViewToggle, useHiddenIds } from "@/components/trips-swipe";
+import { HiddenTrips, SwipeMode, SwipeToast, TripsViewToggle, useHiddenIds } from "@/components/trips-swipe";
+import { useDeckSession } from "@/lib/deck-session";
+import { commitLearning } from "@/lib/use-reactions";
 import { useSwipe } from "@/lib/use-reactions";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
 import { PickedDatesEmpty, PickedDatesHeader, useClientToday } from "@/components/date-picker/free-dates-planner";
@@ -105,6 +107,19 @@ function Trips() {
   // T6: city+dates swiped "Nie dla mnie" are hidden (listed under "Hidden" below)
   const hidden = useHiddenIds();
   const view = useSwipe((s) => s.view);
+  // The swipe session (deck snapshot, undo history, toast) ends when the user leaves the swipe view or
+  // /trips; leaving with the deck open still keeps what it learned (one re-rank).
+  const resetDeck = useDeckSession((s) => s.reset);
+  useEffect(() => {
+    if (view !== "swipe") resetDeck();
+  }, [view, resetDeck]);
+  useEffect(
+    () => () => {
+      if (useSwipe.getState().view === "swipe") commitLearning();
+      resetDeck();
+    },
+    [resetDeck],
+  );
   const list = matching.filter((r) => !hidden.has(r.id));
   const budget = (profile ?? DEMO_PROFILE).budget_pln;
   const [withinFirst, setWithinFirst] = useState(false);
@@ -306,6 +321,8 @@ function Trips() {
       </div>
 
       {view === "swipe" && list.length > 0 && <SwipeMode ranked={list} refining={refining} />}
+      {/* outside the deck: a ranking update or a deck remount never drops "Learned: …" / "Undone" */}
+      {view === "swipe" && <SwipeToast />}
       {/* list mode (inner block kept at its old indentation to keep this diff small) */}
       {view === "list" && (
       <LayoutGroup>
