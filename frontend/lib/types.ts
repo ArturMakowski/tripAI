@@ -356,6 +356,21 @@ export interface TripItem {
   checked_at: string | null;
   change_pln: number | null; // current - saved per person; only exact-date prices for the same party size
   target_pln: number | null; // per person
+  // T24 "manage my trips" (optional: an older backend omits them)
+  status?: "planned" | "booked"; // booked: past list, no more price watching
+  booked_at?: string | null;
+  rateable?: boolean; // the trip has ended: "Oceń wyjazd"
+  pending?: boolean; // dates/party edited: cache-only price until POST /trips/{id}/refresh finishes
+  fit_label?: string | null; // AI fit verdict, re-checked after an edit
+  fit_summary?: string | null;
+}
+
+/** PATCH /trips/{id}: book / un-book, or new dates and/or party (re-priced). */
+export interface TripPatch {
+  start?: string;
+  end?: string;
+  travelers?: number;
+  status?: "planned" | "booked";
 }
 
 export interface TripsResponse {

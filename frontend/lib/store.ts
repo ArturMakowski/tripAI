@@ -70,6 +70,8 @@ interface TripState {
   setWeights: (w: Weights) => void;
   setMode: (d: Dataset, m: DataMode) => void;
   approve: (id: string) => void;
+  /** My trips "Usuń" while the backend is unreachable (fixture view); undo calls approve again. */
+  unapprove: (id: string) => void;
   setTripTarget: (id: string, pln: number | null) => void;
   setFeedback: (f: FeedbackDiff | null) => void;
   setDeck: (patch: Partial<TripState["deck"]>) => void;
@@ -123,6 +125,7 @@ export const useTrip = create<TripState>()(
       setWeights: (weights) => set({ weights, slider: null }),
       setMode: (d, m) => set((s) => ({ modes: { ...s.modes, [d]: m } })),
       approve: (id) => set((s) => ({ approved: s.approved.includes(id) ? s.approved : [...s.approved, id] })),
+      unapprove: (id) => set((s) => ({ approved: s.approved.filter((x) => x !== id) })),
       setTripTarget: (id, pln) =>
         set((s) => {
           const tripTargets = { ...s.tripTargets };

@@ -85,6 +85,19 @@ describe("/api proxy", () => {
     expect(new Headers(calls[0].init.headers).get("x-forwarded-proto")).toBe("https");
   });
 
+  it("forwards PATCH with its body (My trips: edit / book), and the route exports every method the client uses", async () => {
+    const { calls, fetchImpl } = upstream();
+    await proxy(
+      new Request("http://x/api/trips/NAP-20261107-20261111", { method: "PATCH", body: '{"status":"booked"}', headers: { "content-type": "application/json" } }),
+      ENV,
+      fetchImpl,
+    );
+    expect(calls[0].init.method).toBe("PATCH");
+    expect(calls[0].url).toBe("http://backend.internal:8080/trips/NAP-20261107-20261111");
+    const route = await import("../app/api/[...path]/route");
+    for (const m of ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]) expect(typeof (route as Record<string, unknown>)[m], m).toBe("function");
+  });
+
   it("answers OPTIONS locally", async () => {
     const { calls, fetchImpl } = upstream();
     const out = await proxy(new Request("http://x/api/recommendations", { method: "OPTIONS" }), ENV, fetchImpl);
@@ -112,6 +125,8 @@ describe("/api proxy", () => {
     expect(timeoutFor("/recommendations")).toBe(60_000);
     expect(timeoutFor("/scan/run")).toBe(95_000);
     expect(timeoutFor("/cities")).toBe(30_000);
+    expect(timeoutFor("/trips/NAP-20261107-20261111/refresh")).toBe(60_000);
+    expect(timeoutFor("/trips/NAP-20261107-20261111")).toBe(30_000);
     expect(timeoutFor("/recommendationsX")).toBe(30_000);
   });
 });

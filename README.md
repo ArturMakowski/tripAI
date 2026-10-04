@@ -599,6 +599,37 @@ no anon policy. **The president applies it before deploy.** Until then, the back
 - Target and last-check values stay in memory and are merged back into the Supabase rows this process reads.
 - `trips` writes are logged and served from memory.
 
+## Manage my trips (T24): delete with undo, edit dates/party, booked
+
+From user testing round 4 (`docs/USER_TESTING.md`). Every endpoint acts for the session user; `{id}` is the trip's recommendation id.
+
+| Endpoint | What |
+|---|---|
+| `DELETE /trips/{id}` | Removes an approved or saved trip. It's a **soft delete** (`deleted_at`): the trip leaves `GET /trips` and `GET /picks`, frees its watch slot, and the scan stops re-pricing and alerting on it at once |
+| `POST /trips/{id}/restore` | Undo: the trip, its price watch and its target come back as they were (404 when there is nothing to restore) |
+| `PATCH /trips/{id}` `{status}` | `"booked"` moves the trip to `past` (`status: "booked"`, `booked_at`) and stops watching it; a saved-only trip becomes a booked plan. `"planned"` un-books it and watches it again if a slot is free. Rows in `past` carry `rateable` (the trip has ended → "Oceń wyjazd", which feeds the survey) |
+| `PATCH /trips/{id}` `{start?, end?, travelers?}` | New dates and/or party (1–12; starts today or later; 1–30 nights). Re-priced at once from the **cache** (see below); the row comes back `pending` under the new id (the id contains the dates). The approval, the watch and the target move with it. 409 if you already have that trip on those dates or it is booked; 422 if there is no price |
+| `POST /trips/{id}/refresh` | The **full** re-price of an edited trip plus the AI fit verdict, re-checked against the Travel DNA (`fit_label`, `fit_summary`). Its price replaces the pending one. With no price found the trip stays labelled. At most once per trip every 5 s (429) |
+
+**Re-pricing goes through the normal pipeline.**
+- It uses `tripai.scoring.origins` + `rank`, like `/recommendations` and the scan: every origin airport the user picked and the same
+  typical-spend reference, but **only this city**. A new optional `only_iata` on `LiveProvider.candidates` skips the taste shortlist.
+  The scan's watched-pick re-price now uses it too, so re-checking one trip no longer prices the whole shortlist.
+- The edit prices with `fast=True`: cache + Travelpayouts, never a new metered call. The refresh runs the full pipeline: exact-date
+  SerpApi refinement, cache first, within the daily and per-request caps.
+- The new card is stored for the session, so its receipt and later approvals find it.
+- The party is priced with the profile's party model (docs/BUDGET.md) for that trip only; the profile itself is unchanged.
+
+**The scan skips** deleted picks (`watching()`), and picks whose plan is booked, done, cancelled or deleted (`not_watched()`), even if a
+watch row lingers on another replica.
+
+**Storage:** `supabase/migrations/0007_manage_trips.sql` adds `trips.booked_at/deleted_at/pending/fit_label/fit_summary` and
+`saved_picks.deleted_at/pending/fit_label/fit_summary`, and makes the `trips.status` check explicit. RLS stays on with no policies.
+**The president applies it before deploy.** Until then the store writes in layers:
+- On PostgREST's "no such column" error it retries with the 0006 columns, then (for `saved_picks`) the 0003 ones.
+- Whatever couldn't be written stays in this process's memory and is merged back on read. A delete or a booking therefore holds in the
+  process that made it, but not across replicas or restarts.
+
 ## Origin airports + Travel DNA photos (T15)
 
 - **Origin airports.** Defined once in `tripai.seed.airports.ORIGINS`/`ORIGIN_LABELS`, written to `data/airports.json` as

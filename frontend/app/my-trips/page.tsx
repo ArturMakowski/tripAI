@@ -2,16 +2,38 @@
 
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Bookmark, CircleCheck, Luggage, Pencil, Star, Target } from "lucide-react";
-import { useCallback, useEffect, useId, useState, type FormEvent } from "react";
+import { ArrowRight, Bookmark, CircleCheck, Loader2, Luggage, Pencil, Star, Target } from "lucide-react";
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { PriceInline } from "@/components/money";
+import { EditSheet, RowMenu, SwipeDelete, UndoToast, type Toast } from "@/components/my-trips";
 import { CityPhoto } from "@/components/rec-card";
 import { AppShell, PageTitle } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { api, HttpError, type DataMode } from "@/lib/api";
+import { fitMeta } from "@/lib/fit";
 import { useT } from "@/lib/i18n";
 import { useHydrated, useTrip } from "@/lib/store";
-import { headline, headlinePrice, loadTrips, localTrips, parseTarget, priceLine, surveyHref, targetReached, withItem, withoutItem } from "@/lib/trips";
+import {
+  editPatch,
+  headline,
+  headlinePrice,
+  loadTrips,
+  localTrips,
+  parseTarget,
+  placeItem,
+  priceLine,
+  removeItem,
+  restoreItem,
+  surveyHref,
+  targetReached,
+  tripActions,
+  UNDO_MS,
+  withItem,
+  withoutItem,
+  type EditDraft,
+  type Removed,
+  type TripAction,
+} from "@/lib/trips";
 import type { TripItem, TripsResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -85,6 +107,8 @@ function TargetEditor({
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
       onSubmit={submit}
+      // typing / selecting in the editor never starts the row's swipe-to-delete
+      onPointerDown={(e) => e.stopPropagation()}
       className="overflow-hidden"
     >
       <label htmlFor={id} className="sr-only">
@@ -140,14 +164,30 @@ function TargetEditor({
   );
 }
 
+/** The AI fit verdict, re-checked after an edit (the label only, as on the cards). */
+function FitChip({ label }: { label: string }) {
+  const { lang } = useT();
+  const f = fitMeta(label, lang);
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold", f.tone)}>
+      <span className={cn("size-1.5 rounded-full", f.dot)} />
+      {f.label}
+    </span>
+  );
+}
+
 function PlannedCard({
   trip,
   onTarget,
   onStop,
+  actions,
+  onAction,
 }: {
   trip: TripItem;
   onTarget: (trip: TripItem, pln: number | null) => Promise<string | null>;
   onStop: (trip: TripItem) => Promise<string | null>;
+  actions: TripAction[];
+  onAction: (a: TripAction) => void;
 }) {
   const { t, fmt } = useT();
   const m = t.myTrips;
@@ -156,7 +196,7 @@ function PlannedCard({
   const price = headline(trip);
   const KindIcon = trip.kind === "approved" ? CircleCheck : Bookmark;
   return (
-    <motion.li layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-line bg-card p-3 shadow-soft">
+    <div data-trip={trip.id} className="rounded-2xl border border-line bg-card p-3 shadow-soft">
       <div className="flex gap-3">
         <CityPhoto rec={trip} thumb className="size-14 shrink-0 rounded-xl" />
         <div className="min-w-0 flex-1">
@@ -165,17 +205,29 @@ function PlannedCard({
               <span className="truncate">{trip.city}</span>
               <KindIcon className="size-3.5 shrink-0 text-pine" aria-label={trip.kind === "approved" ? m.approved : m.saved} />
             </p>
-            {/* same money as the card (moneyOf): per person + "2 480 zł razem" for a group; estimates muted */}
+            {/* same money as the card (moneyOf): per person + "2 480 zł razem" for a group; estimates muted.
+                After a dates/party edit the cache-only price is pending: muted "~X", never a plain number. */}
+            {trip.pending ? (
+              <span className="tabular shrink-0 text-right text-sm text-muted-foreground italic">{m.pendingPrice(fmt.pln(headlinePrice(trip)))}</span>
+            ) : (
             <PriceInline rec={price.rec} className={cn(
                 "shrink-0 text-right",
                 price.estimate ? "max-w-[55%] text-xs" : trip.travelers > 1 ? "max-w-[55%] text-sm font-semibold text-ink" : "font-display text-lg text-ink",
               )} />
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             {fmt.range(trip)} · {m.party(trip.travelers)}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <PriceChip t={trip} />
+            {trip.pending ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-paper-deep px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden /> {m.pending}
+              </span>
+            ) : (
+              <PriceChip t={trip} />
+            )}
+            {trip.fit_label && !trip.pending && <FitChip label={trip.fit_label} />}
             <button
               onClick={() => setEditing((v) => !v)}
               aria-expanded={editing}
@@ -188,6 +240,9 @@ function PlannedCard({
               {hit ? m.targetHit : trip.target_pln != null ? m.target(fmt.pln(trip.target_pln)) : m.setTarget}
               <Pencil className="size-3 opacity-60" aria-hidden />
             </button>
+            <div className="ml-auto">
+              <RowMenu city={trip.city} actions={actions} onAction={onAction} />
+            </div>
           </div>
         </div>
       </div>
@@ -209,27 +264,41 @@ function PlannedCard({
           />
         )}
       </AnimatePresence>
-    </motion.li>
+    </div>
   );
 }
 
-function PastCard({ trip }: { trip: TripItem }) {
+function PastCard({ trip, actions, onAction }: { trip: TripItem; actions: TripAction[]; onAction: (a: TripAction) => void }) {
   const { t, fmt } = useT();
+  const m = t.myTrips;
+  // An older backend has no `rateable`: everything it lists as past has ended.
+  const rateable = trip.rateable ?? trip.status !== "booked";
   return (
-    <li className="flex items-center gap-3 rounded-2xl border border-line bg-card p-3 shadow-soft">
+    <div data-trip={trip.id} className="flex items-center gap-3 rounded-2xl border border-line bg-card p-3 shadow-soft">
       <CityPhoto rec={trip} thumb className="size-12 shrink-0 rounded-xl" />
       <div className="min-w-0 flex-1">
         <p className="truncate font-display text-lg leading-tight text-ink">{trip.city}</p>
         <p className="text-xs text-muted-foreground">
           {fmt.range(trip)} {trip.start.slice(0, 4)}
         </p>
+        {!rateable && (
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full bg-pine-soft px-2 py-0.5 font-semibold text-pine-deep">
+              <CircleCheck className="size-3.5" aria-hidden /> {m.bookedBadge}
+            </span>
+            {m.rateAfter}
+          </p>
+        )}
       </div>
-      <Button asChild size="sm" variant="outline" className="rounded-xl">
-        <Link href={surveyHref(trip)}>
-          <Star data-icon="inline-start" /> {t.myTrips.rate}
-        </Link>
-      </Button>
-    </li>
+      {rateable && (
+        <Button asChild size="sm" variant="outline" className="rounded-xl">
+          <Link href={surveyHref(trip)}>
+            <Star data-icon="inline-start" /> {m.rate}
+          </Link>
+        </Button>
+      )}
+      {actions.length > 0 && <RowMenu city={trip.city} actions={actions} onAction={onAction} />}
+    </div>
   );
 }
 
@@ -239,6 +308,17 @@ export default function MyTripsPage() {
   const hydrated = useHydrated();
   const [data, setData] = useState<TripsResponse | null>(null);
   const [mode, setMode] = useState<DataMode>("live");
+  const [toast, setToast] = useState<Toast | null>(null);
+  const [editing, setEditing] = useState<TripItem | null>(null);
+  const toastId = useRef(0);
+  /** the in-flight DELETE per trip: undo waits for it, so the restore never races the delete */
+  const deleting = useRef(new Map<string, Promise<unknown>>());
+  /** pending (edited) trips whose full re-price already started on this page load */
+  const refreshing = useRef(new Set<string>());
+  const live = mode === "live";
+
+  const say = useCallback((text: string, action?: Toast["action"]) => setToast({ id: ++toastId.current, text, action }), []);
+  const closeToast = useCallback(() => setToast(null), []);
 
   const local = useCallback(() => {
     const s = useTrip.getState();
@@ -284,6 +364,90 @@ export default function MyTripsPage() {
     }
   }
 
+  /** The full re-price + fit re-check of an edited trip (it shows "pending" until this lands). */
+  const refresh = useCallback((trip: TripItem) => {
+    if (refreshing.current.has(trip.id)) return;
+    refreshing.current.add(trip.id);
+    api
+      .refreshTrip(trip.id)
+      .then((item) => setData((d) => d && placeItem(d, item)))
+      .catch((err) => console.warn("[tripai] trip refresh failed; it stays pending:", err));
+  }, []);
+
+  // an edit whose refresh never finished (tab closed, network): finish it now
+  useEffect(() => {
+    if (live) data?.planned.filter((x) => x.pending).forEach(refresh);
+  }, [data, live, refresh]);
+
+  function undoDelete(removed: Removed) {
+    const { item } = removed;
+    if (!live) {
+      useTrip.getState().approve(item.id);
+      setData((d) => d && restoreItem(d, removed));
+      say(m.restored(item.city));
+      return;
+    }
+    const after = deleting.current.get(item.id) ?? Promise.resolve();
+    after
+      .then(() => api.restoreTrip(item.id))
+      .then((back) => {
+        setData((d) => d && restoreItem(d, removed, back));
+        say(m.restored(item.city));
+      })
+      .catch(() => say(m.actionFailed));
+  }
+
+  function remove(trip: TripItem) {
+    if (!data) return;
+    const { list, removed } = removeItem(data, trip.id);
+    if (!removed) return;
+    setData(list);
+    if (live) {
+      const req = api.deleteTrip(trip.id).catch((err) => {
+        console.warn("[tripai] delete failed:", err);
+        setData((d) => d && restoreItem(d, removed)); // never pretend it's gone
+        say(m.actionFailed);
+        throw err;
+      });
+      deleting.current.set(trip.id, req.catch(() => undefined));
+    } else {
+      useTrip.getState().unapprove(trip.id);
+    }
+    say(m.deleted(trip.city), { label: m.undo, run: () => undoDelete(removed) });
+  }
+
+  function setStatus(trip: TripItem, status: "planned" | "booked", undoable = true) {
+    api
+      .patchTrip(trip.id, { status })
+      .then((item) => {
+        setData((d) => d && placeItem(d, item));
+        const text = status === "booked" ? m.booked(trip.city) : m.unbooked(trip.city);
+        say(text, undoable ? { label: m.undo, run: () => setStatus(item, status === "booked" ? "planned" : "booked", false) } : undefined);
+      })
+      .catch(() => say(m.actionFailed));
+  }
+
+  async function saveEdit(trip: TripItem, draft: EditDraft): Promise<string | null> {
+    try {
+      const item = await api.patchTrip(trip.id, editPatch(trip, draft));
+      setData((d) => d && placeItem(d, item, trip.id));
+      setEditing(null);
+      refresh(item);
+      return null;
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 422) return m.editNoPrice;
+      if (err instanceof HttpError && err.status === 409) return m.editClash;
+      return m.actionFailed;
+    }
+  }
+
+  function act(trip: TripItem, a: TripAction) {
+    if (a === "edit") setEditing(trip);
+    else if (a === "book") setStatus(trip, "booked");
+    else if (a === "unbook") setStatus(trip, "planned");
+    else remove(trip);
+  }
+
   if (!data) {
     return (
       <AppShell>
@@ -327,10 +491,16 @@ export default function MyTripsPage() {
           {m.planned} <span className="text-muted-foreground">· {data.planned.length}</span>
         </h2>
         {data.planned.length ? (
-          <ul className="space-y-2.5">
-            {data.planned.map((trip) => (
-              <PlannedCard key={trip.id} trip={trip} onTarget={setTarget} onStop={stopWatching} />
-            ))}
+          <ul className="space-y-2.5" aria-describedby="swipe-hint">
+            <AnimatePresence initial={false}>
+              {data.planned.map((trip) => (
+                <motion.li key={trip.id} layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }}>
+                  <SwipeDelete onDelete={() => remove(trip)} label={m.remove}>
+                    <PlannedCard trip={trip} onTarget={setTarget} onStop={stopWatching} actions={tripActions(trip, live)} onAction={(a) => act(trip, a)} />
+                  </SwipeDelete>
+                </motion.li>
+              ))}
+            </AnimatePresence>
           </ul>
         ) : (
           <p className="text-sm text-muted-foreground">
@@ -348,12 +518,23 @@ export default function MyTripsPage() {
             {m.past} <span className="text-muted-foreground">· {data.past.length}</span>
           </h2>
           <ul className="space-y-2.5">
-            {data.past.map((trip) => (
-              <PastCard key={trip.id} trip={trip} />
-            ))}
+            <AnimatePresence initial={false}>
+              {data.past.map((trip) => (
+                <motion.li key={trip.id} layout exit={{ opacity: 0, height: 0 }}>
+                  <SwipeDelete onDelete={() => remove(trip)} label={m.remove}>
+                    <PastCard trip={trip} actions={tripActions(trip, live)} onAction={(a) => act(trip, a)} />
+                  </SwipeDelete>
+                </motion.li>
+              ))}
+            </AnimatePresence>
           </ul>
         </section>
       )}
+      <p id="swipe-hint" className="sr-only">
+        {m.swipeHint}
+      </p>
+      {editing && <EditSheet trip={editing} onClose={() => setEditing(null)} onSave={(d) => saveEdit(editing, d)} />}
+      <UndoToast toast={toast} onClose={closeToast} ms={UNDO_MS} />
     </AppShell>
   );
 }

@@ -365,8 +365,8 @@ def test_supabase_pick_writes_before_migration_0006():
                                 client=httpx.Client(transport=httpx.MockTransport(handler)))  # fmt: skip
     pick = _ended_pick("u1").model_copy(update={"saved_pln": 900.0, "target_pln": 800.0})
     store.save_pick(pick)
-    first, retry = sent
-    assert first.method == retry.method == "POST"
+    *_, retry = sent  # full row (0007), then the 0006 columns, then the 0003 ones
+    assert len(sent) == 3 and {r.method for r in sent} == {"POST"}
     legacy = json.loads(retry.content)[0]
     assert "saved_pln" not in legacy and legacy["baseline_pln"] == 900
     sent.clear()

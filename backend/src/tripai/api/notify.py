@@ -261,7 +261,7 @@ def _router(deps: ScanDeps, limiter: ScanRateLimiter) -> APIRouter:
     # ------------------------------------------------------------------ watched picks
     @r.get("/picks")
     def get_picks(uid: User) -> list[SavedPick]:
-        return notify.picks(uid)
+        return [p for p in notify.picks(uid) if p.deleted_at is None]  # deleted = awaiting undo
 
     @r.post("/picks")
     async def post_pick(req: PickRequest, uid: User) -> SavedPick:

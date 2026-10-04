@@ -114,6 +114,11 @@ class SavedPick(BaseModel):
     last_travelers: int | None = None  # the party the scan priced (the profile may have changed)
     last_price_status: str | None = None  # "exact" | "partial" | "estimate" (docs/BUDGET.md)
     last_checked_at: UTCDateTime | None = None
+    # T24 "manage my trips" (migration 0007)
+    deleted_at: UTCDateTime | None = None  # soft delete: undo restores it; the scan skips it
+    pending: bool = False  # dates/party edited: priced from cache only until /refresh finishes
+    fit_label: str | None = None  # AI fit verdict re-checked after an edit
+    fit_summary: str | None = None
 
     @property
     def first_pln(self) -> float:
@@ -121,9 +126,14 @@ class SavedPick(BaseModel):
 
 
 def watching(picks: list[SavedPick], today: date) -> list[SavedPick]:
-    """Picks that still hold a watch slot: a trip that has ended has nothing left to buy, so it
-    neither counts against TRIPAI_MAX_PICKS nor gets re-priced (T13 review #1)."""
-    return [p for p in picks if p.end >= today]
+    """Picks that still hold a watch slot: a trip that has ended has nothing left to buy, and a
+    deleted one is gone, so neither counts against TRIPAI_MAX_PICKS nor gets re-priced."""
+    return [p for p in picks if p.end >= today and p.deleted_at is None]
+
+
+def not_watched(trip: "PlannedTrip") -> bool:
+    """Booked, cancelled or deleted plans: nothing left to buy, so no price checks or alerts."""
+    return trip.deleted_at is not None or trip.status in ("booked", "done", "cancelled")
 
 
 class PlannedTrip(BaseModel):
@@ -144,6 +154,12 @@ class PlannedTrip(BaseModel):
     travelers: int = 1
     status: Literal["planned", "booked", "done", "cancelled"] = "planned"
     approved_at: UTCDateTime = Field(default_factory=now_utc)
+    # T24 "manage my trips" (migration 0007)
+    booked_at: UTCDateTime | None = None  # "Zarezerwowane": moves to past trips, no more watching
+    deleted_at: UTCDateTime | None = None  # soft delete: undo restores it
+    pending: bool = False  # dates/party edited: priced from cache only until /refresh finishes
+    fit_label: str | None = None
+    fit_summary: str | None = None
 
 
 class Decision(BaseModel):

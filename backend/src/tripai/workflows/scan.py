@@ -33,6 +33,7 @@ from tripai.notify.models import (
     ScanResult,
     ScanRun,
     new_id,
+    not_watched,
     now_utc,
     watching,
 )
@@ -177,13 +178,15 @@ async def _candidates(
     weights: Weights,
     windows: list[FreeWindow],
     typical: float | None = None,
+    **extra: Any,
 ) -> list[Candidate]:
     if not windows:
         return []
-    # every origin the user picked, cheapest offer per trip (tripai.scoring.origins)
+    # every origin the user picked, cheapest offer per trip (tripai.scoring.origins); `extra`
+    # (only_iata, fast) reaches providers that support it
     return await candidates_for_origins(
         deps.provider, profile.origin_airports, windows, profile.luxury,
-        profile=profile, weights=weights, typical_spend_pln=typical,
+        profile=profile, weights=weights, typical_spend_pln=typical, **extra,
     )  # fmt: skip
 
 
@@ -216,8 +219,14 @@ class Scan:
         n = self.deps.notify
         now = now_utc()
         last = n.last_scan_run(user_id)
-        # ended trips release their slot, so they can't crowd live watches out of the cap
-        live = watching(n.picks(user_id), now.astimezone(TZ).date())
+        # ended and deleted trips release their slot, so they can't crowd live watches out of
+        # the cap; a booked (or deleted) plan is never re-priced or alerted on again (T24)
+        done = {t.recommendation_id for t in n.planned_trips(user_id) if not_watched(t)}
+        live = [
+            p
+            for p in watching(n.picks(user_id), now.astimezone(TZ).date())
+            if p.recommendation_id not in done
+        ]
         picks = sorted(live, key=lambda p: p.saved_at, reverse=True)
         return {
             "run_id": new_id(),
@@ -299,11 +308,8 @@ class Scan:
         for raw in picks:
             pick = SavedPick.model_validate(raw)
             win = FreeWindow(start=pick.start, end=pick.end)
-            cands = [
-                c
-                for c in await _candidates(self.deps, p, w, [win], self.typical)
-                if c.iata == pick.iata
-            ]
+            got = await _candidates(self.deps, p, w, [win], self.typical, only_iata=pick.iata)
+            cands = [c for c in got if c.iata == pick.iata]  # one city, not the whole shortlist
             recs = rank(cands, p, w, limit=1, typical_spend_pln=self.typical)
             out[pick.recommendation_id] = await self._with_fit(recs[0], p) if recs else None
         return {"recs": out}
