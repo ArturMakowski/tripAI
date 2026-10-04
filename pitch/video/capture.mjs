@@ -55,6 +55,7 @@ const API = new RegExp('^' + APP.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/api/
 // The demo persona: answers to q1..q12, y1, y2 (U = "So me!", R = "That's me", D = "Depends", L = "Not me").
 // Ola from the deck: loves discovering, local food, rest; price-aware; hates crowds.
 const ANSWERS = (process.env.ANSWERS || 'U L R R U R D R R D U L R R').split(' ');
+const DNA_DRAGS = 10; // real drags recorded: enough footage for the hook + the DNA beat at 1× playback
 const GESTURE = { U: /\(↑\)/, L: /\(←\)/, R: /\(→\)/, D: /\(↓\)/ };
 const DRAG = { U: [0, -340], L: [-270, 30], R: [270, -20], D: [0, 300] };
 const BUDGET = Number(process.env.BUDGET ?? 1800); // PLN per person, Ola's budget in the deck (0 = no hard limit)
@@ -315,12 +316,12 @@ const deck = await page.locator('img').first().boundingBox();
 const grab = { x: VIEW.width / 2, y: deck.y + deck.height * 0.55 };
 if (recording('onboarding')) { await startClip('dna'); await wait(400); }
 for (const [i, a] of ANSWERS.entries()) {
-  if (recording('onboarding') && i < 5) {
+  if (recording('onboarding') && i < DNA_DRAGS) {
     // never film a card before its photo has decoded (a black card otherwise)
     await page.waitForFunction(() => [...document.querySelectorAll('img')].every((im) => im.complete && im.naturalWidth > 0), null, { timeout: 15000 }).catch(() => log('  (a deck photo did not load)'));
     await drag(grab, { x: grab.x + DRAG[a][0], y: grab.y + DRAG[a][1] });
     await wait(520);
-    if (i === 4) await rec.stop();
+    if (i === DNA_DRAGS - 1) await rec.stop();
   } else {
     await page.getByRole('button', { name: GESTURE[a] }).first().click();
     await wait(380);
@@ -333,7 +334,7 @@ meta.flow.dates = (await page.getByText(/\d{1,2}[–-]\d{1,2}\s\p{L}+/u).first()
 if (recording('onboarding')) {
   await still('confirm', { showTrips: page.getByRole('button', { name: T.showTrips }) });
   await startClip('confirm');
-  await wait(700);
+  await wait(1900); // lead-in long enough to play the beat at 1× (never slow footage down: it repeats frames)
   await tap(page.getByRole('button', { name: T.showTrips }).or(page.getByRole('link', { name: T.showTrips })), 'showTrips');
   await page.waitForURL(/\/trips/);
   await wait(4500);
@@ -394,24 +395,31 @@ await still('trips_list', {
 });
 await page.evaluate(() => scrollTo(0, 0));
 
-// 4. The swipe deck of ranked trips: "I want to go" on the #1, "Love it!" on the #2.
-await page.getByRole('button', { name: rx('^swipe$', '^karty$|^przesuń') }).first().click().catch(() => log('  (no Swipe toggle)'));
+// 4. t23: one ranked list whose rows you swipe (right = I want to go, left = not for me, heart = love).
+//    Swipe #1 right, then tap the heart on #2; record where the "Learned …" toast lands.
+const rowOf = (i) => page.locator('main li:has(article a[href^="/trips/"])').nth(i);
+await page.evaluate((y) => scrollTo(0, y), Math.max(0, ((await docBox(rowOf(0)))?.y ?? 300) - 120));
 await wait(800);
-await page.evaluate(() => scrollTo(0, 230));
-await wait(700);
-const top = await page.locator('[data-offer-card], [aria-roledescription="card"], article').first().boundingBox().catch(() => null);
-const offerGrab = top ? { x: VIEW.width / 2, y: top.y + Math.min(top.height, 844 - top.y) * 0.45 } : { x: 195, y: 560 };
-await startClip('offers');
-await wait(700);
-await drag(offerGrab, { x: offerGrab.x + 280, y: offerGrab.y - 30 }, 620);
-await wait(1300);
-await drag(offerGrab, { x: offerGrab.x + 10, y: offerGrab.y - 380 }, 620);
-await wait(1600);
+const row1 = await rowOf(0).boundingBox();
+const rowGrab = { x: 120, y: row1.y + Math.min(row1.height, 700 - row1.y) * 0.4 };
+await startClip('rows');
+await wait(900);
+await drag(rowGrab, { x: rowGrab.x + 250, y: rowGrab.y + 6 }, 700);
+await wait(1400);
+const rowsToast = await page.evaluate(() => {
+  const el = [...document.querySelectorAll('[role="status"], [role="alert"], li, div')].find((e) => /learned|nauczy|zapamięt|wiemy/i.test(e.textContent) && e.getBoundingClientRect().height < 120 && e.getBoundingClientRect().height > 20);
+  const r = el?.getBoundingClientRect();
+  return r ? { x: r.x, y: r.y, w: r.width, h: r.height } : null;
+}).catch(() => null);
+const heart = page.getByRole('button', { name: rx('^love it', '^super') });
+if (await heart.count()) await tap(heart, 'love'); else log('  (no heart button)');
+await wait(1800);
 await rec.stop();
+meta.clips.rows.toast = rowsToast;
 
 // 5. The #1 trip page: flight, stay, things to do; sources one tap away; evidence.
-// the trip Ola loved (the #2 she swiped up on): the trip page beat follows her choice
-const tripPath = tripHrefs[1] ?? tripHrefs[0];
+// Ola's #1 (the one she swiped right on)
+const tripPath = tripHrefs[0];
 meta.flow.trip = tripPath;
 await page.goto(APP + tripPath, { waitUntil: 'networkidle' });
 await wait(2500);
@@ -446,10 +454,17 @@ await page.evaluate(() => scrollTo(0, 0));
 await wait(400);
 await startClip('evidence');
 await wait(400);
-await page.evaluate(() => scrollBy({ top: 700, behavior: 'smooth' }));
 await wait(900);
+// stepped scroll driven by the page's (slowed) timers, eased, so it plays at 1× after the slow capture
+await page.evaluate((dy) => new Promise((done) => {
+  const y0 = scrollY, n = 60;
+  let i = 0;
+  const step = () => { i++; const k = i / n; scrollTo(0, y0 + dy * (1 - Math.pow(1 - k, 3))); if (i < n) setTimeout(step, 25); else done(); };
+  step();
+}), 700);
+await wait(600);
 await tap(page.getByText(T.evidence), 'evidence');
-await wait(2600);
+await wait(4200);
 await rec.stop();
 // the first weather source chip inside Evidence (viewport coords), for the highlight
 meta.clips.evidence.chip = await page.evaluate(() => {

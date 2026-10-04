@@ -276,6 +276,13 @@ function buildTimeline() {
   const ev = (clip, label) => META.clips[clip].events.find((e) => e.label === label);
   const boxes = (st) => META.stills[st].boxes;
   const PHX = PHX0, PHY = 540;
+  // the loader → cards clip plays at ≥ 1× and hands over to the list as soon as it ends
+  const loadLen = (META.clips.loading?.frames ?? 105) / FPS - 0.75;
+  const loadSpeed = Math.max(1, loadLen / 3.5), loadEnd = 18 + Math.min(3.5, loadLen / loadSpeed);
+  const rowsEv = META.clips.rows?.events ?? [];
+  const rowsFrom = Math.max(0, (rowsEv.find((e) => e.type === 'down')?.t ?? 0.9) - 0.6);
+  const rowsToast = META.clips.rows?.toast ?? { y: 690, h: 58 };
+  const rowsToastT = 25 + ((rowsEv.find((e) => e.type === 'up')?.t ?? 1.9) + 0.5 - rowsFrom);
   const listRows = META.stills.trips_list?.boxes || {};
   const listY = listRows.card1 ? listRows.card1.y - 70 : 470;
   // poster: the #1 card's photo (title + "2d off → 5d") fills the lower screen, its price stays below the fold
@@ -299,15 +306,16 @@ function buildTimeline() {
     { t0: 0, t1: 3, clip: 'dna', from: dnaOpen, speed: 1 },
     { t0: 3, t1: welcomeCut, still: 'welcome', scroll: [[3, 0]] },
     { t0: welcomeCut, t1: 7, clip: 'welcome', from: 0.15, speed: 1 },
-    { t0: 7, t1: 14, clip: 'dna', from: dnaOpen + 3, speed: Math.max(0.3, (META.clips.dna.frames / FPS - 0.15 - dnaOpen - 3) / 7) },
+    { t0: 7, t1: 14, clip: 'dna', from: dnaOpen + 3, speed: Math.max(1, (META.clips.dna.frames / FPS - 0.15 - dnaOpen - 3) / 7) },
     // slow on the pre-filled card until the tap, then quicker into /trips and the persona card
     { t0: 14, t1: tapShow, clip: 'confirm', from: 0.1, speed: (tapLocal - 0.1) / (tapShow - 14) },
     { t0: tapShow, t1: 18, clip: 'confirm', from: tapLocal, speed: confirmSpeed },
-    { t0: 18, t1: 21.5, clip: 'loading', from: 0.7, speed: 2.3 },
-    { t0: 21.5, t1: 25, still: 'trips_list', scroll: [[21.5, 0], [21.9, listY]] },
-    { t0: 25, t1: 30, clip: 'offers', from: 2.0, speed: 1.55 },
+    { t0: 18, t1: loadEnd, clip: 'loading', from: 0.7, speed: loadSpeed },
+    { t0: loadEnd, t1: 25, still: 'trips_list', scroll: [[loadEnd, 0], [loadEnd + 0.4, listY]] },
+    // t23: a row swipe on the ranked list ("I want to go"), then the heart; real time
+    { t0: 25, t1: 30, clip: 'rows', from: rowsFrom, speed: 1 },
     { t0: 30, t1: 33.5, still: 'trip', scroll: [[30, 0]] },
-    { t0: 33.5, t1: 46.6, clip: 'evidence', from: 0.4, speed: 0.65 },
+    { t0: 33.5, t1: 46.6, clip: 'evidence', from: 0.4, speed: 1 },
     { t0: 46.6, t1: 50.5, still: 'home', scroll: [[46.6, 0]] },
     { t0: 50.5, t1: 54, still: 'mytrips', scroll: [[50.5, 0]] },
     { t0: 54, t1: 59, clip: 'approve', from: 0.35, speed: 1 },
@@ -338,7 +346,7 @@ function buildTimeline() {
     { t: 17.85, z: 1.0, fx: 1380, fy: 540, d: 0.15 },
     { t: 22.6, z: 2.15, ...xy(W(150, c1 - 10)), ease: 'spring', s: HEAVY }, // the #1 card's "2d off → 5d" (price stays out of frame)
     { t: 24.4, z: 1.0, fx: 1380, fy: 540, d: 0.6 },
-    { t: 28.75, z: 1.6, ...xy(W(195, 716)), ease: 'spring', s: HEAVY },   // "Learned: you like …"
+    // (no zoom on the toast: the card's price row sits right above it; a ring marks the toast instead)
     { t: 29.9, z: 1.0, fx: 1380, fy: 540, d: 0.3 },
     { t: 30.2, z: 1.06, fx: 1380, fy: 540, d: 3.2 },
     { t: 33.4, z: 1.0, fx: 1380, fy: 540, d: 0.2 },
@@ -375,6 +383,7 @@ function buildTimeline() {
     { t0: 22.0, t1: 24.6, still: 'trips_list', box: rows.card1 && { x: rows.card1.x + 8, y: rows.card1.y + 8, w: LANG === 'pl' ? 178 : 132, h: 40 } },
     // "Set your price": the target-price control, not the price itself
     { t0: 51.2, t1: 53.9, still: 'mytrips', box: (b => b && { x: b.x + 120, y: b.y + b.h - 34, w: b.w - 132, h: 26 })(META.stills.mytrips?.boxes.trip) },
+    { t0: rowsToastT, t1: 29.85, clip: 'rows', box: { x: rowsToast.x + 12, y: rowsToast.y + 4, w: rowsToast.w - 24, h: rowsToast.h - 8 }, fixed: true },
     { t0: 37.9, t1: 41.4, clip: 'evidence', box: null, fixed: true, scrim: { x: 21, y: evChip.y - 34, w: 348, h: evChip.h + 46 } },
   ];
   // drags inside the DNA segments, in timeline time (for the lean)
@@ -391,6 +400,8 @@ function buildTimeline() {
     }
   }
   const loupe = { t0: 38.15, t1: 41.22, clip: 'evidence', row: { x: evChip.x - 10, y: evChip.y - 6, w: evChip.w + 20, h: evChip.h + 12 }, chip: evChip, k: 3.8, at: { x: 130, y: 660 } };
+  // footage played below 1× repeats frames and looks laggy: flag it (static holds use speed 0)
+  for (const sg of seg) if (sg.clip && sg.speed > 0 && sg.speed < 0.95) console.warn(`slow footage: ${sg.clip} at ${sg.speed.toFixed(2)}× (${sg.t0}-${sg.t1} s)`);
   TL = { loupe, drags, seg, phone, camera, caps, stillTaps, hl, flood: { in: 41.0, out: 46.6 }, ola: { t0: 3.05, t1: 6.75 },
     card: { t0: 41.35, step: 0.92, t1: 46.2 }, notif: { t0: 47.4 }, poster: { t0: 59.2 }, end: 65.5 };
 }

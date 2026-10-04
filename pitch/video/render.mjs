@@ -36,6 +36,7 @@ const browser = await chromium.launch();
 async function openPage() {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: SCALE });
   page.on('pageerror', (e) => console.error('pageerror', e.message));
+  page.on('console', (m) => { if (m.type() === 'warning') console.warn('scene:', m.text()); });
   await page.goto(URL0);
   await page.waitForFunction(() => window.READY === true, null, { timeout: 60000 });
   return page;
