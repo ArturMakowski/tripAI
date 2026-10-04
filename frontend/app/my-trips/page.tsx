@@ -107,6 +107,8 @@ function TargetEditor({
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
       onSubmit={submit}
+      // typing / selecting in the editor never starts the row's swipe-to-delete
+      onPointerDown={(e) => e.stopPropagation()}
       className="overflow-hidden"
     >
       <label htmlFor={id} className="sr-only">

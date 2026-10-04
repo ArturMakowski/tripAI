@@ -365,6 +365,32 @@ no contract changes.
 - **Code.** Logic is in `lib/trips.ts`, pinned by `lib/trips.test.ts`; copy is in the i18n namespace `myTrips`; the inbox shows the new
   `target_price` kind.
 
+## Manage my trips (`/my-trips`, T24)
+Every planned or saved trip can be deleted (with undo), edited (dates or people) and marked as booked (docs/USER_TESTING.md round 4).
+- **Row actions.** The "⋯" menu holds "Zmień daty lub osoby", "Oznacz jako zarezerwowane" (on a booked trip: "Jednak nie zarezerwowane")
+  and "Usuń". Swiping a row left also deletes it. It uses the same thresholds as the /trips rows (`lockedSwipeIntent` from T23): a drag
+  that starts vertical never deletes, and the page still scrolls (`touch-action: pan-y`).
+- **Undo.** The row leaves at once and a toast says "Usunięto: Neapol · Cofnij" for 6 s. The delete is soft on the server, so undo
+  (`POST /restore`) really restores the trip, its watch and its target, in the same place in the list. A failed delete puts the row
+  back and says so.
+- **Edit.** A bottom sheet with quick chips ("Dzień wcześniej / później", this or next weekend, the next long weekend), the shared
+  calendar (`DateRangeCalendar`) and the party stepper (`PartyPicker`). The rules match the backend: today or later, 1–30 nights,
+  something changed.
+  - "Przelicz cenę" saves: `PATCH`, a cache-only price. Until the full refresh lands, the card shows that price muted as "~1 368 zł"
+    with "Liczymy cenę na nowe daty…", never as a plain number.
+  - The refresh then sets the price and the fit chip ("Świetnie pasuje"). A refresh that never finished (tab closed) runs on the next visit.
+- **Booked** trips move to "Minione" with a "Zarezerwowane" chip and "Ocenisz po powrocie"; after the end date they get "Oceń wyjazd"
+  (the survey, as before). Booking and un-booking toasts offer undo too.
+- **Demo view** (backend unreachable): delete and undo work on the locally approved trips. Editing and booking need the live service,
+  so the menu leaves them out.
+- **Code.**
+  - Pure logic in `lib/trips.ts` (`placeItem`, `removeItem` / `restoreItem`, `editError`, `editPatch`, `editChips`, `tripActions`),
+    pinned by `lib/trips-manage.test.ts`.
+  - UI in `components/my-trips.tsx`; copy in the `myTrips` i18n namespace (PL/EN, no "%").
+  - The `/api` proxy now forwards `PATCH`, and `/trips/{id}/refresh` gets a 60 s upstream timeout.
+- **e2e.** There's no delete+undo e2e. A guarded e2e can't seed a trip: `phase=fast` stores no recommendations, and the full phase
+  would spend SerpApi (`@live`). The flow is covered by `test_trips_manage.py` and vitest, and was checked by hand at iPhone 14 width.
+
 ## Returning-user home (`/`, T16)
 Once a profile exists, `/` stops being an empty welcome and shows what the product promises, where **and** when, from data already on
 the device. Nothing on this screen starts a search or calls SerpApi:

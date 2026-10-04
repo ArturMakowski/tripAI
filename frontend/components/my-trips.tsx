@@ -19,21 +19,32 @@ import { holidaysBetween, localBridges, monthEnd, monthKey, monthStart, monthsAh
 import { useT } from "@/lib/i18n";
 import { editChips, editError, type EditDraft, type EditError, type TripAction } from "@/lib/trips";
 import type { TripItem } from "@/lib/types";
+import { lockedSwipeIntent } from "@/lib/swipe-session";
 import { cn } from "@/lib/utils";
 
-/** Distance or speed past which a left drag deletes (same feel as the /trips rows). */
-const SWIPE_DELETE_PX = 96;
-const SWIPE_DELETE_VELOCITY = 500;
-
-export function SwipeDelete({ onDelete, children, label }: { onDelete: () => void; children: ReactNode; label: string }) {
+/**
+ * Swipe left to delete, with the same feel as the /trips rows (T23): the shared commit thresholds
+ * (lockedSwipeIntent: distance or speed, and only for a drag motion locked to the x axis, so a drag
+ * that starts vertical never deletes), a red reveal, a slide-out, and the click after a drag swallowed.
+ */
+export function SwipeDelete({ onDelete, children, label, disabled }: { onDelete: () => void; children: ReactNode; label: string; disabled?: boolean }) {
   const reduce = useReducedMotion();
   const x = useMotionValue(0);
-  const reveal = useTransform(x, [-SWIPE_DELETE_PX, -12], [1, 0]);
+  const reveal = useTransform(x, [-96, -12], [1, 0]);
+  const axis = useRef<"x" | "y" | null>(null);
+  const dragged = useRef(false);
+  const [leaving, setLeaving] = useState(false);
   const end = (_: unknown, info: PanInfo) => {
-    if (info.offset.x <= -SWIPE_DELETE_PX || info.velocity.x <= -SWIPE_DELETE_VELOCITY) onDelete();
+    const intent = lockedSwipeIntent(axis.current, info.offset.x, info.velocity.x);
+    axis.current = null;
+    if (intent === "dislike") {
+      setLeaving(true);
+      onDelete();
+    }
+    setTimeout(() => (dragged.current = false), 0);
   };
   return (
-    <div className="relative overflow-x-clip rounded-2xl">
+    <div className="relative overflow-x-clip rounded-2xl" onDragStartCapture={(e) => e.preventDefault()}>
       <motion.div
         aria-hidden
         style={{ opacity: reveal }}
@@ -42,12 +53,22 @@ export function SwipeDelete({ onDelete, children, label }: { onDelete: () => voi
         <Trash2 className="size-4" /> {label}
       </motion.div>
       <motion.div
-        drag={reduce ? false : "x"}
+        drag={reduce || disabled ? false : "x"}
         dragDirectionLock
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={{ left: 0.6, right: 0 }}
-        dragSnapToOrigin
+        dragSnapToOrigin={!leaving}
+        animate={leaving ? { x: -480, opacity: 0 } : undefined}
+        transition={leaving ? { duration: 0.22, ease: "easeIn" } : undefined}
+        onDragStart={() => (dragged.current = true)}
+        onDirectionLock={(a) => (axis.current = a)}
         onDragEnd={end}
+        onClickCapture={(e) => {
+          if (dragged.current) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
         style={{ x, touchAction: "pan-y" }}
         className="relative"
       >
