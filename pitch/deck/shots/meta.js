@@ -15,7 +15,7 @@ window.SHOT_META = {
       "windows": 16,
       "candidates": 34
     },
-    "capturedAt": "2026-10-04T06:30:34.001Z"
+    "capturedAt": "2026-10-04T07:09:42.026Z"
   },
   "pl": {
     "receiptCard": {
@@ -32,6 +32,6 @@ window.SHOT_META = {
       "windows": 16,
       "candidates": 34
     },
-    "capturedAt": "2026-10-04T06:30:33.339Z"
+    "capturedAt": "2026-10-04T07:09:42.782Z"
   }
 };
