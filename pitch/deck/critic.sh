@@ -10,7 +10,7 @@ HOST=$(node -e 'try{console.log(new URL(process.env.TRIPAI_APP_URL).host)}catch{
 FILES=$(ls "$PREV"/"$LANG_"-*.png | tr '\n' ' ')
 claude -p --model claude-opus-5-5 --no-session-persistence --allowedTools Read --output-format text "You are a strict, independent pitch-deck critic for a hackathon jury (HackYeah 2026, AI open task).
 Score each slide on CLARITY (one idea, readable from 3 m, no clutter), STORY (does it advance a clear story: persona Ola, Kraków,
-free 7–11 Nov → TripAI tells her where and when, with receipts → why it's trustworthy → tech → why us → team → business) and
+free 7–11 Nov → TripAI tells her where and when, with receipts → why it's trustworthy → how it works → how we differ → business → close) and
 HONESTY (claims match what the screenshots show; estimates labelled; no overclaiming; hypotheses marked).
 Read each slide image with the Read tool: ${FILES}
 Context (do not penalise): the deck language is '${LANG_}'; phone screenshots are real captures of the live app; '[Team name]',

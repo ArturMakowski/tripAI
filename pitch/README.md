@@ -2,7 +2,7 @@
 
 An 8-slide, 16:9 pitch for HackYeah 2026, in English and Polish, from one HTML source. Story, copy, tone and visual style
 follow the team's 5-slide baseline (hook · Meet Ola · Free days in, a checkable trip out · Every number has a receipt ·
-We earn on bookings, never on ranking). Three slides are added: how it works, how we differ, team.
+We earn on bookings, never on ranking). Added: how it works, how we differ, and a separate closing slide.
 Persona and dates are shared with the pitch video (T8): Ola, 29, Kraków, free 7–11 Nov, budget 1,800 PLN.
 
 | Output | What |
@@ -41,12 +41,9 @@ unset TRIPAI_APP_URL E2E_PROD_URL && npm run build   # the committed copy: place
 ## Where the numbers come from
 | Number | Source |
 |---|---|
-| 48 PRs merged | `gh pr list --state merged` (4 Oct 2026) |
-| 937 automated tests | `cd backend && uv run pytest` → 599 passed; `cd frontend && npx vitest run` → 338 passed |
 | ~2 s to first results | fast phase measured on the live app: 1.3–2.6 s (full ranking ~5 s cold) |
 | 89% / 12% | Booking.com, Global AI Sentiment Report (2025), 37,000+ consumers, 33 markets |
 | ~36 PLN per booking | **assumption**: 2% of a 1,800 PLN trip (labelled on the slide) |
 | ~19 PLN/month Premium | **hypothesis** (labelled on the slide) |
-| 3 user-testing rounds | docs/USER_TESTING.md |
 
 Placeholders `[Team name]` / `[Members]` and `[app URL / QR]` are left for the team.
