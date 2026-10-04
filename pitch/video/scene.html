@@ -249,15 +249,25 @@ function buildTimeline() {
   const ev = (clip, label) => META.clips[clip].events.find((e) => e.label === label);
   const boxes = (st) => META.stills[st].boxes;
   const PHX = 1380, PHY = 540;
+  // the Ola beat ends on the real "Let's go" tap, cut exactly when the tap lands + 0.25 s
+  const welcomeCut = 7 - (ev('welcome', 'letsGo').t + 0.25 - 0.15);
+  const tapLocal = ev('confirm', 'showTrips').t;
+  const tapShow = 15.55;
+  const confirmSpeed = (META.clips.confirm.frames / FPS - 0.2 - tapLocal) / (18 - tapShow);
+  const datesRow = { x: 130, y: 205 };                                 // the pre-filled "When · 7–11 Nov" row
+  const persona = META.stills.trips_persona.boxes.persona || { x: 89, y: 135, w: 196, h: 22 };
   // the opening plays the last two DNA drags (no prices on screen); the DNA beat plays the first three
   const dnaDowns = META.clips.dna.events.filter((e) => e.type === 'down');
   const dnaLate = Math.max(0.3, (dnaDowns[3]?.t ?? 5.8) - 0.15);
   // segments: what the phone screen shows. clip: { clip, from (local s), speed } | still: { still, scroll: [[t, y], ...] }
   const seg = [
     { t0: 0, t1: 3, clip: 'dna', from: dnaLate, speed: 1 },
-    { t0: 3, t1: 7, still: 'welcome', scroll: [[3, 0]] },
+    { t0: 3, t1: welcomeCut, still: 'welcome', scroll: [[3, 0]] },
+    { t0: welcomeCut, t1: 7, clip: 'welcome', from: 0.15, speed: 1 },
     { t0: 7, t1: 14, clip: 'dna', from: 0.35, speed: (dnaLate - 0.35) / 7 },
-    { t0: 14, t1: 18, clip: 'dates', from: 0, speed: 0.64 },
+    // slow on the pre-filled card until the tap, then quicker into /trips and the persona card
+    { t0: 14, t1: tapShow, clip: 'confirm', from: 0.1, speed: (tapLocal - 0.1) / (tapShow - 14) },
+    { t0: tapShow, t1: 18, clip: 'confirm', from: tapLocal, speed: confirmSpeed },
     { t0: 18, t1: 21.5, clip: 'loading', from: 0.7, speed: 2.3 },
     { t0: 21.5, t1: 25, still: 'trips_list', scroll: [[21.5, 0], [21.9, 470]] },
     { t0: 25, t1: 30, clip: 'offers', from: 2.0, speed: 1.55 },
@@ -274,12 +284,10 @@ function buildTimeline() {
     y: [[0, PHY + 70], [0.001, PHY, SNAPPY]],
     r: [[0, 3], [0.001, 0, SOFT], [6.9, -2.5, SNAPPY], [7.4, 0, SOFT], [24.9, 2.5, SNAPPY], [25.4, 0, SOFT], [53.9, -2, SNAPPY], [54.4, 0, SOFT]],
   };
-  const tapDates = 14 + ev('dates', 'longWeekend').t / 0.64;
-  const chip = ev('dates', 'longWeekend');
   const p0 = { x: PHX, y: PHY, s: 1 };
-  const evChip = META.clips.evidence.chip || { x: 37, y: 622, w: 124, h: 21 };
+  const evChip = META.clips.evidence?.chip || { x: 37, y: 622, w: 124, h: 21 };
   const W = (x, y) => vpToWorld(p0, x, y);
-  const rows = boxes('trips_list');
+  const rows = META.stills.trips_list ? boxes('trips_list') : {};
   const c1 = rows.card1 ? rows.card1.y - 470 : 60;
   const camera = [
     { t: 0, z: 1, fx: 1380, fy: 540 },
@@ -287,8 +295,10 @@ function buildTimeline() {
     { t: 7, z: 1.0, fx: 1380, fy: 540, d: 0.5 },
     { t: 7.6, z: 1.05, fx: 1380, fy: 540, d: 6 },                    // slow push on the deck, bezel stays in frame
     { t: 13.6, z: 1.0, fx: 1380, fy: 540, d: 0.4 },
-    { t: tapDates - 0.75, z: 2.0, ...xy(W(chip.x, chip.y + 40)), ease: 'spring', s: HEAVY },
-    { t: tapDates + 1.0, z: 1.0, fx: 1380, fy: 540, d: 0.9 },
+    { t: 14.1, z: 1.9, ...xy(W(datesRow.x + 70, datesRow.y)), ease: 'spring', s: HEAVY },
+    { t: tapShow - 0.4, z: 1.0, fx: 1380, fy: 540, d: 0.4 },
+    { t: tapShow + 1.0, z: 1.85, ...xy(W(persona.x + 80, persona.y + 14)), ease: 'spring', s: HEAVY }, // the persona card
+    { t: 17.85, z: 1.0, fx: 1380, fy: 540, d: 0.15 },
     { t: 22.6, z: 1.9, ...xy(W(130, c1 + 40)), ease: 'spring', s: HEAVY }, // the #1 card's "2d off → 5d"
     { t: 24.4, z: 1.0, fx: 1380, fy: 540, d: 0.6 },
     { t: 28.75, z: 1.6, ...xy(W(195, 716)), ease: 'spring', s: HEAVY },   // "Learned: you like …"
@@ -324,7 +334,7 @@ function buildTimeline() {
   ];
   const hl = [
     { t0: 22.0, t1: 24.6, still: 'trips_list', box: rows.card1 && { x: rows.card1.x + 8, y: rows.card1.y + 8, w: 112, h: 40 } },
-    { t0: 51.2, t1: 53.9, still: 'mytrips', box: boxes('mytrips').trip },
+    { t0: 51.2, t1: 53.9, still: 'mytrips', box: META.stills.mytrips?.boxes.trip },
     { t0: 37.9, t1: 40.7, clip: 'evidence', box: evChip, fixed: true },
   ];
   TL = { seg, phone, camera, caps, stillTaps, hl, flood: { in: 41.0, out: 46.6 }, ola: { t0: 3.05, t1: 6.75 },
@@ -338,6 +348,11 @@ function clipLocal(s, t) { return s.from + (t - s.t0) * s.speed; }
 async function drawPhoneContent(t) {
   const s = segAt(t);
   const waits = [];
+  if ((s.clip && !META.clips[s.clip]) || (s.still && !META.stills[s.still])) {
+    // footage for this part not captured yet (e.g. PL before the trips part): blank screen
+    $('frame').style.display = 'none'; $('still').style.display = 'none'; $('chrome').innerHTML = ''; curStill = '';
+    return { s: { ...s, clip: null, still: null }, waits };
+  }
   if (s.clip) {
     const n = META.clips[s.clip].frames;
     const k = clamp(Math.floor(clipLocal(s, t) * FPS), 0, n - 1);
@@ -520,7 +535,7 @@ function drawPoster(t, cam) {
 function sfxEvents() {
   const out = [];
   for (const s of TL.seg) {
-    if (!s.clip) continue;
+    if (!s.clip || !META.clips[s.clip]) continue;
     for (const e of META.clips[s.clip].events) {
       const t = s.t0 + (e.t - s.from) / s.speed;
       if (t < s.t0 || t >= s.t1) continue;

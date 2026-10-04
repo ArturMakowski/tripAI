@@ -1,5 +1,5 @@
 // Records every piece of real footage the video uses from the LIVE app, in one command per language:
-//   node capture.mjs --lang en|pl [--record]
+//   node capture.mjs --lang en|pl [--part onboarding|trips] [--record]
 // The frontend URL comes from E2E_PROD_URL (env, or ../../.env, or $TRIPAI_ENV_FILE); the repo is public, so no URL
 // is ever written to a committed file. The backend is private: everything goes through the frontend's /api proxy.
 //
@@ -20,14 +20,18 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const LANG = args.includes('--lang') ? args[args.indexOf('--lang') + 1] : 'en';
+// --part onboarding: welcome → 14 swipes → the pre-filled confirm → /trips with the persona card
+// --part trips:      ranked trips → swipe deck → trip page → evidence → approve → My trips → home (onboarding unrecorded)
+const PART = args.includes('--part') ? args[args.indexOf('--part') + 1] : 'all';
+const PARTS = PART === 'all' ? ['onboarding', 'trips'] : [PART];
 const FINAL = path.join(HERE, 'footage', LANG);
-// a take is written next to the current footage and swapped in only when it completes
+// a take starts as a copy of the current footage, is written next to it and swapped in only when it completes
 const OUT = FINAL + '.take';
-const RECORD = args.includes('--record') || !fs.existsSync(path.join(FINAL, 'api.har'));
+const HAR = path.join(OUT, `api-${PART}.har`);
+const RECORD = args.includes('--record') || !fs.existsSync(path.join(FINAL, `api-${PART}.har`));
 fs.rmSync(OUT, { recursive: true, force: true });
+if (fs.existsSync(FINAL)) fs.cpSync(FINAL, OUT, { recursive: true });
 fs.mkdirSync(OUT, { recursive: true });
-if (!RECORD) fs.copyFileSync(path.join(FINAL, 'api.har'), path.join(OUT, 'api.har'));
-const HAR = path.join(OUT, 'api.har');
 const FPS = 30;
 const DPR = 3;
 const VIEW = { width: 390, height: 844 }; // the full iPhone 14 screen, as the installed PWA (no browser chrome)
@@ -54,6 +58,9 @@ const SWIPE_IMAGES = [...fs.readFileSync(path.join(HERE, '../../frontend/lib/dna
 
 const rx = (en, pl) => new RegExp(`${en}|${pl}`, 'i');
 const T = {
+  letsGo: rx('^let.?s go', '^zaczynamy|^jedziemy|^start'),
+  showTrips: rx('^show trips', '^pokaż (wyjazdy|podróże)'),
+  persona: rx('^the [a-z-]+ [a-z-]+$|explorer|foodie|traveller|traveler', 'odkryw|podróżni|smakosz'),
   longWeekend: rx('long weekend', 'długi weekend'),
   showDna: rx('^show my dna', '^pokaż moje dna'),
   looksRight: rx('looks right', 'wygląda dobrze|zgadza się|dalej'),
@@ -68,7 +75,9 @@ const T = {
 };
 
 fs.mkdirSync(OUT, { recursive: true });
-const meta = { lang: LANG, captured_at: new Date().toISOString(), dpr: DPR, fps: FPS, view: VIEW, clips: {}, stills: {}, flow: {} };
+const prevMeta = fs.existsSync(path.join(OUT, 'meta.json')) ? JSON.parse(fs.readFileSync(path.join(OUT, 'meta.json'), 'utf8')) : {};
+const meta = { clips: {}, stills: {}, flow: {}, ...prevMeta, lang: LANG, dpr: DPR, fps: FPS, view: VIEW };
+meta.captured = { ...(prevMeta.captured || {}), ...Object.fromEntries(PARTS.map((p) => [p, new Date().toISOString()])) };
 const log = (...a) => console.log(...a);
 
 const browser = await chromium.launch({ args: [`--force-device-scale-factor=${DPR}`] }); // screencast at device pixels
@@ -227,59 +236,66 @@ async function waitReady(timeout = 60000) {
 }
 
 // ------------------------------------------------------------------------------------------------ the flow
+const recording = (part) => PARTS.includes(part);
+
+// 1. Welcome → "Let's go" → the Travel DNA deck: the first five cards by real drags, the rest with the buttons.
 await page.goto(APP + '/', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1200);
-await still('welcome');
-
-// 1. Travel DNA deck: the first five cards by real drags (recorded), the rest with the on-screen buttons.
-await page.goto(APP + '/onboarding', { waitUntil: 'networkidle' });
+if (recording('onboarding')) await still('welcome');
 await page.evaluate(async (srcs) => { await Promise.all(srcs.map((s) => new Promise((r) => { const i = new Image(); i.onload = i.onerror = r; i.src = s; }))); }, SWIPE_IMAGES);
-await page.waitForTimeout(1200);
+if (recording('onboarding')) { await startClip('welcome'); await page.waitForTimeout(500); }
+await tap(page.getByRole('button', { name: T.letsGo }).or(page.getByRole('link', { name: T.letsGo })), 'letsGo');
+await page.waitForURL(/\/onboarding/);
+await page.waitForTimeout(1500);
+if (recording('onboarding')) await rec.stop();
 const deck = await page.locator('img').first().boundingBox();
 const grab = { x: VIEW.width / 2, y: deck.y + deck.height * 0.55 };
-await startClip('dna');
-await page.waitForTimeout(400);
-for (const a of ANSWERS.slice(0, 5)) {
-  await drag(grab, { x: grab.x + DRAG[a][0], y: grab.y + DRAG[a][1] });
-  await page.waitForTimeout(520);
+if (recording('onboarding')) { await startClip('dna'); await page.waitForTimeout(400); }
+for (const [i, a] of ANSWERS.entries()) {
+  if (recording('onboarding') && i < 5) {
+    await drag(grab, { x: grab.x + DRAG[a][0], y: grab.y + DRAG[a][1] });
+    await page.waitForTimeout(520);
+    if (i === 4) await rec.stop();
+  } else {
+    await page.getByRole('button', { name: GESTURE[a] }).first().click();
+    await page.waitForTimeout(380);
+  }
 }
-await rec.stop();
-for (const a of ANSWERS.slice(5)) {
-  await page.getByRole('button', { name: GESTURE[a] }).first().click();
-  await page.waitForTimeout(380);
+await page.waitForTimeout(1000);
+
+// 2. "Ready? Check and go." (pre-filled: next long weekend, 1 person, home airport) → /trips with the persona card.
+meta.flow.dates = (await page.getByText(/\d{1,2}[–-]\d{1,2}\s\p{L}+/u).first().innerText().catch(() => '')).trim();
+if (recording('onboarding')) {
+  await still('confirm', { showTrips: page.getByRole('button', { name: T.showTrips }) });
+  await startClip('confirm');
+  await page.waitForTimeout(700);
+  await tap(page.getByRole('button', { name: T.showTrips }).or(page.getByRole('link', { name: T.showTrips })), 'showTrips');
+  await page.waitForURL(/\/trips/);
+  await page.waitForTimeout(4500);
+  await rec.stop();
+  meta.flow.persona = (await page.getByText(T.persona).first().innerText().catch(() => '')).trim();
+  await still('trips_persona', { persona: page.getByText(T.persona).first() });
 }
-await page.waitForTimeout(800);
+if (!recording('trips')) {
+  await finish();
+  process.exit(0);
+}
+if (!recording('onboarding')) {
+  holdRecs = true; // the first ranking waits for Ola's budget below
+  await page.getByRole('button', { name: T.showTrips }).or(page.getByRole('link', { name: T.showTrips })).first().click();
+  await page.waitForURL(/\/trips/);
+}
 
-// 2. "When, and who's coming?": pick the next long weekend, then the persona result.
-await startClip('dates');
-await page.waitForTimeout(500);
-await tap(page.getByRole('button', { name: T.longWeekend }), 'longWeekend');
-meta.flow.dates = (await page.getByRole('button', { name: T.longWeekend }).first().innerText()).replace(/\s+/g, ' ').trim();
-await page.waitForTimeout(900);
-await tap(page.getByRole('button', { name: T.showDna }), 'showDna');
-await page.waitForTimeout(4500);
-await rec.stop();
-meta.flow.persona = (await page.locator('h1, h2').first().innerText().catch(() => '')).trim();
-await still('result', {
-  persona: page.locator('h1, h2').first(),
-  photos: page.locator('img').first(),
-  priorities: page.getByText(rx("how we'll rank", 'jak będziemy|ranking')).first(),
-});
-await page.evaluate(() => scrollTo(0, 0));
-
-// 3. Ola's budget (deck persona: 1,800 PLN) goes into Profile's optional hard limit before the first ranking,
-//    then the ranked trips arrive (loader → cards).
+// 3. Ola's budget (deck persona: 1,800 PLN) goes into Profile's optional hard limit, then the ranked trips arrive.
 holdRecs = true;
-await page.getByRole('button', { name: T.looksRight }).or(page.getByRole('link', { name: T.looksRight })).first().click();
-await page.waitForURL(/\/(trips|windows)/);
 await page.goto(APP + '/profile', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1200);
 if (BUDGET) {
-await page.getByRole('switch', { name: rx('never show trips over', 'nie pokazuj wyjazdów') }).first().click();
-const budget = page.getByRole('slider', { name: rx('maximum price per person', 'maksymalna cena na osobę') }).first();
-await budget.focus();
-await page.keyboard.press('Home');
-for (let i = 0; i < (BUDGET - 600) / 100; i++) await page.keyboard.press('ArrowRight');
+  await page.getByRole('switch', { name: rx('never show trips over', 'nie pokazuj wyjazdów') }).first().click();
+  const budget = page.getByRole('slider', { name: rx('maximum price per person', 'maksymalna cena na osobę') }).first();
+  await budget.focus();
+  await page.keyboard.press('Home');
+  for (let i = 0; i < (BUDGET - 600) / 100; i++) await page.keyboard.press('ArrowRight');
 }
 await page.waitForTimeout(800);
 meta.flow.budget = BUDGET;
@@ -403,10 +419,14 @@ await page.goto(APP + '/', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1500);
 await still('home');
 
-fs.writeFileSync(path.join(OUT, 'meta.json'), JSON.stringify(meta, null, 1));
-await ctx.close();
-await browser.close();
-fs.rmSync(FINAL + '.prev', { recursive: true, force: true });
-if (fs.existsSync(FINAL)) fs.renameSync(FINAL, FINAL + '.prev');
-fs.renameSync(OUT, FINAL);
-log(`done → footage/${LANG} (${RECORD ? 'recorded' : 'replayed'} api.har)`, meta.flow);
+await finish();
+
+async function finish() {
+  fs.writeFileSync(path.join(OUT, 'meta.json'), JSON.stringify(meta, null, 1));
+  await ctx.close(); // writes the HAR
+  await browser.close();
+  fs.rmSync(FINAL + '.prev', { recursive: true, force: true });
+  if (fs.existsSync(FINAL)) fs.renameSync(FINAL, FINAL + '.prev');
+  fs.renameSync(OUT, FINAL);
+  log(`done → footage/${LANG} [${PARTS.join(', ')}] (${RECORD ? 'recorded' : 'replayed'} api-${PART}.har)`, meta.flow);
+}
