@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TripAI video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=block">
+<style>
+:root { --bg: #f9f6ef; --ink: #1c1b19; --soft: #5f5a50; --green: #1d5a45; --dark: #1f3a30; --clay: #b5452b; --line: #e3dccd; --mint: #cfe6da; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+body { font-family: Inter, system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
+#world { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; z-index: 2; }
+
+/* phone */
+.phone { position: absolute; outline-style: solid; outline-width: 0; width: 430px; background: #0d0d0d; border-radius: 66px; padding: 13px; transform-origin: 50% 50%;
+  box-shadow: 0 40px 80px -30px rgba(40, 32, 16, .45), 0 0 0 2px #2b2b2b inset; }
+.phone::before { content: ''; position: absolute; top: 25px; left: 50%; transform: translateX(-50%); width: 120px; height: 33px; background: #0d0d0d; border-radius: 20px; z-index: 9; }
+.screen { position: relative; width: 404px; border-radius: 53px; overflow: hidden; background: #f6f2ea; }
+.sb { height: 48.7px; display: flex; align-items: center; justify-content: space-between; padding: 6px 34px 0 40px; font: 700 16px Inter; color: #111; background: #f6f2ea; }
+.sb .ic { display: flex; gap: 6px; align-items: center; }
+.vpwrap { width: 404px; height: 874.26px; overflow: hidden; position: relative; }
+.hib { height: 40px; margin-top: -14px; position: relative; z-index: 5; background: #f6f2ea; display: grid; place-items: center; }
+.hib i { display: block; width: 134px; height: 5px; border-radius: 3px; background: #111; }
+.vp { position: relative; width: 390px; height: 844px; transform-origin: 0 0; overflow: hidden; }
+.vp img.frame { position: absolute; left: 0; top: 0; width: 390px; height: 844px; }
+.vp .still { position: absolute; left: 0; top: 0; width: 390px; }
+.vp .still img { display: block; width: 390px; }
+.vp .chrome { position: absolute; background-repeat: no-repeat; background-size: 390px 844px; z-index: 3; }
+.vp .hl { position: absolute; z-index: 6; }
+.notif { position: absolute; left: 10px; right: 10px; top: 8px; z-index: 7; background: rgba(255, 253, 248, .98); border-radius: 22px;
+  padding: 13px 15px; box-shadow: 0 18px 40px -12px rgba(30, 24, 10, .45); display: flex; gap: 12px; }
+.notif .ico { flex: none; width: 38px; height: 38px; border-radius: 10px; background: var(--green); display: grid; place-items: center; }
+.notif .top { font: 600 12px Inter; color: #6b665c; letter-spacing: .02em; display: flex; justify-content: space-between; }
+.notif .ttl { font: 700 15px Inter; color: #111; margin-top: 2px; }
+.notif .body { font: 400 13.5px/1.35 Inter; color: #333; margin-top: 2px; }
+.cursor { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; z-index: 8;
+  background: rgba(181, 69, 43, .42); border: 3px solid #fffdf7; box-shadow: 0 6px 16px rgba(40, 20, 10, .28); }
+.ripple { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; border: 3px solid var(--clay); z-index: 8; }
+
+/* captions (screen space) */
+#caps { position: absolute; left: 130px; top: 0; width: 1010px; height: 1080px; z-index: 3; }
+.cap { position: absolute; left: 0; width: 1010px; }
+.ln { display: block; overflow: hidden; padding: .06em 0 .14em; margin-bottom: -.1em; }
+.w { display: inline-block; white-space: pre; will-change: auto; }
+.s-h { font: 700 86px/1.04 'Playfair Display', serif; letter-spacing: -.02em; color: var(--ink); }
+.s-hi { font: italic 700 86px/1.04 'Playfair Display', serif; letter-spacing: -.02em; color: var(--green); }
+.s-k { font: 700 68px/1.06 'Playfair Display', serif; letter-spacing: -.02em; color: var(--ink); }
+.s-ki { font: italic 700 68px/1.06 'Playfair Display', serif; letter-spacing: -.02em; color: var(--green); }
+.s-xl { font: 700 124px/1.02 'Playfair Display', serif; letter-spacing: -.025em; color: var(--ink); }
+.s-xli { font: italic 700 124px/1.02 'Playfair Display', serif; letter-spacing: -.025em; color: var(--green); }
+.s-dl0 { font: 700 100px/1.04 'Playfair Display', serif; letter-spacing: -.025em; color: var(--ink); }
+.s-dl { font: italic 700 100px/1.04 'Playfair Display', serif; letter-spacing: -.025em; color: var(--green); }
+.s-o { font: 700 92px/1.04 'Playfair Display', serif; letter-spacing: -.025em; color: var(--ink); }
+.s-oi { font: italic 700 92px/1.06 'Playfair Display', serif; letter-spacing: -.025em; color: var(--green); }
+.s-ohw { font: 700 80px/1.3 Caveat, cursive; color: var(--clay); }
+.s-m { font: 700 64px/1.08 'Playfair Display', serif; letter-spacing: -.015em; color: var(--ink); }
+.s-mi { font: italic 700 64px/1.08 'Playfair Display', serif; color: var(--green); }
+.s-hw { font: 700 58px/1.15 Caveat, cursive; color: var(--clay); }
+.s-sm { font: 500 34px/1.4 Inter; color: var(--soft); }
+
+/* loupe: an enlarged crop of the real footage */
+#loupe { position: absolute; z-index: 5; border-radius: 26px; overflow: hidden; background: #fffdf7; border: 2px solid var(--line);
+  box-shadow: 0 30px 60px -24px rgba(40, 32, 16, .45); transform-origin: 85% 50%; }
+#loupeImg { position: absolute; inset: 0; background-repeat: no-repeat; filter: contrast(1.35) saturate(.9); }
+#loupeRing { position: absolute; left: 0; top: 0; }
+/* Ola card */
+#ola { position: absolute; left: 140px; top: 300px; width: 860px; padding: 44px 50px; background: #fffdf7; border: 2px solid var(--line); border-radius: 34px; z-index: 5; }
+#ola .name { font: 700 64px/1.1 'Playfair Display', serif; }
+#ola .facts { font: 500 33px/1.45 Inter; color: var(--soft); margin-top: 14px; }
+#ola .q { font: 700 56px/1.15 Caveat, cursive; color: var(--clay); margin-top: 22px; }
+
+/* floods + text card */
+.flood { position: absolute; inset: 0; z-index: 4; }
+#card { position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+#card .ln { font: 700 96px/1.08 'Playfair Display', serif; color: #f6f1e4; letter-spacing: -.02em; }
+#card .ln.it { font-style: italic; color: #f0b9a5; }
+#cardInk { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; justify-content: center; padding-left: 130px; }
+#cardInk .ln { font: 700 96px/1.08 'Playfair Display', serif; color: var(--ink); letter-spacing: -.02em; }
+#cardInk .ln.it { font-style: italic; color: var(--green); }
+
+/* poster */
+#poster { position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; justify-content: center; padding-left: 130px; }
+#poster .brand { display: flex; align-items: center; gap: 18px; font: 700 66px 'Playfair Display', serif; margin-bottom: 96px; }
+#poster .brand svg { width: 84px; height: 84px; }
+#poster .hl1 { font: 700 72px/1.05 'Playfair Display', serif; letter-spacing: -.025em; }
+#poster .hl2 { font: italic 700 72px/1.1 'Playfair Display', serif; letter-spacing: -.025em; color: var(--green); }
+#poster .sub { font: 500 44px/1.4 Inter; color: rgba(28, 27, 25, .75); margin-top: 40px; max-width: 1010px; white-space: normal; }
+#poster .hw { font: 700 62px Caveat, cursive; color: var(--clay); margin-top: 48px; transform: rotate(-4deg); transform-origin: 0 50%; display: inline-block; align-self: flex-start; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="flood" id="flood"></div>
+  <div id="floodRing" style="display:none;position:absolute;z-index:4;border-radius:50%;border:9px solid #b5452b;box-sizing:border-box"></div>
+  <div id="world">
+    <div class="phone" id="phone">
+      <div class="screen">
+        <div class="sb"><span>9:41</span><span class="ic">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5 5.6 8.9a3.4 3.4 0 0 1 4.8 0z"/><path d="M3.4 6.7a6.5 6.5 0 0 1 9.2 0l-1.3 1.3a4.7 4.7 0 0 0-6.6 0z"/><path d="M1.2 4.5a9.6 9.6 0 0 1 13.6 0l-1.3 1.3a7.8 7.8 0 0 0-11 0z"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#111" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2"/><rect x="24.5" y="4.5" width="2" height="4" rx="1" opacity=".4"/></svg>
+        </span></div>
+        <div class="vpwrap"><div class="vp" id="vp">
+          <img class="frame" id="frame" alt="">
+          <div class="still" id="still"><img id="stillImg" alt=""></div>
+          <div id="chrome"></div>
+           <div id="scrim" style="display:none;position:absolute;z-index:6;border-radius:14px"></div>
+          <svg class="hl" id="hl" style="display:none" overflow="visible"><path id="hlPath" fill="none" stroke="#b5452b" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="notif" id="notif" style="display:none">
+            <div class="ico"><svg viewBox="0 0 28 28" width="30" height="30"><path d="M7 17.5c3.5-1 6-3.6 7.2-8.5 1 3.9 3.2 6.8 6.8 8.4" fill="none" stroke="#f6f2ea" stroke-width="1.9" stroke-linecap="round"/><circle cx="14" cy="20.5" r="1.6" fill="#d9744f"/></svg></div>
+            <div style="flex:1"><div class="top"><span>TRIPAI</span><span data-i="notifNow"></span></div><div class="ttl" data-i="notifTitle"></div><div class="body" data-i="notifBody"></div></div>
+          </div>
+          <div class="ripple" id="ripple" style="display:none"></div>
+          <div class="cursor" id="cursor" style="display:none"></div>
+        </div></div>
+        <div class="hib"><i></i></div>
+      </div>
+    </div>
+  </div>
+  <div id="caps"></div>
+  <svg id="leader" style="position:absolute;inset:0;z-index:4;display:none" width="1920" height="1080"><path fill="none" stroke="#b5452b" stroke-width="5" stroke-linecap="round"/></svg>
+  <div id="loupe" style="display:none"><div id="loupeImg"></div><svg id="loupeRing" overflow="visible"><path fill="none" stroke="#b5452b" stroke-width="5" stroke-linecap="round"/></svg></div>
+  <div id="ola" style="display:none"><div class="name" data-i="olaName"></div><div class="facts" data-i="olaFacts"></div><div class="q" id="olaQ" data-i="olaQ"></div></div>
+  <div id="cardInk" style="display:none"></div>
+  <div id="card" style="display:none"></div>
+  <div id="poster" style="display:none">
+    <div class="brand"><svg viewBox="0 0 28 28" width="58" height="58"><circle cx="14" cy="14" r="13" fill="#1d5a45"/><path d="M7 17.5c3.5-1 6-3.6 7.2-8.5 1 3.9 3.2 6.8 6.8 8.4" fill="none" stroke="#f9f6ef" stroke-width="1.8" stroke-linecap="round"/><circle cx="14" cy="20.5" r="1.6" fill="#b5452b"/></svg>TripAI</div>
+    <div class="ln"><span class="w hl1" data-i="hook1"></span></div>
+    <div class="ln"><span class="w hl2" data-i="hook2"></span></div>
+    <div class="ln"><span class="w sub" data-i="posterSub"></span></div>
+    <div class="hw" id="posterHw" data-i="posterHw"></div>
+  </div>
+</div>
+<script>
+// ------------------------------------------------------------------------------------------ copy
+const COPY = {
+  en: {
+    hook1: 'You have free days.', hook2: 'We tell you where and when.', hookHw: 'free 7–11 Nov', hook2a: 'We tell you where', hook2b: 'and when.',
+    olaName: 'Ola, 29, Kraków', olaFacts: 'Free 7–11 Nov, a long weekend.<br>Budget 1,800 PLN. Hates crowds.',
+    olaQ: '“Where should I go, and is this even the right weekend?”',
+    swipes: '14 swipes.', dna: 'Your Travel DNA.', dnaHw: 'no forms, just swipes', dna1: 'Your', dna2: 'Travel DNA.',
+    free: 'Free 7–11 Nov?', oneTap: 'One tap.',
+    ranked1: 'Where and when.', ranked2: 'Ranked.',
+    off1: '2 days off.', off2: '5 days away.',
+    learn1: 'Swipe.', learn2: 'It learns your taste.',
+    trip1: 'Flight, stay,', trip2: 'things to do.',
+    rcpt1: 'Every number', rcpt2: 'has a receipt.', ev1: 'The proof,', ev2: 'one tap away.',
+    src1: 'Weather. Crowds. Sights.', src2: 'with its source.',
+    card: ['Nothing made up.', 'A fixed formula ranks.', 'AI only explains.', 'You decide.'],
+    watch1: 'We watch your free days.', watch2: 'A ping only when it’s worth it.',
+    daily1: 'Saved trips,', daily2: 'prices re-checked daily.',
+    book1: 'Nothing is booked', book2: 'until you tap.',
+    notifNow: 'now', notifTitle: 'Long weekend 7–11 Nov → {city}', notifBody: 'Quiet season, away from the crowds. Tap to see why.',
+    posterSub: 'A trip planner that starts from your calendar.', posterHw: 'HackYeah 2026',
+  },
+  pl: {
+    hook1: 'Masz wolne dni.', hook2: 'Powiemy Ci, dokąd i kiedy.', hookHw: 'wolne 7–11 listopada', hook2a: 'Powiemy Ci, dokąd', hook2b: 'i kiedy.',
+    olaName: 'Ola, 29 lat, Kraków', olaFacts: 'Wolne 7–11 listopada, długi weekend.<br>Budżet 1800 zł. Nie znosi tłumów.',
+    olaQ: '„Dokąd jechać i czy to w ogóle dobry weekend?”',
+    swipes: '14 przesunięć.', dna: 'Twoje DNA podróżnika.', dnaHw: 'bez formularzy, same przesunięcia', dna1: 'Twoje DNA', dna2: 'podróżnika.',
+    free: 'Wolne 7–11 listopada?', oneTap: 'Jedno dotknięcie.',
+    ranked1: 'Dokąd i kiedy.', ranked2: 'W kolejności.',
+    off1: '2 dni urlopu.', off2: '5 dni wolnego.',
+    learn1: 'Przesuwasz.', learn2: 'Uczy się Twojego gustu.',
+    trip1: 'Lot, nocleg,', trip2: 'co robić na miejscu.',
+    rcpt1: 'Każda liczba', rcpt2: 'ma swój paragon.', ev1: 'Dowody', ev2: 'jedno dotknięcie dalej.',
+    src1: 'Pogoda. Tłumy. Atrakcje.', src2: 'ma swoje źródło.',
+    card: ['Nic zmyślonego.', 'Ranking liczy stały wzór.', 'AI tylko wyjaśnia.', 'Decydujesz Ty.'],
+    watch1: 'Pilnujemy Twoich wolnych dni.', watch2: 'Dajemy znać, gdy warto.',
+    daily1: 'Zapisane wyjazdy,', daily2: 'ceny sprawdzane codziennie.',
+    book1: 'Nic nie rezerwujemy', book2: 'bez Twojego kliknięcia.',
+    notifNow: 'teraz', notifTitle: 'Długi weekend 7–11 lis → {city}', notifBody: 'Poza sezonem, z dala od tłumów. Zobacz dlaczego.',
+    posterSub: 'Planer podróży, który zaczyna od Twojego kalendarza.', posterHw: 'HackYeah 2026',
+  },
+};
+const P = new URLSearchParams(location.search);
+const LANG = P.get('lang') || 'en';
+const C = COPY[LANG];
+const BASE = `footage/${LANG}/`;
+const FPS = 30;
+let META = null;
+
+// ------------------------------------------------------------------------------------------ math
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const easeOut = (k) => 1 - Math.pow(1 - clamp(k), 3);
+const easeInOut = (k) => { k = clamp(k); return k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+/** Closed-form damped spring step response, 0 → 1 (overshoots when zeta < 1). */
+function spring(t, { w = 14, z = 0.62 } = {}) {
+  if (t <= 0) return 0;
+  if (z >= 1) return 1 - Math.exp(-w * t) * (1 + w * t);
+  const wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t));
+}
+const TYPE = { w: 16, z: 0.85 }; // type lands with almost no overshoot
+const SNAPPY = { w: 18, z: 0.72 }, SOFT = { w: 11, z: 0.8 }, HEAVY = { w: 9, z: 0.9 }, POP = { w: 16, z: 0.5 };
+/** Value that springs between keyframes [[t, v, preset?], ...] (sum of springs, continuous). */
+function track(t, keys, preset = SOFT) {
+  let v = keys[0][1];
+  for (let i = 1; i < keys.length; i++) v += (keys[i][1] - keys[i - 1][1]) * spring(t - keys[i][0], keys[i][2] || preset);
+  return v;
+}
+
+// ------------------------------------------------------------------------------------------ geometry
+const PHX0 = 1280, PS = 0.9; // resting phone centre x and scale (title-safe margins)
+const PW = 430, BZ = 13, S = 404 / 390, SBH = 48.7, HIB = 26;
+const PH = BZ * 2 + SBH + 844 * S + HIB;
+const $ = (id) => document.getElementById(id);
+
+/** world → screen camera: focus point F (world) is placed at screen anchor A, scaled by z. */
+function cameraAt(t) {
+  const keys = TL.camera;
+  let z = keys[0].z, fx = keys[0].fx, fy = keys[0].fy, ax = 1380;
+  for (let i = 1; i < keys.length; i++) {
+    const k = keys[i], p = keys[i - 1];
+    const e = k.ease === 'spring' ? spring(t - k.t, k.s || HEAVY) : easeInOut((t - k.t) / (k.d || 0.8));
+    z *= Math.exp((Math.log(k.z) - Math.log(p.z)) * e);
+    fx += (k.fx - p.fx) * e; fy += (k.fy - p.fy) * e;
+    ax += ((k.ax ?? 1380) - (p.ax ?? 1380)) * e;
+  }
+  return { z, fx, fy, ax };
+}
+/** A point inside the phone viewport (CSS px of the app) → world coordinates. */
+function vpToWorld(ph, x, y) {
+  const left = ph.x - PW / 2 * ph.s, top = ph.y - PH / 2 * ph.s;
+  return { x: left + (BZ + x * S) * ph.s, y: top + (BZ + SBH + y * S) * ph.s };
+}
+
+// ------------------------------------------------------------------------------------------ captions
+const capEls = [];
+/** cap(t0, t1, [[key, style], ...], top) — words rise out of a mask line on springs, leave upwards. */
+function cap(t0, t1, lines, top = 380, left = 0) { return { t0, t1, lines, top, left }; }
+function buildCaps() {
+  for (const c of TL.caps) {
+    const el = document.createElement('div');
+    el.className = 'cap';
+    el.style.top = c.top + 'px';
+    if (c.left) { el.style.left = c.left + 'px'; el.style.width = '640px'; }
+    el.innerHTML = c.lines.map(([k, st]) => `<span class="ln"${st === 'hw' || st === 'ohw' ? ' style="overflow:visible"' : ''}><span class="s-${st}">${(C[k] ?? k).split(/(\s+)/).map((w) => `<span class="w">${w}</span>`).join('')}</span></span>`).join('');
+    $('caps').appendChild(el);
+    capEls.push({ c, el, words: [...el.querySelectorAll('.w')] });
+  }
+}
+function drawCaps(t) {
+  for (const { c, el, words } of capEls) {
+    const on = t >= c.t0 - 0.01 && t < c.t1 + 0.34;
+    el.style.display = on ? '' : 'none';
+    if (!on) continue;
+    let i = 0;
+    // hand-written lines write on left → right instead of rising
+    for (const hw of el.querySelectorAll('.s-hw, .s-ohw')) {
+      const k = clamp((t - c.t0 - (hw.classList.contains('s-ohw') ? 0.55 : 0.3)) / 0.7), out = easeInOut((t - c.t1) / 0.3);
+      hw.style.display = 'inline-block';
+      hw.style.clipPath = `inset(-20% ${100 - k * 112}% -20% -4%)`;
+      hw.style.transform = `translateY(${30 - out * 140}%) rotate(-3deg)`;
+      hw.style.transformOrigin = '0 50%';
+    }
+    for (const w of words) {
+      if (w.parentElement.classList.contains('s-hw') || w.parentElement.classList.contains('s-ohw')) continue;
+      const lineDelay = 0.07 * i++;
+      const inK = spring(t - c.t0 - lineDelay, TYPE);
+      const outK = easeInOut((t - c.t1 - 0.02 * i) / 0.32);
+      const y = (1 - inK) * 115 - outK * 115;
+      w.style.transform = `translateY(${y}%) rotate(${(1 - clamp(inK)) * 4}deg)`;
+    }
+    // nothing freezes: a slow drift while held
+    el.style.transform = `translateY(${-(t - c.t0) * 3}px)`;
+  }
+}
+
+// ------------------------------------------------------------------------------------------ timeline
+let TL;
+function buildTimeline() {
+  const ev = (clip, label) => META.clips[clip].events.find((e) => e.label === label);
+  const boxes = (st) => META.stills[st].boxes;
+  const PHX = PHX0, PHY = 540;
+  // the loader → cards clip plays at ≥ 1× and hands over to the list as soon as it ends
+  const loadLen = (META.clips.loading?.frames ?? 105) / FPS - 0.75;
+  const loadSpeed = Math.max(1, loadLen / 3.5), loadEnd = 18 + Math.min(3.5, loadLen / loadSpeed);
+  const rowsEv = META.clips.rows?.events ?? [];
+  const rowsFrom = Math.max(0, (rowsEv.find((e) => e.type === 'down')?.t ?? 0.9) - 0.6);
+  const rowsToast = META.clips.rows?.toast ?? { y: 690, h: 58 };
+  const rowsToastT = 25 + ((rowsEv.find((e) => e.type === 'up')?.t ?? 1.9) + 0.5 - rowsFrom);
+  const listRows = META.stills.trips_list?.boxes || {};
+  const listY = listRows.card1 ? listRows.card1.y - 70 : 470;
+  // poster: the #1 card's photo (title + "2d off → 5d") fills the lower screen, its price stays below the fold
+  const posterY = listRows.card1 ? Math.max(0, listRows.card1.y + 232 - 844) : 0;
+  // the Ola beat ends on the real "Let's go" tap, cut exactly when the tap lands + 0.25 s
+  const welcomeCut = 7 - (ev('welcome', 'letsGo').t + 0.25 - 0.15);
+  const tapLocal = ev('confirm', 'showTrips').t;
+  const tapShow = 15.55;
+  const confirmSpeed = (META.clips.confirm.frames / FPS - 0.2 - tapLocal) / (18 - tapShow);
+  const datesRow = { x: 130, y: 205 };                                 // the pre-filled "When · 7–11 Nov" row
+  const persona = META.stills.trips_persona.boxes.persona || { x: 89, y: 135, w: 196, h: 22 };
+  // the opening plays the last two DNA drags (no prices on screen); the DNA beat plays the first three
+  const dnaDowns = META.clips.dna.events.filter((e) => e.type === 'down');
+  const dnaLate = Math.max(0.3, (dnaDowns[3]?.t ?? 5.8) - 0.15);
+  // the hook opens on the first "That's me" (right) drag
+  const rightDrag = META.clips.dna.events.findIndex((e, i, a) => e.type === 'down' && (a.slice(i).find((u) => u.type === 'up')?.x ?? 0) > e.x + 150);
+  const firstDown = META.clips.dna.events.find((e) => e.type === 'down');
+  const dnaOpen = Math.max(0, (firstDown?.t ?? 0.4) - 0.7); // the calm first card (a landscape), swiped up
+  // segments: what the phone screen shows. clip: { clip, from (local s), speed } | still: { still, scroll: [[t, y], ...] }
+  const seg = [
+    { t0: 0, t1: 3, clip: 'dna', from: dnaOpen, speed: 1 },
+    { t0: 3, t1: welcomeCut, still: 'welcome', scroll: [[3, 0]] },
+    { t0: welcomeCut, t1: 7, clip: 'welcome', from: 0.15, speed: 1 },
+    { t0: 7, t1: 14, clip: 'dna', from: dnaOpen + 3, speed: Math.max(1, (META.clips.dna.frames / FPS - 0.15 - dnaOpen - 3) / 7) },
+    // slow on the pre-filled card until the tap, then quicker into /trips and the persona card
+    { t0: 14, t1: tapShow, clip: 'confirm', from: 0.1, speed: (tapLocal - 0.1) / (tapShow - 14) },
+    { t0: tapShow, t1: 18, clip: 'confirm', from: tapLocal, speed: confirmSpeed },
+    { t0: 18, t1: loadEnd, clip: 'loading', from: 0.7, speed: loadSpeed },
+    { t0: loadEnd, t1: 25, still: 'trips_list', scroll: [[loadEnd, 0], [loadEnd + 0.4, listY]] },
+    // t23: a row swipe on the ranked list ("I want to go"), then the heart; real time
+    { t0: 25, t1: 30, clip: 'rows', from: rowsFrom, speed: 1 },
+    { t0: 30, t1: 33.5, still: 'trip', scroll: [[30, 0]] },
+    { t0: 33.5, t1: 46.6, clip: 'evidence', from: 0.4, speed: 1 },
+    { t0: 46.6, t1: 50.5, still: 'home', scroll: [[46.6, 0]] },
+    { t0: 50.5, t1: 54, still: 'mytrips', scroll: [[50.5, 0]] },
+    { t0: 54, t1: 59, clip: 'approve', from: 0.35, speed: 1 },
+    { t0: 59, t1: 59.4, still: 'approved', scroll: [[59, 0]] },
+    { t0: 59.4, t1: 66, still: 'confirm', scroll: [[59.4, 0]] },
+  ];
+  // phone position / scale / tilt (world)
+  const phone = {
+    x: [[0, PHX], [59.0, 1562, HEAVY]],
+    s: [[0, PS * 0.86], [0.45, PS, SOFT], [59.0, 1.16, HEAVY]],
+    y: [[0, PHY + 90], [0.3, PHY, SNAPPY], [59.0, PHY + 520, HEAVY]],
+    r: [[0, 3], [0.001, 0, SOFT], [6.9, -2, SNAPPY], [13.8, 0, SOFT], [24.9, 2.5, SNAPPY], [25.4, 0, SOFT], [53.9, -2, SNAPPY], [54.4, 0, SOFT]],
+  };
+  const p0 = { x: PHX, y: PHY, s: PS };
+  const evChip = META.clips.evidence?.chip || { x: 37, y: 622, w: 124, h: 21 };
+  const W = (x, y) => vpToWorld(p0, x, y);
+  const rows = META.stills.trips_list ? boxes('trips_list') : {};
+  const c1 = 70; // the #1 card's top sits 70 px under the screen top once the list has scrolled
+  const camera = [
+    { t: 0, z: 1, fx: 1380, fy: 540 },
+    { t: 3, z: 1.04, ...xy(W(195, 422)), d: 3.8 },                 // gentle push while Ola is introduced
+    { t: 7, z: 1.0, fx: 1380, fy: 540, d: 0.5 },
+    { t: 7.4, z: 1.02, fx: 1380, fy: 540, d: 6 },                    // slow push on the deck (bezel stays title-safe)
+    { t: 13.6, z: 1.0, fx: 1380, fy: 540, d: 0.4 },
+    { t: 14.1, z: 1.9, ...xy(W(datesRow.x + 70, datesRow.y)), ease: 'spring', s: HEAVY },
+    { t: tapShow - 0.4, z: 1.0, fx: 1380, fy: 540, d: 0.4 },
+    { t: tapShow + 1.0, z: 1.85, ...xy(W(persona.x + 80, persona.y + 14)), ease: 'spring', s: HEAVY }, // the persona card
+    { t: 17.85, z: 1.0, fx: 1380, fy: 540, d: 0.15 },
+    { t: 22.6, z: 2.15, ...xy(W(150, c1 - 10)), ease: 'spring', s: HEAVY }, // the #1 card's "2d off → 5d" (price stays out of frame)
+    { t: 24.4, z: 1.0, fx: 1380, fy: 540, d: 0.6 },
+    // (no zoom on the toast: the card's price row sits right above it; a ring marks the toast instead)
+    { t: 29.9, z: 1.0, fx: 1380, fy: 540, d: 0.3 },
+    { t: 30.2, z: 1.06, fx: 1380, fy: 540, d: 3.2 },
+    { t: 33.4, z: 1.0, fx: 1380, fy: 540, d: 0.2 },
+    { t: 38.0, z: 1.25, ...xy(W(195, 470)), ease: 'spring', s: HEAVY }, // gentle push; the loupe carries the detail
+    { t: 40.9, z: 1.32, ...xy(W(195, 520)), d: 0.35 },                // a small push toward the chip as the flood starts
+    { t: 41.45, z: 1.0, fx: 1380, fy: 540, d: 0.3 },                 // resets while the flood covers the frame
+    { t: 47.6, z: 1.75, ...xy(W(195, 70)), ease: 'spring', s: HEAVY },    // the ping
+    { t: 50.4, z: 1.0, fx: 1380, fy: 540, d: 0.4 },
+    { t: 51.0, z: 1.7, ...xy(W(220, (META.stills.mytrips?.boxes.trip?.y ?? 187) + 50)), ease: 'spring', s: HEAVY }, // My trips: set your price
+    { t: 53.85, z: 1.0, fx: 1380, fy: 540, d: 0.15 },
+    { t: 56.6, z: 1.45, ...xy(W(195, 470)), ease: 'spring', s: HEAVY },   // "Approved by you"
+    { t: 58.9, z: 1.0, fx: 1380, fy: 540, d: 0.5 },
+  ];
+  function xy(p) { return { fx: p.x, fy: p.y }; }
+  const caps = [
+    cap(0.12, 2.75, [['hook1', 'o'], ['hook2a', 'oi'], ['hook2b', 'oi'], ['hookHw', 'ohw']], 300),
+    cap(7.35, 13.6, [['swipes', 'dl0'], ['dna', 'dl'], ['dnaHw', 'hw']], 400),
+    cap(14.15, 17.7, [['free', 'h'], ['oneTap', 'hi']], 380),
+    cap(18.15, 21.7, [['ranked1', 'h'], ['ranked2', 'hi']], 380),
+    cap(22.1, 24.7, [['off1', 'h'], ['off2', 'hi']], 380),
+    cap(25.15, 29.7, [['learn1', 'h'], ['learn2', 'hi']], 380),
+    cap(30.15, 33.3, [['trip1', 'h'], ['trip2', 'hi']], 380),
+    cap(33.65, 37.7, [['ev1', 'h'], ['ev2', 'hi']], 380),
+    cap(38.1, 40.85, [['rcpt1', 'h'], ['rcpt2', 'hi']], 380),
+    cap(47.15, 50.2, [['watch1', 'm'], ['watch2', 'mi']], 400),
+    cap(50.6, 53.7, [['daily1', 'm'], ['daily2', 'mi']], 400),
+    cap(54.15, 58.6, [['book1', 'h'], ['book2', 'hi']], 380),
+  ];
+  // tap ripples / cursor positions for still segments (clip segments use the recorded pointer)
+  const stillTaps = [
+    { t: 50.1, x: 195, y: 70 },  // tap the ping
+  ];
+  const hl = [
+    { t0: 22.0, t1: 24.6, still: 'trips_list', box: rows.card1 && { x: rows.card1.x + 8, y: rows.card1.y + 8, w: LANG === 'pl' ? 178 : 132, h: 40 } },
+    // "Set your price": the target-price control, not the price itself
+    { t0: 51.2, t1: 53.9, still: 'mytrips', box: (b => b && { x: b.x + 120, y: b.y + b.h - 34, w: b.w - 132, h: 26 })(META.stills.mytrips?.boxes.trip) },
+    { t0: rowsToastT, t1: 29.85, clip: 'rows', box: { x: rowsToast.x + 12, y: rowsToast.y + 4, w: rowsToast.w - 24, h: rowsToast.h - 8 }, fixed: true },
+    { t0: 37.9, t1: 41.4, clip: 'evidence', box: null, fixed: true, scrim: { x: 21, y: evChip.y - 34, w: 348, h: evChip.h + 46 } },
+  ];
+  // drags inside the DNA segments, in timeline time (for the lean)
+  const drags = [];
+  for (const sg of seg) {
+    if (sg.clip !== 'dna' || !(sg.speed > 0)) continue;
+    const evs = META.clips.dna.events;
+    for (let i = 0; i < evs.length; i++) {
+      if (evs[i].type !== 'down') continue;
+      const up = evs.slice(i).find((e) => e.type === 'up');
+      if (!up) continue;
+      const t0 = sg.t0 + (evs[i].t - sg.from) / sg.speed, t1 = sg.t0 + (up.t - sg.from) / sg.speed;
+      if (t1 > sg.t0 && t0 < sg.t1) drags.push({ t0, t1, dir: Math.sign(up.x - evs[i].x) || 0 });
+    }
+  }
+  const loupe = { t0: 38.15, t1: 41.22, clip: 'evidence', row: { x: evChip.x - 10, y: evChip.y - 6, w: evChip.w + 20, h: evChip.h + 12 }, chip: evChip, k: 3.8, at: { x: 130, y: 660 } };
+  // footage played below 1× repeats frames and looks laggy: flag it (static holds use speed 0)
+  for (const sg of seg) if (sg.clip && sg.speed > 0 && sg.speed < 0.95) console.warn(`slow footage: ${sg.clip} at ${sg.speed.toFixed(2)}× (${sg.t0}-${sg.t1} s)`);
+  TL = { loupe, drags, seg, phone, camera, caps, stillTaps, hl, flood: { in: 41.0, out: 46.6 }, ola: { t0: 3.05, t1: 6.75 },
+    card: { t0: 41.35, step: 0.92, t1: 46.2 }, notif: { t0: 47.4 }, poster: { t0: 59.2 }, end: 65.5 };
+}
+
+// ------------------------------------------------------------------------------------------ phone content
+let curFrameSrc = '', curStill = '';
+function segAt(t) { return TL.seg.find((s) => t >= s.t0 && t < s.t1) || TL.seg[TL.seg.length - 1]; }
+function clipLocal(s, t) { return s.from + (t - s.t0) * s.speed; }
+async function drawPhoneContent(t) {
+  const s = segAt(t);
+  const waits = [];
+  if ((s.clip && !META.clips[s.clip]) || (s.still && !META.stills[s.still])) {
+    // footage for this part not captured yet (e.g. PL before the trips part): blank screen
+    $('frame').style.display = 'none'; $('still').style.display = 'none'; $('chrome').innerHTML = ''; curStill = '';
+    return { s: { ...s, clip: null, still: null }, waits };
+  }
+  if (s.clip) {
+    const n = META.clips[s.clip].frames;
+    const k0 = clamp(Math.floor(clipLocal(s, t) * FPS), 0, n - 1);
+    const k = META.clips[s.clip].kept ? META.clips[s.clip].kept[k0] : k0;
+    const src = `${BASE}${s.clip}/${String(k).padStart(4, '0')}.jpg`;
+    $('frame').style.display = '';
+    $('still').style.display = 'none';
+    $('chrome').innerHTML = ''; curStill = '';
+    if (src !== curFrameSrc) { curFrameSrc = src; $('frame').src = src; waits.push($('frame').decode().catch(() => {})); }
+  } else {
+    $('frame').style.display = 'none';
+    $('still').style.display = '';
+    if (curStill !== s.still) {
+      curStill = s.still;
+      $('stillImg').src = `${BASE}${s.still}.png`;
+      waits.push($('stillImg').decode().catch(() => {}));
+      const st = META.stills[s.still];
+      $('chrome').innerHTML = st.chrome.map((c) => `<div class="chrome" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;background-image:url(${BASE}${s.still}.view.png);background-position:${-c.x}px ${-c.y}px"></div>`).join('');
+    }
+    const st = META.stills[s.still];
+    const y = clamp(track(t, s.scroll, SOFT), 0, Math.max(0, st.h - 844));
+    $('still').style.transform = `translateY(${-y}px)`;
+  }
+  return { s, waits };
+}
+
+/** Pointer: from the recorded events inside clip segments; synthetic taps on stills. */
+function drawPointer(t, s) {
+  const cur = $('cursor'), rip = $('ripple');
+  cur.style.display = 'none'; rip.style.display = 'none';
+  let pos = null, tapT = null, tapPos = null;
+  if (s.clip && s.speed > 0) {
+    const local = clipLocal(s, t);
+    const evs = META.clips[s.clip].events;
+    // visible from 0.45 s before the first event of a gesture until 0.35 s after it ends
+    let down = false;
+    for (let i = 0; i < evs.length; i++) {
+      const e = evs[i];
+      if (e.t > local) {
+        if (!down && e.type !== 'down' && e.t - local < 0.45 / Math.max(s.speed, 0.5)) pos = { x: e.x, y: e.y, approaching: true };
+        else if (down && i > 0) { const p = evs[i - 1]; const k = clamp((local - p.t) / Math.max(e.t - p.t, 1e-3)); pos = { x: lerp(p.x, e.x, k), y: lerp(p.y, e.y, k), pressed: true }; }
+        break;
+      }
+      if (e.type === 'down') down = true;
+      if (e.type === 'up') { down = false; if (local - e.t < 0.3) pos = { x: e.x, y: e.y }; }
+      if (e.type === 'tap') { tapT = e.t; tapPos = e; if (local - e.t < 0.35) pos = { x: e.x, y: e.y }; }
+    }
+    if (tapT !== null) { const dt = (local - tapT) / Math.max(s.speed, 0.5); if (dt < 0.45) drawRipple(dt, tapPos); }
+  } else {
+    for (const tp of TL.stillTaps) {
+      const dt = t - tp.t;
+      if (dt > -0.5 && dt < 0.35) pos = { x: tp.x + (dt < 0 ? -dt * 60 : 0), y: tp.y + (dt < 0 ? -dt * 120 : 0) };
+      if (dt >= 0 && dt < 0.45) drawRipple(dt, tp);
+    }
+  }
+  if (pos && pos.pressed) pos = null; // drags speak for themselves (the card moves); the marker is for taps only
+  if (pos) {
+    cur.style.display = '';
+    cur.style.left = pos.x + 'px'; cur.style.top = pos.y + 'px';
+    cur.style.transform = `scale(${pos.pressed ? 0.85 : 1})`;
+  }
+  function drawRipple(dt, p) {
+    rip.style.display = '';
+    rip.style.left = p.x + 'px'; rip.style.top = p.y + 'px';
+    rip.style.transform = `scale(${1 + easeOut(dt / 0.45) * 1.6})`;
+    rip.style.opacity = String(1 - dt / 0.45);
+  }
+}
+
+function drawHighlight(t, s) {
+  const el = $('hl');
+  el.style.display = 'none';
+  $('scrim').style.display = 'none';
+  for (const h of TL.hl) {
+    if ((!h.box && !h.scrim) || t < h.t0 || t > h.t1 || (h.still ? s.still !== h.still : s.clip !== h.clip)) continue;
+    const y = h.fixed ? 0 : clamp(track(t, s.scroll, SOFT), 0, Math.max(0, META.stills[s.still].h - 844));
+    if (!h.box) {
+      if (h.scrim) {
+        const sc = $('scrim'), k2 = clamp((t - h.t0) / 0.3);
+        sc.style.display = '';
+        Object.assign(sc.style, { borderRadius: '16px', left: h.scrim.x + 'px', top: h.scrim.y + 'px', width: h.scrim.w + 'px', height: h.scrim.h + 'px',
+          boxShadow: `0 0 0 2000px rgba(249, 246, 239, ${0.5 * k2})`, outline: 'none' });
+      }
+      continue;
+    }
+    // an open, slightly irregular loop that draws itself on in 0.4 s (hand-drawn, like the deck's accent)
+    const pad = 12, padY = 5, w = h.box.w + pad * 2, hh = h.box.h + padY * 2;
+    el.style.display = '';
+    el.style.left = (h.box.x - pad) + 'px'; el.style.top = (h.box.y - y - padY + 1) + 'px';
+    el.setAttribute('width', w); el.setAttribute('height', hh);
+    const path = $('hlPath');
+    const d = `M ${w * 0.16} ${hh * 0.98} C ${w * 0.03} ${hh * 0.9}, ${w * 0.0} ${hh * 0.3}, ${w * 0.18} ${hh * 0.1}` +
+      ` C ${w * 0.45} ${hh * 0.0}, ${w * 0.92} ${hh * 0.04}, ${w * 0.99} ${hh * 0.5}` +
+      ` C ${w * 1.0} ${hh * 0.92}, ${w * 0.6} ${hh * 1.02}, ${w * 0.3} ${hh * 0.99}`;
+    path.setAttribute('d', d);
+    if (h.scrim) {
+      // a flat cream scrim (no blur) dims everything but the ringed row
+      const sc = $('scrim'), k2 = clamp((t - h.t0) / 0.3);
+      sc.style.display = '';
+      Object.assign(sc.style, { borderRadius: '16px', left: h.scrim.x + 'px', top: h.scrim.y + 'px', width: h.scrim.w + 'px', height: h.scrim.h + 'px',
+        boxShadow: `0 0 0 2000px rgba(249, 246, 239, ${0.86 * k2})` });
+    }
+    const len = path.getTotalLength();
+    const k = easeOut((t - h.t0) / 0.4);
+    path.style.strokeDasharray = `${len}`;
+    path.style.strokeDashoffset = `${len * (1 - k)}`;
+  }
+}
+
+// ------------------------------------------------------------------------------------------ layers
+function drawPhone(t) {
+  const x = track(t, TL.phone.x, SOFT), y = track(t, TL.phone.y, SOFT), r = track(t, TL.phone.r, SOFT);
+  const sc = track(t, TL.phone.s, SOFT);
+  // the phone leans 3° into each recorded drag
+  let lean = 0;
+  for (const d of TL.drags) {
+    const k = (t - d.t0) / (d.t1 - d.t0 + 0.35);
+    if (k > 0 && k < 1) lean += d.dir * 3 * Math.sin(Math.PI * k);
+  }
+  const ph = $('phone');
+  ph.style.left = (x - PW / 2) + 'px'; ph.style.top = (y - PH / 2) + 'px';
+  ph.style.transform = `rotate(${r + lean}deg) scale(${sc})`;
+  // a cream hairline ring keeps the bezel's silhouette on the dark flood (a ring, not a glow)
+  const onFlood = t > TL.flood.in && t < TL.flood.out + 0.4;
+  void onFlood;
+  $('vp').style.transform = `scale(${S})`;
+  return { x, y, s: sc };
+}
+function drawCamera(t) {
+  const { z, fx, fy, ax } = cameraAt(t);
+  const A = { x: ax, y: 540 };
+  $('world').style.transform = `translate(${A.x - fx * z}px, ${A.y - fy * z}px) scale(${z})`;
+  return { z, fx, fy, A };
+}
+function worldToScreen(cam, p) { return { x: cam.A.x + (p.x - cam.fx) * cam.z, y: cam.A.y + (p.y - cam.fy) * cam.z }; }
+
+function drawOla(t) {
+  const { t0, t1 } = TL.ola, el = $('ola');
+  const on = t >= t0 && t < t1 + 0.4;
+  el.style.display = on ? '' : 'none';
+  if (!on) return;
+  // the card grows out of a line (shape, not fade), then collapses back into it
+  const kin = spring(t - t0, SNAPPY), kout = easeInOut((t - t1) / 0.35);
+  const open = clamp(kin) * (1 - kout);
+  el.style.clipPath = `inset(${(1 - open) * 50}% 0 ${(1 - open) * 50}% 0 round 34px)`;
+  el.style.transform = `translateY(${(1 - clamp(kin)) * 30 - (t - t0) * 4}px) scale(${lerp(0.94, 1, clamp(kin))})`;
+  // hand-written question writes on left → right
+  const w = clamp((t - t0 - 0.85) / 1.5);
+  $('olaQ').style.clipPath = `inset(0 ${100 - w * 100}% 0 0)`;
+}
+
+let FLOOD = { r: 0, x: 0, y: 0 };
+function drawFlood(t, cam, ph) {
+  const el = $('flood');
+  const { in: tin, out: tout } = TL.flood;
+  if (t < tin || t > tout + 0.5) { el.style.display = 'none'; $('floodRing').style.display = 'none'; $('world').style.visibility = 'visible'; $('phone').style.boxShadow = ''; return; }
+  el.style.display = '';
+  // grows out of the phone, later shrinks back into it
+  // grows out of (and later shrinks into) the phone's resting place, even while the phone itself springs away
+  const chip = META.clips.evidence?.chip || { x: 37, y: 608, w: 124, h: 20 };
+  const camIn = cameraAt(tin);
+  const fromChip = worldToScreen({ ...camIn, A: { x: camIn.ax, y: 540 } }, vpToWorld({ x: PHX0, y: 540, s: PS }, chip.x + chip.w / 2, chip.y + chip.h / 2));
+  const intoPhone = worldToScreen(cam, vpToWorld({ x: PHX0, y: 540, s: PS }, 195, 422));
+  const c = t < tout ? fromChip : intoPhone;
+  FLOOD = { r: 0, x: c.x, y: c.y };
+  const rin = spring(t - tin, { w: 13, z: 0.8 }) * 2500;
+  const rout = t > tout ? easeInOut((t - tout) / 0.42) : 0;
+  const r = rin * (1 - rout);
+  FLOOD.r = r;
+  const ring = $('floodRing');
+  ring.style.display = t < tout ? '' : 'none';
+  Object.assign(ring.style, { left: (c.x - r) + 'px', top: (c.y - r) + 'px', width: 2 * r + 'px', height: 2 * r + 'px' });
+  $('phone').style.boxShadow = t > tin && t < tout + 0.4 ? 'none' : '';
+  // once the flood has swallowed the phone, hide it (and its shadow) until the flood shrinks back
+  $('world').style.visibility = t > tin + 0.45 && t < tout ? 'hidden' : 'visible';
+  el.style.background = '#1d5a45';
+  el.style.zIndex = 4;
+  el.style.clipPath = `circle(${r}px at ${c.x}px ${c.y}px)`;
+  // the flood sits above the phone while it covers the screen
+  el.style.zIndex = 4;
+  $('world').style.zIndex = 2; // the flood is a shape growing out of the phone's screen, drawn over it
+}
+
+function drawCard(t) {
+  const { t0, step, t1 } = TL.card;
+  const on = t >= t0 && t < t1 + 0.6;
+  for (const id of ['card']) {
+    const el = $(id);
+    el.style.display = on ? '' : 'none';
+    if (!on) continue;
+    if (!el.childElementCount) el.innerHTML = C.card.map((l, i) => `<span class="ln${i === C.card.length - 1 ? ' it' : ''}"><span class="w">${l}</span></span>`).join('');
+    [...el.querySelectorAll('.w')].forEach((w, i) => {
+      const kin = spring(t - t0 - i * step, POP), kout = easeInOut((t - t1 - i * 0.05) / 0.32);
+      w.style.transform = `translateY(${(1 - kin) * 115 - kout * 115}%)`;
+    });
+    el.style.transform = `scale(${1 + (t - t0) * 0.006})`;
+    el.style.transformOrigin = '960px 540px';
+  }
+  // the cream copy lives inside the flood, the ink copy outside it: words flip colour exactly at the edge
+  $('card').style.clipPath = `circle(${FLOOD.r}px at ${FLOOD.x}px ${FLOOD.y}px)`;
+}
+
+function drawNotif(t) {
+  const el = $('notif');
+  const t0 = TL.notif.t0;
+  const on = t >= t0 && t < 50.5;
+  el.style.display = on ? '' : 'none';
+  if (!on) return;
+  const k = spring(t - t0, POP);
+  el.style.transform = `translateY(${(1 - k) * -140}px) scale(${lerp(0.9, 1, clamp(k))})`;
+}
+
+function drawPoster(t, cam) {
+  const el = $('poster'), t0 = TL.poster.t0;
+  const on = t >= t0;
+  el.style.display = on ? '' : 'none';
+  if (!on) return;
+  const parts = [...el.children];
+  parts.forEach((p, i) => {
+    if (p.id === 'posterHw') return;
+    const k = spring(t - t0 - 0.12 * i, i < 3 ? POP : SOFT);
+    const inner = p.classList.contains('ln') ? p.firstElementChild : p;
+    inner.style.transform = `translateY(${(1 - k) * (p.classList.contains('ln') ? 115 : 40)}%)`;
+    if (!p.classList.contains('ln')) inner.style.clipPath = `inset(${(1 - clamp(k)) * 100}% 0 0 0)`;
+  });
+  const w = clamp((t - t0 - 1.0) / 1.2);
+  $('posterHw').style.clipPath = `inset(-20% ${100 - w * 110}% -20% -6%)`;
+  // nothing freezes: slow push-in
+  el.style.transform = `scale(${1 + Math.max(0, t - t0) * 0.008})`;
+  el.style.transformOrigin = '130px 540px';
+}
+
+// ------------------------------------------------------------------------------------------ sound events
+/** Every sound hit on the picture's timeline: taps and swipe releases from the recorded pointer, plus scene events. */
+function sfxEvents() {
+  const out = [];
+  for (const s of TL.seg) {
+    if (!s.clip || !META.clips[s.clip]) continue;
+    for (const e of META.clips[s.clip].events) {
+      const t = s.t0 + (e.t - s.from) / s.speed;
+      if (t < s.t0 || t >= s.t1) continue;
+      if (e.type === 'tap') out.push({ t, kind: e.label === 'approve' ? 'success' : 'tap' });
+      if (e.type === 'up') out.push({ t, kind: 'swipe' });
+    }
+  }
+  for (const tp of TL.stillTaps) out.push({ t: tp.t, kind: 'tap' });
+  out.push({ t: TL.flood.in, kind: 'whoosh' }, { t: TL.flood.out, kind: 'whoosh' });
+  out.push({ t: TL.notif.t0 + 0.05, kind: 'notif' });
+  for (const h of TL.hl) out.push({ t: h.t0, kind: 'pop' });
+  C.card.forEach((_, i) => out.push({ t: TL.card.t0 + i * TL.card.step, kind: 'pop' }));
+  out.push({ t: TL.poster.t0, kind: 'whoosh' });
+  return out.sort((a, b) => a.t - b.t).map((e) => ({ ...e, t: +e.t.toFixed(3) }));
+}
+
+function drawLoupe(t, s, cam, ph) {
+  const L = TL.loupe, el = $('loupe');
+  const on = t >= L.t0 && t < L.t1 + 0.3 && s.clip === L.clip && META.clips[L.clip];
+  el.style.display = on ? '' : 'none';
+  $('leader').style.display = 'none';
+  if (!on) return;
+  const flooding = t >= TL.flood.in;
+  // a hand-drawn clay leader from the loupe to the row it enlarges
+  {
+    const lw = L.row.w * L.k, lh = L.row.h * L.k;
+    const a = { x: L.at.x + lw + 10, y: L.at.y + lh / 2 };
+    const b = worldToScreen(cam, vpToWorld(ph, L.row.x - 4, L.row.y + L.row.h / 2));
+    const path = $('leader').firstElementChild;
+    path.setAttribute('d', `M ${a.x} ${a.y} C ${a.x + (b.x - a.x) * 0.4} ${a.y + 26}, ${a.x + (b.x - a.x) * 0.7} ${b.y - 18}, ${b.x} ${b.y}`);
+    const len = path.getTotalLength(), k = easeOut((t - L.t0 - 0.45) / 0.45) * (1 - easeInOut((t - L.t1) / 0.25));
+    $('leader').style.display = k > 0 && !flooding ? '' : 'none';
+    path.style.strokeDasharray = `${len}`; path.style.strokeDashoffset = `${len * (1 - clamp(k))}`;
+  }
+  const w = L.row.w * L.k, h = L.row.h * L.k;
+  Object.assign(el.style, { left: L.at.x + 'px', top: L.at.y + 'px', width: w + 'px', height: h + 'px' });
+  // the current footage frame, scaled so the row fills the loupe (1170 px frame = 390 CSS px)
+  const img = $('loupeImg');
+  img.style.backgroundImage = `url(${curFrameSrc})`;
+  img.style.backgroundSize = `${390 * L.k}px ${844 * L.k}px`;
+  img.style.backgroundPosition = `${-L.row.x * L.k}px ${-L.row.y * L.k}px`;
+  const kin = spring(t - L.t0, POP), kout = easeInOut((t - L.t1) / 0.3);
+  const sc = clamp(kin, 0, 1.2) * (1 - kout);
+  el.style.transform = `scale(${0.4 + 0.6 * sc})`;
+  el.style.clipPath = `inset(${(1 - clamp(sc)) * 50}% 0 ${(1 - clamp(sc)) * 50}% 0 round 26px)`;
+  // the hand-drawn ring around the chip, inside the loupe
+  const cx = (L.chip.x - L.row.x - 7) * L.k, cy = (L.chip.y - L.row.y - 4) * L.k, cw = (L.chip.w + 14) * L.k, ch = (L.chip.h + 8) * L.k;
+  const svg = $('loupeRing'), path = svg.firstElementChild;
+  svg.setAttribute('width', w); svg.setAttribute('height', h);
+  // a closed loop that starts at the top right and overshoots past its start (a deliberate tail)
+  path.setAttribute('d', `M ${cx + cw * 0.86} ${cy + ch * 0.02} C ${cx + cw * 0.5} ${cy - ch * 0.06}, ${cx + cw * 0.02} ${cy + ch * 0.02}, ${cx} ${cy + ch * 0.5}` +
+    ` C ${cx + cw * 0.02} ${cy + ch * 1.0}, ${cx + cw * 0.55} ${cy + ch * 1.06}, ${cx + cw} ${cy + ch * 0.62}` +
+    ` C ${cx + cw * 1.03} ${cy + ch * 0.22}, ${cx + cw * 0.95} ${cy - ch * 0.04}, ${cx + cw * 0.72} ${cy - ch * 0.14}`);
+  const len = path.getTotalLength(), kr = easeOut((t - L.t0 - 0.25) / 0.4);
+  path.style.strokeDasharray = `${len}`; path.style.strokeDashoffset = `${len * (1 - kr)}`;
+}
+
+// ------------------------------------------------------------------------------------------ seek
+async function seek(t) {
+  const ph = drawPhone(t);
+  const cam = drawCamera(t);
+  const { s, waits } = await drawPhoneContent(t);
+  drawPointer(t, s);
+  drawHighlight(t, s);
+  drawLoupe(t, s, cam, ph);
+  drawNotif(t);
+  drawCaps(t);
+  drawOla(t);
+  drawFlood(t, cam, ph);
+  drawCard(t);
+  drawPoster(t, cam);
+  await Promise.all(waits);
+}
+
+async function init() {
+  META = await (await fetch(`${BASE}meta.json`)).json();
+  // jump-cut past frames marked by analyze.py (e.g. a DNA card whose photo is still decoding): the clip's own
+  // timeline becomes the kept frames only, and recorded pointer events move with it
+  for (const c of Object.values(META.clips)) {
+    if (!c.skip?.length) continue;
+    const skip = new Set(c.skip);
+    c.kept = [...Array(c.frames).keys()].filter((i) => !skip.has(i));
+    const before = (f) => c.kept.filter((k) => k < f).length;
+    for (const e of c.events) e.t = before(Math.round(e.t * FPS)) / FPS;
+    c.frames = c.kept.length;
+  }
+  document.documentElement.lang = LANG;
+  C.notifTitle = C.notifTitle.replace('{city}', META.flow.cities?.[0] ?? '');
+  for (const el of document.querySelectorAll('[data-i]')) el.innerHTML = C[el.dataset.i];
+  buildTimeline();
+  buildCaps();
+  await document.fonts.ready;
+  await Promise.all(['Playfair Display', 'Caveat', 'Inter'].map((f) => document.fonts.load(`700 40px "${f}"`)));
+  window.DURATION = TL.end;
+  window.SFX = sfxEvents();
+  await seek(Number(P.get('t') || 0));
+  window.READY = true;
+}
+window.seek = seek;
+init();
+</script>
+</body>
+</html>

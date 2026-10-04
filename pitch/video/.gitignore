@@ -1,0 +1,9 @@
+node_modules/
+scratch/
+frames/
+footage/
+audio/src/
+*.mp4
+*.webm
+audio/*.wav
+audio/sfx-*.json
