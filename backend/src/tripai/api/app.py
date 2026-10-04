@@ -217,6 +217,8 @@ def create_app(
         The frontend shows fast first and swaps in full when it arrives."""
         use_lang(req.lang)
         fast = phase == "fast"
+        # one wall-time budget for the whole request: AI items get what's left after prices
+        llm_cache.start_request_budget(asyncio.get_running_loop().time())
         profile = req.profile.model_copy(update={"user_id": uid})
         # personalize=False: neutral defaults unless the user moves the slider explicitly
         stored = await store.get_weights(uid) if profile.personalize else None

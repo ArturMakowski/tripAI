@@ -377,3 +377,92 @@ async def test_budget_reads_again_on_a_new_utc_day(tmp_path, monkeypatch):
 
     b._read_remote = fresh  # type: ignore[method-assign]
     assert await b.take() == 1 and reads[-1] == "2026-10-04"
+
+
+# ---------------------------------------------------------------- many items at once (t18b)
+
+
+def _recs_many(candidates, profile, n):
+    recs = rank(candidates, profile, limit=50, one_per_city=False)
+    assert len(recs) >= n
+    return recs[:n]
+
+
+async def test_many_items_together_finish_at_the_deadline(candidates, profile, mem, monkeypatch):
+    """12 fits + 8 explanations at once, more than the background limit (6), engines far slower
+    than the deadline: the whole batch takes ~the deadline, not a multiple of it."""
+    monkeypatch.setenv("TRIPAI_LLM_TIMEOUT_S", "0.5")
+    monkeypatch.setenv("TRIPAI_LLM_MAX_BACKGROUND", "6")
+    recs = _recs_many(candidates, profile, 12)
+    jc, gc, ec = [], [], []
+    jev, gpt = slow_jev(0.2, 0.3, jc), slow_gpt(3.0, gc)
+    why = slow_gpt(3.0, ec, text="late text")
+    t = time.perf_counter()
+    out = await asyncio.gather(
+        *(fit(r, profile, model=gpt, jev=jev) for r in recs),
+        *(explain(r, {"food": 1.0}, model=why, lang="en") for r in recs[:8]),
+    )
+    took = time.perf_counter() - t
+    assert len(out) == 20 and all(v.model == "rules" for v in out[:12])
+    assert out[12:] == [template_why(r, {"food": 1.0}, "en") for r in recs[:8]]
+    assert took < 1.2, took  # ~0.5 s deadline (+ margin), not 20 x 3 s or a serial chain
+    assert llm_cache.inflight() <= 6  # the rest were cut off at the deadline, not queued
+
+
+async def test_request_budget_counts_time_already_spent(rec, profile, mem, monkeypatch):
+    """The AI items get only what is left of the request's budget after fetching prices."""
+    monkeypatch.setenv("TRIPAI_LLM_TIMEOUT_S", "4.0")
+    loop = asyncio.get_running_loop()
+    llm_cache.start_request_budget(loop.time() - 0.7, total_s=1.0)  # 0.7 s already spent
+    t = time.perf_counter()
+    v = await fit(rec, profile, model=slow_gpt(3.0, []), jev=slow_jev(0.2, 0.3, []))
+    took = time.perf_counter() - t
+    assert v.model == "rules" and took < 0.8, took  # waited ~0.3 s, not the 4 s item deadline
+
+
+async def test_reload_while_still_running_gets_the_fallback_at_once(rec, profile, mem, monkeypatch):
+    """A repeat that finds this key still running for the earlier load doesn't wait again."""
+    monkeypatch.setenv("TRIPAI_LLM_TIMEOUT_S", "0.3")
+    gc = []
+    gpt, jev = slow_gpt(1.5, gc), slow_jev(0.05, 0.3, [])
+    await fit(rec, profile, model=gpt, jev=jev)  # cold: rules at 0.3 s, GPT keeps going
+    t = time.perf_counter()
+    again = await fit(rec, profile, model=gpt, jev=jev)  # reload while GPT is still running
+    assert time.perf_counter() - t < 0.1 and again.model == "rules" and len(gc) == 1
+
+
+async def test_repeat_after_background_is_served_from_cache(candidates, profile, mem, monkeypatch):
+    """Cold batch (5 fits + 3 explanations) falls back at the deadline; once the background
+    calls land, the same batch is answered from the cache with no new model calls."""
+    monkeypatch.setenv("TRIPAI_LLM_TIMEOUT_S", "0.3")
+    recs = _recs_many(candidates, profile, 5)
+    jc, gc, ec = [], [], []
+    jev, gpt = slow_jev(0.05, 0.3, jc), slow_gpt(0.8, gc)
+
+    def why_model():
+        async def fn(messages, info):
+            ec.append(1)
+            await asyncio.sleep(0.8)
+            payload = json.loads(str(messages[-1].parts[-1].content).split("EVIDENCE:\n")[1]
+                                 .split("\n\nLANGUAGE")[0])  # fmt: skip
+            return ModelResponse(parts=[TextPart(f"{payload['city']}: {payload['total_cost']}.")])
+
+        return FunctionModel(fn, model_name="why-slow")
+
+    why = why_model()
+
+    async def batch():
+        return await asyncio.gather(*(fit(r, profile, model=gpt, jev=jev) for r in recs),
+                                    *(explain(r, {}, model=why, lang="en") for r in recs[:3]))  # fmt: skip
+
+    cold = await batch()
+    assert all(v.model == "rules" for v in cold[:5])
+    await llm_cache.drain()
+    calls = (len(jc), len(gc), len(ec))
+    clear_cache()  # a fresh process: only the persistent layer
+    t = time.perf_counter()
+    warm = await batch()
+    assert time.perf_counter() - t < 0.15
+    assert (len(jc), len(gc), len(ec)) == calls  # no new Jev/GPT calls
+    assert all("gpt-slow" in v.model for v in warm[:5])
+    assert [w for w in warm[5:]] == [f"{r.city}: {round(r.total_cost_pln)} PLN." for r in recs[:3]]
