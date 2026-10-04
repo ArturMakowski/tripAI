@@ -1,4 +1,5 @@
 import { plainLabel } from "./evidence-display";
+import { estimatedLeg, moneyOf } from "./money";
 import type { Recommendation } from "./types";
 
 /**
@@ -13,17 +14,40 @@ export function originOf(rec: Recommendation, fallback = "KRK"): string {
   return label.match(/\b([A-Z]{3})(?:[/,][A-Z]{3})*[-–]([A-Z]{3})\b/)?.[1] ?? fallback;
 }
 
-/** Partner deep links with dates pre-filled. Nothing is booked by TripAI. */
+/** "2026-11-07" -> "0711" (Aviasales search URLs use DDMM). */
+const ddmm = (iso: string) => `${iso.slice(8, 10)}${iso.slice(5, 7)}`;
+
+/**
+ * Partner deep links with dates pre-filled. Nothing is booked by TripAI.
+ * A booking link is only ever for the trip's own dates: a fare or stay that was priced for OTHER dates
+ * (or a city average) is never linked as such. For an estimated flight we link a search for the
+ * exact dates instead ("Check prices for these dates"); an estimated stay is covered by the dated
+ * Booking.com search above it.
+ */
 export function handoffLinks(
   rec: Recommendation,
   fallbackOrigin?: string,
-  labels: { flights: string; hotels: string } = { flights: "Flights on Google Flights", hotels: "Hotels on Booking.com" },
+  labels: { flights: string; hotels: string; checkPrices: string } = {
+    flights: "Flights on Google Flights",
+    hotels: "Hotels on Booking.com",
+    checkPrices: "Check prices for these dates",
+  },
 ): { label: string; url: string }[] {
   const { start, end } = rec.window;
   const origin = originOf(rec, fallbackOrigin);
-  const evidenceLinks = rec.evidence
-    .filter((e) => e.url && (e.kind === "flight" || e.kind === "hotel"))
-    .map((e) => ({ label: plainLabel(e.label), url: e.url! })); // no data-layer jargon in link text
+  const adults = Math.max(1, Math.min(9, rec.travelers ?? 1));
+  // A fare/stay page is linked only when the whole trip is priced for its own dates: a calendar fare
+  // for other dates can carry no tell-tale words in its label ("…(Aviasales fare, not bookable)"), so
+  // anything short of "exact" links a search for the exact dates instead.
+  const money = moneyOf(rec);
+  const exact = money.status === "exact";
+  const exactLinks = exact
+    ? rec.evidence
+        .filter((e) => e.url && (e.kind === "flight" || e.kind === "hotel") && !estimatedLeg(e))
+        .map((e) => ({ label: plainLabel(e.label), url: e.url! }))
+    : [];
+  // a search for the exact dates is right whenever any leg is uncertain (it never shows another date's fare)
+  const needsSearch = !exact;
   return [
     {
       label: labels.flights,
@@ -31,8 +55,11 @@ export function handoffLinks(
     },
     {
       label: labels.hotels,
-      url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(rec.city)}&checkin=${start}&checkout=${end}&group_adults=1`,
+      url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(rec.city)}&checkin=${start}&checkout=${end}&group_adults=${adults}`,
     },
-    ...evidenceLinks,
+    ...(needsSearch
+      ? [{ label: labels.checkPrices, url: `https://www.aviasales.com/search/${origin}${ddmm(start)}${rec.iata}${ddmm(end)}${adults}` }]
+      : []),
+    ...exactLinks,
   ];
 }

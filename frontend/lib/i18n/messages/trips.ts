@@ -87,7 +87,6 @@ export const en = {
     allIn: "all-in",
     cachedEstimate: "estimate",
     overBudget: (amount: string) => `Over budget +${amount}`,
-    disagree: "Score and fit disagree:",
   },
 } as const;
 
@@ -177,6 +176,5 @@ export const pl: Shape<typeof en> = {
     allIn: "łącznie",
     cachedEstimate: "szacunek",
     overBudget: (amount: string) => `Ponad budżet +${amount}`,
-    disagree: "Wynik i dopasowanie się różnią:",
   },
 };

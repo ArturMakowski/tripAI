@@ -135,6 +135,10 @@ weight, the total, the formula) is one tap away in the receipt's "Audyt". No "%"
 - **Trip cards** are an `<article>` with one stretched link (named "Rzym, 14–19 sty, 1 442 zł"); the value badge and the
   "vs peak" chip are real buttons beside it, never nested inside the link. Money carries `data-testid="trip-total"` /
   `data-line` + `data-amount` hooks for the e2e price invariant.
+- **Hand-off links are for the trip's own dates only.** A fare or stay page is linked only when the whole trip is
+  priced exactly; otherwise confirm offers "Sprawdź ceny na te daty" / "Check prices for these dates" (an Aviasales
+  search for the exact dates and party size) next to the dated Google Flights and Booking.com searches, never a fare
+  for other dates. The score/fit disagreement note is on the trip page ("Dlaczego pasuje"), never on cards.
 - **Comparisons name the trip:** "Rzym: wynik wyższy o 3,6 pkt · drożej o 108 zł".
 
 ## No implementation details in the UI

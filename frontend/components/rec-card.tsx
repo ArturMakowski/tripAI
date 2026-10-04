@@ -10,7 +10,6 @@ import { DEFAULT_WEIGHTS } from "@/lib/scoring";
 import { dayCount } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { FitBadge } from "@/components/fit-badge";
-import { disagreement } from "@/lib/fit";
 import { flightLine, hotelLineParts, trustedDetails } from "@/lib/trip-details";
 import { cityPhoto, fallbackHue } from "@/lib/photos";
 import type { BridgeWindow, Recommendation, RankedRecommendation, Weights } from "@/lib/types";
@@ -102,7 +101,6 @@ export function RecCard({
   const tc = t.trips.card;
   const rank = rec.rank;
   const money = moneyOf(rec);
-  const split = disagreement(rec);
   // No "−49% vs peak" chip on the card (round 3: no percentages on cards); peak season is a row
   // in the receipt's "Porównaj".
   const nights = dayCount(rec.window) - 1;
@@ -213,7 +211,6 @@ export function RecCard({
           <p className="min-w-0 flex-1 truncate text-[13px] text-ink-soft">
             {rec.fit ? (
               <>
-                {split && <span className="font-semibold text-ink">{tc.disagree} </span>}
                 {/\d\s?%/.test(rec.fit.summary) ? null : rec.fit.summary}
               </>
             ) : /\d\s?%/.test(rec.why) ? null : (
