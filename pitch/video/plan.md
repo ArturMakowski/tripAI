@@ -23,24 +23,24 @@ Canvas `#f9f6ef`, ink `#1c1b19`, deep green `#1d5a45`, dark green `#1f3a30`, cla
 Headline: Playfair Display 700 (+ italic green second line). Hand-written accent: Caveat (clay). Small text: Inter.
 Phone: black bezel, dynamic island, 9:41 status bar; real 1170×2532 footage inside.
 
-## Beat map (≈ 65 s, 30 fps, 120 BPM → a beat every 0.5 s; cuts on the beat)
+## Beat map (≈ 65 s, 30 fps, ~120 BPM; cuts on the beat)
 | t (s) | Beat | Picture | Caption (EN / PL) |
 |---|---|---|---|
-| 0–3 | Hook, product mid-action | Phone right, already swiping a trip card ("LOVE IT!"); headline springs in word by word | "You have free days." / *We tell you where and when.* · "Masz wolne dni." / *Powiemy Ci, dokąd i kiedy.* |
-| 3–7 | Ola | Persona card pops; hand-written question writes on | "Ola, 29, Kraków · free 7–11 Nov · budget 1,800 PLN · hates crowds" + "Where should I go, and is this even the right weekend?" |
-| 7–14 | Travel DNA | Phone slides to centre, push-in on the deck, 5 real drags at 1.3× | "14 swipes." → "Your Travel DNA." |
-| 14–18 | Confirm | Tap "Next long weekend · 7–11 Nov" (zoom on the chip, ripple), then the confirm | "Free 7–11 Nov? One tap." |
-| 18–25 | Where + when, ranked | Loader → cards (2×), then the list pans; zoom on #1's "2d off → 5d" + score ring | "Where and when. Ranked." → "2 days off. 5 days away." |
-| 25–30 | Learns | Trip swipe deck: like, love; zoom on the "Learned: you like …" toast | "Swipe. It learns your taste." |
-| 30–41 | Core, slow | Trip page pan: hero → flight + stay → where to eat / what to do; tap Sources → zoom on a source chip; open Evidence (weather, crowds) | "Flight, stay, things to do." → "Every number has a receipt." → "Weather, crowds, prices. All sourced." |
-| 41–47 | Text card | Green flood grows out of the phone; four lines land on the beat | "Every number sourced. / A fixed formula ranks. / AI only explains. / You decide." |
-| 47–54 | Proactive | Flood shrinks into the phone (home screen); a push notification drops in; My trips | "We watch your free days." → "You get a ping when it's worth it." |
-| 54–59 | You book | Tick + Approve → "Approved by you" | "Nothing is booked until you tap." |
-| 59–65 | Poster | Headline + TripAI mark + hand-written "HackYeah 2026", slow push-in, held 4 s | (no URL) |
+| 0–3 | Hook, product mid-action | Phone right, mid-swipe on the first Travel DNA cards (no prices on screen); headline springs in word by word, hand-written accent writes on | "You have free days." / *We tell you where and when.* + ✍ "free 7–11 Nov" |
+| 3–7 | Ola | Persona card grows out of a line; hand-written question writes on; phone on the welcome screen, ends on the real "Let's go" tap | "Ola, 29, Kraków · Free 7–11 Nov · Budget 1,800 PLN · Hates crowds" + ✍ "Where should I go, and is this even the right weekend?" |
+| 7–14 | Travel DNA | Phone in the right third, real drags (black photo-decode frames jump-cut) | "14 swipes." / *Your Travel DNA.* |
+| 14–18 | Confirm | Zoom on the pre-filled "When · 7–11 Nov" card, tap "Show trips", loader, zoom on the persona card on /trips | "Free 7–11 Nov?" / *One tap.* |
+| 18–25 | Where + when, ranked | Loader → cards, then the list; zoom + hand-drawn ring on #1's "2d off → 5d" (price out of frame) | "Where and when." / *Ranked.* → "2 days off." / *5 days away.* |
+| 25–30 | Learns | Trip swipe deck: "I want to go", zoom on "Learned: you like …" | "Swipe." / *It learns your taste.* |
+| 30–41 | Core, slow | Trip page (Good fit, flight, stay, things to do) → scroll → tap Evidence (0.65×) → a loupe (enlarged crop of the real footage) rings the "Open-Meteo · 3 Oct" source chip | "Flight, stay," / *things to do.* → "The proof," / *one tap away.* → "Every number" / *has a receipt.* |
+| 41–46.5 | Text card | Green flood grows out of the ringed source chip and swallows the phone; four lines land on the beat | "Nothing made up. / A fixed formula ranks. / AI only explains. / *You decide.*" |
+| 46.5–54 | Proactive | Flood shrinks, phone back on the home screen, a push (no price) drops in; My trips with "Set your price" ringed | "We watch your free days." / *A ping only when it's worth it.* → "Saved trips," / *prices re-checked daily.* |
+| 54–59 | You book | Tick + Approve → "Approved by you" | "Nothing is booked" / *until you tap.* |
+| 59–65.5 | Poster | Headline + TripAI mark + tagline + ✍ "HackYeah 2026"; phone rises from the bottom edge in the right third, showing the pre-filled "Ready? Check and go · 7–11 Nov" card; slow push-in | (no URL) |
 
 ## Gates
-1. This beat map. 2. Five stills: opening (0.8 s), main composition (10 s), product shot (34 s), middle of the fastest
-transition (41.3 s, the flood), end card (63 s). 3. Fresh critic session (`claude -p`, defaults to reject, ≥ 8/10).
+1. This beat map. 2. Five stills: opening (1.5 s), main composition (11.4 s), product shot (39.2 s), middle of the fastest
+transition (41.12 s, the flood), end card (63 s). 3. Fresh critic session (`claude -p`, defaults to reject, ≥ 8/10).
 4. Animatic (low fps). 5. Full render 1080p (+4K). 6. Audio: Mixkit ~120 BPM + SFX on taps/swipes/landings,
 −14 LUFS, `CREDITS.md`.
 

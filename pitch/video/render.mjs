@@ -20,7 +20,7 @@ const LANG = opt('lang', 'en');
 const SCALE = Number(opt('scale', 1));
 const FPS = Number(opt('fps', 30));
 const WORKERS = Number(opt('workers', Math.max(2, Math.min(6, os.cpus().length - 2))));
-const STILLS = { opening: 1.5, composition: 10.4, product: 39.2, transition: 41.15, end: 63.0 };
+const STILLS = { opening: 1.5, composition: 11.4, product: 39.2, transition: 41.12, end: 63.0 };
 
 const TYPES = { '.html': 'text/html', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.js': 'text/javascript' };
 const server = http.createServer((req, res) => {

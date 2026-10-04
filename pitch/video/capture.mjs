@@ -1,5 +1,5 @@
 // Records every piece of real footage the video uses from the LIVE app, in one command per language:
-//   node capture.mjs --lang en|pl [--part onboarding|trips] [--record]
+//   node capture.mjs --lang en|pl [--part onboarding|trips] [--record] [--allow-one-full]
 // The frontend URL comes from E2E_PROD_URL (env, or ../../.env, or $TRIPAI_ENV_FILE); the repo is public, so no URL
 // is ever written to a committed file. The backend is private: everything goes through the frontend's /api proxy.
 //
@@ -22,6 +22,7 @@ const args = process.argv.slice(2);
 const LANG = args.includes('--lang') ? args[args.indexOf('--lang') + 1] : 'en';
 // --part onboarding: welcome → 14 swipes → the pre-filled confirm → /trips with the persona card
 // --part trips:      ranked trips → swipe deck → trip page → evidence → approve → My trips → home (onboarding unrecorded)
+const ALLOW_FULL = args.includes('--allow-one-full');
 const PART = args.includes('--part') ? args[args.indexOf('--part') + 1] : 'all';
 const PARTS = PART === 'all' ? ['onboarding', 'trips'] : [PART];
 const FINAL = path.join(HERE, 'footage', LANG);
@@ -67,7 +68,7 @@ const T = {
   ready: rx('ranking updated|live prices in', 'ranking zaktualizowany|ceny na żywo|zaktualizowan'),
   sources: rx('^sources$', '^źródła$'),
   evidence: rx('^evidence', '^dowody|^źródła danych'),
-  confirmSelf: rx("confirm the final price", 'potwierdz|sprawdz'),
+  confirmSelf: rx("confirm the final price", 'cenę potwierdzę|potwierdzę u partnera'),
   approve: rx('^approve', '^zatwierdź|^akceptuj'),
   seeMyTrips: rx('my trips', 'moje podróże'),
   setPrice: rx('set your price', 'twoja cena|ustaw'),
@@ -94,13 +95,30 @@ await ctx.addInitScript(() => {
       localStorage.setItem('tripai-tutorial-v1', JSON.stringify({ intro: true, tours: { trips: true, receipt: true, windows: true, inbox: true } }));
   } catch {}
 });
-await ctx.routeFromHAR(HAR, { url: API, update: RECORD, updateContent: 'embed', notFound: RECORD ? 'fallback' : 'abort' });
+if (RECORD) {
+  await ctx.routeFromHAR(HAR, { url: API, update: true, updateContent: 'embed' });
+} else {
+  // replay: /recommendations only ever from the recording (a miss is aborted, never sent live); other /api misses go live
+  await ctx.routeFromHAR(HAR, { url: /\/api\/(?!recommendations)/, notFound: 'fallback' });
+  await ctx.routeFromHAR(HAR, { url: /\/api\/recommendations/, notFound: 'abort' });
+}
 let fulls = 0;
+// President decision (4 Oct, cap at 60/60 so the backend cannot search SerpApi): exactly ONE full call per take, the one
+// that loads Ola's ranked trips (fit verdicts exist only in the full phase). Everything else goes out as phase=fast.
+let allowFull = false;
+let fullsAllowed = 0;
 let holdRecs = false; // while true, /recommendations is not sent at all (set-up steps before the real load)
 await ctx.route(/\/api\/recommendations/, (route) => {
   if (holdRecs) return route.abort();
   const u = new URL(route.request().url());
   if (route.request().method() === 'POST' && u.searchParams.get('phase') !== 'fast') {
+    // replay mirrors the recording: the same one call stays full (served from the HAR), the rest become fast
+    if (allowFull && (ALLOW_FULL || !RECORD) && fullsAllowed === 0) {
+      fullsAllowed += 1;
+      allowFull = false;
+      log('  guard: the one allowed full /recommendations of this take');
+      return route.fallback();
+    }
     u.searchParams.set('phase', 'fast');
     log(`  guard: full /recommendations #${++fulls} sent as phase=fast (cache only, never SerpApi)`);
     return route.fallback({ url: u.toString() });
@@ -108,6 +126,16 @@ await ctx.route(/\/api\/recommendations/, (route) => {
   return route.fallback();
 });
 const page = await ctx.newPage();
+// A failed take keeps what it recorded: the HAR goes next to the footage, so a re-run (without --record) replays it
+// instead of calling the backend again (the one allowed full call is never repeated).
+process.on('uncaughtException', async (e) => {
+  log('FAILED:', e.message.split('\n')[0]);
+  await page.screenshot({ path: path.join(OUT, 'debug-failed.png') }).catch(() => {});
+  await ctx.close().catch(() => {});
+  fs.mkdirSync(FINAL, { recursive: true });
+  if (fs.existsSync(HAR)) { fs.copyFileSync(HAR, path.join(FINAL, path.basename(HAR))); log('  kept', path.basename(HAR), 'for a replay re-run'); }
+  process.exit(1);
+});
 page.on('requestfailed', (r) => { if (API.test(r.url())) log('  ! failed', r.method(), r.url().replace(APP, ''), r.failure()?.errorText); });
 
 // ------------------------------------------------------------------------------------------------ helpers
@@ -150,7 +178,7 @@ const center = (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
 
 /** Tap a locator like a person: the pointer travels there first (logged for the composited cursor). */
 async function tap(locator, label) {
-  const l = locator.first();
+  const l = locator.filter({ visible: true }).first();
   await l.scrollIntoViewIfNeeded();
   const b = await l.boundingBox();
   const c = center(b);
@@ -253,6 +281,8 @@ const grab = { x: VIEW.width / 2, y: deck.y + deck.height * 0.55 };
 if (recording('onboarding')) { await startClip('dna'); await page.waitForTimeout(400); }
 for (const [i, a] of ANSWERS.entries()) {
   if (recording('onboarding') && i < 5) {
+    // never film a card before its photo has decoded (a black card otherwise)
+    await page.waitForFunction(() => [...document.querySelectorAll('img')].every((im) => im.complete && im.naturalWidth > 0), null, { timeout: 15000 }).catch(() => log('  (a deck photo did not load)'));
     await drag(grab, { x: grab.x + DRAG[a][0], y: grab.y + DRAG[a][1] });
     await page.waitForTimeout(520);
     if (i === 4) await rec.stop();
@@ -300,6 +330,7 @@ if (BUDGET) {
 await page.waitForTimeout(800);
 meta.flow.budget = BUDGET;
 holdRecs = false;
+allowFull = true;
 await startClip('loading');
 await page.waitForTimeout(300);
 await tap(page.getByRole('link', { name: rx('^trips$', '^(podróże|wyjazdy)$') }), 'tripsTab');
@@ -329,7 +360,7 @@ await still('trips_list', {
 await page.evaluate(() => scrollTo(0, 0));
 
 // 4. The swipe deck of ranked trips: "I want to go" on the #1, "Love it!" on the #2.
-await page.getByRole('button', { name: rx('^swipe$', '^swipe$|^przesuń') }).first().click().catch(() => log('  (no Swipe toggle)'));
+await page.getByRole('button', { name: rx('^swipe$', '^karty$|^przesuń') }).first().click().catch(() => log('  (no Swipe toggle)'));
 await page.waitForTimeout(800);
 await page.evaluate(() => scrollTo(0, 230));
 await page.waitForTimeout(700);
@@ -398,7 +429,7 @@ await page.goto(APP + tripPath + '/confirm', { waitUntil: 'networkidle' });
 await page.waitForTimeout(2000);
 await startClip('approve');
 await page.waitForTimeout(500);
-await tap(page.getByRole('checkbox').or(page.getByText(T.confirmSelf)), 'confirmSelf');
+await tap(page.getByText(T.confirmSelf), 'confirmSelf');
 await page.waitForTimeout(600);
 await tap(page.getByRole('button', { name: T.approve }), 'approve');
 await page.waitForTimeout(2600);
