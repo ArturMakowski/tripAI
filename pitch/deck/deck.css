@@ -103,3 +103,4 @@ h2 { font-size: 76px; max-width: 1400px; }
 .s-close .cta { max-width: 1500px; }
 .s-hook .foot { font-size: 26px; line-height: 1.6; color: var(--muted); }
 .s-hook .foot b { color: var(--ink); font-weight: 600; }
+.button { text-decoration: none; }
