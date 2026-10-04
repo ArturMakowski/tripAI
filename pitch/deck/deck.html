@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TripAI – HackYeah 2026 pitch</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+
+<!-- 1 TITLE -->
+<section class="slide s-hook">
+  <div>
+    <span class="logo"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#215c48"/><path d="M11 25 L20 15 L29 25" fill="none" stroke="#fffdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="27" r="2.6" fill="#c66843"/></svg>TripAI</span>
+    <h1 data-t="hook.h"></h1>
+    <p class="lede" data-t="hook.lede"></p>
+    <p class="foot" data-t="hook.foot"></p>
+  </div>
+  <div class="phone"><img data-shot="home" alt=""></div>
+</section>
+
+<!-- 2 OLA -->
+<section class="slide s-ola">
+  <p class="label" data-t="ola.label"></p>
+  <h2 data-t="ola.quote"></h2>
+  <div class="card profile">
+    <p class="who" data-t="ola.name"></p>
+    <p class="chips"><span data-t="ola.c1"></span><span data-t="ola.c2"></span><span data-t="ola.c3"></span></p>
+  </div>
+  <div class="stats">
+    <div class="card stat"><b>89%</b><span data-t="ola.s1"></span></div>
+    <div class="card stat"><b class="clay">12%</b><span data-t="ola.s2"></span></div>
+  </div>
+  <p class="foot" data-t="ola.src"></p>
+</section>
+
+<!-- 3 PRODUCT -->
+<section class="slide s-flow">
+  <div>
+    <p class="label" data-t="flow.label"></p>
+    <h2 data-t="flow.title"></h2>
+    <p class="body" data-t="flow.body"></p>
+  </div>
+  <div class="phones">
+    <figure><div class="phone"><img data-shot="dna" alt=""></div><figcaption data-t="flow.c1"></figcaption></figure>
+    <figure><div class="phone"><img data-shot="cards" alt=""></div><figcaption data-t="flow.c2"></figcaption></figure>
+  </div>
+</section>
+
+<!-- 4 RECEIPT -->
+<section class="slide s-receipt">
+  <div>
+    <p class="label" data-t="rec.label"></p>
+    <h2 data-t="rec.title"></h2>
+    <p class="body" data-t="rec.body"></p>
+  </div>
+  <div class="phone"><img data-shot="receipt-sources" alt=""></div>
+</section>
+
+<!-- 5 HOW IT WORKS -->
+<section class="slide s-how">
+  <p class="label" data-t="how.label"></p>
+  <h2 data-t="how.title"></h2>
+  <div class="card list">
+    <div class="row"><span class="n">1</span><p data-t="how.s1"></p></div>
+    <div class="row"><span class="n">2</span><p data-t="how.s2"></p></div>
+    <div class="row"><span class="n">3</span><p data-t="how.s3"></p></div>
+  </div>
+</section>
+
+<!-- 6 HOW WE DIFFER -->
+<section class="slide s-comp">
+  <p class="label" data-t="comp.label"></p>
+  <h2 data-t="comp.title"></h2>
+  <p class="body wide" data-t="comp.body"></p>
+  <div class="card note"><p data-t="comp.others"></p></div>
+</section>
+
+<!-- 7 BUSINESS -->
+<section class="slide s-biz">
+  <p class="label" data-t="biz.label"></p>
+  <h2 data-t="biz.title"></h2>
+  <div class="nums">
+    <div class="card"><b data-t="biz.n1"></b><span data-t="biz.n1l"></span></div>
+    <div class="card"><b class="pine" data-t="biz.n2"></b><span data-t="biz.n2l"></span></div>
+    <div class="card"><b data-t="biz.n3"></b><span data-t="biz.n3l"></span></div>
+  </div>
+  <p class="foot" data-t="biz.rule"></p>
+</section>
+
+<!-- 8 CLOSE -->
+<section class="slide s-close">
+  <div>
+    <span class="logo"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#215c48"/><path d="M11 25 L20 15 L29 25" fill="none" stroke="#fffdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="27" r="2.6" fill="#c66843"/></svg>TripAI</span>
+    <h2 class="cta" data-t="biz.cta"></h2>
+    <a class="button" id="cta-link"><span data-t="biz.try"></span> <span id="url"></span></a>
+  </div>
+</section>
+
+<script src="i18n.js"></script>
+<script src="qr.js"></script>
+<script src="shots/meta.js"></script>
+<script>
+  const lang = new URLSearchParams(location.search).get('lang') || 'en';
+  const T = window.DECK_I18N[lang];
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll('[data-t]').forEach((el) => {
+    const v = T[el.dataset.t];
+    if (v === undefined) { console.error('missing key', el.dataset.t); el.textContent = '⟦' + el.dataset.t + '⟧'; return; }
+    el.innerHTML = v;
+  });
+  const NUM = window.DECK_I18N.numbers;
+  document.querySelectorAll('[data-v]').forEach((el) => (el.textContent = NUM[el.dataset.v]));
+  document.querySelectorAll('[data-shot]').forEach((el) => (el.src = `shots/${lang}-${el.dataset.shot}.png`));
+
+  const META = (window.SHOT_META || {})[lang] || {};
+
+  // Slide 8: the app URL comes from TRIPAI_APP_URL at build time (never committed: public repo).
+  document.getElementById('url').textContent = window.DECK_URL;
+  if (window.DECK_HREF) document.getElementById('cta-link').href = window.DECK_HREF;
+
+  // phone screen: a status bar above each screenshot so the island never covers app UI
+  const SB = '<div class="sb"><span>9:41</span><svg viewBox="0 0 70 14"><g fill="#111"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5" y="6" width="3" height="8" rx="1"/><rect x="10" y="3" width="3" height="11" rx="1"/><rect x="15" y="0" width="3" height="14" rx="1"/><path d="M28 5a10 10 0 0 1 14 0l-2 2a7 7 0 0 0-10 0zM31.5 8.5a5 5 0 0 1 7 0L35 12z"/><rect x="47" y="1" width="20" height="12" rx="3" fill="none" stroke="#111" stroke-width="1.5"/><rect x="49.5" y="3.5" width="15" height="7" rx="1.5"/><rect x="68" y="5" width="2" height="4" rx="1"/></g></svg></div>';
+  document.querySelectorAll('.phone > img').forEach((img) => {
+    const scr = document.createElement('div');
+    scr.className = 'screen';
+    img.replaceWith(scr);
+    scr.innerHTML = SB;
+    scr.appendChild(img);
+  });
+</script>
+</body>
+</html>

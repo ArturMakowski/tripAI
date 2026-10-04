@@ -1,0 +1,18 @@
+{
+  "name": "tripai-pitch-deck",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "shots": "node shots.mjs",
+    "build": "node build.mjs",
+    "deck": "node shots.mjs && node build.mjs",
+    "critic": "./critic.sh en < /dev/null > ../out/critique-en.md && ./critic.sh pl < /dev/null > ../out/critique-pl.md"
+  },
+  "devDependencies": {
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/geist": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "playwright": "^1.63.0",
+    "qrcode": "^1.5.4"
+  }
+}
