@@ -3,24 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Ban, MessageCircle } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { MessageCircle } from "lucide-react";
+import { useRef, useState } from "react";
 import { DnaDeck } from "@/components/dna-deck";
-import { DnaResult } from "@/components/dna-result";
-import { PartyPicker } from "@/components/money";
 import { partySize } from "@/lib/money";
 import { AppShell } from "@/components/shell";
-import { Button } from "@/components/ui/button";
+import { TripConfirm } from "@/components/trip-confirm";
 import { api, USER_ID } from "@/lib/api";
 import { collectAnswers, DNA_DECK, STATEMENT_ANSWER, YESNO_ANSWER, type DnaCard, type Gesture } from "@/lib/dna";
+import { prefillDates, profileFromDna } from "@/lib/first-run";
 import { useT } from "@/lib/i18n";
 import { useHydrated, useTrip, type DeckStep } from "@/lib/store";
-import { useUsableRanges } from "@/lib/windows-store";
-import { QuickDates } from "@/components/date-picker/free-dates-planner";
-import { AirportPicker } from "@/components/airport-picker";
-import { expandToCity } from "@/lib/airports";
-
-
+import { todayISO, useDates } from "@/lib/windows-store";
+import { useWindows } from "@/lib/windows";
 
 function Dots({ total, done }: { total: number; done: number }) {
   return (
@@ -58,28 +53,32 @@ export default function SwipeOnboarding() {
   const router = useRouter();
   const hydrated = useHydrated();
   const { deck, setDeck, profile, setProfile, setWeights, setMode } = useTrip();
-  const { swipes, airports, result } = deck;
-  // Saved state from older orders (deck → budget → airports) lands on the dates/party/airports step.
-  const step: DeckStep = ["budget", "airport"].includes(deck.step as string) ? "trip" : deck.step;
-  const ranges = useUsableRanges();
+  const { swipes, airports } = deck;
+  // Saved state from older flows (budget/airport steps, the result stop before T19) lands on the confirm.
+  const step: DeckStep = deck.step === "swipe" ? "swipe" : "trip";
+  // the long-weekend radar loads while the user swipes, so the confirm can preselect the next one
+  useWindows();
   const { t: all, lang } = useT();
   const t = all.onboarding;
   const advance = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [busy, setBusy] = useState(false);
-  const reqId = useRef(0);
 
   // position = number of distinct cards answered in deck order (undo pops the last swipe)
   const position = Math.min(swipes.length, DNA_DECK.length);
-  const collected = useMemo(() => collectAnswers(swipes), [swipes]);
 
   function answer(card: DnaCard, g: Gesture) {
     const value = card.kind === "yesno" ? YESNO_ANSWER[g] : STATEMENT_ANSWER[g];
     if (value === undefined) return;
     const next = [...swipes, { id: card.id, value }];
     setDeck({ swipes: next });
-    // Let the last card fly out first; undo within that moment cancels the jump.
-    // Deck done -> "Kiedy i z kim?" (dates, party, airports); the result is computed from there.
-    if (next.length >= DNA_DECK.length) advance.current = setTimeout(() => setDeck({ step: "trip" }), 380);
+    if (next.length < DNA_DECK.length) return;
+    // Deck done: pre-fill the next long weekend unless the user already has dates (those are kept), then let
+    // the last card fly out before the confirm (undo within that moment cancels the jump).
+    const dates = prefillDates(useDates.getState().ranges, useTrip.getState().longWeekends, todayISO());
+    advance.current = setTimeout(() => {
+      if (dates) useDates.getState().pickQuick("long", dates);
+      setDeck({ step: "trip" });
+    }, 380);
   }
 
   function undo() {
@@ -99,50 +98,31 @@ export default function SwipeOnboarding() {
         : "left"
       : ((Object.entries(STATEMENT_ANSWER).find(([, v]) => v === prev.value)?.[0] ?? "down") as Gesture);
 
-  /** Answers -> POST /profile/dna (fixture fallback); stale responses are dropped. */
-  async function compute(edited = collected) {
-    const id = ++reqId.current;
+  /** "Pokaż wyjazdy": answers -> POST /profile/dna (fixture fallback), applied at once, then the ranked trips. */
+  async function showTrips() {
+    // Not finished swiping yet (e.g. old saved state): back to the deck first.
+    if (swipes.length < DNA_DECK.length) return setDeck({ step: "swipe" });
     setBusy(true);
-    const { data, mode } = await api.profileDna({
-      user_id: USER_ID,
-      answers: edited.answers as Record<string, number>,
-      yes_no: edited.yes_no as Record<string, boolean>,
-    });
-    if (id !== reqId.current) return false;
+    const collected = collectAnswers(swipes);
+    let res: Awaited<ReturnType<typeof api.profileDna>>;
+    try {
+      res = await api.profileDna({
+        user_id: USER_ID,
+        answers: collected.answers as Record<string, number>,
+        yes_no: collected.yes_no as Record<string, boolean>,
+      });
+    } catch {
+      return setBusy(false); // the button comes back; nothing was applied
+    }
+    const { data, mode } = res;
     setMode("interview", mode);
+    // the persona card on /trips shows again for a new result
+    useTrip.getState().setPersonaHidden(false);
     setDeck({ result: data });
-    setBusy(false);
-    return true;
-  }
-
-  function edit(cardId: string, value: number | boolean) {
-    const next = [...swipes.filter((s) => s.id !== cardId), { id: cardId as DnaCard["id"], value }];
-    // keep deck order so "position" stays meaningful
-    next.sort((a, b) => DNA_DECK.findIndex((c) => c.id === a.id) - DNA_DECK.findIndex((c) => c.id === b.id));
-    setDeck({ swipes: next });
-    compute(collectAnswers(next));
-  }
-
-  function finish() {
-    if (!result) return;
-    // Price sensitivity comes from DNA q9/q10; a hard "never over X" limit is optional and lives in Profile.
-    setProfile({
-      ...result.profile,
-      budget_pln: profile?.budget_pln ?? null,
-      // a city covers all its airports (Warszawa = WAW + WMI), also for selections saved earlier
-      origin_airports: expandToCity(airports.length ? airports : ["KRK"]),
-      // party size from the airport step; flights are priced × travellers, the stay per room
-      adults: deck.party ?? profile?.adults ?? 1,
-      children: deck.party != null ? 0 : (profile?.children ?? 0),
-      rooms: null,
-    });
-    setWeights(result.weights);
-    // dates were picked on the first step: straight to trips; otherwise the calendar
-    router.push(ranges.length ? "/trips" : "/windows");
-  }
-
-  function restart() {
-    setDeck({ swipes: [], step: "swipe", result: null });
+    setProfile(profileFromDna(data, profile, { airports, party: deck.party ?? partySize(profile) }));
+    setWeights(data.weights);
+    // fast results show at once on /trips (two-phase load); picked or pre-filled dates go with the request
+    router.push("/trips");
   }
 
   if (!hydrated) return <AppShell nav={false}>{null}</AppShell>;
@@ -168,85 +148,16 @@ export default function SwipeOnboarding() {
         )}
 
         {step === "trip" && (
-          <motion.section key="trip" {...slide} className="flex min-h-[70dvh] flex-col pt-4 pb-8">
-            <p className="text-xs font-semibold tracking-[0.14em] text-clay uppercase">{t.step(2, 2)}</p>
-            <h1 className="mt-1 font-display text-[2rem] leading-tight text-ink">{t.tripTitle}</h1>
-            <p className="mt-1 text-[15px] text-ink-soft">{t.tripSub}</p>
-
-            <h2 className="mt-6 text-sm font-semibold text-ink">{t.datesLabel}</h2>
-            <div className="mt-2">
-              <QuickDates />
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">{t.datesHint}</p>
-
-            <PartyPicker className="mt-6" value={deck.party ?? partySize(profile)} onChange={(n) => setDeck({ party: n })} />
-
-            <h2 className="mt-6 text-sm font-semibold text-ink">{t.airportTitle}</h2>
-            <AirportPicker className="mt-2" value={airports} onChange={(next) => setDeck({ airports: next })} />
-
-            <div className="mt-auto flex gap-3 pt-8">
-              {/* Back = undo the last swipe, like the deck's own undo */}
-              <Button variant="outline" size="lg" className="h-12 rounded-2xl" onClick={() => setDeck({ step: "swipe", swipes: swipes.slice(0, -1) })}>
-                {t.back}
-              </Button>
-              <Button
-                size="lg"
-                className="h-12 flex-1 rounded-2xl text-base"
-                disabled={!airports.length || busy}
-                onClick={async () => {
-                  // Not finished swiping yet (e.g. old saved state): back to the deck first.
-                  if (swipes.length < DNA_DECK.length) return setDeck({ step: "swipe" });
-                  // Only move on once there is a result, so a reload never lands on an empty result screen.
-                  if (await compute()) setDeck({ step: "result" });
-                }}
-              >
-                {busy ? t.computing : t.showDna} {!busy && <ArrowRight data-icon="inline-end" />}
-              </Button>
-            </div>
-          </motion.section>
-        )}
-
-        {step === "result" && (
-          <motion.section key="result" {...slide} className="pt-3 pb-10">
-            {result ? (
-              <DnaResult
-                result={result}
-                collected={collected}
-                lang={lang}
-                busy={busy}
-                airports={airports}
-                onEdit={edit}
-                onEditStep={(s) => setDeck({ step: s })}
-              />
-            ) : (
-              // Older saved state can land here without a result: offer a way forward instead of a dead end.
-              <div className="py-24 text-center">
-                <p className="text-sm text-muted-foreground">{busy ? t.computing : t.resultMissing}</p>
-                {!busy && (
-                  <Button className="mt-4 rounded-2xl" onClick={() => compute()}>
-                    {t.showDna}
-                  </Button>
-                )}
-              </div>
-            )}
-            {result && (
-              <>
-                <div className="mt-6 flex items-center justify-center gap-4 text-sm">
-                  <Link href="/onboarding/chat" className="flex items-center gap-1.5 text-pine underline-offset-2 hover:underline">
-                    <MessageCircle className="size-4" aria-hidden /> {t.chat}
-                  </Link>
-                  <button onClick={restart} className="flex items-center gap-1.5 text-muted-foreground hover:text-ink">
-                    <Ban className="size-3.5" aria-hidden /> {t.restart}
-                  </button>
-                </div>
-                {/* One primary action, always visible. */}
-                <div className="sticky bottom-0 -mx-5 mt-4 border-t border-line bg-paper/90 px-5 pt-3 pb-[max(env(safe-area-inset-bottom),0.9rem)] backdrop-blur-md">
-                  <Button size="lg" className="h-12 w-full rounded-2xl text-base" onClick={finish} disabled={busy}>
-                    {t.continue} <ArrowRight data-icon="inline-end" />
-                  </Button>
-                </div>
-              </>
-            )}
+          <motion.section key="trip" {...slide}>
+            <TripConfirm
+              party={deck.party ?? partySize(profile)}
+              onParty={(n) => setDeck({ party: n })}
+              airports={airports}
+              onAirports={(next) => setDeck({ airports: next })}
+              busy={busy}
+              onBack={() => setDeck({ step: "swipe", swipes: swipes.slice(0, -1) })}
+              onConfirm={showTrips}
+            />
           </motion.section>
         )}
       </AnimatePresence>

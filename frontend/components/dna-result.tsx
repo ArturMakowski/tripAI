@@ -114,6 +114,7 @@ export function DnaResult({
   airports,
   onEdit,
   onEditStep,
+  heading = "h1",
 }: {
   result: DnaResponse;
   collected: DnaAnswers;
@@ -121,7 +122,10 @@ export function DnaResult({
   busy: boolean;
   airports: string[];
   onEdit: (cardId: string, value: number | boolean) => void;
-  onEditStep: (step: "trip") => void;
+  /** "Change" next to airports + people (onboarding); Profile edits those with its own chips */
+  onEditStep?: (step: "trip") => void;
+  /** h2 inside a page that has its own h1 (Profile) */
+  heading?: "h1" | "h2";
 }) {
   const all = messagesFor(lang);
   const t = all.onboarding;
@@ -185,9 +189,15 @@ export function DnaResult({
   return (
     <div className={cn("transition-opacity", busy && "opacity-70")}>
       <p className="mt-1 text-sm font-medium text-clay">{t.resultTitle}</p>
-      <h1 className="mt-1 font-display text-[2.15rem] leading-[1.05] font-medium text-ink" data-testid="dna-persona">
-        {title}
-      </h1>
+      {heading === "h1" ? (
+        <h1 className="mt-1 font-display text-[2.15rem] leading-[1.05] font-medium text-ink" data-testid="dna-persona">
+          {title}
+        </h1>
+      ) : (
+        <h2 className="mt-1 font-display text-[1.9rem] leading-[1.05] font-medium text-ink" data-testid="dna-persona">
+          {title}
+        </h2>
+      )}
       <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{cited.length ? t.persona.why(cited) : t.persona.noWhy}</p>
 
       <Collage cards={photos} label={`${t.persona.photos}: ${photos.map((c) => c.short[lang]).join(", ")}`} />
@@ -284,10 +294,14 @@ export function DnaResult({
         <span>{formatOrigins(airports, lang)}</span>
         <span aria-hidden>·</span>
         <span>{t.people(people)}</span>
-        <span aria-hidden>·</span>
-        <button onClick={() => onEditStep("trip")} className="font-medium text-pine underline-offset-2 hover:underline">
-          {t.change}
-        </button>
+        {onEditStep && (
+          <>
+            <span aria-hidden>·</span>
+            <button onClick={() => onEditStep("trip")} className="font-medium text-pine underline-offset-2 hover:underline">
+              {t.change}
+            </button>
+          </>
+        )}
       </p>
 
       <Disclosure title={t.editAnswers} count={DNA_DECK.length} hint={t.editHint} className="mt-6">

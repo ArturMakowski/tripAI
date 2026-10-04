@@ -29,16 +29,23 @@ Demo script: interview → windows → trips → drag the slider to **Price** (A
 → "Fill demo answers" → crowd weight goes up → Rome goes back to #1.
 
 ## Travel DNA swipe onboarding (`/onboarding`)
-**Order: the swipe deck first** (it's the part people love), then one quick step, then the result.
-- **Step 1** is the swipe deck below.
-- **Step 2, "Kiedy i z kim?"** has three parts:
-  - quick date chips (this weekend, next long weekend, any 5 days next month), which feed the same store as `/windows`;
-  - a party stepper, 1–12 people;
-  - home-airport chips.
+**Time to value (T19, docs/USER_TESTING.md):** welcome → 14 swipes → one confirm tap → ranked trips. That is **16 taps**
+(before T19: 22, or 19 with the intro skipped). e2e 01 counts them.
+- **Step 1** is the swipe deck below. No intro opens before it.
+- **Step 2 is one pre-filled confirm** (`components/trip-confirm.tsx`), "Gotowe? Sprawdź i ruszamy.":
+  - **Kiedy.** The next długi weekend is preselected as the "Najbliższy długi weekend" quick pick. It comes from the backend
+    radar, which loads while the user swipes, or else from the local PL holidays + bridge days (`lib/first-run.ts` `prefillDates`).
+    Dates the user picked earlier are kept. "Zmień" opens the quick chips in place.
+  - **Kto.** 1 person, with the stepper inline (1–12).
+  - **Skąd.** The default airport (KRK). "Zmień" opens the airport chips in place.
 
-  "Pokaż moje DNA" computes the result; "Wstecz" undoes the last swipe.
+  "Pokaż wyjazdy" POSTs the answers to `/profile/dna`, applies the profile and weights (`profileFromDna`) and opens `/trips`, where
+  the fast results show at once (two-phase load). "Wstecz" undoes the last swipe.
+- **No result stop.** The persona is a compact card on top of `/trips` (`components/persona-card.tsx`): the persona title plus one
+  line on how the list is ranked, read from the current weights. Tapping it shows the swipes behind it and a link to the full
+  profile; ✕ hides it (`personaHidden` in the store, reset by a new result). The full result, with answer editing, is in
+  Profile (`components/dna-profile.tsx`, `/profile#dna`). Each edit re-POSTs and re-applies at once, keeping airports, party and budget.
 - **No budget question in onboarding.** Price sensitivity comes from DNA q9/q10. A hard limit is optional in Profile (docs/BUDGET.md).
-- **"Looks right"** goes to `/trips` if dates were picked, otherwise to `/windows`.
 
 The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12 statements (q1–q12) and 2 yes/no cards
 (y1, y2). Copy is Polish first, with an EN toggle.
@@ -48,13 +55,13 @@ The deck itself is built from the team questionnaire in `docs/TRAVEL_DNA.md`: 12
 - **Motion.** Cards tilt with the drag, show direction stamps, fly out with spring physics, and fly back in on undo.
   Progress dots track the deck. Progress survives a reload.
 - **Result.** Answers are POSTed to `/profile/dna`. **The UI never derives the profile itself.** Until T1b ships the route, `lib/mock/dna.ts`
-  implements the spec formulas verbatim and `lib/dna.test.ts` pins them. The result screen renders the returned `reasons`
+  implements the spec formulas verbatim and `lib/dna.test.ts` pins them. The result (in Profile) renders the returned `reasons`
   ("na podstawie: „Bardzo ja!” przy …" / "because you swiped “So me!” on …").
   - Every answer can be edited on a 1–5 dot scale; 2 "Raczej nie" is only reachable there. Each edit re-POSTs.
   - y2 = No shows "recommendations won't adapt; post-trip feedback won't change your profile". The survey repeats that notice,
     and the mock feedback keeps the profile unchanged.
-- **Hand-off.** "Looks right" stores the profile (with airports and party size) and the DNA weights, then continues to free windows.
-  "Fine-tune by chat" opens the earlier LLM interview, now at `/onboarding/chat`.
+- **Hand-off.** "Pokaż wyjazdy" stores the profile (with airports and party size) and the DNA weights, then opens `/trips`.
+  "Prefer talking?" on the deck opens the earlier interview at `/onboarding/chat`.
 - **Photos.** Card photos live in `public/swipe/` and come from Wikimedia Commons (CC0, public domain, CC BY, CC BY-SA) or Unsplash (CC0). Three cards reuse
   bundled city photos and their credits. The full list is in `public/swipe/CREDITS.md` and on `/credits`.
 
@@ -221,13 +228,12 @@ A mobile-first month calendar at the top of Free time. The user taps a start day
 
 ## First-run tutorial (T11)
 A new user should get what TripAI does in under 30 seconds.
-- **Welcome first.** `/` is a real welcome screen (one line, three icon chips, "Zaczynamy"); the intro follows on
-  `/onboarding`. Its illustrations are still frames in a dashed "Podgląd" frame that ignore taps (nothing looks like a
-  quiz button).
-- **Exactly once per device.** The intro opens on its own only on a first visit to `/onboarding` (never over a
-  deep link such as `/trips` or a shared `/trips/<id>`), and is marked seen the moment it opens, so Skip, Esc, finishing
-  or a reload mid-intro all count. Each screen's coach marks are marked seen as they start.
-- **Intro.** Four full-screen steps on the first visit, each with a small looping illustration built from app pieces
+- **Welcome first, then the deck.** `/` is a real welcome screen (one line, three icon chips, "Zaczynamy"). Since T19 no intro
+  sits in the first-run path: "Zaczynamy" opens the Travel DNA deck directly, and the help comes as contextual coach marks
+  (once per device). The intro's illustrations are still frames in a dashed "Podgląd" frame that ignore taps.
+- **Never on its own.** `shouldAutoOpenIntro` is always false (T19). The intro only opens from "How it works" in Profile, and is
+  marked seen the moment it opens. Each screen's coach marks are marked seen as they start.
+- **Intro.** Four full-screen steps (from "How it works"), each with a small looping illustration built from app pieces
   (DNA card, calendar with the long-weekend band, ranked rows with fit badge and source tag, approve button + alert):
   *Powiedz nam, jak lubisz podróżować → Znajdziemy, kiedy masz wolne → Gdzie i kiedy, z dowodami → Ty decydujesz*.
   - Swipe, Next/Back, the dots or ←/→ move between steps. "Pomiń" and Esc close it.

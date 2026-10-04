@@ -73,12 +73,11 @@ export function tourForPath(path: string): TourKey | null {
 }
 
 /**
- * The intro opens on its own exactly once per device, on the first visit to /onboarding or its chat
- * variant (the welcome screen's two ways in), so after the welcome screen (/ is the welcome itself,
- * round 3); never over a deep link such as /trips or a shared /trips/<id>, never on /credits or a
- * push landing.
+ * The intro never opens on its own (T19, time to value): first run is welcome → 14 swipes → one confirm →
+ * ranked trips, with contextual coach marks only (once per device). "How it works" in Profile still replays it.
+ * Kept as a list so a path can opt back in.
  */
-const AUTO_INTRO_PATHS = ["/onboarding", "/onboarding/chat"];
+const AUTO_INTRO_PATHS: string[] = [];
 
 export function shouldAutoOpenIntro(flags: TutorialFlags, path: string): boolean {
   return !flags.intro && AUTO_INTRO_PATHS.includes(path);

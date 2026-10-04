@@ -19,8 +19,11 @@ export interface FeedbackDiff {
   frozen?: boolean;
 }
 
-/** Onboarding: the Travel DNA deck first ("swipe"), then dates + party + airports ("trip"), then the result. */
-export type DeckStep = "trip" | "swipe" | "result";
+/**
+ * Onboarding: the Travel DNA deck ("swipe"), then one pre-filled confirm of dates + party + airports ("trip"),
+ * then straight to /trips (T19: no result stop; the persona is a card on /trips, the full view in Profile).
+ */
+export type DeckStep = "trip" | "swipe";
 
 export type Dataset = "interview" | "windows" | "recs" | "feedback" | "trips";
 
@@ -49,6 +52,9 @@ interface TripState {
   feedback: FeedbackDiff | null;
   /** Swipe onboarding progress (survives a reload mid-deck). */
   deck: { swipes: DnaSwipe[]; step: DeckStep; airports: string[]; result: DnaResponse | null; /** "Ile osób?" chosen before the profile exists */ party?: number };
+  /** The Travel DNA persona card on top of /trips was dismissed (the full view stays in Profile). */
+  personaHidden: boolean;
+  setPersonaHidden: (hidden: boolean) => void;
   /** UI + AI language for the whole app; null = follow the browser (see lib/i18n). */
   lang: Lang | null;
   setLang: (l: Lang) => void;
@@ -85,6 +91,7 @@ const initial = {
   tripTargets: {} as Record<string, number>,
   feedback: null,
   deck: { swipes: [] as DnaSwipe[], step: "swipe" as DeckStep, airports: ["KRK"], result: null as DnaResponse | null },
+  personaHidden: false,
   lang: null as Lang | null,
 };
 
@@ -126,6 +133,7 @@ export const useTrip = create<TripState>()(
       setFeedback: (feedback) => set({ feedback }),
       setDeck: (patch) => set((s) => ({ deck: { ...s.deck, ...patch } })),
       setLang: (lang) => set({ lang }),
+      setPersonaHidden: (personaHidden) => set({ personaHidden }),
       // keep the language across "start over"
       reset: () => set((s) => ({ ...initial, lang: s.lang })),
     }),

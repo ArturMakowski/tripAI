@@ -309,11 +309,14 @@ export function PartyPicker({
   compact = false,
   value,
   onChange,
+  hideIcon = false,
 }: {
   className?: string;
   compact?: boolean;
   value?: number;
   onChange?: (n: number) => void;
+  /** compact without the people icon (the row around it already has one) */
+  hideIcon?: boolean;
 }) {
   const { t } = useT();
   const profile = useTrip((s) => s.profile);
@@ -333,7 +336,7 @@ export function PartyPicker({
   );
   return (
     <div className={cn("flex items-center gap-2", className)} role="group" aria-label={t.money.people}>
-      {compact ? <Users className="size-4 text-pine" aria-hidden /> : <span className="text-sm font-medium text-ink">{t.money.people}</span>}
+      {compact ? !hideIcon && <Users className="size-4 text-pine" aria-hidden /> : <span className="text-sm font-medium text-ink">{t.money.people}</span>}
       <button type="button" className={btn} onClick={() => pick(n - 1)} disabled={n <= 1} aria-label={t.money.fewer}>
         −
       </button>

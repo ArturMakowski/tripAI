@@ -22,6 +22,7 @@ import { useSwipe } from "@/lib/use-reactions";
 import { budgetBanner, overBudget, withinBudgetFirst } from "@/lib/budget";
 import { PickedDatesEmpty, PickedDatesHeader, useClientToday } from "@/components/date-picker/free-dates-planner";
 import { AppShell, PageTitle } from "@/components/shell";
+import { PersonaCard } from "@/components/persona-card";
 import { useT } from "@/lib/i18n";
 import { useTrip } from "@/lib/store";
 import type { RankedRecommendation } from "@/lib/types";
@@ -188,6 +189,9 @@ function Trips() {
       <AnimatePresence>{!dismissed && top && !windowFilter && <PushBanner rec={top} onClose={() => setDismissed(true)} />}</AnimatePresence>
 
       <PageTitle title={tt.title} />
+
+      {/* T19: the Travel DNA result as a compact card, not a stop before this list (full view in Profile) */}
+      <PersonaCard className="mb-3" />
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         {/* The limit is optional and off by default (BUDGET.md): no chip unless one is set. */}

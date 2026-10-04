@@ -43,7 +43,7 @@ errors land here in production) and unhandled rejections. The framework has no c
 ## Tests
 | File | Flow | Agent | Deterministic checks |
 |---|---|---|---|
-| `01-travel-dna` | Dates + party + airports (step 1) → swipe all 14 Travel DNA cards → result | none (deterministic steps) | step 1 comes first; "2 people"; the deck follows; the result's single ⓘ ("Why this result" sheet) shows "because you swiped" reasons |
+| `01-travel-dna` | First run (T19): welcome → 14 swipes → one pre-filled confirm → `/trips`, then the full result in Profile | none (deterministic steps) | no intro dialog before the deck; **16 taps** to ranked trips; the confirm shows the next long weekend, 1 person and KRK; fast prices and the persona card on `/trips`; Profile's "Why this result" ⓘ shows "because you swiped" reasons |
 | `02-language` | PL/EN switch on each main screen (one test per screen) | judge "no PL/EN mix" | taps the unselected language in the header switch; page title text actually changes |
 | `03-pick-dates` | Pick 1–3 Jan 2027 in the Free time calendar → Trips | pick the range | Trips header "For your dates: 1–3 Jan" |
 | `04-trips-budget` | Profile: switch on "Never show trips over…" (off by default) and set 1,000 PLN → trip cards | judge photo/price/badge (vision) | every card: PLN price, fit badge, photo decodes; no in-budget card below an over-budget one |

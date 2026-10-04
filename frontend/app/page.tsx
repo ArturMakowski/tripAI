@@ -30,9 +30,9 @@ const PROMISES = [
 ] as const;
 
 /**
- * The welcome screen: the very first thing a new user sees (user testing round 3), before the
- * tutorial: what TripAI does in one line, three icon chips, one CTA "Zaczynamy". The tutorial intro
- * opens after it, on /onboarding.
+ * The welcome screen: the very first thing a new user sees (user testing round 3): what TripAI does
+ * in one line, three icon chips, one CTA "Zaczynamy", straight into the Travel DNA deck (T19: no intro
+ * in between; coach marks explain each screen once).
  */
 export default function Welcome() {
   const router = useRouter();
