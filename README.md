@@ -132,6 +132,14 @@ explanations use a deterministic template. With the key set (e.g. `OPENAI_API_KE
   SerpApi daily budget is spent, the meter refuses metered calls at once (no Supabase re-read). Refinement still runs
   on cached exact-date results, recorded fixtures, Travelpayouts fares, window weather and photos, so the demo plan
   (warm the cache, then cap 0) serves cached exact prices.
+- **Fit verdicts judge style, not price:** the rules label comes from the weather/crowds/taste scores, and Jev/GPT
+  get no price, total or price comparisons. Price vs budget is the budget status / value badge's job, so a trip
+  over budget is never "Not your style". A `mixed`/`poor_fit` verdict must name at least one concrete minus, otherwise
+  it's `good_fit`. Verdicts are cached under a stable key: trip (city, dates, tags, highlights, weather, crowd) x
+  style profile (DNA, interests, dislikes, temperature, luxury; no user id, budget or prices) x language x
+  engine/prompts. Cited evidence is re-pointed and re-checked on reuse. The first label shown for a profile + trip
+  sticks: a late AI verdict replaces a shown rules verdict only when it agrees. The fast phase prefetches the top
+  verdicts in the background. Regression tests: `tests/test_persona_ola.py` (demo persona).
 - Holidays come from `data/holidays_pl.json` / `data/holidays.json` (Nager.Date format) when present,
   otherwise from the built-in PL table (computed from Easter, incl. Wigilia).
 - `supabase/migrations/0001_init.sql`: profiles, recommendations, trips, feedback, api_cache

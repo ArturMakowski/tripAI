@@ -7,6 +7,13 @@ from fastapi.testclient import TestClient
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
+
+def _concern(info) -> list:
+    """A concrete minus for a fit *decision* (FitDraft); none for a phrasing request."""
+    schema = json.dumps(info.output_tools[0].parameters_json_schema)
+    return [{"text": "Too busy then.", "dna": ["q11"]}] if '"label"' in schema else []
+
+
 from tripai.agents.dna_chat import MAX_FOLLOW_UPS, chat_dna, follow_up_question, parse_reply
 from tripai.agents.fit import (
     UNSURE_PREFIX,
@@ -151,7 +158,7 @@ def llm_fit(label="poor_fit", confidence=0.8, calls: list | None = None) -> Func
         if calls is not None:
             calls.append(1)
         draft = {"label": label, "confidence": confidence, "summary": "Too busy then.",
-                 "matches": [], "concerns": []}  # fmt: skip
+                 "matches": [], "concerns": _concern(info)}  # fmt: skip
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, json.dumps(draft))])
 
     return FunctionModel(fn, model_name="gpt-test")
@@ -233,7 +240,7 @@ async def test_jev_failure_falls_back_to_llm_then_rules(candidates, crowd_avoide
 
     def llm(messages, info):
         draft = {"label": "mixed", "confidence": 0.7, "summary": "So-so.",
-                 "matches": [], "concerns": []}  # fmt: skip
+                 "matches": [], "concerns": [{"text": "Busy.", "dna": ["q11"]}]}  # fmt: skip
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, json.dumps(draft))])
 
     run = await fit_run(rec, crowd_avoider, model=FunctionModel(llm), engine="jev", jev=failing())
@@ -424,7 +431,8 @@ async def test_eval_compares_engines():
     cases = load_cases()
     jev = jev_fn(fit_answers("poor_fit"), {"label": 0.95})
     report = await evaluate(cases, use_llm=False, jev=jev)
-    assert report.cascade_exact == sum(c.label == "poor_fit" for c in cases)
+    # Jev says poor_fit but names no concern: a verdict without a minus is shown as good_fit
+    assert report.cascade_exact == sum(c.label == "good_fit" for c in cases)
     assert [e.engine for e in report.engines] == ["cascade", "jev_raw", "rules"]
     assert report.engines[0].escalated == 0
     out = format_report(report)
