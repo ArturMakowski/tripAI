@@ -25,6 +25,7 @@ npm run critic                               # fresh `claude -p` critic scores e
 unset TRIPAI_APP_URL E2E_PROD_URL && npm run build   # the committed copy: placeholders instead of URL + QR
 ```
 
+- `DESIGN.md`: the deck's design rules (from the vault's de-slopping notes).
 - `deck.html` + `deck.css`: the slides; `i18n.js`: all EN/PL copy, keyed (`data-t`).
 - `shots.mjs` (Playwright, iPhone 14, 390×844 @3x, locale `en-GB` / `pl-PL`; the app follows the browser language):
   - The tutorial counts as already seen.
