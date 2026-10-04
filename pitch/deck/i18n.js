@@ -5,7 +5,7 @@ window.DECK_I18N = {
   en: {
     'hook.h': 'You have free days. We tell you where and when.',
     'hook.lede': 'TripAI starts from your free days, ranks real trips for them, and shows where every price comes from.',
-    'hook.foot': 'HackYeah 2026 · [Team name] · [Members]',
+    'hook.foot': '<b>Team Placeholders</b> · HackYeah 2026<br>Adrian Szczeszek · Artur Makowski · Bartek Mięgoć<br>Kamila Kroplewska · Karolina Łaszczyk · Maciej Chmielarz',
 
     'ola.label': 'Meet Ola',
     'ola.quote': '“Where should I go, and is this even the right weekend?”',
@@ -50,7 +50,7 @@ window.DECK_I18N = {
   pl: {
     'hook.h': 'Masz wolne dni. Powiemy Ci, gdzie i kiedy.',
     'hook.lede': 'TripAI zaczyna od Twoich wolnych dni, układa ranking prawdziwych wyjazdów i pokazuje, skąd jest każda cena.',
-    'hook.foot': 'HackYeah 2026 · [Team name] · [Members]',
+    'hook.foot': '<b>Zespół Placeholders</b> · HackYeah 2026<br>Adrian Szczeszek · Artur Makowski · Bartek Mięgoć<br>Kamila Kroplewska · Karolina Łaszczyk · Maciej Chmielarz',
 
     'ola.label': 'Poznaj Olę',
     'ola.quote': '„Dokąd pojechać i czy to w ogóle dobry termin?”',

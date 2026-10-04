@@ -47,4 +47,4 @@ unset TRIPAI_APP_URL E2E_PROD_URL && npm run build   # the committed copy: place
 | ~36 PLN per booking | **assumption**: 2% of a 1,800 PLN trip (labelled on the slide) |
 | ~19 PLN/month Premium | **hypothesis** (labelled on the slide) |
 
-Placeholders `[Team name]` / `[Members]` and `[app URL / QR]` are left for the team.
+Team: Placeholders. The app URL is filled in only in the local (gitignored) PDFs.
