@@ -1,6 +1,6 @@
 # Pitch deck (T7)
 
-An 8-slide, 16:9 pitch for HackYeah 2026, in English and Polish, from one HTML source. Story, copy, tone and visual style
+An 8-slide, 16:9 pitch for HackYeah 2026, in English and Polish, from one HTML source. Story and copy
 follow the team's 5-slide baseline (hook · Meet Ola · Free days in, a checkable trip out · Every number has a receipt ·
 We earn on bookings, never on ranking). Added: how it works, how we differ, and a separate closing slide.
 Persona and dates are shared with the pitch video (T8): Ola, 29, Kraków, free 7–11 Nov, budget 1,800 PLN.
@@ -35,7 +35,7 @@ unset TRIPAI_APP_URL E2E_PROD_URL && npm run build   # the committed copy: place
     (paid) lookups. One inbox scan shows Jev's real push decision; its `p` comes from the scan response.
   - A step whose element is gone after a UI change is skipped with a warning and the script exits 1.
 - `build.mjs`: fails on missing copy keys or broken images, warns when something overflows a slide.
-- `fonts/` + `fonts.css`: static Inter, Playfair Display and Caveat (OFL, from Fontsource). Variable web fonts end up as Type 3
+- `fonts/` + `fonts.css`: static Inter (OFL, from Fontsource); one typeface, no handwriting font. Variable web fonts end up as Type 3
   glyphs in Chrome's PDFs, which render with artifacts in many viewers; static files embed as real TrueType.
 
 ## Where the numbers come from

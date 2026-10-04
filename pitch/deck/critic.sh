@@ -14,8 +14,7 @@ free 7–11 Nov → TripAI tells her where and when, with receipts → why it's 
 HONESTY (claims match what the screenshots show; estimates labelled; no overclaiming; hypotheses marked).
 Read each slide image with the Read tool: ${FILES}
 Context (do not penalise): the deck language is '${LANG_}'; phone screenshots are real captures of the live app; '[Team name]',
-'[Members]' and '[app URL / QR]' are deliberate placeholders the team fills in; prices marked 'estimate' are honest labels by design; the deck follows a team baseline
-style (warm white, serif headlines, handwritten accent, dark-green closing slide).
+'[Members]' and '[app URL / QR]' are deliberate placeholders the team fills in; prices marked 'estimate' are honest labels by design; the visual style is bold modern sans (Inter), green + coral.
 For EVERY slide give integer scores 1-10 for clarity, story, honesty, and list concrete fixes for any score below 9 (which element, what to change).
 Be harsh: 8 means a jury would be impressed. Output ONLY a markdown table: | slide | clarity | story | honesty | fixes | then one line 'MIN: <lowest score anywhere>'." \
   | sed "s|${HOST}|<frontend-url>|g"  # the report is committed; the repo is public

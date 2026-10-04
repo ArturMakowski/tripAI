@@ -9,9 +9,9 @@
 <body>
 
 <!-- 1 HOOK -->
-<section class="slide s-hook">
-  <p class="script clay" data-t="hook.kicker"></p>
-  <h1><span data-t="hook.t1"></span><br><em data-t="hook.t2"></em></h1>
+<section class="slide s-hook dark">
+  <p class="pill" data-t="hook.kicker"></p>
+  <h1><span data-t="hook.t1"></span><br><span class="pop" data-t="hook.t2"></span></h1>
   <p class="lede" data-t="hook.lede"></p>
   <p class="foot">[Team name] · [Members]</p>
 </section>
@@ -20,53 +20,69 @@
 <section class="slide s-ola">
   <h2 data-t="ola.title"></h2>
   <div class="ola-grid">
-    <div class="card persona">
+    <div class="block green persona">
       <p class="persona-name" data-t="ola.name"></p>
       <p class="persona-facts" data-t="ola.facts"></p>
-      <p class="script clay quote" data-t="ola.quote"></p>
+      <p class="quote" data-t="ola.quote"></p>
     </div>
     <div class="pains">
       <div class="card"><p class="card-h" data-t="ola.p1h"></p><p data-t="ola.p1"></p></div>
       <div class="card"><p class="card-h" data-t="ola.p2h"></p><p data-t="ola.p2"></p></div>
     </div>
   </div>
-  <p class="stat" data-t="ola.stat"></p>
+  <div class="stat-row">
+    <div class="stat"><span class="big">89%</span><span data-t="ola.s1"></span></div>
+    <div class="stat"><span class="big pop">12%</span><span data-t="ola.s2"></span></div>
+    <p class="gap" data-t="ola.gap"></p>
+  </div>
   <p class="foot" data-t="ola.src"></p>
 </section>
 
 <!-- 3 FLOW -->
 <section class="slide s-flow">
-  <h2 data-t="flow.title"></h2>
-  <div class="story two">
-    <figure><div class="phone"><img data-shot="dna" alt=""></div><figcaption><b data-t="flow.c1"></b><span data-t="flow.t1"></span></figcaption></figure>
-    <figure><div class="phone"><img data-shot="cards" alt=""></div><figcaption><b data-t="flow.c2"></b><span data-t="flow.t2"></span></figcaption></figure>
+  <div class="flow-copy">
+    <h2 data-t="flow.title"></h2>
+    <div class="flow-steps">
+      <div class="fstep"><span class="num">1</span><div><p class="fs-h" data-t="flow.c1"></p><p data-t="flow.t1"></p></div></div>
+      <div class="fstep"><span class="num pop-bg">2</span><div><p class="fs-h" data-t="flow.c2"></p><p data-t="flow.t2"></p></div></div>
+    </div>
+  </div>
+  <div class="flow-phones">
+    <div class="phone"><img data-shot="dna" alt=""><span class="badge">1</span></div>
+    <div class="phone"><img data-shot="cards" alt=""><span class="badge pop-bg">2</span></div>
   </div>
 </section>
 
 <!-- 4 RECEIPT -->
 <section class="slide s-receipt">
-  <h2 data-t="rec.title"></h2>
-  <div class="rec-body">
-    <ul class="bullets">
+  <div class="rec-copy">
+    <h2 data-t="rec.title"></h2>
+    <ul class="checks">
       <li data-t="rec.b1"></li>
       <li data-t="rec.b2"></li>
       <li data-t="rec.b3"></li>
     </ul>
-    <figure class="zoomfig"><div class="zoom"><div class="crop" data-crop="receipt-sources:receiptCard"></div></div><figcaption data-t="rec.zoom"></figcaption></figure>
   </div>
+  <figure class="receipt">
+    <p class="r-head"><span data-t="rec.trip"></span><span class="r-tag" data-t="rec.tag"></span></p>
+    <div class="r-line"><span data-t="rec.l1"></span><b data-t="rec.l1p"></b></div>
+    <p class="r-src" data-t="rec.l1s"></p>
+    <div class="r-line"><span data-t="rec.l2"></span><b data-t="rec.l2p"></b></div>
+    <p class="r-src" data-t="rec.l2s"></p>
+    <div class="r-total"><span data-t="rec.tot"></span><b data-t="rec.totp"></b></div>
+    <figcaption data-t="rec.zoom"></figcaption>
+  </figure>
 </section>
 
 <!-- 5 HOW IT WORKS -->
 <section class="slide s-how">
   <h2 data-t="how.title"></h2>
   <div class="steps3">
-    <div class="step"><span class="n">1</span><p class="card-h" data-t="how.s1h"></p><p data-t="how.s1"></p></div>
-    <div class="arrow"></div>
-    <div class="step"><span class="n">2</span><p class="card-h" data-t="how.s2h"></p><p data-t="how.s2"></p></div>
-    <div class="arrow"></div>
-    <div class="step acc"><span class="n">3</span><p class="card-h" data-t="how.s3h"></p><p data-t="how.s3"></p></div>
+    <div class="step"><span class="num">1</span><p class="card-h" data-t="how.s1h"></p><p data-t="how.s1"></p></div>
+    <div class="step"><span class="num">2</span><p class="card-h" data-t="how.s2h"></p><p data-t="how.s2"></p></div>
+    <div class="step green"><span class="num pop-bg">3</span><p class="card-h" data-t="how.s3h"></p><p data-t="how.s3"></p></div>
   </div>
-  <p class="how-line" data-t="how.line"></p>
+  <p class="banner" data-t="how.line"></p>
 </section>
 
 <!-- 6 HOW WE DIFFER -->
@@ -77,24 +93,24 @@
     <div class="card"><p class="card-h" data-t="comp.d2h"></p><p data-t="comp.d2"></p></div>
     <div class="card"><p class="card-h" data-t="comp.d3h"></p><p data-t="comp.d3"></p></div>
   </div>
-  <p class="others" data-t="comp.others"></p>
+  <p class="banner light" data-t="comp.others"></p>
 </section>
 
 <!-- 7 BUSINESS -->
 <section class="slide s-biz">
   <h2 data-t="biz.title"></h2>
   <div class="nums">
-    <div><span class="big" data-t="biz.n1"></span><span data-t="biz.n1l"></span></div>
-    <div><span class="big" data-t="biz.n2"></span><span data-t="biz.n2l"></span></div>
-    <div><span class="big" data-t="biz.n3"></span><span data-t="biz.n3l"></span></div>
+    <div class="block"><span class="big" data-t="biz.n1"></span><span data-t="biz.n1l"></span></div>
+    <div class="block green"><span class="big" data-t="biz.n2"></span><span data-t="biz.n2l"></span></div>
+    <div class="block"><span class="big" data-t="biz.n3"></span><span data-t="biz.n3l"></span></div>
   </div>
-  <p class="rule" data-t="biz.rule"></p>
+  <p class="banner" data-t="biz.rule"></p>
 </section>
 
 <!-- 8 CLOSE -->
 <section class="slide s-close dark">
-  <p class="brand-close" data-t="hook.kicker"></p>
-  <p class="script peach cta" data-t="biz.cta"></p>
+  <p class="pill" data-t="hook.kicker"></p>
+  <p class="cta" data-t="biz.cta"></p>
   <div class="try"><p class="foot"><span data-t="biz.try"></span> <span id="url"></span></p><div class="qr" id="qr"></div></div>
 </section>
 
@@ -116,19 +132,6 @@
   document.querySelectorAll('[data-shot]').forEach((el) => (el.src = `shots/${lang}-${el.dataset.shot}.png`));
 
   const META = (window.SHOT_META || {})[lang] || {};
-
-  // Zoomed crops of the real screenshots (rects recorded by shots.mjs, CSS px of a 390x844 viewport)
-  document.querySelectorAll('[data-crop]').forEach((el) => {
-    const [shot, key] = el.dataset.crop.split(':');
-    const r = META[key];
-    if (!r) { console.error('missing crop rect', key); return; }
-    const x = r.x, y = r.y + 2, w = r.w, h = Math.min(r.h - 4, 175); // the flight + stay rows with their source chips
-    const k = el.clientWidth / w;
-    el.style.height = `${h * k}px`;
-    el.style.backgroundImage = `url(shots/${lang}-${shot}.png)`;
-    el.style.backgroundSize = `${390 * k}px auto`;
-    el.style.backgroundPosition = `${-x * k}px ${-y * k}px`;
-  });
 
   // Slide 8: the QR + URL appear only in a private build (TRIPAI_APP_URL set); the committed copy keeps the placeholder.
   if (window.DECK_QR) {
