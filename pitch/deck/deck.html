@@ -2,262 +2,136 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>TripAI pitch deck</title>
+<title>TripAI – HackYeah 2026 pitch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=block">
 <link rel="stylesheet" href="deck.css">
 </head>
 <body>
 
 <!-- 1 HOOK -->
 <section class="slide s-hook">
-  <div class="brand"><span class="mark"></span>TripAI</div>
-  <div class="hook-copy">
-    <p class="kicker" data-t="hook.kicker"></p>
-    <h1 data-t="hook.title"></h1>
-    <p class="lede" data-t="hook.lede"></p>
-    <p class="hook-pos" data-t="hook.pos"></p>
-  </div>
-  <div class="hero bleed">
-    <div class="phone phone-lg bleed"><img data-shot="cards" alt=""></div>
-    <div class="crop notif" data-crop="push:toast"></div>
-    <p class="notif-tag" data-t="hook.tag"></p>
-  </div>
-  <p class="foot" data-t="hook.foot"></p>
+  <p class="script clay" data-t="hook.kicker"></p>
+  <h1><span data-t="hook.t1"></span><br><em data-t="hook.t2"></em></h1>
+  <p class="lede" data-t="hook.lede"></p>
+  <p class="script clay who" data-t="hook.who"></p>
+  <p class="foot">[Team name] · [Members]</p>
 </section>
 
-<!-- 2 PROBLEM -->
-<section class="slide s-problem">
-  <p class="kicker" data-t="prob.kicker"></p>
-  <h2 data-t="prob.title"></h2>
-  <div class="prob-grid">
-    <div class="persona">
-      <div class="avatar">O</div>
-      <div>
-        <p class="persona-name" data-t="prob.persona"></p>
-        <p class="persona-facts" data-t="prob.facts"></p>
-        <p class="persona-q" data-t="prob.q"></p>
-      </div>
+<!-- 2 MEET OLA -->
+<section class="slide s-ola">
+  <h2 data-t="ola.title"></h2>
+  <div class="ola-grid">
+    <div class="card persona">
+      <p class="persona-name" data-t="ola.name"></p>
+      <p class="persona-facts" data-t="ola.facts"></p>
+      <p class="script clay quote" data-t="ola.quote"></p>
     </div>
-    <div class="pains">
-      <div class="pain"><p class="pain-h" data-t="prob.p1h"></p><p data-t="prob.p1"></p></div>
-      <div class="pain"><p class="pain-h" data-t="prob.p2h"></p><p data-t="prob.p2"></p></div>
+    <div class="card today">
+      <p class="card-h" data-t="ola.todayh"></p>
+      <p data-t="ola.p1"></p>
+      <p data-t="ola.p2"></p>
     </div>
   </div>
-  <div class="trust">
-    <div class="trust-row"><span class="big">89%</span><div class="bar"><i style="width:89%"></i></div><span data-t="prob.s1"></span></div>
-    <div class="trust-row"><span class="big accent">12%</span><div class="bar"><i class="acc" style="width:12%"></i></div><span data-t="prob.s2"></span></div>
-  </div>
-  <p class="foot" data-t="prob.src"></p>
+  <p class="stat" data-t="ola.stat"></p>
+  <p class="gap" data-t="ola.gap"></p>
+  <p class="foot" data-t="ola.src"></p>
 </section>
 
-<!-- 3 SOLUTION -->
-<section class="slide s-solution">
-  <p class="kicker" data-t="sol.kicker"></p>
-  <h2 data-t="sol.title"></h2>
+<!-- 3 FREE DAYS IN, A CHECKABLE TRIP OUT -->
+<section class="slide s-flow">
+  <h2 data-t="flow.title"></h2>
   <div class="story">
-    <figure><div class="phone phone-sm"><img data-shot="dna" alt=""></div><figcaption><b>1</b><span data-t="sol.c1"></span></figcaption><p class="take" data-t="sol.t1"></p></figure>
-    <figure><div class="phone phone-sm"><img data-shot="radar" alt=""></div><figcaption><b>2</b><span data-t="sol.c2"></span></figcaption><p class="take" data-t="sol.t2"></p></figure>
-    <figure><div class="phone phone-sm"><img data-shot="cards" alt=""></div><figcaption><b>3</b><span data-t="sol.c3"></span></figcaption><p class="take" data-t="sol.t3"></p></figure>
-    <figure><div class="phone phone-sm"><img data-shot="receipt-top" alt=""></div><figcaption><b>4</b><span data-t="sol.c4"></span></figcaption><p class="take" data-t="sol.t4"></p></figure>
+    <figure><div class="phone"><img data-shot="dna" alt=""></div><figcaption><b data-t="flow.c1"></b><span data-t="flow.t1"></span></figcaption></figure>
+    <figure><div class="phone"><img data-shot="confirm" alt=""></div><figcaption><b data-t="flow.c2"></b><span data-t="flow.t2"></span></figcaption></figure>
+    <figure><div class="phone"><img data-shot="cards" alt=""></div><figcaption><b data-t="flow.c3"></b><span data-t="flow.t3"></span></figcaption></figure>
+    <figure><div class="phone"><img data-shot="receipt-why" alt=""></div><figcaption><b data-t="flow.c4"></b><span data-t="flow.t4"></span></figcaption></figure>
   </div>
 </section>
 
-<!-- 4 HOW IT WORKS -->
-<section class="slide s-how">
-  <p class="kicker" data-t="how.kicker"></p>
-  <h2 data-t="how.title"></h2>
-  <svg class="pipe" viewBox="0 -20 1760 660" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#111"/></marker>
-    </defs>
-    <path d="M0 40 L0 22 L1760 22 L1760 40" class="ln thin"/>
-    <text x="880" y="6" class="t4c" data-t="how.durable"></text>
-    <!-- inputs -->
-    <g class="box"><rect x="0" y="150" width="300" height="160" rx="22"/><text x="150" y="218" class="t1" data-t="how.in1"></text><text x="150" y="262" class="t2" data-t="how.in1b"></text></g>
-    <g class="box"><rect x="0" y="400" width="300" height="160" rx="22"/><text x="150" y="468" class="t1" data-t="how.in2"></text><text x="150" y="512" class="t2" data-t="how.in2b"></text></g>
-    <path d="M300 230 L352 230" class="ln" marker-end="url(#ar)"/>
-    <path d="M300 480 H875 V368" class="ln" marker-end="url(#ar)"/>
-    <text x="590" y="462" class="t4c" data-t="how.bus"></text>
-    <!-- sources -->
-    <g class="box"><rect x="360" y="70" width="330" height="320" rx="22"/>
-      <text x="525" y="128" class="t1" data-t="how.conn"></text>
-      <text x="525" y="182" class="t3" data-t="how.src1"></text>
-      <text x="525" y="218" class="t2" data-t="how.src1b"></text>
-      <text x="525" y="268" class="t3" data-t="how.src3"></text>
-      <text x="525" y="312" class="t3" data-t="how.src4"></text>
-      <text x="525" y="356" class="t3" data-t="how.src5"></text>
-    </g>
-    <path d="M690 230 L732 230" class="ln" marker-end="url(#ar)"/>
-    <!-- formula -->
-    <g class="box dark"><rect x="740" y="100" width="270" height="260" rx="22"/>
-      <text x="875" y="166" class="t1" data-t="how.score"></text>
-      <text x="875" y="216" class="t2" data-t="how.scoreb"></text>
-      <text x="875" y="254" class="t2" data-t="how.scorec"></text>
-      <text x="875" y="316" class="t2" data-t="how.scored"></text>
-    </g>
-    <path d="M1010 230 L1052 230" class="ln" marker-end="url(#ar)"/>
-    <!-- jev -->
-    <g class="box acc"><rect x="1060" y="100" width="340" height="260" rx="22"/>
-      <text x="1230" y="166" class="t1">Jev</text>
-      <text x="1230" y="216" class="t2" data-t="how.jevb"></text>
-      <text x="1230" y="254" class="t2" data-t="how.jevc"></text>
-      <text x="1230" y="316" class="t2" data-t="how.jevd"></text>
-    </g>
-    <path d="M1230 360 L1230 434" class="ln dash" marker-end="url(#ar)"/>
-    <text x="1214" y="408" class="t4" style="text-anchor:end" data-t="how.unsure"></text>
-    <g class="box"><rect x="1060" y="442" width="340" height="160" rx="22"/>
-      <text x="1230" y="496" class="t1s">GPT-6 Luna</text>
-      <text x="1230" y="538" class="t2" data-t="how.gptb"></text>
-      <text x="1230" y="576" class="t2" data-t="how.gptc"></text>
-    </g>
-    <path d="M1400 230 L1442 230" class="ln" marker-end="url(#ar)"/>
-    <path d="M1400 522 H1605 V378" class="ln dash" marker-end="url(#ar)"/>
-    <!-- you -->
-    <g class="box"><rect x="1450" y="80" width="310" height="290" rx="22"/>
-      <text x="1605" y="148" class="t1" data-t="how.out"></text>
-      <text x="1605" y="210" class="t2" data-t="how.outb"></text>
-      <text x="1605" y="260" class="t2" data-t="how.outc"></text>
-      <text x="1605" y="310" class="t2" data-t="how.oute"></text>
-    </g>
-  </svg>
-  <p class="how-note" data-t="how.note"></p>
-  <p class="foot" data-t="how.foot"></p>
+<!-- 4 EVERY NUMBER HAS A RECEIPT -->
+<section class="slide s-receipt">
+  <h2 data-t="rec.title"></h2>
+  <div class="rec-body">
+    <ul class="bullets">
+      <li data-t="rec.b1"></li>
+
+    </ul>
+  <div class="trio">
+    <figure class="zoomfig"><div class="zoom"><div class="crop" data-crop="receipt-sources:receiptCard"></div></div><figcaption data-t="rec.zoom"></figcaption></figure>
+  </div>
+  </div>
 </section>
 
-<!-- 5 AI ROLE + EVAL -->
-<section class="slide s-ai">
-  <p class="kicker" data-t="ai.kicker"></p>
-  <h2 data-t="ai.title"></h2>
-  <div class="ai-grid">
-    <div class="layers">
-      <div class="layer acc"><p class="layer-h" data-t="ai.l1h"></p><p data-t="ai.l1"></p></div>
-      <div class="layer"><p class="layer-h" data-t="ai.l2h"></p><p data-t="ai.l2"></p></div>
-      <div class="layer"><p class="layer-h" data-t="ai.l3h"></p><p data-t="ai.l3"></p></div>
+<!-- 5 TECH DECISIONS -->
+<section class="slide s-tech">
+  <h2 data-t="tech.title"></h2>
+  <div class="tech-grid">
+    <div class="cascade">
+      <p class="col-h" data-t="tech.flowh"></p>
+      <ol class="steps">
+        <li><b data-t="tech.s2h"></b><span data-t="tech.s2"></span></li>
+        <li class="acc"><b data-t="tech.s3h"></b><span data-t="tech.s3"></span></li>
+        <li class="dash"><b data-t="tech.s4h"></b><span data-t="tech.s4"></span></li>
+      </ol>
     </div>
     <div class="eval">
-      <p class="eval-h" data-t="ai.evalh"></p>
-      <table>
-        <thead><tr><th data-t="ai.th1"></th><th data-t="ai.th2"></th><th data-t="ai.th3"></th><th data-t="ai.th4"></th></tr></thead>
-        <tbody>
-          <tr class="win"><td data-t="ai.r1"></td><td>16/20</td><td data-n>3.0 s</td><td data-usd>0.00022</td></tr>
-          <tr><td data-t="ai.r2"></td><td>14/20</td><td data-n>0.5 s</td><td data-usd>0.00011</td></tr>
-          <tr><td data-t="ai.r3"></td><td>14/20</td><td data-n>6.5 s</td><td data-usd>0.00031</td></tr>
-          <tr><td data-t="ai.r4"></td><td>10/20</td><td>0 s</td><td data-usd>0</td></tr>
-        </tbody>
-      </table>
-      <p class="eval-foot" data-t="ai.evalfoot"></p>
+      <p class="col-h" data-t="tech.evalh"></p>
+      <div class="bars">
+        <div class="bar-row win"><span data-t="tech.e1"></span><div class="track"><i style="width:80%"></i></div><b>16/20</b></div>
+        <div class="bar-row"><span data-t="tech.e2"></span><div class="track"><i style="width:70%"></i></div><b>14/20</b></div>
+        <div class="bar-row"><span data-t="tech.e3"></span><div class="track"><i style="width:70%"></i></div><b>14/20</b></div>
+        <div class="bar-row"><span data-t="tech.e4"></span><div class="track"><i style="width:50%"></i></div><b>10/20</b></div>
+      </div>
+      <p class="caveat" data-t="tech.caveat"></p>
+      <p class="note" data-t="tech.evalnote"></p>
     </div>
   </div>
 </section>
 
-<!-- 6 VERIFY -->
-<section class="slide s-verify">
-  <div class="verify-copy">
-    <p class="kicker" data-t="ver.kicker"></p>
-    <h2 data-t="ver.title"></h2>
-    <ul class="checks">
-      <li data-t="ver.c1"></li>
-      <li data-t="ver.c2"></li>
-      <li data-t="ver.c3"></li>
-      <li data-t="ver.c4"></li>
-      <li data-t="ver.c5"></li>
-    </ul>
-    <blockquote><span data-t="ver.quote"></span><cite data-t="ver.cite"></cite></blockquote>
-  </div>
-  <div class="phone phone-lg"><img data-shot="receipt-fit" alt=""></div>
-  <div class="zoom"><div class="crop" data-crop="receipt-sources:receiptFlight"></div><p data-t="ver.zoom"></p></div>
-</section>
-
-<!-- 7 LEARNING + PROACTIVE -->
-<section class="slide s-loop">
-  <p class="kicker" data-t="loop.kicker"></p>
-  <h2 data-t="loop.title"></h2>
-  <div class="loop-grid">
-    <figure><div class="phone phone-md"><img data-shot="swipe" alt=""></div><figcaption data-t="loop.cap1"></figcaption></figure>
-    <div class="loop-col">
-      <p class="loop-h" data-t="loop.h1"></p>
-      <p data-t="loop.p1"></p>
-      <p class="mono-line" data-t="loop.m1"></p>
-      <p class="loop-h" data-t="loop.h2"></p>
-      <p data-t="loop.p2"></p>
-      <p class="mono-line" data-t="loop.m2"></p>
-    </div>
-    <figure><div class="phone phone-md"><img data-shot="inbox" alt=""></div><figcaption id="gate-cap"></figcaption></figure>
-  </div>
-</section>
-
-<!-- 8 COMPETITION -->
+<!-- 6 WHY US / COMPETITORS -->
 <section class="slide s-comp">
-  <p class="kicker" data-t="comp.kicker"></p>
+  <p class="script clay small" data-t="comp.kicker"></p>
   <h2 data-t="comp.title"></h2>
+  <div class="comp-body">
   <div class="diffs">
-    <div class="diff"><b>1</b><div><p class="diff-h" data-t="comp.d1h"></p><p data-t="comp.d1"></p></div></div>
-    <div class="diff"><b>2</b><div><p class="diff-h" data-t="comp.d2h"></p><p data-t="comp.d2"></p></div></div>
-    <div class="diff"><b>3</b><div><p class="diff-h" data-t="comp.d3h"></p><p data-t="comp.d3"></p></div></div>
-    <div class="diff"><b>4</b><div><p class="diff-h" data-t="comp.d4h"></p><p data-t="comp.d4"></p></div></div>
+    <div class="card"><p class="card-h" data-t="comp.d1h"></p><p data-t="comp.d1" data-scan="comp.d1n"></p></div>
+    <div class="card"><p class="card-h" data-t="comp.d4h"></p><p data-t="comp.d4"></p></div>
+    <div class="card"><p class="card-h" data-t="comp.d5h"></p><p data-t="comp.d5"></p></div>
   </div>
-  <div class="mcp">
-    <p class="mcp-h"><b class="n5">5</b><span data-t="comp.mcp"></span></p>
-    <p class="mcp-tools"><code>find_free_windows</code><code>recommend_trips</code><code>get_trip_details</code><code>explain_trip</code><code>verify_ranking</code><code>watch_trip</code><code>update_travel_dna</code><code>book_links</code></p>
   </div>
-  <p class="foot" data-t="comp.others"></p>
+
+  <p class="others" data-t="comp.others"></p>
 </section>
 
-<!-- 9 BUSINESS + LIMITS -->
-<section class="slide s-biz">
-  <p class="kicker" data-t="biz.kicker"></p>
-  <h2 data-t="biz.title"></h2>
-  <div class="biz-grid">
+<!-- 7 TEAM -->
+<section class="slide s-team">
+  <h2 data-t="team.title"></h2>
+  <div class="team-grid">
     <div>
-      <p class="col-h" data-t="biz.h1"></p>
-      <div class="tiers">
-        <div class="tier"><p class="tier-h" data-t="biz.t1h"></p><p data-t="biz.t1"></p></div>
-        <div class="tier"><p class="tier-h" data-t="biz.t2h"></p><p data-t="biz.t2"></p></div>
-        <div class="tier acc"><p class="tier-h" data-t="biz.t3h"></p><p data-t="biz.t3"></p></div>
-      </div>
-      <div class="unit">
-        <div><span class="big" data-t="biz.n1"></span><span data-t="biz.n1l"></span></div>
-        <div><span class="big" data-t="biz.n2"></span><span data-t="biz.n2l"></span></div>
-      </div>
-      <p class="punch" data-t="biz.punch"></p>
+      <p class="team-name">[Team name] <span class="team-members">· [Members, roles]</span></p>
+      <p class="why" data-t="team.why"></p>
+      <p class="tested" data-t="team.tested"></p>
     </div>
-    <div>
-      <p class="col-h" data-t="biz.h2"></p>
-      <div class="lims">
-        <p><b data-t="biz.l1"></b><span data-t="biz.l1n"></span></p>
-        <p><b data-t="biz.l5"></b><span data-t="biz.l5n"></span></p>
-        <p><b data-t="biz.l2"></b><span data-t="biz.l2n"></span></p>
-        <p><b data-t="biz.l3"></b><span data-t="biz.l3n"></span></p>
-        <p><b data-t="biz.l6"></b><span data-t="biz.l6n"></span></p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 10 COMPLETENESS + TEAM + END CARD -->
-<section class="slide s-end">
-  <div class="end-left">
-    <p class="kicker" data-t="end.kicker"></p>
     <div class="stats">
-      <div><span class="big" data-v="prs"></span><span data-t="end.s1"></span></div>
-      <div><span class="big" data-v="be"></span><span data-t="end.s2"></span></div>
-      <div><span class="big" data-v="fe"></span><span data-t="end.s3"></span></div>
-      <div><span class="big">4</span><span data-t="end.s4"></span></div>
+      <div><span class="big" data-v="tests"></span><span data-t="team.s2"></span></div>
+      <div><span class="big" data-v="first"></span><span data-t="team.s3"></span></div>
     </div>
-    <p class="review" data-t="end.review"></p>
-    <p class="tested" data-t="end.tested"></p>
-    <p class="team"><b>[Team name]</b> · [Members]</p>
-    <p class="disclose" data-t="end.ai"></p>
   </div>
-  <div class="end-right">
-    <div class="brand big-brand"><span class="mark"></span>TripAI</div>
-    <p class="end-tag" data-t="end.tag"></p>
-    <div class="qr" id="qr"></div>
-    <p class="url" id="url"></p>
-    <p class="scan" data-t="end.scan"></p>
-    <p class="cta" data-t="end.cta"></p>
+  <p class="foot" data-t="team.ai"></p>
+</section>
+
+<!-- 8 BUSINESS + CLOSE -->
+<section class="slide s-biz dark">
+  <h2 data-t="biz.title"></h2>
+  <div class="money">
+    <div><b data-t="biz.m1h"></b><span data-t="biz.m1"></span></div>
+    <div><b data-t="biz.m2h"></b><span data-t="biz.m2"></span></div>
+    <div><b data-t="biz.m3h"></b><span data-t="biz.m3"></span></div>
   </div>
+  <p class="answer" id="answer"></p>
+  <p class="script peach cta" data-t="biz.cta"></p>
+  <div class="try"><p class="foot"><span data-t="biz.try"></span> <span id="url"></span><br><span class="small" data-t="biz.foot"></span></p><div class="qr" id="qr"></div></div>
 </section>
 
 <script src="i18n.js"></script>
@@ -266,30 +140,32 @@
 <script>
   const lang = new URLSearchParams(location.search).get('lang') || 'en';
   const T = window.DECK_I18N[lang];
-  const META = (window.SHOT_META || {})[lang] || {};
   document.documentElement.lang = lang;
-  const dec = (s) => (lang === 'pl' ? s.replace(/(\d)\.(\d)/g, '$1,$2') : s);
 
   document.querySelectorAll('[data-t]').forEach((el) => {
     const v = T[el.dataset.t];
     if (v === undefined) { console.error('missing key', el.dataset.t); el.textContent = '⟦' + el.dataset.t + '⟧'; return; }
-    if (el instanceof SVGElement) el.textContent = v; else el.innerHTML = v;
+    el.innerHTML = v;
   });
   const NUM = window.DECK_I18N.numbers;
   document.querySelectorAll('[data-v]').forEach((el) => (el.textContent = NUM[el.dataset.v]));
-  document.querySelectorAll('[data-n]').forEach((el) => (el.textContent = dec(el.textContent)));
-  document.querySelectorAll('[data-usd]').forEach((el) => (el.textContent = lang === 'pl' ? dec(el.textContent) + ' $' : '$' + el.textContent));
   document.querySelectorAll('[data-shot]').forEach((el) => (el.src = `shots/${lang}-${el.dataset.shot}.png`));
 
-  // Crops of the real screenshots (rects recorded by shots.mjs in CSS px of a 390x844 viewport).
+  // Ola's #1 and the scan size, as the app showed them at capture time (shots/meta.json)
+  const META = (window.SHOT_META || {})[lang] || {};
+  const ans = document.getElementById('answer');
+  // city + dates only: the deck never features a price
+  if (META.top) ans.innerHTML = T['biz.answer'].replace('{top}', META.top.split(', ').slice(0, 2).join(', ')); else ans.remove();
+  document.querySelectorAll('[data-scan]').forEach((el) => {
+    if (META.scan) el.innerHTML = T[el.dataset.scan].replace('{w}', META.scan.windows).replace('{c}', META.scan.candidates);
+  });
+
+  // Zoomed crops of the real screenshots (rects recorded by shots.mjs, CSS px of a 390x844 viewport)
   document.querySelectorAll('[data-crop]').forEach((el) => {
     const [shot, key] = el.dataset.crop.split(':');
     const r = META[key];
     if (!r) { console.error('missing crop rect', key); return; }
-    const pad = key === 'toast' ? -4 : 6; // inset the toast so no page pixels show around it
-    const row = key === 'receiptFlight'; // the whole receipt row, not just its label
-    const x = row ? 30 : Math.max(0, r.x - pad), y = Math.max(0, r.y - (row ? 10 : pad)), w = row ? 330 : Math.min(390 - x, r.w + 2 * pad);
-    const h = row ? 112 : r.h + 2 * pad; // flight line + its source + hotel line + its source
+    const x = r.x, y = r.y + 2, w = r.w, h = Math.min(r.h - 4, 175); // the flight + stay rows with their source chips
     const k = el.clientWidth / w;
     el.style.height = `${h * k}px`;
     el.style.backgroundImage = `url(shots/${lang}-${shot}.png)`;
@@ -297,24 +173,16 @@
     el.style.backgroundPosition = `${-x * k}px ${-y * k}px`;
   });
 
-  const g = META.inboxGate;
-  document.getElementById('gate-cap').innerHTML = g
-    ? T[g.push ? 'loop.cap2push' : 'loop.cap2inbox'].replace('{p}', dec(g.p.toFixed(2)))
-    : T['loop.cap2'];
+  // Slide 8: the QR + URL appear only in a private build (TRIPAI_APP_URL set); the committed copy keeps the placeholder.
+  if (window.DECK_QR) {
+    document.getElementById('qr').innerHTML = window.DECK_QR;
+    document.getElementById('url').textContent = window.DECK_URL;
+  } else {
+    document.getElementById('qr').innerHTML = '<div class="qr-ph">[QR]</div>';
+    document.getElementById('url').textContent = '[app URL / QR]';
+  }
 
-  // keep every diagram label inside its box: shrink the font until it fits (min 22px)
-  document.querySelectorAll('.pipe .box').forEach((g) => {
-    const rect = g.querySelector('rect');
-    const max = rect.width.baseVal.value - 28;
-    g.querySelectorAll('text').forEach((t) => {
-      let fs = parseFloat(getComputedStyle(t).fontSize);
-      while (t.getComputedTextLength() > max && fs > 22) { fs -= 1; t.style.fontSize = fs + 'px'; }
-      if (t.getComputedTextLength() > max) console.error('diagram label overflows: ' + t.textContent);
-    });
-  });
-  document.getElementById('qr').innerHTML = window.DECK_QR || '<div class="qr-ph">QR</div>';
-  document.getElementById('url').textContent = window.DECK_URL;
-  // phone screen: status bar above each screenshot so the island never covers app UI
+  // phone screen: a status bar above each screenshot so the island never covers app UI
   const SB = '<div class="sb"><span>9:41</span><svg viewBox="0 0 70 14"><g fill="#111"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5" y="6" width="3" height="8" rx="1"/><rect x="10" y="3" width="3" height="11" rx="1"/><rect x="15" y="0" width="3" height="14" rx="1"/><path d="M28 5a10 10 0 0 1 14 0l-2 2a7 7 0 0 0-10 0zM31.5 8.5a5 5 0 0 1 7 0L35 12z"/><rect x="47" y="1" width="20" height="12" rx="3" fill="none" stroke="#111" stroke-width="1.5"/><rect x="49.5" y="3.5" width="15" height="7" rx="1.5"/><rect x="68" y="5" width="2" height="4" rx="1"/></g></svg></div>';
   document.querySelectorAll('.phone > img').forEach((img) => {
     const scr = document.createElement('div');

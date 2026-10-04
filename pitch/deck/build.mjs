@@ -1,4 +1,4 @@
-// Renders deck.html to pitch/out/tripai-deck-{en,pl}.pdf plus PNG previews of every slide.
+// Renders deck.html to pitch/out/tripai-pitch-{en,pl}.pdf plus PNG previews of every slide.
 // Usage: node build.mjs [en|pl]   (screenshots first: node shots.mjs)
 import { chromium } from 'playwright';
 import QRCode from 'qrcode';
@@ -56,8 +56,8 @@ for (const lang of langs) {
   for (let i = 0; i < n; i++) {
     await slides.nth(i).screenshot({ path: path.join(OUT, 'preview', `${lang}-${String(i + 1).padStart(2, '0')}.png`) });
   }
-  await page.pdf({ path: path.join(OUT, `tripai-deck-${lang}.pdf`), width: '1920px', height: '1080px', printBackground: true, preferCSSPageSize: true });
-  console.log(`${lang}: ${n} slides -> out/tripai-deck-${lang}.pdf`);
+  await page.pdf({ path: path.join(OUT, `tripai-pitch-${lang}.pdf`), width: '1920px', height: '1080px', printBackground: true, preferCSSPageSize: true });
+  console.log(`${lang}: ${n} slides -> out/tripai-pitch-${lang}.pdf`);
   await page.close();
 }
 await browser.close();

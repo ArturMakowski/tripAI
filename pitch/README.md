@@ -1,52 +1,52 @@
 # Pitch deck (T7)
 
-10-slide, 16:9 investor/jury deck for HackYeah 2026, in English and Polish, built from one HTML source.
-The brief is [docs/PITCH.md](../docs/PITCH.md).
+An 8-slide, 16:9 pitch for HackYeah 2026, in English and Polish, from one HTML source. Story, copy, tone and visual style
+follow the team's 5-slide baseline (hook · Meet Ola · Free days in, a checkable trip out · Every number has a receipt ·
+We earn on bookings, never on ranking). Three slides are added from the earlier 10-slide draft: tech decisions, why us, team.
+Persona and dates are shared with the pitch video (T8): Ola, 29, Kraków, free 7–11 Nov, budget 1,800 PLN.
 
 | Output | What |
 |---|---|
-| `out/tripai-deck-en.pdf`, `out/tripai-deck-pl.pdf` | the decks (10 pages each, 1920×1080). The repo is public, so the committed copy shows `<frontend-url>` and a placeholder instead of the app URL and QR code |
-| `out/private/…` (gitignored) | the same decks with the real URL + QR, built with `TRIPAI_APP_URL` set: present these |
-| `out/preview/{en,pl}-NN.png` | a PNG of every slide (used by the quality gate) |
-| `out/critique-{en,pl}.md` | the last fresh-critic scores, per slide |
+| `out/tripai-pitch-en.pdf`, `out/tripai-pitch-pl.pdf` | the decks (1920×1080 pages). The repo is public, so the committed copy shows `[app URL / QR]` |
+| `out/preview/{en,pl}-NN.png` | a PNG of every slide |
+| `out/private/…` (gitignored) | the same decks with the real app URL + QR, for presenting |
+| `out/critique-{en,pl}.md` | the last fresh-critic scores (clarity, story, honesty) |
 
-## Rebuild (one command)
+## Rebuild
 
 ```bash
 cd pitch/deck
-npm install                # playwright + qrcode
-export TRIPAI_APP_URL=<frontend-url>   # the live app; never committed (public repo)
-npm run deck               # recapture screenshots of the LIVE app, then render both PDFs + previews
-npm run build              # re-render only (reuse deck/shots/)
-npm run critic             # quality gate: a fresh `claude -p` session scores every slide 1-10
-unset TRIPAI_APP_URL && npm run build   # the committed copy: same deck, URL + QR as placeholders
+npm install                                  # playwright + qrcode
+export TRIPAI_APP_URL=<frontend-url>          # or E2E_PROD_URL from the root .env; never committed
+npm run shots                                # recapture every phone screenshot from the live app (both languages)
+SHOTS_PART=onboarding npm run shots           # only the first run: welcome → 14 swipes → confirm → /trips persona card
+SHOTS_PART=trips npm run shots                # only demo profile → ranking, receipt, swipe, inbox
+npm run build                                # PDFs + previews (into out/private/ while TRIPAI_APP_URL is set)
+npm run critic                               # fresh `claude -p` critic scores every slide
+unset TRIPAI_APP_URL E2E_PROD_URL && npm run build   # the committed copy: placeholders instead of URL + QR
 ```
 
-- `deck.html` + `deck.css`: the slides. `i18n.js`: all EN/PL copy, keyed (`data-t`). Nothing user-visible is hard-coded in the HTML
-  except brand/source names and the eval numbers.
-- `shots.mjs`: Playwright, iPhone 14 (390×844 @3x), against `$TRIPAI_APP_URL` with the
-  **demo profile**, locale `en-GB` / `pl-PL` (the app follows the browser language), the next long weekend (7–11 Nov) picked on
-  the calendar. It also runs one inbox scan (the same DBOS workflow as the daily run) to show Jev's real push decision.
-  Element positions it records (`shots/meta.json`) drive the zoomed crops in the deck, so they follow the UI. A step whose
-  element is gone after a UI change is skipped with a warning and the script exits 1, so you can see which shot needs a look.
-- `build.mjs`: writes the QR code (to `$TRIPAI_APP_URL`, if set), renders the PDFs and previews, and fails on missing copy keys or broken
-  images; it warns when anything overflows a slide.
-- `critic.sh`: the quality gate. A fresh Claude session (no shared context) reads the previews and scores clarity, design and
-  judge-criteria fit per slide. We iterated until every slide scored at least 8 on all three.
-
-**SerpApi:** the capture only uses what the live backend serves. The backend's own daily cap (`TRIPAI_SERPAPI_DAILY_CAP`) bounds
-any paid lookups, and the deck story avoids quoting specific prices (some cached prices are other-date estimates).
+- `deck.html` + `deck.css`: the slides; `i18n.js`: all EN/PL copy, keyed (`data-t`).
+- `shots.mjs` (Playwright, iPhone 14, 390×844 @3x, locale `en-GB` / `pl-PL`; the app follows the browser language):
+  - The tutorial counts as already seen.
+  - The first run swipes Ola's answers with the arrow keys and takes the pre-filled confirm (next long weekend, 1 person, KRK).
+  - The trips part uses the demo profile with Ola's 1,800 PLN budget (the profile's "never show trips over" field) and
+    the 7–11 Nov long weekend.
+  - Every `/recommendations` call is rewritten to `phase=fast` in the browser, so the capture never triggers exact-date
+    (paid) lookups. One inbox scan shows Jev's real push decision; its `p` comes from the scan response.
+  - A step whose element is gone after a UI change is skipped with a warning and the script exits 1.
+- `build.mjs`: fails on missing copy keys or broken images, warns when something overflows a slide.
 
 ## Where the numbers come from
 | Number | Source |
 |---|---|
-| 21 PRs merged | `gh pr list --state merged` (3 Oct 2026) |
-| 365 backend tests | `cd backend && uv run pytest` → 365 passed |
-| 147 frontend tests | `cd frontend && npx vitest run` → 147 passed |
-| Eval table (16/20, 14/20, 14/20, 10/20; p50; cost) | PR #13 / docs/FIT_VERDICT.md, live run 3 Oct 2026 |
+| 48 PRs merged | `gh pr list --state merged` (4 Oct 2026) |
+| 937 automated tests | `cd backend && uv run pytest` → 599 passed; `cd frontend && npx vitest run` → 338 passed |
+| ~2 s to first results | fast phase measured on the live app: 1.3–2.6 s (full ranking ~5 s cold) |
+| 16/20 · 14/20 · 14/20 · 10/20, 0.5 s / 6.5 s / ~3 s, 15% escalated | PR #13 / docs/FIT_VERDICT.md, live eval 3 Oct 2026 (20 team-labelled trips) |
 | 89% / 12% | Booking.com, Global AI Sentiment Report (2025), 37,000+ consumers, 33 markets |
-| ≈ 36 PLN per booking | **assumption**: a 2% commission on a 1,800 PLN trip (labelled as such on the slide) |
-| ≈ 0.004 PLN AI cost per ranking | 5 fit verdicts × $0.00022 (PR #13), ≈ 3.7 PLN/USD |
-| p in the inbox caption | read from the captured scan (`shots/meta.json`) |
+| ~36 PLN per booking | **assumption**: 2% of a 1,800 PLN trip (labelled on the slide) |
+| ~19 PLN/month Premium | **hypothesis** (labelled on the slide) |
+| 3 user-testing rounds | docs/USER_TESTING.md |
 
-Placeholders `[Team name]` / `[Members]` on slide 10 are left for the team to fill in.
+Placeholders `[Team name]` / `[Members]` and `[app URL / QR]` are left for the team.
