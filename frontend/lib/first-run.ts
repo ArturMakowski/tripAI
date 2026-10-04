@@ -43,3 +43,22 @@ export function profileFromDna(
     rooms: party != null ? null : (prev?.rooms ?? null),
   };
 }
+
+/**
+ * The quick pick to make on the confirm, or null to leave the dates alone. Runs when the confirm opens (also for
+ * state saved before T19, which never went through the last swipe) and again when the long-weekend radar lands:
+ * - nothing pre-filled yet (`auto` null): `prefillDates`, so dates the user picked are kept;
+ * - our own pre-fill still in place: replaced only if the radar now gives a different next long weekend;
+ * - our pre-fill was changed or removed by the user: their choice stands.
+ */
+export function confirmPrefill(ranges: DateRange[], radar: BridgeWindow[], today: ISODate, auto: DateRange | null): DateRange | null {
+  if (!auto) return prefillDates(ranges, radar, today);
+  const mine = ranges.find((r) => r.quick === "long" && r.start === auto.start && r.end === auto.end);
+  if (!mine) return null;
+  const next = prefillDates(
+    ranges.filter((r) => r !== mine),
+    radar,
+    today,
+  );
+  return next && (next.start !== mine.start || next.end !== mine.end) ? next : null;
+}

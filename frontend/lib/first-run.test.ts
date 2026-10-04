@@ -1,12 +1,21 @@
 // T19 time to value: the confirm after the deck comes pre-filled, and the DNA result is applied without a stop.
 import { describe, expect, it } from "vitest";
-import { DEFAULT_AIRPORTS, prefillDates, profileFromDna } from "./first-run";
+import { DEFAULT_AIRPORTS, confirmPrefill, prefillDates, profileFromDna } from "./first-run";
 import { DNA_DECK, collectAnswers, type DnaSwipe } from "./dna";
 import { DEMO_PROFILE } from "./mock/fixtures";
 import { profileDna } from "./mock/dna";
 import type { BridgeWindow } from "./types";
 
 const TODAY = "2026-10-04";
+const RADAR: BridgeWindow[] = [
+  {
+    window: { start: "2026-11-07", end: "2026-11-11", source: "radar" },
+    total_days: 5,
+    leave_days: ["2026-11-09", "2026-11-10"],
+    holidays: [{ date: "2026-11-11", name: "Święto Niepodległości", source: "nager" }],
+    label: "",
+  },
+];
 
 describe("prefillDates", () => {
   it("preselects the next long weekend (PL holidays + bridge days) as the quick pick", () => {
@@ -60,5 +69,30 @@ describe("profileFromDna", () => {
     const p = profileFromDna(result, prev);
     expect([p.budget_pln, p.adults, p.children, p.rooms]).toEqual([1200, 2, 1, 2]);
     expect(p.origin_airports).toEqual(["GDN"]);
+  });
+});
+
+describe("confirmPrefill (the confirm opening, incl. state saved before T19, and a late radar)", () => {
+  const local = { start: "2026-11-11", end: "2026-11-15", quick: "long" as const };
+
+  it("pre-fills when the confirm opens with no dates (old saved state never saw the last swipe)", () => {
+    expect(confirmPrefill([], [], TODAY, null)).toEqual(local);
+  });
+
+  it("keeps the user's own dates, and an earlier pre-fill after a reload", () => {
+    expect(confirmPrefill([{ start: "2027-01-14", end: "2027-01-19" }], [], TODAY, null)).toBeNull();
+    expect(confirmPrefill([local], [], TODAY, null)).toBeNull();
+  });
+
+  it("replaces its own pre-fill when the radar lands with a different next long weekend", () => {
+    expect(confirmPrefill([local], RADAR, TODAY, local)).toMatchObject({ start: "2026-11-07", end: "2026-11-11", quick: "long" });
+    // same answer: nothing to do
+    expect(confirmPrefill([local], [], TODAY, local)).toBeNull();
+  });
+
+  it("never touches dates the user changed after the pre-fill", () => {
+    expect(confirmPrefill([], RADAR, TODAY, local)).toBeNull(); // removed it
+    expect(confirmPrefill([{ start: "2026-12-24", end: "2026-12-27", quick: "long" }], RADAR, TODAY, local)).toBeNull(); // picked another
+    expect(confirmPrefill([local, { start: "2027-01-14", end: "2027-01-19" }], RADAR, TODAY, local)).toBeNull(); // added their own
   });
 });

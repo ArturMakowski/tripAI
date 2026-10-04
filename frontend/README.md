@@ -35,7 +35,9 @@ Demo script: interview → windows → trips → drag the slider to **Price** (A
 - **Step 2 is one pre-filled confirm** (`components/trip-confirm.tsx`), "Gotowe? Sprawdź i ruszamy.":
   - **Kiedy.** The next długi weekend is preselected as the "Najbliższy długi weekend" quick pick. It comes from the backend
     radar, which loads while the user swipes, or else from the local PL holidays + bridge days (`lib/first-run.ts` `prefillDates`).
-    Dates the user picked earlier are kept. "Zmień" opens the quick chips in place.
+    Dates the user picked earlier are kept. The pre-fill runs as the confirm opens (`confirmPrefill`), so state saved before
+    T19 gets it too, and a radar that lands later only replaces the app's own pre-fill, never the user's choice. "Zmień" opens
+    the quick chips in place. Saved state with an unfinished deck opens on the deck.
   - **Kto.** 1 person, with the stepper inline (1–12).
   - **Skąd.** The default airport (KRK). "Zmień" opens the airport chips in place.
 
