@@ -95,7 +95,6 @@
     <h2 class="cta" data-t="biz.cta"></h2>
     <p class="button"><span data-t="biz.try"></span> <span id="url"></span></p>
   </div>
-  <div class="card qrcard"><div class="qr" id="qr"></div></div>
 </section>
 
 <script src="i18n.js"></script>
@@ -117,14 +116,8 @@
 
   const META = (window.SHOT_META || {})[lang] || {};
 
-  // Slide 8: the QR + URL appear only in a private build (TRIPAI_APP_URL set); the committed copy keeps the placeholder.
-  if (window.DECK_QR) {
-    document.getElementById('qr').innerHTML = window.DECK_QR;
-    document.getElementById('url').textContent = window.DECK_URL;
-  } else {
-    document.getElementById('qr').innerHTML = '<div class="qr-ph">[QR]</div>';
-    document.getElementById('url').textContent = '[app URL / QR]';
-  }
+  // Slide 8: the app URL comes from TRIPAI_APP_URL at build time (never committed: public repo).
+  document.getElementById('url').textContent = window.DECK_URL;
 
   // phone screen: a status bar above each screenshot so the island never covers app UI
   const SB = '<div class="sb"><span>9:41</span><svg viewBox="0 0 70 14"><g fill="#111"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="5" y="6" width="3" height="8" rx="1"/><rect x="10" y="3" width="3" height="11" rx="1"/><rect x="15" y="0" width="3" height="14" rx="1"/><path d="M28 5a10 10 0 0 1 14 0l-2 2a7 7 0 0 0-10 0zM31.5 8.5a5 5 0 0 1 7 0L35 12z"/><rect x="47" y="1" width="20" height="12" rx="3" fill="none" stroke="#111" stroke-width="1.5"/><rect x="49.5" y="3.5" width="15" height="7" rx="1.5"/><rect x="68" y="5" width="2" height="4" rx="1"/></g></svg></div>';
