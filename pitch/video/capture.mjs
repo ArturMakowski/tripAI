@@ -34,6 +34,9 @@ fs.rmSync(OUT, { recursive: true, force: true });
 if (fs.existsSync(FINAL)) fs.cpSync(FINAL, OUT, { recursive: true });
 fs.mkdirSync(OUT, { recursive: true });
 const FPS = 30;
+const SLOW = Number(process.env.SLOW ?? 4); // slow-motion factor while a clip records (1 = real time)
+let slowNow = 1;
+const wait = (ms) => page.waitForTimeout(ms * slowNow);
 const DPR = 3;
 const VIEW = { width: 390, height: 844 }; // the full iPhone 14 screen, as the installed PWA (no browser chrome)
 
@@ -88,6 +91,25 @@ const ctx = await browser.newContext({
   locale: LANG === 'pl' ? 'pl-PL' : 'en-GB',
   timezoneId: 'Europe/Warsaw',
 });
+// Slow-motion capture (SLOW× while a clip records): the page's clock (performance.now, Date.now, rAF timestamps,
+// setTimeout/setInterval) runs SLOW× slower, CSS/Web animations get playbackRate 1/SLOW via CDP, and our own pointer
+// moves and waits stretch by SLOW. Frames are then resampled on the virtual timeline, so the app's motion gets
+// SLOW× more real frames (headless Chromium paints 1170×2532 at only ~15–25 fps).
+await ctx.addInitScript(() => {
+  const rp = performance.now.bind(performance);
+  const rd = Date.now;
+  let base = rp(), vbase = base, f = 1;
+  const vnow = () => vbase + (rp() - base) / f;
+  const d0 = rd(), p0 = rp();
+  window.__setSlow = (nf) => { const r = rp(); vbase = vbase + (r - base) / f; base = r; f = nf; };
+  performance.now = vnow;
+  Date.now = () => Math.round(d0 + (vnow() - p0));
+  const raf = window.requestAnimationFrame.bind(window);
+  window.requestAnimationFrame = (cb) => raf(() => cb(vnow()));
+  const st = window.setTimeout.bind(window), si = window.setInterval.bind(window);
+  window.setTimeout = (fn, ms, ...a) => st(fn, (ms || 0) * f, ...a);
+  window.setInterval = (fn, ms, ...a) => si(fn, (ms || 0) * f, ...a);
+});
 // first-run tutorial counts as seen, so no coach marks sit on top of the flow
 await ctx.addInitScript(() => {
   try {
@@ -126,6 +148,8 @@ await ctx.route(/\/api\/recommendations/, (route) => {
   return route.fallback();
 });
 const page = await ctx.newPage();
+// a full document load inside a clip starts a fresh clock: re-apply the slow factor
+page.on('load', () => { if (slowNow !== 1) page.evaluate((x) => window.__setSlow?.(x), slowNow).catch(() => {}); });
 // A failed take keeps what it recorded: the HAR goes next to the footage, so a re-run (without --record) replays it
 // instead of calling the backend again (the one allowed full call is never repeated).
 process.on('uncaughtException', async (e) => {
@@ -141,6 +165,12 @@ page.on('requestfailed', (r) => { if (API.test(r.url())) log('  ! failed', r.met
 // ------------------------------------------------------------------------------------------------ helpers
 let rec = null; // the running screencast, if any
 
+async function setSlow(cdp, f) {
+  slowNow = f;
+  await page.evaluate((x) => window.__setSlow?.(x), f).catch(() => {});
+  await cdp.send('Animation.setPlaybackRate', { playbackRate: 1 / f }).catch(() => {});
+}
+
 async function startClip(name) {
   const cdp = await ctx.newCDPSession(page);
   const frames = [];
@@ -149,25 +179,30 @@ async function startClip(name) {
     frames.push({ t: f.metadata.timestamp, d: f.data });
     await cdp.send('Page.screencastFrameAck', { sessionId: f.sessionId }).catch(() => {});
   });
+  await cdp.send('Animation.enable').catch(() => {});
+  await setSlow(cdp, SLOW);
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: VIEW.width * DPR, maxHeight: VIEW.height * DPR });
   const t0 = Date.now() / 1000;
+  const S = SLOW;
   rec = {
-    mark: (ev) => events.push({ t: +(Date.now() / 1000 - t0).toFixed(3), ...ev }),
+    // event times on the virtual (app) timeline
+    mark: (ev) => events.push({ t: +((Date.now() / 1000 - t0) / S).toFixed(3), ...ev }),
     async stop() {
-      await page.waitForTimeout(250);
+      await wait(250);
       await cdp.send('Page.stopScreencast');
+      await setSlow(cdp, 1);
       await cdp.detach().catch(() => {});
       const dir = path.join(OUT, name);
       fs.rmSync(dir, { recursive: true, force: true });
       fs.mkdirSync(dir, { recursive: true });
-      const n = Math.floor((Date.now() / 1000 - t0) * FPS);
+      const n = Math.floor(((Date.now() / 1000 - t0) / S) * FPS);
       let j = 0;
       for (let k = 0; k < n && frames.length; k++) {
-        while (j + 1 < frames.length && frames[j + 1].t <= t0 + k / FPS) j++;
+        while (j + 1 < frames.length && frames[j + 1].t <= t0 + (k * S) / FPS) j++;
         fs.writeFileSync(path.join(dir, `${String(k).padStart(4, '0')}.jpg`), Buffer.from(frames[j].d, 'base64'));
       }
       meta.clips[name] = { frames: n, events };
-      log(`clip ${name}: ${frames.length} raw → ${n} frames (${(n / FPS).toFixed(1)} s)`);
+      log(`clip ${name}: ${frames.length} raw → ${n} frames (${(n / FPS).toFixed(1)} s, ${S}× slow capture, ~${Math.round(frames.length / (n / FPS))} real fps)`);
       rec = null;
     },
   };
@@ -184,7 +219,7 @@ async function tap(locator, label) {
   const c = center(b);
   rec?.mark({ type: 'move', x: c.x, y: c.y, label });
   await page.mouse.move(c.x, c.y, { steps: 8 });
-  await page.waitForTimeout(120);
+  await wait(120);
   rec?.mark({ type: 'tap', x: c.x, y: c.y, w: b.width, h: b.height, label });
   await l.click();
 }
@@ -194,14 +229,14 @@ async function drag(from, to, ms = 520) {
   rec?.mark({ type: 'down', x: from.x, y: from.y });
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
-  await page.waitForTimeout(90);
+  await wait(90);
   const steps = Math.round(ms / 16);
   for (let i = 1; i <= steps; i++) {
     const e = 1 - Math.pow(1 - i / steps, 3);
     const x = from.x + (to.x - from.x) * e, y = from.y + (to.y - from.y) * e;
     await page.mouse.move(x, y);
     rec?.mark({ type: 'move', x: +x.toFixed(1), y: +y.toFixed(1) });
-    await page.waitForTimeout(16);
+    await wait(16);
   }
   await page.mouse.up();
   rec?.mark({ type: 'up', x: to.x, y: to.y });
@@ -227,7 +262,7 @@ async function warmScroll() {
     scrollTo(0, 0);
   });
   await page.waitForLoadState('networkidle').catch(() => {});
-  await page.waitForTimeout(800);
+  await wait(800);
 }
 
 /** Full-page still with fixed/sticky chrome removed + the viewport (chrome source) + target boxes. */
@@ -260,7 +295,7 @@ async function still(name, targets = {}) {
 
 async function waitReady(timeout = 60000) {
   await page.getByText(T.ready).first().waitFor({ timeout }).catch(() => log('  (no "ranking updated" text)'));
-  await page.waitForTimeout(1200);
+  await wait(1200);
 }
 
 // ------------------------------------------------------------------------------------------------ the flow
@@ -268,40 +303,40 @@ const recording = (part) => PARTS.includes(part);
 
 // 1. Welcome → "Let's go" → the Travel DNA deck: the first five cards by real drags, the rest with the buttons.
 await page.goto(APP + '/', { waitUntil: 'networkidle' });
-await page.waitForTimeout(1200);
+await wait(1200);
 if (recording('onboarding')) await still('welcome');
 await page.evaluate(async (srcs) => { await Promise.all(srcs.map((s) => new Promise((r) => { const i = new Image(); i.onload = i.onerror = r; i.src = s; }))); }, SWIPE_IMAGES);
-if (recording('onboarding')) { await startClip('welcome'); await page.waitForTimeout(500); }
+if (recording('onboarding')) { await startClip('welcome'); await wait(500); }
 await tap(page.getByRole('button', { name: T.letsGo }).or(page.getByRole('link', { name: T.letsGo })), 'letsGo');
 await page.waitForURL(/\/onboarding/);
-await page.waitForTimeout(1500);
+await wait(1500);
 if (recording('onboarding')) await rec.stop();
 const deck = await page.locator('img').first().boundingBox();
 const grab = { x: VIEW.width / 2, y: deck.y + deck.height * 0.55 };
-if (recording('onboarding')) { await startClip('dna'); await page.waitForTimeout(400); }
+if (recording('onboarding')) { await startClip('dna'); await wait(400); }
 for (const [i, a] of ANSWERS.entries()) {
   if (recording('onboarding') && i < 5) {
     // never film a card before its photo has decoded (a black card otherwise)
     await page.waitForFunction(() => [...document.querySelectorAll('img')].every((im) => im.complete && im.naturalWidth > 0), null, { timeout: 15000 }).catch(() => log('  (a deck photo did not load)'));
     await drag(grab, { x: grab.x + DRAG[a][0], y: grab.y + DRAG[a][1] });
-    await page.waitForTimeout(520);
+    await wait(520);
     if (i === 4) await rec.stop();
   } else {
     await page.getByRole('button', { name: GESTURE[a] }).first().click();
-    await page.waitForTimeout(380);
+    await wait(380);
   }
 }
-await page.waitForTimeout(1000);
+await wait(1000);
 
 // 2. "Ready? Check and go." (pre-filled: next long weekend, 1 person, home airport) → /trips with the persona card.
 meta.flow.dates = (await page.getByText(/\d{1,2}[–-]\d{1,2}\s\p{L}+/u).first().innerText().catch(() => '')).trim();
 if (recording('onboarding')) {
   await still('confirm', { showTrips: page.getByRole('button', { name: T.showTrips }) });
   await startClip('confirm');
-  await page.waitForTimeout(700);
+  await wait(700);
   await tap(page.getByRole('button', { name: T.showTrips }).or(page.getByRole('link', { name: T.showTrips })), 'showTrips');
   await page.waitForURL(/\/trips/);
-  await page.waitForTimeout(4500);
+  await wait(4500);
   await rec.stop();
   meta.flow.persona = (await page.getByText(T.persona).first().innerText().catch(() => '')).trim();
   await still('trips_persona', { persona: page.getByText(T.persona).first() });
@@ -319,7 +354,7 @@ if (!recording('onboarding')) {
 // 3. Ola's budget (deck persona: 1,800 PLN) goes into Profile's optional hard limit, then the ranked trips arrive.
 holdRecs = true;
 await page.goto(APP + '/profile', { waitUntil: 'networkidle' });
-await page.waitForTimeout(1200);
+await wait(1200);
 if (BUDGET) {
   await page.getByRole('switch', { name: rx('never show trips over', 'nie pokazuj wyjazdów') }).first().click();
   const budget = page.getByRole('slider', { name: rx('maximum price per person', 'maksymalna cena na osobę') }).first();
@@ -327,23 +362,23 @@ if (BUDGET) {
   await page.keyboard.press('Home');
   for (let i = 0; i < (BUDGET - 600) / 100; i++) await page.keyboard.press('ArrowRight');
 }
-await page.waitForTimeout(800);
+await wait(800);
 meta.flow.budget = BUDGET;
 holdRecs = false;
 allowFull = true;
 await startClip('loading');
-await page.waitForTimeout(300);
+await wait(300);
 await tap(page.getByRole('link', { name: rx('^trips$', '^(podróże|wyjazdy)$') }), 'tripsTab');
 await page.waitForURL(/\/trips/);
 await waitReady(90000);
-await page.waitForTimeout(800);
+await wait(800);
 await rec.stop();
 for (let i = 0; i < 4; i++) {
   await page.getByRole('button', { name: rx('^list$', '^lista$') }).first().click().catch(() => log('  (no List toggle)'));
   if (await page.locator('a[href^="/trips/"]').first().waitFor({ timeout: 8000 }).then(() => true, () => false)) break;
   log('  (list not shown yet, retrying)');
 }
-await page.waitForTimeout(1000);
+await wait(1000);
 if (!(await page.locator('a[href^="/trips/"]').count())) {
   await page.screenshot({ path: path.join(OUT, 'debug-trips.png') });
   throw new Error('no trip links on /trips (see debug-trips.png)');
@@ -361,17 +396,17 @@ await page.evaluate(() => scrollTo(0, 0));
 
 // 4. The swipe deck of ranked trips: "I want to go" on the #1, "Love it!" on the #2.
 await page.getByRole('button', { name: rx('^swipe$', '^karty$|^przesuń') }).first().click().catch(() => log('  (no Swipe toggle)'));
-await page.waitForTimeout(800);
+await wait(800);
 await page.evaluate(() => scrollTo(0, 230));
-await page.waitForTimeout(700);
+await wait(700);
 const top = await page.locator('[data-offer-card], [aria-roledescription="card"], article').first().boundingBox().catch(() => null);
 const offerGrab = top ? { x: VIEW.width / 2, y: top.y + Math.min(top.height, 844 - top.y) * 0.45 } : { x: 195, y: 560 };
 await startClip('offers');
-await page.waitForTimeout(700);
+await wait(700);
 await drag(offerGrab, { x: offerGrab.x + 280, y: offerGrab.y - 30 }, 620);
-await page.waitForTimeout(1300);
+await wait(1300);
 await drag(offerGrab, { x: offerGrab.x + 10, y: offerGrab.y - 380 }, 620);
-await page.waitForTimeout(1600);
+await wait(1600);
 await rec.stop();
 
 // 5. The #1 trip page: flight, stay, things to do; sources one tap away; evidence.
@@ -379,7 +414,7 @@ await rec.stop();
 const tripPath = tripHrefs[1] ?? tripHrefs[0];
 meta.flow.trip = tripPath;
 await page.goto(APP + tripPath, { waitUntil: 'networkidle' });
-await page.waitForTimeout(2500);
+await wait(2500);
 await still('trip', {
   title: page.locator('h1').first(),
   score: page.getByText(/^\d{2}$/).first(),
@@ -391,11 +426,11 @@ await still('trip', {
   evidence: page.getByText(T.evidence).first(),
 });
 await page.evaluate(() => scrollTo(0, 0));
-await page.waitForTimeout(500);
+await wait(500);
 await startClip('sources');
-await page.waitForTimeout(500);
+await wait(500);
 await tap(page.getByRole('button', { name: T.sources }).or(page.getByText(T.sources)), 'sources');
-await page.waitForTimeout(2200);
+await wait(2200);
 await rec.stop();
 // the first source chip that appeared (viewport coords), for the highlight
 meta.clips.sources.chip = await page.evaluate(() => {
@@ -408,13 +443,13 @@ meta.clips.sources.chip = await page.evaluate(() => {
 });
 await still('trip_sources', { sourceChip: page.getByText(/·\s*\d{1,2}\s\w+/).first() });
 await page.evaluate(() => scrollTo(0, 0));
-await page.waitForTimeout(400);
+await wait(400);
 await startClip('evidence');
-await page.waitForTimeout(400);
+await wait(400);
 await page.evaluate(() => scrollBy({ top: 700, behavior: 'smooth' }));
-await page.waitForTimeout(900);
+await wait(900);
 await tap(page.getByText(T.evidence), 'evidence');
-await page.waitForTimeout(2600);
+await wait(2600);
 await rec.stop();
 // the first weather source chip inside Evidence (viewport coords), for the highlight
 meta.clips.evidence.chip = await page.evaluate(() => {
@@ -426,28 +461,28 @@ await page.keyboard.press('Escape');
 
 // 6. You book: approve the plan (nothing is booked by us), then My trips with a target price.
 await page.goto(APP + tripPath + '/confirm', { waitUntil: 'networkidle' });
-await page.waitForTimeout(2000);
+await wait(2000);
 await startClip('approve');
-await page.waitForTimeout(500);
+await wait(500);
 await tap(page.getByText(T.confirmSelf), 'confirmSelf');
-await page.waitForTimeout(600);
+await wait(600);
 await tap(page.getByRole('button', { name: T.approve }), 'approve');
-await page.waitForTimeout(2600);
+await wait(2600);
 await rec.stop();
 await still('approved', { links: page.getByRole('link', { name: /Google Flights/ }) });
 
 await page.goto(APP + '/my-trips', { waitUntil: 'networkidle' });
-await page.waitForTimeout(2000);
+await wait(2000);
 await startClip('mytrips');
-await page.waitForTimeout(600);
+await wait(600);
 await tap(page.getByRole('button', { name: T.setPrice }).or(page.getByText(T.setPrice)), 'setPrice');
-await page.waitForTimeout(1200);
+await wait(1200);
 await rec.stop();
 await still('mytrips', { trip: page.locator('li, article, a').filter({ hasText: /Nov|lis/ }).first() });
 
 // 7. The returning home: your #1 and the next time off.
 await page.goto(APP + '/', { waitUntil: 'networkidle' });
-await page.waitForTimeout(1500);
+await wait(1500);
 await still('home');
 
 await finish();
