@@ -7,7 +7,7 @@ Persona and dates are shared with the pitch video (T8): Ola, 29, Kraków, free 7
 
 | Output | What |
 |---|---|
-| `out/tripai-pitch-en.pdf`, `out/tripai-pitch-pl.pdf` | the decks (1920×1080 pages). The repo is public, so the committed copy shows `[app URL / QR]` |
+| `out/tripai-pitch-en.pdf`, `out/tripai-pitch-pl.pdf` (local only, gitignored: they contain the app URL) | the decks (1920×1080 pages). The repo is public, so the committed copy shows `[app URL / QR]` |
 | `out/preview/{en,pl}-NN.png` | a PNG of every slide |
 | `out/private/…` (gitignored) | the same decks with the real app URL + QR, for presenting |
 
